@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional final audit storage for email-change request, cancellation, delivery and expiry. Self-service and
+  administrative outcomes share current request/cancel action values; expiry records atomic User/grant release.
+  Breaking pre-v1 changes move former mandatory storage arguments to the end, replace administrative-only action
+  spellings and require typed actor-kind/UUID expiry Command/Event payloads. Update current callers and mappings
+  directly. Claims, external sends, recovery and ordinary failure propagation remain unchanged; synchronous
+  confirmation is separately owned. See [email-change composition](docs/credential-delivery.md#optional-email-change-audit-composition-unreleased).
+
 - Scoped Agent execution/timeline admission through Common's real summary/list/get/phase/activity handlers.
   Direct read Permissions intersect trusted consumer relationships; independent reference Permissions cannot
   grant bodies or widen scope. Require Common **^1.5.1** for activity-scoped aggregate/derived-inspection correction;

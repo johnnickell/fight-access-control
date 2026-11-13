@@ -25,7 +25,10 @@ Its Command and Event require `actor_kind` plus UUID `actor_id`, not string work
 cleanup supplies fixed-nil SystemId explicitly; an admitted User/Agent keeps its identity. Enabled evidence joins
 the actual successful expiry transaction at the admitted occurrence time, not discovery time. Failed CAS/no-change
 creates no evidence. Audit failure rolls back staged expiry, while post-commit notification failure retains it.
-Other families' expiry contracts remain unchanged.
+Email expiry now has the same typed actor-kind/UUID Command/Event representation and optional final storage;
+see [email-change audit composition](credential-delivery.md#optional-email-change-audit-composition-unreleased).
+It records the actual coupled User reservation/grant expiry, not only material cleanup. Password-reset expiry
+retains its separate current contract.
 
 Cleanup needs no cipher, key or provider capability. Bind those only to issuance/delivery handlers, not these cleanup
 handlers. Do not decrypt old material to decide whether it is expired. Queries are advisory; commands own policy,

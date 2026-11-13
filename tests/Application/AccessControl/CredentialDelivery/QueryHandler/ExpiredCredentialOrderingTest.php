@@ -146,7 +146,7 @@ final class ExpiredCredentialOrderingTest extends TestCase
                         $at
                     ),
                     default => new ExpireEmailChange(
-                        'worker:ordered',
+                        SystemId::generate(),
                         $item->getUserId(),
                         $this->emailGrantId($item),
                         $at

@@ -72,7 +72,7 @@ final class ExpiredCredentialInterleavingTest extends TestCase
         $fixture = new ExpiredCredentialFixture($purpose);
         $before = $fixture->stage('reclaimed');
         $loser = $winner === 'worker:a' ? 'worker:b' : 'worker:a';
-        if ($purpose === 'activation') {
+        if ($purpose !== 'password_reset') {
             $winner = UserId::generate()->toString();
             $loser = UserId::generate()->toString();
         }
@@ -556,10 +556,10 @@ final class ExpiredCredentialInterleavingTest extends TestCase
             $userRepository,
             $emailChangeGrantRepository,
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
-            $auditEvidenceRepository,
             $fixture->unitOfWork,
             $clock,
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
 
         return function () use ($fixture, $handler, $competitor): void {
@@ -579,12 +579,12 @@ final class ExpiredCredentialInterleavingTest extends TestCase
             $fixture->userRepository,
             $fixture->emailChangeGrantRepository,
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
-            new InMemoryAuditEvidenceRepository($fixture->unitOfWork),
             $fixture->unitOfWork,
             new EmailChangeService\FixedEmailChangeCredentialGenerator('replacement'),
             new EmailChangeService\PrefixEmailChangeDeliveryCipher(),
             new FixedClock($fixture->expiresAt->format('Y-m-d\TH:i:s.uP')),
-            $fixture->eventDispatcher
+            $fixture->eventDispatcher,
+            new InMemoryAuditEvidenceRepository($fixture->unitOfWork)
         );
         $handler->handle(CommandMessage::create(new RequestEmailChange(
             $fixture->user->getId(),

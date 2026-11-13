@@ -11,6 +11,7 @@ use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHand
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command as ActivationCommand;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command as EmailCommand;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command as ResetCommand;
@@ -70,7 +71,7 @@ final readonly class HumanCredentialContractFixture
             'password_reset.request' => new ResetCommand\RequestPasswordReset($this->state->user->getEmail()),
             'email_change.deliver' => new EmailCommand\DeliverEmailChange($userId, $userId, $deliveryId),
             'email_change.expire' => new EmailCommand\ExpireEmailChange(
-                'worker',
+                SystemId::generate(),
                 $userId, $this->state->initial->getId(), $this->state->expiresAt
             ),
             'email_change.request' => new EmailCommand\RequestEmailChange(
@@ -128,17 +129,18 @@ final readonly class HumanCredentialContractFixture
             ),
             'email_change.deliver' => new Email\DeliverEmailChangeHandler(
                 $email,
-                $audit, $unitOfWork, new PrefixEmailChangeDeliveryCipher(), $this->provider, $clock, $events
+                $unitOfWork, new PrefixEmailChangeDeliveryCipher(), $this->provider, $clock, $events, $audit
             ),
             'email_change.expire' => new Email\ExpireEmailChangeHandler($users, $email, $unitOfWork, $events),
             'email_change.request' => new Email\RequestEmailChangeHandler(
                 $users,
-                $email, $authorization, $audit, $unitOfWork,
-                new FixedEmailChangeCredentialGenerator('fresh'), new PrefixEmailChangeDeliveryCipher(), $clock, $events
+                $email, $authorization, $unitOfWork,
+                new FixedEmailChangeCredentialGenerator('fresh'), new PrefixEmailChangeDeliveryCipher(),
+                $clock, $events, $audit
             ),
             'email_change.cancel' => new Email\CancelEmailChangeHandler(
                 $users,
-                $email, $authorization, $audit, $unitOfWork, $clock, $events
+                $email, $authorization, $unitOfWork, $clock, $events, $audit
             ),
             default => throw new LogicException('Unknown fixture operation.')
         };

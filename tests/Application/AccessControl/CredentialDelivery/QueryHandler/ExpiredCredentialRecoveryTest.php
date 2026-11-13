@@ -234,12 +234,12 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             $fixture->userRepository,
             $fixture->emailChangeGrantRepository,
             new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true),
-            new InMemoryAuditEvidenceRepository($fixture->unitOfWork),
             $fixture->unitOfWork,
             new EmailChangeService\FixedEmailChangeCredentialGenerator('fresh-fixture'),
             new EmailChangeService\PrefixEmailChangeDeliveryCipher(),
             new FixedClock('2030-01-01T01:01:00Z'),
-            $fixture->eventDispatcher
+            $fixture->eventDispatcher,
+            new InMemoryAuditEvidenceRepository($fixture->unitOfWork)
         );
         $request->handle(CommandMessage::create(new RequestEmailChange(
             $user->getId(),
@@ -361,7 +361,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
             $command = $fixture->command();
             if (!$wrongUser) {
                 $command = new ExpireEmailChange(
-                    'worker:expiry',
+                    SystemId::generate(),
                     $foreign->user->getId(),
                     $fixture->emailChangeGrantRepository->all()[0]->getId(),
                     $fixture->expiresAt
@@ -578,7 +578,7 @@ final class ExpiredCredentialRecoveryTest extends TestCase
         string $purpose
     ): void {
         foreach ([['worker:a', 'worker:b'], ['worker:b', 'worker:a']] as [$winner, $loser]) {
-            if ($purpose === 'activation') {
+            if ($purpose !== 'password_reset') {
                 $winner = UserId::generate()->toString();
                 $loser = UserId::generate()->toString();
             }

@@ -345,16 +345,16 @@ final class HandlerFailureContractTest extends TestCase
             Email\CancelEmailChangeHandler::class => new Email\CancelEmailChangeHandler(
                 $userRepository,
                 $emailChangeGrantRepository, $this->createStub(EmailChangeAdministrationAuthorization::class),
-                $auditEvidenceRepository, $unitOfWork, $clock, $eventDispatcher
+                $unitOfWork, $clock, $eventDispatcher, $auditEvidenceRepository
             ),
             Email\DeliverEmailChangeHandler::class => new Email\DeliverEmailChangeHandler(
                 $emailChangeGrantRepository,
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $this->createStub(EmailChangeDeliveryCipher::class),
                 $provider,
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             ),
             Email\ExpireEmailChangeHandler::class => new Email\ExpireEmailChangeHandler(
                 $userRepository,
@@ -364,12 +364,12 @@ final class HandlerFailureContractTest extends TestCase
                 $userRepository,
                 $emailChangeGrantRepository,
                 $this->createStub(EmailChangeAdministrationAuthorization::class),
-                $auditEvidenceRepository,
                 $unitOfWork,
                 $this->createStub(EmailChangeCredentialGenerator::class),
                 $this->createStub(EmailChangeDeliveryCipher::class),
                 $clock,
-                $eventDispatcher
+                $eventDispatcher,
+                $auditEvidenceRepository
             ),
             Feature\CreateFeatureHandler::class => new Feature\CreateFeatureHandler(
                 $featureRepository,

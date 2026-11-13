@@ -293,7 +293,7 @@ final readonly class ExpiredCredentialFixture
                 $at
             ),
             'email_change' => new ExpireEmailChange(
-                $actor,
+                $actor === 'worker:expiry' ? SystemId::generate() : UserId::fromString($actor),
                 $this->user->getId(),
                 $this->emailChangeGrantRepository->all()[0]->getId(),
                 $at

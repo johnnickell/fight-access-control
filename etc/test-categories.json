@@ -813,6 +813,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\EmailChangeGrant\\CommandHandler\\EmailChangeAuditTest": {
+      "file": "tests/Application/AccessControl/EmailChangeGrant/CommandHandler/EmailChangeAuditTest.php",
+      "category": "Unit",
+      "reason": "Isolated email-change audit outcomes with shared in-memory User/grant/evidence repositories, controlled UoW, clock, provider and event ports; no real storage, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\EmailChangeGrant\\CommandHandler\\ExpireEmailChangeHandlerTest": {
       "file": "tests/Application/AccessControl/EmailChangeGrant/CommandHandler/ExpireEmailChangeHandlerTest.php",
       "category": "Unit",

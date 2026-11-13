@@ -112,6 +112,8 @@ final class HumanCredentialPayloadTest extends TestCase
                 ActivationCommand\DeliverUserInvitation::class,
                 ActivationCommand\ExpireInvitationDelivery::class,
                 ActivationEvent\InvitationDeliveryExpired::class,
+                EmailCommand\ExpireEmailChange::class,
+                EmailEvent\EmailChangeExpired::class,
                 ActivationCommand\ResendInvitationDelivery::class,
                 ActivationCommand\RetryInvitationDelivery::class,
                 ActivationEvent\InvitationDeliveryResent::class,

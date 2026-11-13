@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler;
 
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
@@ -34,7 +42,8 @@ final readonly class ExpireEmailChangeHandler implements CommandHandler
         private UserRepository $userRepository,
         private EmailChangeGrantRepository $emailChangeGrantRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -56,7 +65,10 @@ final readonly class ExpireEmailChangeHandler implements CommandHandler
 
         try {
             /** @var ?EmailChangeExpired $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): ?EmailChangeExpired {
+            $event = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                $commandMessage
+            ): ?EmailChangeExpired {
                 $emailChangeGrant = $this->emailChangeGrantRepository->getLatestByUserId($command->getUserId());
                 if (
                     $emailChangeGrant instanceof EmailChangeGrant
@@ -98,6 +110,20 @@ final readonly class ExpireEmailChangeHandler implements CommandHandler
                 if (!$this->emailChangeGrantRepository->replace($emailChangeGrant, $expiredGrant)) {
                     throw new LogicException('Email-change authority changed concurrently.');
                 }
+
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                    $command->getActorId(),
+                    new AuditSubject($user->getId()),
+                    AuditAction::EMAIL_CHANGE_EXPIRED,
+                    $command->getOccurredAt(),
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($expiredUser),
+                        AuditGrantState::fromGrant($emailChangeGrant),
+                        AuditGrantState::fromGrant($expiredGrant)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
+                ));
 
                 return new EmailChangeExpired(
                     $command->getActorId(),

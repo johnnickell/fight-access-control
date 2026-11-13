@@ -330,7 +330,7 @@ class AuditEvidence implements Arrayable
                 AuditAction::USER_PENDING_REGISTRATION_RECOVERED => ActivationGrantId::class,
             AuditAction::PASSWORD_RESET_COMPLETED => PasswordResetGrantId::class,
             AuditAction::EMAIL_CHANGE_REQUESTED, AuditAction::EMAIL_CHANGE_CANCELLED,
-                AuditAction::EMAIL_CHANGE_CONFIRMED => EmailChangeGrantId::class,
+            AuditAction::EMAIL_CHANGE_EXPIRED, AuditAction::EMAIL_CHANGE_CONFIRMED => EmailChangeGrantId::class,
             AuditAction::USER_ENABLED, AuditAction::USER_DISABLED, AuditAction::USER_DELETED,
                 AuditAction::PASSWORD_CHANGED => null,
             AuditAction::USER_RESTORED => (
@@ -355,7 +355,7 @@ class AuditEvidence implements Arrayable
                 AuditAction::USER_PENDING_REGISTRATION_RECOVERED => $before !== null && !$sameGeneration,
             AuditAction::EMAIL_CHANGE_REQUESTED => !$sameGeneration,
             AuditAction::PASSWORD_RESET_COMPLETED, AuditAction::EMAIL_CHANGE_CANCELLED,
-                AuditAction::EMAIL_CHANGE_CONFIRMED => $sameGeneration,
+            AuditAction::EMAIL_CHANGE_EXPIRED, AuditAction::EMAIL_CHANGE_CONFIRMED => $sameGeneration,
             default => $before === null && $after === null
         };
         if (!$validRelationship) {

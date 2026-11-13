@@ -4,7 +4,8 @@ TASK-00122 replaces the pre-v1 evidence and persisted contract directly across e
 current callers, fixtures and schemas. The TASK and canonical Work handoff own package verification evidence.
 TASK-00123 adds optional composition for the eight User account lifecycle handlers described below; TASK-00124
 adds [optional invitation delivery/expiry composition](credential-delivery.md#optional-invitation-audit-composition-unreleased).
-No release,
+TASK-00126 adds [optional email-change composition](credential-delivery.md#optional-email-change-audit-composition-unreleased)
+for request/cancel/delivery/expiry, including self-service outcomes. No release,
 consumer adoption or independent acceptance is claimed by this document.
 
 ## Current construction and persistence
@@ -56,7 +57,7 @@ correlation; record identity/correlation is neither authority nor universal dedu
   | Enable/disable/delete User; change password | No grant facts (incidental lifecycle cancellation is not this outcome's relationship) |
   | Complete password reset | Exact reset generation consumed, advancing once |
   | Request email change | Initial email-change issuance or replacement retaining the unchanged terminal predecessor |
-  | Cancel/confirm email change | Exact email-change generation cancelled/consumed, advancing once |
+  | Cancel/confirm/expire email change | Exact email-change generation cancelled/consumed/expired, advancing once; expiry preserves any existing User lifecycle state |
   | Resend invitation | Replacement activation issuance; retained predecessor advances once by cancellation |
   | Request password reset | Initial reset issuance or replacement retaining the cancelled/unchanged terminal predecessor |
   | Delivery confirmation/failure; invitation retry | Exact grant/delivery generation, advancing once; no replacement |

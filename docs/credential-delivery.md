@@ -11,7 +11,8 @@ Consumers protect every worker and alternate entry point; actor IDs, stored orig
 Unknown/ineligible password-reset requests still complete without work or an existence signal. Ordinary stale,
 early or terminal expiry dispatch remains a no-op; email expiry still releases only its exact reservation in every
 supported account state. No new Query/subscriber/admission policy is introduced. Invitation audit composition is
-explicitly optional as described below; other credential families retain their current wiring.
+explicitly optional as described below. Email-change audit is also optional under the following contract;
+password-reset composition retains its separate current wiring.
 
 Use Common Application `StateConflict` for known request/state/CAS/claim/lease refusals and invitation retry/resend
 refusals. Email request/cancellation use `ResourceNotFound` for an absent requested User and `PermissionDenied`
@@ -50,6 +51,38 @@ suites exercise these boundaries. Static fixtures and focused level-8 analysis q
 Common generic bus inference. Actual tagged minimum/ordinary routing and safe HTTP composition are recorded in
 TASK-00138's ignored Work evidence; HTTP maps deliberate 403/404/409 intent and keeps unknown/internal faults 500.
 MCP/OAuth mapping and real consumer storage/provider/worker qualification remain separate.
+
+## Optional email-change audit composition (Unreleased)
+
+TASK-00126 makes `AuditEvidenceRepository` the optional **last** constructor argument of
+`RequestEmailChangeHandler`, `CancelEmailChangeHandler`, `DeliverEmailChangeHandler` and `ExpireEmailChangeHandler`.
+Move the former mandatory request/cancel/delivery argument to the end. Omitted/null intentionally disables durable
+evidence; a supplied repository must join the User/grant repositories' actual transaction and connection and must
+not discard unsupported evidence. Audit storage failure aborts the required outcome transaction.
+
+Requests and cancellations record both self-service and authorized administrative outcomes using their existing
+required UserId actor. Cross-User authorization is unchanged. Their current action values are
+`user.email_change_requested` and `user.email_change_cancelled`, replacing administrative-only spellings directly.
+Request evidence retains an unchanged terminal predecessor when a fresh generation follows prior work.
+Delivery preserves the admitted User actor through its subscriber/Command, recording confirmed and committed failed
+outcomes, not the temporary claim or provider invocation. Claims and external sends remain separately committed;
+rolling back outcome evidence cannot unsend mail or erase the claim. Recovery uses the existing generation/lease rules.
+
+Expiry now uses direct `UserId|AgentId|SystemId|AnonymousId` provenance in Command and Event, with required
+`actor_kind` and UUID `actor_id` fields. There is no label reader or fallback identity. Deliberate autonomous cleanup
+passes `SystemId::generate()` explicitly; admitted work retains its actual origin. Identity grants no new authority.
+The existing actor requirement remains even with audit disabled. `user.email_change_expired` describes only the
+committed coupled reservation release and latest issued grant expiry, including inactive Users and material-free
+terminal delivery. The admitted occurrence time is retained; early/stale/terminal work creates no evidence, and
+CAS loss rolls back both sides. Typed User revisions and exact grant/delivery relationships contain no addresses,
+credentials, hashes, ciphertext, entities, provider payloads or diagnostic text. Every record uses the real incoming
+message ID and trusted outcome time. Post-commit notification failure still throws and leaves evidence committed;
+lost commit acknowledgment remains uncertainty, not proof of rollback or permission to retry blindly.
+
+Consumers update constructors, persisted action mapping and expiry Command/Event/schema handling directly under
+ADR 0011 and qualify their actual shared connection, mapping, workers and provider recovery. No backfill, new
+scheduler, permission, consumer implementation or release is supplied. Synchronous `confirmEmail` optional auditing
+belongs solely to TASK-00127; this slice does not claim that journey complete.
 
 ## Explicit status and bounded discovery (Unreleased)
 
