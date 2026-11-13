@@ -11,8 +11,8 @@ subjects/actions, unique evidence identity, actual time/revisions/relationships/
 All 22 current writer owners and their necessary callers/fixtures use the new construction contract. The TASK
 and canonical Work handoff own package verification; this inventory is not independent acceptance.
 Unreleased TASK-00123 supports optional last nullable audit storage on the eight account lifecycle handlers,
-TASK-00124 on the four invitation handlers, TASK-00125 on reset request/delivery/expiry, and TASK-00154 on custom
-Role Permission grant/revoke. Other current writers
+TASK-00124 on the four invitation handlers, TASK-00125 on reset request/delivery/expiry, TASK-00153 on custom
+Role creation/rename/removal and TASK-00154 on custom Role Permission grant/revoke. Other current writers
 still require storage; other unaudited owners remain unchanged. Constructor presence alone proves
 neither complete branch coverage nor participation in the actual transaction. No release or consumer qualification
 is implied.
@@ -157,13 +157,18 @@ Synchronous password change/reset remains exclusively TASK-00127; this slice doe
 
 ## Administration handlers (11)
 
+TASK-00153's three lifecycle handlers support optional last nullable storage through ordinary shared transactions;
+see [composition](role-revisions.md#optional-lifecycle-audit-unreleased). Their required actor inputs are unchanged.
+Audit failure/commit loss rolls back staged Role/evidence, uncertain commit retains both actual possibilities, and
+ordinary publication failure leaves committed evidence intact. Other administration rows remain separate suppliers.
+
 | Supplier / profile | Actual entry | Observed audit and outcome disposition |
 | --- | --- | --- |
-| [TASK-00153](../planning/tasks/00153-TASK.md) / R | [CreateCustomRole](../src/Application/AccessControl/Role/CommandHandler/CreateCustomRoleHandler.php) | —. Create custom Role, authoritative new incarnation/revision; uniqueness/reserved-name refusal is not no-change. |
-| TASK-00153 / R | [RenameCustomRole](../src/Application/AccessControl/Role/CommandHandler/RenameCustomRoleHandler.php) | —. Actual name/revision change; fresh same-name is validated no-change without timestamp/revision/event. Stale expected token rejects even same-name; name/reference fences retained. |
-| TASK-00153 / R | [RemoveCustomRole](../src/Application/AccessControl/Role/CommandHandler/RemoveCustomRoleHandler.php) | —. Remove authoritative predecessor under caller revision and User/registration/reference fence; missing/managed/referenced/stale target rejects, no invented removal successor. |
 | [TASK-00154](../planning/tasks/00154-TASK.md) / R | [GrantPermissionToCustomRole](../src/Application/AccessControl/Role/CommandHandler/GrantPermissionToCustomRoleHandler.php) | W when enabled: `role.permission_granted`, related Permission and exact before/after Role revisions. Already-held validates full Role/Permission eligibility then no-change without evidence. |
 | TASK-00154 / R | [RevokePermissionFromCustomRole](../src/Application/AccessControl/Role/CommandHandler/RevokePermissionFromCustomRoleHandler.php) | W when enabled: `role.permission_revoked`, related Permission and exact before/after Role revisions. Already-absent validates then no-change without evidence. Existing protected-membership revocation remains allowed; managed/reserved Role policy remains. |
+| [TASK-00153](../planning/tasks/00153-TASK.md) / R | [CreateCustomRole](../src/Application/AccessControl/Role/CommandHandler/CreateCustomRoleHandler.php) | W when enabled: `role.created`, direct required UserId, trusted createdAt and message correlation; null predecessor and authoritative new incarnation/revision. Uniqueness/reserved-name refusal adds none. |
+| TASK-00153 / R | [RenameCustomRole](../src/Application/AccessControl/Role/CommandHandler/RenameCustomRoleHandler.php) | W when enabled: `role.renamed`, actual before/after incarnation/revision, renamedAt and message correlation. Fresh same-name validates without timestamp/revision/event/evidence; stale intent rejects even same-name. Complete-state/name fences remain. |
+| TASK-00153 / R | [RemoveCustomRole](../src/Application/AccessControl/Role/CommandHandler/RemoveCustomRoleHandler.php) | W when enabled: `role.removed`, authoritative predecessor, null successor, removedAt and message correlation inside the removal transaction. Caller revision and User/registration/reference fences remain; missing/managed/referenced/stale target adds none. |
 | [TASK-00155](../planning/tasks/00155-TASK.md) / M | [AssignRoleToUser](../src/Application/AccessControl/User/CommandHandler/AssignRoleToUserHandler.php) | —. Changed User/Role relationship; already-held no-change still full-state/reference fenced. Preserve reserved-role policy; no fabricated authentication/Role mutation. |
 | TASK-00155 / M | [RemoveRoleFromUser](../src/Application/AccessControl/User/CommandHandler/RemoveRoleFromUserHandler.php) | —. Changed User/Role relationship; already-absent no-change still validates/fences; forbidden removal rejects. |
 | [TASK-00156](../planning/tasks/00156-TASK.md) / A | [UpdateAgent](../src/Application/AccessControl/Agent/CommandHandler/UpdateAgentHandler.php) | —. Required AgentUpdateInitiator exposes real User/Agent ID. Atomic repository rename returns exact persisted changedAt; null is no-change. No pre-read/compensating read or synthetic name revision needed. |

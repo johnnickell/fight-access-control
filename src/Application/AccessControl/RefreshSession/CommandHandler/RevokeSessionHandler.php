@@ -49,9 +49,9 @@ final readonly class RevokeSessionHandler implements CommandHandler
         private RefreshSessionRepository $refreshSessionRepository,
         private Clock $clock,
         private SessionAdministrationAuthorization $sessionAdministrationAuthorization,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -91,7 +91,6 @@ final readonly class RevokeSessionHandler implements CommandHandler
                 }
 
                 $administrative = !$refreshSession->getUserId()->equals($command->getActorId());
-                $reason = null;
                 if ($administrative) {
                     try {
                         $this->sessionAdministrationAuthorization->assertCanManageSessions(
@@ -115,11 +114,16 @@ final readonly class RevokeSessionHandler implements CommandHandler
                     throw new StateConflict('The refresh session changed concurrently.');
                 }
 
-                if ($reason !== null) {
+                if ($this->auditEvidenceRepository !== null) {
+                    $action = AuditAction::SESSION_REVOKED;
+                    if ($administrative) {
+                        $action = AuditAction::SESSION_ADMINISTRATIVELY_REVOKED;
+                    }
+
                     $this->auditEvidenceRepository->add(AuditEvidence::record(
                         $command->getActorId(),
                         new AuditSubject($revokedSession->getUserId()),
-                        AuditAction::SESSION_ADMINISTRATIVELY_REVOKED,
+                        $action,
                         $revokedAt,
                         new AuditSessionRevocation(
                             $revokedSession->getId(),

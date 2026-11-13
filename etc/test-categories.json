@@ -1149,6 +1149,18 @@
       "reason": "Public handler outcomes with controlled in-memory Role/Permission/UoW and mapped audit ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RoleLifecycleAuditReferenceTest": {
+      "file": "tests/Application/AccessControl/Role/CommandHandler/RoleLifecycleAuditReferenceTest.php",
+      "category": "Unit",
+      "reason": "Role removal and registration interleavings over controlled in-memory state, audit and transaction ports; no real database, filesystem, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RoleLifecycleAuditTest": {
+      "file": "tests/Application/AccessControl/Role/CommandHandler/RoleLifecycleAuditTest.php",
+      "category": "Unit",
+      "reason": "Real values and routed handlers with controlled in-memory Role/audit persistence, clock and transaction faults; no real database, filesystem, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RoleRevisionHandlerTest": {
       "file": "tests/Application/AccessControl/Role/CommandHandler/RoleRevisionHandlerTest.php",
       "category": "Unit",
@@ -1183,6 +1195,12 @@
       "file": "tests/Application/AccessControl/User/ApplicationRecordsTest.php",
       "category": "Unit",
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\Authentication\\SynchronousAuditTest": {
+      "file": "tests/Application/AccessControl/User/Authentication/SynchronousAuditTest.php",
+      "category": "Unit",
+      "reason": "Direct synchronous outcomes with controlled in-memory transactional repositories, clocks, credentials and publishers; no real storage, network or process.",
       "methods": {}
     },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\Authentication\\SynchronousContractTest": {
@@ -1477,6 +1495,12 @@
       "file": "tests/Domain/AccessControl/Audit/AuditCreationAdmissionTest.php",
       "category": "Unit",
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditAuthenticationOutcomeTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditAuthenticationOutcomeTest.php",
+      "category": "Unit",
+      "reason": "Isolated typed authentication evidence construction, hydration and outcome admission; no external boundary.",
       "methods": {}
     },
     "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditEvidenceContractTest": {

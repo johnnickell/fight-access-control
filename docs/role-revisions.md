@@ -84,6 +84,48 @@ complete resolved Roles **including revision**, so even an otherwise identical r
 registration's pending User, assignments, grant/delivery and required audit. A prior query or startup check supplies
 neither reservation nor transaction admission.
 
+## Optional lifecycle audit (Unreleased)
+
+`CreateCustomRoleHandler`, `RenameCustomRoleHandler` and `RemoveCustomRoleHandler` accept an optional last
+`?AuditEvidenceRepository $auditEvidenceRepository = null`. Existing positional and named arguments keep their
+meaning; omitted or explicit null deliberately disables durable evidence. The required `UserId` actor remains
+required and is attribution, not administrative authority. No Command or Event wire fields change.
+
+Inject the upgraded audit repository directly alongside ordinary `TransactionalUnitOfWork`, not an Event-inspecting
+transaction decorator. For example, using consumer-owned adapters on one actual connection:
+
+```php
+$create = new CreateCustomRoleHandler($roleRepository, $clock, $unitOfWork, $eventDispatcher, $auditEvidenceRepository);
+$rename = new RenameCustomRoleHandler($roleRepository, $clock, $unitOfWork, $eventDispatcher, $auditEvidenceRepository);
+$remove = new RemoveCustomRoleHandler(
+    $roleRepository,
+    $userRepository,
+    $clock,
+    $unitOfWork,
+    $eventDispatcher,
+    $auditEvidenceRepository
+);
+```
+
+Each handler explicitly adds `AuditEvidence::record()` after authoritative persistence and before commit, using
+`ROLE_CREATED`, `ROLE_RENAMED` or `ROLE_REMOVED`. `AuditRoleRevisions` stores the complete incarnation/revision:
+creation has null before-state, rename has actual before/after, and removal has null after-state. The evidence
+uses the existing trusted outcome Clock sample, direct actor, typed Role subject and incoming MessageId, plus a
+fresh evidence identity. Names, entity snapshots and raw messages are not captured. Correlation is not deduplication;
+evidence is not automatically authorized public or log output. Validated same-name rename adds no evidence and
+still performs its non-writing current-state fence without sampling a new outcome time.
+
+Enabled audit failure rolls back staged Role/evidence together; concurrent loss creates no losing mutation record.
+An uncertain commit can have committed both or neither: inspect authoritative state, never infer rollback from the
+exception or replay stale intent. Ordinary post-commit publisher/subscriber failure still throws while both persist;
+notification failure cannot replace the primary fault. No rejected-attempt store or new replay/outbox is supplied.
+
+Consumers must update mappings for the [current evidence contract](audit-evidence.md), preserve actor/subject kinds,
+and qualify Role, User references, audit and UoW on the **same actual connection and enclosing transaction**.
+An active-transaction flag alone is insufficient. Package modeled transaction tests do not qualify production
+schema, isolation, locks, restart or bootstrap, and do not authorize removing consumer workarounds. Other audit
+families and cross-family adoption remain separately owned.
+
 ## Outcomes and verification
 
 Purpose-specific success events follow confirmed commit only. Pre-commit conflict/persistence failure rolls back;

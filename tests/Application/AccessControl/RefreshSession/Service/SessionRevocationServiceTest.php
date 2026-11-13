@@ -30,8 +30,9 @@ final class SessionRevocationServiceTest extends TestCase
         $refreshSessionRepository->add($session);
         $service = new SessionRevocationService($refreshSessionRepository);
 
-        $revoked = $service->revoke($session);
+        [$before, $revoked] = $service->revoke($session);
 
+        self::assertSame($session, $before);
         self::assertTrue($revoked->isRevoked());
         self::assertTrue($refreshSessionRepository->getById($session->getId())?->isRevoked());
     }
@@ -45,7 +46,7 @@ final class SessionRevocationServiceTest extends TestCase
 
         $result = $service->revoke($revoked);
 
-        self::assertSame($revoked, $result);
+        self::assertSame([null, $revoked], $result);
     }
 
     public function test_that_revoke_retries_after_a_stale_revision(): void
@@ -61,8 +62,9 @@ final class SessionRevocationServiceTest extends TestCase
         );
         $service = new SessionRevocationService($refreshSessionRepository);
 
-        $revoked = $service->revoke($session);
+        [$before, $revoked] = $service->revoke($session);
 
+        self::assertSame(1, $before?->getRevision());
         self::assertTrue($revoked->isRevoked());
         self::assertTrue($refreshSessionRepository->getById($session->getId())?->isRevoked());
     }

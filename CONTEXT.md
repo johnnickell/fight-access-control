@@ -1,5 +1,23 @@
 # Fight AccessControl Context
 
+## Synchronous optional atomic audit — TASK-00127 accepted checkpoint
+
+The four direct User capabilities and RevokeSessionHandler now accept optional final nullable audit storage.
+[Current composition](docs/user-authentication.md#optional-atomic-audit) covers activation, login, refresh, logout,
+password change/reset, email confirmation and self/admin session management. Enabled evidence joins the owning
+transaction; disabled composition makes no durable-audit promise. Authentication facts retain actual User and
+session revisions plus activation's consumed grant. Terminal replay records its committed revocation before
+outward refusal, while benign conflicts and concurrent helper no-change produce no duplicate record. Existing
+credential, recovery, CAS, authorization and post-commit failure contracts remain. Explicit provenance is not a grant.
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`41d03e5fe030afe7b7158fc254d5f3a43bdf8c6d` (116 scenarios / 655 checks). Land's behavior-preserving merge of
+TASK-00125's current reset-handler base passes a fresh complete gate: 9,230 tests / 92,740 assertions and exact
+10,934/10,934 statements and Unit-only lines across 543 source files, without exclusions. TASK-00127 is done;
+unfinished siblings keep its parents open. Publication/final verification and owned retirement remain pending
+at this checkpoint; canonical `.runs/handoffs/TASK-00127/land.md` owns subsequent outcomes. Sensitive non-CQRS
+contracts do not guarantee blanket native PHP serialization guards. Real consumer connection, storage, race,
+cryptography, transport and deployment qualification remain separate.
+
 ## Scoped execution and timeline composition — TASK-00089 accepted checkpoint
 
 [Scoped execution reads](docs/agent-execution-reads.md) now compose inward `AgentExecutionReadAdmission` and
@@ -1467,6 +1485,16 @@ nonvisual QA PASS cover TASK-00126 candidate `1a2b3a4b5d6451843ba5562f4d3f36dc27
 421 checks). Its TASK records package acceptance and retained full-gate evidence; canonical
 `.runs/handoffs/TASK-00126/land.md` owns subsequent delivery/retirement outcomes. Real consumer qualification
 remains separate. See [current account composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
+TASK-00153 now adds optional last nullable storage to custom Role creation, rename and removal. Explicit evidence
+follows authoritative persistence inside each ordinary transaction, preserving direct required UserId attribution,
+complete actual Role incarnation/revisions, outcome time and incoming message correlation. Validated same-name
+rename adds none; all caller/CAS/name/reference/registration guards and ordinary uncertainty/publication failures
+remain. See [Role composition](docs/role-revisions.md#optional-lifecycle-audit-unreleased) and the current
+[outcome rows](docs/audit-outcome-coverage.md#administration-handlers-11). Independent Review ACCEPT and nonvisual
+QA PASS cover candidate `47cbc012dfcb0e2d5b2944e6240849ce4b542da7` (35 scenarios / 295 checks). Its TASK records
+package acceptance; canonical `.runs/handoffs/TASK-00153/land.md` owns integration, verification, publication and
+retirement outcomes, pending at this closeout checkpoint. Real consumer mapping/connection qualification and
+workaround retirement remain separate.
 Omitted/null disables durable evidence without changing business-required typed actors, target/default-Role/CAS
 admission or coupled persistence. Enabled evidence retains the actual mutation transaction, trusted time,
 authoritative revisions/grant/delivery/message correlation and ordinary User publication-failure propagation.
