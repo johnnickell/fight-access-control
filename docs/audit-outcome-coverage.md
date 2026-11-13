@@ -10,8 +10,9 @@ TASK-00122's [typed evidence replacement](audit-evidence.md) supplies direct typ
 subjects/actions, unique evidence identity, actual time/revisions/relationships/correlation and admitted facts.
 All 22 current writer owners and their necessary callers/fixtures use the new construction contract. The TASK
 and canonical Work handoff own package verification; this inventory is not independent acceptance.
-Unreleased TASK-00123 now supports optional last nullable audit storage on the eight account lifecycle handlers.
-Other current writers still require storage; unaudited owners remain unchanged. Constructor presence alone proves
+Unreleased TASK-00123 supports optional last nullable audit storage on the eight account lifecycle handlers,
+TASK-00124 on the four invitation handlers, and TASK-00125 on reset request/delivery/expiry. Other current writers
+still require storage; other unaudited owners remain unchanged. Constructor presence alone proves
 neither complete branch coverage nor participation in the actual transaction. No release or consumer qualification
 is implied.
 
@@ -127,11 +128,16 @@ current typed Command/Event contract. See [composition](credential-delivery.md#o
 
 ### Password reset — [TASK-00125](../planning/tasks/00125-TASK.md)
 
+All three handlers support optional final nullable storage. Public requests explicitly establish AnonymousId;
+existing delivery and now-typed expiry provenance remain required independently of storage. See
+[composition and failure boundaries](credential-delivery.md#optional-password-reset-audit-composition-unreleased).
+Synchronous password change/reset remains exclusively TASK-00127; this slice does not complete that journey.
+
 | Entry | Profile | Observed audit and outcome disposition |
 | --- | --- | --- |
 | [RequestPasswordReset](../src/Application/AccessControl/PasswordResetGrant/CommandHandler/RequestPasswordResetHandler.php) | U | W `user.password_reset_requested` only for eligible User, explicitly established AnonymousId. Unknown/inactive remains concealed no-work/no evidence. New generation replaces prior authority under User-before-grant fence and immutable RecoveryAuthority binding; no User security bump for request. |
 | [DeliverPasswordReset](../src/Application/AccessControl/PasswordResetGrant/CommandHandler/DeliverPasswordResetHandler.php) | H | W committed delivery/failure, direct typed origin. Current User recovery binding revalidated in claim/outcome transactions; stale/cancelled/successor cannot be resurrected. Delivery success is not redemption authority. |
-| [ExpirePasswordResetDelivery](../src/Application/AccessControl/PasswordResetGrant/CommandHandler/ExpirePasswordResetDeliveryHandler.php) | X | —. Expired original delivery-material cleanup; absent/stale/early/already-clean/CAS loss is no-work. Does not impose delivery success on redemption or invent a successful reset. |
+| [ExpirePasswordResetDelivery](../src/Application/AccessControl/PasswordResetGrant/CommandHandler/ExpirePasswordResetDeliveryHandler.php) | X | W when enabled: committed original material expiry records exact grant/delivery revisions, EXPIRED status, trusted admitted time and message correlation. Absent/stale/early/already-clean/CAS loss is no-work with no evidence. Does not impose delivery success on redemption or invent a successful reset. |
 
 ### Email change — [TASK-00126](../planning/tasks/00126-TASK.md)
 
@@ -222,7 +228,7 @@ Detailed candidate/log identities belong in ignored TASK-owned handoffs, not a p
 | --- | --- | --- |
 | TASK-00123 | [Optional account audit](../tests/Application/AccessControl/User/CommandHandler/OptionalLifecycleAuditTest.php), [dispatch outcomes](../tests/Application/AccessControl/User/CommandHandler/UserLifecycleDispatchTest.php), [User lifecycle](../tests/Application/AccessControl/User/CommandHandler/UserLifecycleContractTest.php), [registration recovery races](../tests/Application/AccessControl/User/CommandHandler/RegistrationRecoveryRaceTest.php) | Eight handlers, enabled/null/omitted storage, typed/anonymous/admin provenance, actual revision/grant/message facts, retained admission, coupled state/evidence and failures. Independent acceptance and real consumer qualification remain separate. |
 | TASK-00124 | [Invitation delivery](../tests/Application/AccessControl/ActivationGrant/CommandHandler/DeliverUserInvitationHandlerTest.php), [expiry recovery](../tests/Application/AccessControl/CredentialDelivery/QueryHandler/ExpiredCredentialRecoveryTest.php) | Four owners, both origins, retry/resend/expiry and committed failures versus temporary claims. |
-| TASK-00125 | [Reset request](../tests/Application/AccessControl/PasswordResetGrant/CommandHandler/RequestPasswordResetHandlerTest.php), [recovery outcomes](../tests/Application/AccessControl/PasswordResetGrant/RecoveryOutcomeTest.php) | Anonymous/no-work concealment, delivery/failure/expiry, preserved recovery binding. |
+| TASK-00125 | [Optional audit/expiry](../tests/Application/AccessControl/PasswordResetGrant/CommandHandler/PasswordResetAuditTest.php), [reset request](../tests/Application/AccessControl/PasswordResetGrant/CommandHandler/RequestPasswordResetHandlerTest.php), [delivery outcomes](../tests/Application/AccessControl/PasswordResetGrant/CommandHandler/DeliverPasswordResetHandlerTest.php), [recovery outcomes](../tests/Application/AccessControl/PasswordResetGrant/RecoveryOutcomeTest.php) | Enabled/disabled composition, anonymous/no-work concealment, typed delivery/failure/expiry, rollback/uncertainty/publication and preserved recovery binding. |
 | TASK-00126 | [Email request](../tests/Application/AccessControl/EmailChangeGrant/CommandHandler/RequestEmailChangeHandlerTest.php), [expiry](../tests/Application/AccessControl/EmailChangeGrant/CommandHandler/ExpireEmailChangeHandlerTest.php) | Self-service plus admin, delivery/failure and full reservation expiry. |
 | TASK-00127 | [Synchronous contracts](../tests/Application/AccessControl/User/Authentication/SynchronousContractTest.php), [sessions](../tests/Application/AccessControl/RefreshSession/SessionLifecycleTest.php), [RevokeSession](../tests/Application/AccessControl/RefreshSession/CommandHandler/RevokeSessionHandlerTest.php) | Seven synchronous entries and Command, terminal-replay committed revocation versus benign conflict, correct unauthenticated origin. |
 | TASK-00153 | [Role revisions](../tests/Application/AccessControl/Role/CommandHandler/RoleRevisionHandlerTest.php) | Create/rename/remove exact incarnation/revisions, stale even no-op, all-writer/reference/rollback/publication. |

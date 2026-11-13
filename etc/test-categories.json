@@ -1017,6 +1017,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\CommandHandler\\PasswordResetAuditTest": {
+      "file": "tests/Application/AccessControl/PasswordResetGrant/CommandHandler/PasswordResetAuditTest.php",
+      "category": "Unit",
+      "reason": "Isolated audit composition, message values and application outcomes with controlled in-memory repositories/UoW/clock/provider ports; no real storage, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\PasswordResetGrant\\CommandHandler\\PasswordResetDeliveryLifecycleHandlerTest": {
       "file": "tests/Application/AccessControl/PasswordResetGrant/CommandHandler/PasswordResetDeliveryLifecycleHandlerTest.php",
       "category": "Unit",

@@ -140,7 +140,7 @@ final class ExpiredCredentialOrderingTest extends TestCase
                         $at
                     ),
                     'password_reset' => new ExpirePasswordResetDelivery(
-                        'worker:ordered',
+                        SystemId::generate(),
                         $item->getUserId(),
                         PasswordResetDeliveryId::fromString($item->getDeliveryId()->toString()),
                         $at

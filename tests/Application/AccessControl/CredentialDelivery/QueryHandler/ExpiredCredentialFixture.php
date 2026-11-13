@@ -287,7 +287,7 @@ final readonly class ExpiredCredentialFixture
                 $at
             ),
             'password_reset' => new ExpirePasswordResetDelivery(
-                $actor,
+                $actor === 'worker:expiry' ? SystemId::generate() : UserId::fromString($actor),
                 $this->user->getId(),
                 PasswordResetDeliveryId::fromString($this->initial->getDelivery()->getId()->toString()),
                 $at

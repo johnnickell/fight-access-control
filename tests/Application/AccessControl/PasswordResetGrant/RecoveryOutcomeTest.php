@@ -71,6 +71,15 @@ final class RecoveryOutcomeTest extends TestCase
                 }
 
                 self::assertSame($primary, $caught);
+                if (in_array($operation, ['request', 'claim', 'outcome'], true)) {
+                    $expectedAuditCount = (int) ($operation !== 'request');
+                    if ($committed && $operation !== 'claim') {
+                        ++$expectedAuditCount;
+                    }
+
+                    self::assertCount($expectedAuditCount, $fixture->auditEvidenceRepository->all());
+                }
+
                 $restarted = $fixture->connection();
                 self::assertFalse($fixture->unitOfWork->transactionActive);
                 self::assertFalse($fixture->userState->isAuthenticationAuthorityFenceHeld($fixture->userId));

@@ -357,13 +357,13 @@ final class DeliverPasswordResetHandlerTest extends TestCase
                 self::assertSame($grant->getDelivery()->getId(), $due[0]->getDeliveryId());
                 new DeliverPasswordResetHandler(
                     $passwordResetGrantRepository,
-                    new InMemoryAuditEvidenceRepository($unitOfWork),
                     $unitOfWork,
                     new PrefixPasswordResetDeliveryCipher(),
                     $provider,
                     new FixedClock('2026-08-23T11:06:00+00:00'),
                     new InMemoryEventDispatcher(),
-                    $this->users($passwordResetGrantRepository, $unitOfWork)
+                    $this->users($passwordResetGrantRepository, $unitOfWork),
+                    new InMemoryAuditEvidenceRepository($unitOfWork)
                 )->handle(CommandMessage::create($this->command($grant)));
                 self::assertSame(
                     CredentialDeliveryStatus::DELIVERED,
@@ -423,13 +423,13 @@ final class DeliverPasswordResetHandlerTest extends TestCase
     ): DeliverPasswordResetHandler {
         return new DeliverPasswordResetHandler(
             $passwordResetGrantRepository,
-            $auditEvidenceRepository,
             $unitOfWork,
             new PrefixPasswordResetDeliveryCipher(),
             $provider ?? new RecordingCredentialDeliveryProvider(),
             new FixedClock('2026-08-23T11:00:00+00:00'),
             $eventDispatcher ?? new InMemoryEventDispatcher(),
-            $this->users($passwordResetGrantRepository, $unitOfWork)
+            $this->users($passwordResetGrantRepository, $unitOfWork),
+            $auditEvidenceRepository
         );
     }
 }
