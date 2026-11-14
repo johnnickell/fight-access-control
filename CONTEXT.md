@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Optional Feature setting audit — TASK-00159 Work
+## Optional Feature setting audit — TASK-00159 accepted checkpoint
 
 Both setting handlers support optional final nullable audit storage and require the existing Application Clock
 before the Unit of Work. Both Commands accept optional direct typed originating actor IDs with canonical nullable
@@ -8,7 +8,12 @@ kind/ID fields. Enabled real changes admit provenance before persistence and exp
 before/after revision, status and Permission relationships in the same transaction, with actual message correlation
 and trusted outcome time. Validated no-change remains unaudited; full-state/reference fences and ordinary failure
 semantics remain. See [current composition](docs/feature-management.md#optional-atomic-setting-audit-unreleased).
-Independent Review and nonvisual QA remain required; this is not consumer database qualification or delivery.
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`a65b1a39b522b2c6c2f2c8172171a43e3c099a44` (66 independent scenarios / 466 checks, plus 329 tests / 5,239 assertions).
+TASK-00159 is done; unfinished siblings keep TICKET-00046 and EPIC-00017 open. Earlier full-gate evidence is
+retained with current administrative checks. Publication/final verification remain pending at this checkpoint;
+canonical `.runs/handoffs/TASK-00159/land.md` owns subsequent delivery and retirement outcomes. This is not
+consumer database qualification, merge, release or deployment.
 
 ## Direct Agent Permission audit — TASK-00157 accepted checkpoint
 
