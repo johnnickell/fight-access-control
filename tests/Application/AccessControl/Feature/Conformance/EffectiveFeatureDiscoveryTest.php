@@ -82,6 +82,7 @@ final class EffectiveFeatureDiscoveryTest extends TestCase
             $candidate,
             $featureRepository,
             $permissionRepository,
+            new FixedClock('2026-01-01T00:00:00+00:00'),
             $unit,
             $eventDispatcher
         );

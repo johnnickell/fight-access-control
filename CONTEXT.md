@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Optional managed-policy audit — TASK-00161 implementation
+## Optional managed-policy audit — TASK-00161 accepted checkpoint
 
 Reconciliation now supports optional final nullable audit storage and explicit optional typed originating Command
 provenance. Enabled evidence joins the complete Role/Permission mutation transaction with actual Role incarnation/
@@ -9,9 +9,26 @@ The shared planner/preview remain read-only; Feature references remain guards on
 record and existing summary Events, final fences and ordinary failure/uncertainty semantics remain. See
 [composition](docs/operation-outcomes.md#optional-atomic-reconciliation-audit-unreleased). Work's normal full gate
 passes 9,709 tests / 95,990 assertions and exact 11,471/11,471 statements and Unit-only lines across 547 source files.
-Canonical `.runs/handoffs/TASK-00161/work.md` retains minimum-lane warnings and complete evidence. TASK-00161 remains
-open pending independent Review/nonvisual QA. Consumer persistence/connection/locks and entry policy qualification,
-publication, release and deployment are separate.
+The final Work gate reports 95,998 assertions; the count above is the earlier successful execution. Independent
+Review v3 ACCEPT and nonvisual QA PASS cover clean candidate `f6fb5c358fc9691e829bdc6a723c6eb233b0520c`
+(33 scenarios / 481 checks plus 152 tests / 1,074 assertions). TASK-00161 is done. All four family TASKs are done,
+so TICKET-00046 closes; unfinished families keep EPIC-00017 open. Canonical `.runs/handoffs/TASK-00161/work.md`
+retains minimum-lane warnings and complete evidence; `land.md` owns the subsequent base-integration, publication
+and retirement outcomes. Publication/final verification are pending at this accepted checkpoint. Consumer
+persistence/connection/locks and entry policy qualification, merge, release and deployment remain separate.
+
+## Optional provisioning audit — TASK-00160 Work
+
+Code-defined Feature provisioning now accepts explicit optional typed Command provenance, a required Application
+Clock and an optional last nullable audit repository. Enabled execution inserts one bounded initial Feature/Permission
+record per created subject inside the single batch transaction, sharing the real incoming message ID. Disabled and
+pure no-change passes require no new audit-only actor; no-change never backfills history. Existing lazy defaults,
+settings, discovery completeness, uniqueness/reference fences, uncertain commit, authoritative retry and ordinary
+publication failure remain. See [current composition](docs/feature-provisioning.md#optional-atomic-audit-unreleased).
+Work verification and candidate identities belong to canonical `.runs/handoffs/TASK-00160/work.md`; independent
+Review/nonvisual QA and delivery remain separate. Package models do not qualify production consumer storage,
+connections/locks, scanner completeness, setup authority or activation. No sibling Feature handlers are implemented
+by this slice.
 
 ## Optional Feature setting audit — TASK-00159 accepted checkpoint
 

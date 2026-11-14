@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Domain\AccessControl\Feature;
 
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditActorKind;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
@@ -21,12 +22,33 @@ final class FeatureMessagesTest extends TestCase
     public function test_command_preserves_nullable_and_unused_raw_configuration(): void
     {
         foreach ([null, '', 'invalid name', 'TEST_FEATURES'] as $name) {
-            $payload = ['default_permission_name' => $name];
+            $payload = ['default_permission_name' => $name, 'actor_kind' => null, 'actor_id' => null];
             $command = ProvisionFeatures::fromArray($payload);
             self::assertSame($name, $command->getDefaultPermissionName());
             self::assertSame($payload, $command->toArray());
             self::assertSame($payload, new ProvisionFeatures($name)->toArray());
         }
+    }
+
+    public function test_explicit_actor_kinds_round_trip_without_worker_substitution(): void
+    {
+        foreach (AuditActorKind::cases() as $kind) {
+            $id = '018f0000-0000-7000-8000-000000000001';
+            if (in_array($kind, [AuditActorKind::SYSTEM, AuditActorKind::ANONYMOUS], true)) {
+                $id = '00000000-0000-0000-0000-000000000000';
+            }
+
+            $actor = $kind->idFromString($id);
+            $command = new ProvisionFeatures(null, $actor);
+            $payload = ['default_permission_name' => null, 'actor_kind' => $kind->value, 'actor_id' => $id];
+            self::assertSame($payload, $command->toArray());
+            $restored = ProvisionFeatures::fromArray($payload);
+            self::assertSame($payload, $restored->toArray());
+            self::assertSame($actor::class, $restored->getActorId()::class);
+            self::assertTrue($actor->equals($restored->getActorId()));
+        }
+
+        self::assertNull(new ProvisionFeatures(null)->getActorId());
     }
 
     /** @param array<string, mixed> $payload */
@@ -41,6 +63,24 @@ final class FeatureMessagesTest extends TestCase
     public static function invalidCommands(): iterable
     {
         yield 'missing' => [[]];
+        $valid = ['default_permission_name' => null, 'actor_kind' => null, 'actor_id' => null];
+        foreach (['actor_kind', 'actor_id'] as $key) {
+            $missing = $valid;
+            unset($missing[$key]);
+            yield 'missing '.$key => [$missing];
+        }
+
+        foreach (
+            [
+            ['user', null], [null, '018f0000-0000-7000-8000-000000000001'],
+            ['unknown', '018f0000-0000-7000-8000-000000000001'], ['user', 'invalid'],
+            ['system', '018f0000-0000-7000-8000-000000000001'],
+            ['anonymous', '018f0000-0000-7000-8000-000000000001'], [true, 1]
+            ] as $index => [$kind, $id]
+        ) {
+            yield 'actor '.$index => [array_replace($valid, ['actor_kind' => $kind, 'actor_id' => $id])];
+        }
+
         foreach ([123, false, []] as $index => $value) {
             yield 'type '.$index => [['default_permission_name' => $value]];
         }
