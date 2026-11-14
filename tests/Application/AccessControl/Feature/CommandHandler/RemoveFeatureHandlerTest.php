@@ -355,6 +355,7 @@ final class RemoveFeatureHandlerTest extends TestCase
             $candidate,
             $this->featureRepository,
             $this->permissionRepository,
+            new FixedClock('2026-01-01'),
             $this->unit,
             $this->eventDispatcher
         );

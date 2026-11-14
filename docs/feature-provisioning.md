@@ -1,4 +1,4 @@
-# Atomic Feature provisioning (v0.5.0)
+# Atomic Feature provisioning
 
 [TASK-00062](../planning/tasks/00062-TASK.md) adds the stored Feature model and create-if-absent provisioning.
 It consumes [complete candidate discovery](feature-references.md), creates only missing names OFF, and preserves
@@ -18,27 +18,36 @@ same connection/transaction as the `TransactionalUnitOfWork`; do not wrap the ha
 
 ```php
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\ProvisionFeaturesHandler;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Domain\Value\Identifier\Uuid;
 
 // Consumer-owned discovery, persistence, transaction and event-dispatcher implementations.
 $handler = new ProvisionFeaturesHandler(
     $candidateDiscovery,
     $featureRepository,
     $permissionRepository,
+    $clock,
     $transactionalUnitOfWork,
-    $eventDispatcher
+    $eventDispatcher,
+    $auditEvidenceRepository // Omit or pass null to intentionally disable durable audit.
 );
 $router = new InMemoryCommandRouter();
 $router->registerHandler($handler::commandRegistration(), $handler);
 $commandBus = new RoutingCommandBus($router);
-$commandBus->execute(new ProvisionFeatures($configuredDefaultOrNull));
+$commandBus->execute(new ProvisionFeatures(
+    defaultPermissionName: $configuredDefaultOrNull,
+    actorId: SystemId::fromString(Uuid::NIL),
+));
 ```
 
 `commandRegistration()` returns `ProvisionFeatures::class` for Common command-handler registration. The command's
-canonical payload is `['default_permission_name' => string|null]`; `fromArray()` requires the key and rejects other
-types. It deliberately does not validate an unused string as a Permission name. Names come from the injected
+canonical payload has required nullable `default_permission_name`, `actor_kind` and `actor_id` fields.
+`fromArray()` requires both actor fields to be null or an explicit supported kind/valid ID pair. User/Agent origins
+retain their type; System/Anonymous IDs accept only the fixed nil UUID. Constructor omission means no provenance,
+not an inferred System actor. The default deliberately remains unvalidated until creation is needed. Names come from the injected
 `FeatureReferenceDiscovery`, not the command, process environment, or serialized scanner internals. Execute in the
 intended candidate composition; queued dispatch alone does not pin code identity. Discovery must freshly attest
 completeness for the intended code, and retries must not reuse stale negative catalog lookups.
@@ -53,6 +62,40 @@ returned; it says nothing about subscriber completion, existing definitions' int
 runtime access. The consumer must perform preparation validation before activating referencing code. That package
 [validation path](feature-preparation.md) is a separate fresh read; do not infer readiness from a normal provisioning
 return.
+
+## Optional atomic audit (Unreleased)
+
+[TASK-00160](../planning/tasks/00160-TASK.md) adds the required Application `Clock` constructor dependency and an
+optional last nullable `AuditEvidenceRepository`. Omitted/null intentionally disables durable audit; it does not
+require new audit-only provenance. A configured repository must join the **same actual connection and transaction**
+as Feature insertion. An active transaction flag alone does not prove that composition. Storage failure never
+falls back to disabled execution.
+
+Trusted autonomous callers supply `SystemId::fromString(Uuid::NIL)` once per Command, not per discovered Feature.
+Preserve a real originating User/Agent when a worker executes their admitted Command. Anonymous is a distinct explicit
+kind, not a missing-data fallback or permission to invoke setup. Consumers still authorize the entry and target code.
+Discovery completes before attribution admission. Empty/all-existing passes need neither actor nor a valid unused
+default, and never read the audit clock or backfill evidence. Enabled creation without provenance rejects with
+Common Application `RuleViolation` before its first mutation.
+
+Each newly inserted Feature gets one `feature.created` record before the batch commits: unique evidence ID, typed
+Feature subject, direct actor kind/ID, no predecessor, actual OFF/revision 1 and related Permission ID, trusted
+outcome time from `Clock::now()` and the incoming CommandMessage ID shared across the batch. The existing shared
+`AuditFeatureOutcome`/`AuditFeatureState` contract is reused; no names, inventory, raw configuration, message/entity
+snapshots or diagnostics are captured. Evidence is not automatically public or safe for unrestricted logs.
+
+Late insertion/reference/audit/commit failure rolls back all staged Features and evidence, not concurrent winners.
+Lost commit acknowledgement retains both possible outcomes. Retry freshly reads authoritative storage: committed
+rows get no duplicate evidence, history backfill or event replay. Partial/both-publisher failure after commit still
+throws the primary failure and leaves the complete batch/evidence committed. There is no issuance warning result,
+outbox or reliable-delivery guarantee.
+
+**Pre-v1 consumer changes:** update Clock wiring, current actor payload/schema producers and typed evidence mapping;
+explicitly opt in per handler and qualify real uniqueness/reference locks, shared connection, rollback, both unknown
+commit outcomes and publisher failure before adoption. No previous-payload reader, migration, backfill, account,
+new grant or consumer schema operation is supplied. Common `^1.5.1` supplies the existing message/UoW contracts;
+ordinary composition uses its current supported resolution. Package models do not qualify production storage or code
+identity/completeness, administrative authority, preparation, activation, release or deployment.
 
 ## Model and persistence contract
 
@@ -139,13 +182,16 @@ technical acceptance and behavioral QA. TASK-00062's seeded-absence proof is not
 
 ## Compatibility and schema assessment
 
-The new PHP types and repository contract are additive. Existing APIs, persisted formats, credential operations and
-Permission tier rules are unchanged. Consumers opting into Features need a new storage/adapter composition; this is
+The original v0.5.0 Feature model was additive. The Unreleased optional-audit change above updates the provisioning
+constructor and current Command/schema contract without compatibility aliases. Feature settings, credential operations
+and Permission tier rules remain unchanged. Consumers opting into Features need a new storage/adapter composition; this is
 not a migration/backfill promise for previous package iterations. The complete Feature capability is included in
 [v0.5.0 preparation](release-0.5.0.md); package acceptance does not establish publication or consumer adoption.
 
 The opt-in OpenAPI component `Fight.AccessControl.ProvisionFeatures` describes the required nullable raw
-`default_permission_name`. It deliberately has no name-pattern constraint because unused strings are accepted.
+`default_permission_name` plus required nullable `actor_kind`/`actor_id`. Both actor fields are null together or
+hold a discriminated supported identity; fixed System/Anonymous kinds require nil. Default configuration deliberately
+has no name-pattern constraint because unused strings are accepted.
 `openapi/bootstrap.php` includes its non-autoloaded anchor; generated-schema integration tests run in the default
 suite. The component is additive under ADR 0007 and adds no endpoint, HTTP result, Feature View, or activation schema.
 The event is an internal messaging fact, not a newly exposed HTTP response catalog. Consumer transport policy stays
@@ -161,7 +207,11 @@ separate; production Domain/Application code has no OpenAPI dependency.
   controlled discovery/repositories; empty/incomplete/native-invalid input, preservation, defaults, rollback of
   earlier inserts, identity/name conflicts, reference rejection, commit failure/uncertainty, restart retry, partial
   publication, both publishers failing and seeded reintroduction. Checks persisted outcomes as well as event ordering.
-- `tests/OpenApi/FeatureComponentsTest.php`: generated public schema against real serialized command values.
+- `tests/Application/AccessControl/Feature/CommandHandler/ProvisionFeaturesAuditTest.php`: mapped shared-transaction
+  evidence, all actor kinds, mixed/empty/existing and disabled/absent-origin passes, later audit/insertion/reference
+  failures, ID/name winners, commit uncertainty, publisher faults and authoritative retries without backfill.
+- `tests/OpenApi/FeatureComponentsTest.php`: generated public schema against real serialized command values,
+  nullable/discriminated actor pairs and fixed identities.
 
 The in-memory transaction and reference-fence model is **not** actual database concurrency, scanner completeness,
 consumer authorization or deployment qualification. Consumer-bindable [preparation scenarios](feature-preparation.md) are supplied by TASK-00063;

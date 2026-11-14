@@ -10,6 +10,7 @@ use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\Provisi
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\ValidateFeaturePreparationHandler;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
@@ -28,6 +29,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispat
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Discovery\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use RuntimeException;
 
@@ -90,9 +92,10 @@ final class ControlledPreparationEnvironment implements FeaturePreparationEnviro
             $this->discovery,
             $this->featureRepository,
             $this->permissionRepository,
+            new FixedClock('2026-01-01T00:00:00+00:00'),
             $this->unitOfWork,
             $this->eventDispatcher
-        )->handle(CommandMessage::create(new ProvisionFeatures($default)));
+        )->handle(CommandMessage::create(new ProvisionFeatures($default, SystemId::generate())));
     }
 
     public function validate(): FeaturePreparationResult

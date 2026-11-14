@@ -170,6 +170,7 @@ final class FeatureManagementTest extends TestCase
             $discovery,
             $this->featureRepository,
             $this->permissionRepository,
+            new FixedClock('2026-01-01'),
             $this->uow,
             $this->eventDispatcher
         )

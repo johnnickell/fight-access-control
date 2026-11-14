@@ -381,7 +381,7 @@ final class HandlerFailureContractTest extends TestCase
             ),
             Feature\ProvisionFeaturesHandler::class => new Feature\ProvisionFeaturesHandler(
                 $discovery,
-                $featureRepository, $permissionRepository, $unitOfWork, $eventDispatcher
+                $featureRepository, $permissionRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             Feature\RemoveFeatureHandler::class => new Feature\RemoveFeatureHandler(
                 $discovery,
