@@ -48,6 +48,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispat
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Discovery\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -336,6 +337,7 @@ final class FeatureManagementTest extends TestCase
                 new CreateFeatureHandler(
                     $this->featureRepository,
                     $this->permissionRepository,
+                    new FixedClock('2026-01-01'),
                     $this->uow,
                     $this->eventDispatcher
                 )
@@ -459,6 +461,7 @@ final class FeatureManagementTest extends TestCase
         new CreateFeatureHandler(
             $this->featureRepository,
             $this->permissionRepository,
+            new FixedClock('2026-01-01'),
             $this->uow,
             $this->eventDispatcher
         )

@@ -211,9 +211,15 @@ final class FeaturePolicyCommandTest extends TestCase
         $revision = $mode === 'stale' ? 2 : 1;
         $roles = new InMemoryRoleRepository($unitOfWork);
         $handler = match ($family) {
-            'create' => new CreateFeatureHandler($features, $permissions, $unitOfWork, $events),
+            'create' => new CreateFeatureHandler(
+                $features,
+                $permissions, new FixedClock('2026-01-01'), $unitOfWork, $events
+            ),
             'provision' => new ProvisionFeaturesHandler($discovery, $features, $permissions, $unitOfWork, $events),
-            'remove' => new RemoveFeatureHandler($discovery, $features, $unitOfWork, $events),
+            'remove' => new RemoveFeatureHandler(
+                $discovery,
+                $features, new FixedClock('2026-01-01'), $unitOfWork, $events
+            ),
             'status' => new SetFeatureStatusHandler($features, $unitOfWork, $events),
             'permission' => new SetFeaturePermissionHandler($features, $permissions, $unitOfWork, $events),
             default => new ReconcileManagedPolicyHandler(

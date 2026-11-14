@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\OpenApi;
 
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
+use Fight\AccessControl\Domain\AccessControl\Feature\Command\CreateFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
+use Fight\AccessControl\Domain\AccessControl\Feature\Command\RemoveFeature;
+use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationIssue;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationProblem;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationResult;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\ValidateFeaturePreparation;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use OpenApi\Generator;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
@@ -40,6 +45,41 @@ final class FeatureComponentsTest extends TestCase
         self::assertArrayNotHasKey('pattern', $property);
         self::assertArrayNotHasKey('minLength', $property);
         self::assertSame('object', $schema['type']);
+    }
+
+    public function test_lifecycle_schemas_expose_optional_typed_origin_without_making_it_authority(): void
+    {
+        require_once dirname(__DIR__, 2).'/openapi/bootstrap.php';
+        require_once __DIR__.'/CredentialDeliveryConsumerDocument.php';
+        $document = new Generator()->generate([
+            dirname(__DIR__, 2).'/openapi',
+            __DIR__.'/CredentialDeliveryConsumerDocument.php'
+        ], null, false);
+        self::assertNotNull($document);
+        $schemas = json_decode($document->toJson(), true, flags: JSON_THROW_ON_ERROR)['components']['schemas'];
+        foreach (
+            [
+            'CreateFeature' => new CreateFeature(
+                FeatureName::fromString('dashboard'),
+                PermissionId::generate(),
+                SystemId::generate()
+            ),
+            'RemoveFeature' => new RemoveFeature(FeatureId::generate(), 7, SystemId::generate())
+            ] as $name => $command
+        ) {
+            $schema = $schemas['Fight.AccessControl.'.$name];
+            $schema['properties'] = $schema['allOf'][1]['properties'];
+            self::assertSame(array_keys($command->toArray()), array_keys($schema['properties']));
+            self::assertNotContains('actor_id', $schema['required']);
+            self::assertNotContains('actor_kind', $schema['required']);
+            self::assertSame(['string', 'null'], $schema['properties']['actor_id']['type']);
+            self::assertSame('uuid', $schema['properties']['actor_id']['format']);
+            self::assertSame(
+                ['user', 'agent', 'system', 'anonymous', null],
+                $schema['properties']['actor_kind']['enum']
+            );
+            self::assertSame($command->toArray(), $command::fromArray($command->toArray())->toArray());
+        }
     }
 
     public function test_preparation_query_and_result_schemas_match_safe_public_values(): void

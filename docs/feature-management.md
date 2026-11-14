@@ -19,8 +19,45 @@ Consumers must update exception catches directly; Domain constructor validation,
 and malformed persisted state remain distinct internal boundaries. Common's opt-in safe middleware renders deliberate
 absence/precondition/conflict/rule intent as generic 404/412/409/422, and unknown/native/identity faults as generic 500.
 Never classify by diagnostic text or codes. Existing local transaction-result annotations describe owned Event/null
-or Event-list branches while the UoW remains native mixed. No new result DTO, generic supplier or optional audit is
-introduced. See [operation outcomes](operation-outcomes.md#managed-policy-composition) for the shared policy path.
+or Event-list branches while the UoW remains native mixed. No new result DTO or generic supplier is introduced.
+Manual creation and retirement now offer the optional audit composition below; other Feature audit slices remain separate. See [operation outcomes](operation-outcomes.md#managed-policy-composition) for the shared policy path.
+
+## Optional manual lifecycle audit (unreleased)
+
+`CreateFeatureHandler` and `RemoveFeatureHandler` take the existing Application `Timing\Service\Clock` before
+`TransactionalUnitOfWork`, and an optional **last** nullable `AuditEvidenceRepository`. Omitted/null deliberately
+disables durable audit; configured storage failure never falls back to disabled behavior. Supply the ordinary UoW,
+Feature/Permission repositories and audit adapter on the same actual connection and enclosing transaction. No Event
+inspection, transaction decorator, independent audit commit or post-commit subscriber is needed.
+
+`CreateFeature` and `RemoveFeature` accept optional last typed `actorId`: `UserId`, `AgentId`, `SystemId` or
+`AnonymousId`. Trusted entry callers supply the real originating identity, not a worker replacement or guessed
+target. This grants no management authority. Canonical payloads include nullable `actor_kind` and `actor_id`;
+provenance may be omitted/null when auditing is disabled. With enabled storage, missing attribution rejects
+before the first mutation requiring evidence. There is no ambient principal lookup or system/anonymous fallback.
+System/anonymous kinds retain their distinct fixed-nil identities, not User/Agent nil substitutes.
+
+After authoritative persistence and before commit, enabled creation records `feature.created` with a typed Feature
+subject and `AuditFeatureOutcome(null, AuditFeatureState)` containing actual OFF/revision 1 and the related Permission
+ID. Enabled retirement records `feature.removed` with the authoritative prior state and null successor. Both use
+a fresh evidence identity, incoming message ID and trusted Clock outcome time. Feature stores no timestamp: the
+clock does not fabricate one or use message/database insertion time. Shared Feature-created definitions are already
+available for separately owned code-defined provisioning; that handler is not changed by this slice.
+
+Evidence contains no Feature/Permission names, messages, entities or diagnostics. Treat identifiers/evidence as
+restricted stored facts, not automatically public logs/responses. Duplicate creation, stale/recreated retirement,
+current references, incomplete/wrong-scope discovery and final CAS/reference loss add no committed evidence.
+Any existing Permission tier remains eligible as a binding; this is a reference, not a grant.
+
+Audit failure rolls back staged Feature/reference/evidence together, preserving concurrent winners and the primary
+throwable even if failure notification also fails. Unknown commit acknowledgement remains uncertain. Ordinary
+post-commit publication/subscriber failure still throws while committed state/evidence survive; failure notification
+is not a rollback receipt. No audit backfill or retry deduplication is invented for previously unaudited history.
+
+**Pre-v1 adoption:** update constructor/named callers, current actor-kind/UUID messages and persistence mapping
+explicitly. Qualify the real shared connection, constraints, locks, rollback and both uncertain outcomes before
+opt-in. Package in-memory mapped fixtures establish modeled outcomes only; no schema operation, compatibility reader,
+consumer change, release or deployment is supplied. See [retirement](feature-retirement.md) for its unchanged guards.
 
 ## Precise Domain types (unreleased)
 

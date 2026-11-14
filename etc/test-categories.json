@@ -885,6 +885,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\FeatureLifecycleAuditTest": {
+      "file": "tests/Application/AccessControl/Feature/CommandHandler/FeatureLifecycleAuditTest.php",
+      "category": "Unit",
+      "reason": "Feature lifecycle outcomes through controlled repositories, mapped in-memory evidence, clock and shared modeled transaction; no real storage or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\FeatureManagementTest": {
       "file": "tests/Application/AccessControl/Feature/CommandHandler/FeatureManagementTest.php",
       "category": "Unit",
@@ -1603,6 +1609,12 @@
       "file": "tests/Domain/AccessControl/EmailChangeGrant/EmailChangeGrantTest.php",
       "category": "Unit",
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureLifecycleProvenanceTest": {
+      "file": "tests/Domain/AccessControl/Feature/FeatureLifecycleProvenanceTest.php",
+      "category": "Unit",
+      "reason": "Typed immutable provenance and canonical in-memory Common message round trips; no real storage, network or process.",
       "methods": {}
     },
     "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureMessagesTest": {
