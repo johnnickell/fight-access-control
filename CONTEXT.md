@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Manual Feature lifecycle audit — TASK-00158 Work
+## Manual Feature lifecycle audit — TASK-00158 accepted checkpoint
 
 Manual creation and guarded retirement now accept optional last nullable audit storage and Application Clock before
 UoW. Their Commands carry optional typed originating provenance with canonical nullable kind/UUID fields. Enabled
@@ -10,9 +10,12 @@ Existing OFF/revision 1 creation, uniqueness/reference fences, complete CURRENT 
 ordinary failure semantics remain. Shared `AuditFeatureOutcome`/`AuditFeatureState` already describe both actions;
 code-defined provisioning remains separately owned by TASK-00160. See
 [current composition](docs/feature-management.md#optional-manual-lifecycle-audit-unreleased).
-Independent Review and nonvisual QA remain required; TASK stays open. Canonical `.runs/handoffs/TASK-00158/work.md`
-owns verification and runtime evidence. Package fixtures do not qualify consumer storage/connections/locks,
-scanner completeness, entry authority or deployment.
+Independent Review ACCEPT and nonvisual QA PASS qualify candidate `55dd330f5c716af6e10e443ec06684cff5d6c603`;
+QA passed 53 scenarios / 627 checks. TASK is done; unfinished siblings keep TICKET-00046 and EPIC-00017 open.
+Canonical `.runs/handoffs/TASK-00158/work.md` owns original verification/runtime evidence; independent reports remain
+unchanged. Publication/final delivery verification and owned retirement are pending at this administrative checkpoint;
+canonical `.runs/handoffs/TASK-00158/land.md` owns their actual outcomes. Package fixtures do not qualify consumer
+storage/connections/locks, scanner completeness, entry authority or deployment.
 
 ## Direct Agent Permission audit — TASK-00157 accepted checkpoint
 
