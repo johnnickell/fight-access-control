@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional final nullable audit repository for manual Feature creation and guarded retirement. Enabled evidence joins
+  the mutation/reference transaction with typed origin/Feature/Permission, trusted outcome time, actual initial/prior
+  revisions and incoming message correlation. **Pre-v1 caller change:** inject Application Clock before the UoW and
+  update canonical CreateFeature/RemoveFeature payloads with nullable actor kind/UUID. Enabled work requires explicit
+  provenance before mutation; disabled composition needs no audit-only input. Existing uniqueness, complete CURRENT
+  discovery, full-state CAS, reference guards and ordinary failure behavior remain. Consumers qualify current mapping
+  and the actual shared connection; no backfill, schema operation or authority is added. See
+  [Feature lifecycle composition](docs/feature-management.md#optional-manual-lifecycle-audit-unreleased).
+
 - Optional last nullable audit repository for direct Agent Permission grant, revocation and complete replacement.
   Handlers own the single assignment/evidence transaction; the internal coordinator no longer commits. Enabled
   evidence records actual assignment revisions, changed typed relationships, transition time and message correlation.

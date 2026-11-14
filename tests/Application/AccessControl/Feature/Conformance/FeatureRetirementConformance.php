@@ -22,6 +22,7 @@ use Fight\Common\Application\Error\Exception\PreconditionFailed;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Error\Exception\RuleViolation;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -39,6 +40,7 @@ abstract class FeatureRetirementConformance extends TestCase
         new CreateFeatureHandler(
             $featureRepository,
             $environment->permissions(),
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         )
@@ -51,6 +53,7 @@ abstract class FeatureRetirementConformance extends TestCase
             new RemoveFeatureHandler(
                 $environment->discovery(['dashboard']),
                 $featureRepository,
+                new FixedClock('2026-01-01'),
                 $environment->unitOfWork(),
                 $environment->events()
             )
@@ -64,6 +67,7 @@ abstract class FeatureRetirementConformance extends TestCase
         new RemoveFeatureHandler(
             $environment->discovery([]),
             $featureRepository,
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         )
@@ -83,6 +87,7 @@ abstract class FeatureRetirementConformance extends TestCase
         $create = new CreateFeatureHandler(
             $featureRepository,
             $environment->permissions(),
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         );
@@ -95,6 +100,7 @@ abstract class FeatureRetirementConformance extends TestCase
         $delete = new RemoveFeatureHandler(
             $environment->discovery([]),
             $featureRepository,
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         );
