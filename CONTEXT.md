@@ -1,5 +1,18 @@
 # Fight AccessControl Context
 
+## Optional managed-policy audit — TASK-00161 implementation
+
+Reconciliation now supports optional final nullable audit storage and explicit optional typed originating Command
+provenance. Enabled evidence joins the complete Role/Permission mutation transaction with actual Role incarnation/
+revisions and memberships, admitted Permission facts, trusted reconciliation time and incoming message correlation.
+The shared planner/preview remain read-only; Feature references remain guards only. Unchanged subjects add no audit
+record and existing summary Events, final fences and ordinary failure/uncertainty semantics remain. See
+[composition](docs/operation-outcomes.md#optional-atomic-reconciliation-audit-unreleased). Work's normal full gate
+passes 9,709 tests / 95,990 assertions and exact 11,471/11,471 statements and Unit-only lines across 547 source files.
+Canonical `.runs/handoffs/TASK-00161/work.md` retains minimum-lane warnings and complete evidence. TASK-00161 remains
+open pending independent Review/nonvisual QA. Consumer persistence/connection/locks and entry policy qualification,
+publication, release and deployment are separate.
+
 ## Optional Feature setting audit — TASK-00159 accepted checkpoint
 
 Both setting handlers support optional final nullable audit storage and require the existing Application Clock

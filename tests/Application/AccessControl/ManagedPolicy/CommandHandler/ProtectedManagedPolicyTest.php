@@ -15,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\Command\GrantPermissionToAgent;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Command\ReconcileManagedPolicy;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Event\ManagedPolicyReconciled;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
@@ -38,6 +39,7 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
@@ -332,6 +334,7 @@ final class ProtectedManagedPolicyTest extends TestCase
     {
         foreach (['custom', 'agent'] as $holder) {
             $unitOfWork = new InMemoryUnitOfWork();
+            $auditRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
             $roleRepository = new InMemoryRoleRepository($unitOfWork);
             $agentRepository = new InMemoryAgentRepository($unitOfWork);
             $permission = $this->currentPermission();
@@ -347,8 +350,10 @@ final class ProtectedManagedPolicyTest extends TestCase
                     $agentRepository,
                     $role,
                     $agent,
-                    $permission
+                    $permission,
+                    $auditRepository
                 ): void {
+                    self::assertCount(1, $auditRepository->all());
                     if ($holder === 'custom') {
                         self::assertTrue($roleRepository->replace(
                             $role,
@@ -375,7 +380,8 @@ final class ProtectedManagedPolicyTest extends TestCase
                 ),
                 $unitOfWork,
                 $eventDispatcher,
-                new FixedClock($this->now())
+                new FixedClock($this->now()),
+                $auditRepository
             );
 
             $auxiliaryId = PermissionId::generate();
@@ -388,7 +394,7 @@ final class ProtectedManagedPolicyTest extends TestCase
                 $this->definition(PermissionTier::SUPER_ADMIN_ONLY)
             ], []);
             try {
-                $handler->handle(CommandMessage::create(new ReconcileManagedPolicy($policy)));
+                $handler->handle(CommandMessage::create(new ReconcileManagedPolicy($policy, SystemId::generate())));
                 self::fail('A stale promotion must not overwrite a later grant.');
             } catch (StateConflict $failure) {
                 self::assertSame('Managed permission changed after preflight.', $failure->getMessage());
@@ -396,6 +402,7 @@ final class ProtectedManagedPolicyTest extends TestCase
 
             self::assertSame($permission, $permissionRepository->getById($permission->getId()));
             self::assertNull($permissionRepository->getById($auxiliaryId));
+            self::assertSame([], $auditRepository->all());
             self::assertFalse($roleRepository->getById($role->getId())?->hasPermission($permission->getId()));
             self::assertFalse($agentRepository->getById($agent->getId())?->hasPermission($permission->getId()));
             self::assertCount(1, $eventDispatcher->events());

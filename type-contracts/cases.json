@@ -884,7 +884,7 @@
         {"line": 52, "identifier": "phpstan.dumpType", "message": "Dumped type: array{plan: array{permissions: list<array{id: string, name: string, tier: string, action: string}>, roles: list<array{id: string, name: string, permission_ids: list<string>, action: string}>}, occurred_at: string}"},
         {"line": 53, "identifier": "phpstan.dumpType", "message": "Dumped type: array{actor_id: string, role_id: string, name: string, expected_revision: string}"},
         {"line": 54, "identifier": "phpstan.dumpType", "message": "Dumped type: array{permissions: list<array{id: string, name: string, tier: string}>, roles: list<array{id: string, name: string, permission_ids: list<string>}>, referenced_permission_ids: list<string>}"},
-        {"line": 55, "identifier": "phpstan.dumpType", "message": "Dumped type: array{permissions: list<array{id: string, name: string, tier: string}>, roles: list<array{id: string, name: string, permission_ids: list<string>}>, referenced_permission_ids: list<string>}"},
+        {"line": 55, "identifier": "phpstan.dumpType", "message": "Dumped type: array{permissions: list<array{id: string, name: string, tier: string}>, roles: list<array{id: string, name: string, permission_ids: list<string>}>, referenced_permission_ids: list<string>, actor_kind: string|null, actor_id: string|null}"},
         {"line": 56, "identifier": "phpstan.dumpType", "message": "Dumped type: list<string>"}
       ]
     },

@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Command\ReconcileManagedPolicy;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Event\ManagedPolicyReconciled;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Exception\ManagedPolicyDefinitionException;
@@ -37,6 +38,7 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Repository\InMemoryAgentRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
@@ -67,7 +69,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
         $constructor = new ReflectionClass($command)->getConstructor();
         self::assertNotNull($constructor);
         $parameters = $constructor->getParameters();
-        self::assertCount(1, $parameters);
+        self::assertCount(2, $parameters);
         $type = $parameters[0]->getType();
         self::assertInstanceOf(ReflectionNamedType::class, $type);
         self::assertSame(ManagedPolicy::class, $type->getName());
@@ -876,9 +878,17 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             $createdAt
         );
         $agentRepository->add($agent);
+        $auditRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $permissionRepository = new InMemoryPermissionRepository(
             $unitOfWork,
-            beforeRemove: static function () use ($agent, $agentRepository, $obsoletePermission, $unitOfWork): void {
+            beforeRemove: static function () use (
+                $agent,
+                $agentRepository,
+                $obsoletePermission,
+                $unitOfWork,
+                $auditRepository
+            ): void {
+                self::assertCount(5, $auditRepository->all());
                 self::assertTrue($unitOfWork->authorizationReferenceState()->isReferenceFenceHeld());
                 self::assertTrue($agentRepository->replacePermissionAssignments(
                     $agent,
@@ -940,11 +950,15 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             $planner,
             $unitOfWork,
             $eventDispatcher,
-            new FixedClock(new DateTimeImmutable('2026-08-23T12:00:00+00:00'))
+            new FixedClock(new DateTimeImmutable('2026-08-23T12:00:00+00:00')),
+            $auditRepository
         );
 
         try {
-            $handler->handle(CommandMessage::create($this->command()));
+            $handler->handle(CommandMessage::create(new ReconcileManagedPolicy(
+                $this->command()->getPolicy(),
+                SystemId::generate()
+            )));
             self::fail('A final Agent reference must fail the complete managed-policy transaction.');
         } catch (StateConflict $stateConflict) {
             self::assertSame(
@@ -953,6 +967,7 @@ final class ReconcileManagedPolicyHandlerTest extends TestCase
             );
         }
 
+        self::assertSame([], $auditRepository->all());
         self::assertSame(
             'VIEW_USERS',
             $permissionRepository->getById($this->permissionId(101))?->getName()->toString()

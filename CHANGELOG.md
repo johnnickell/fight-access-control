@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional last nullable audit storage for complete managed-policy reconciliation, with explicit typed originating
+  actor, one record per meaningfully changed Role/Permission, actual Role incarnation/revisions and memberships,
+  trusted reconciliation time and message correlation. State/evidence commit or roll back as one batch; unchanged
+  items remain unaudited and the existing summary Event still publishes. **Pre-v1:** map nullable Command actor-kind/ID
+  fields and new managed Role evidence actions/facts, and qualify the actual shared transaction before opt-in.
+  Disabled audit makes no durability promise. No Feature mutation, new authority, compatibility reader or backfill
+  is added. See [reconciliation composition](docs/operation-outcomes.md#optional-atomic-reconciliation-audit-unreleased).
+
 - Optional last nullable audit storage for Feature status and Permission-binding changes, with explicit typed
   originating provenance, actual revisions/relationships, trusted outcome time and message correlation in the
   owning transaction. Validated no-change adds no evidence; configured failure rolls back, and committed evidence
