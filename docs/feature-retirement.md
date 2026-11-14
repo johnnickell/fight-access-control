@@ -11,19 +11,29 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Command\RemoveFeature;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 
-// Consumer-owned current-code discovery, shared persistence/transaction and event publisher.
-$handler = new RemoveFeatureHandler($currentDiscovery, $featureRepository, $transactionalUnitOfWork, $eventDispatcher);
+// Consumer-owned complete current-code discovery, trusted clock and one shared transaction connection.
+$handler = new RemoveFeatureHandler(
+    $currentDiscovery,
+    $featureRepository,
+    $clock,
+    $transactionalUnitOfWork,
+    $eventDispatcher,
+    $auditEvidenceRepository // Omit/pass null only when deliberately disabling durable audit.
+);
 $router = new InMemoryCommandRouter();
 $router->registerHandler($handler::commandRegistration(), $handler);
 $commandBus = new RoutingCommandBus($router);
-$commandBus->execute(new RemoveFeature($featureId, $expectedRevision));
+$commandBus->execute(new RemoveFeature($featureId, $expectedRevision, actorId: $originatingActorId));
 ```
 
 `commandRegistration()` returns `RemoveFeature::class`. The immutable command serializes exactly
-`feature_id` and `expected_revision`; `fromArray()` requires a string ID and integer revision, with no inferred
-revision or name-based target. Invalid revisions throw `FeatureRevisionException`; invalid IDs reject through
+`feature_id`, `expected_revision`, nullable `actor_kind` and `actor_id`; `fromArray()` requires a string target ID
+and integer revision, with no inferred revision or name-based target. Optional typed originating provenance is required
+before mutation when audit is enabled; disabled composition may omit it. A supplied actor kind/ID must be complete
+and valid. See [optional lifecycle audit](feature-management.md#optional-manual-lifecycle-audit-unreleased). Invalid revisions throw `FeatureRevisionException`; invalid IDs reject through
 the existing identity type. A successful call returns `void`, not a release, activation or deployment receipt.
-The new command/fact are PHP messaging contracts; no new HTTP/OpenAPI schema or endpoint is introduced.
+The command/fact are PHP messaging contracts; current shipped component metadata includes the optional provenance,
+not a new endpoint or management grant.
 
 ## Current references, not candidate absence
 
@@ -69,12 +79,24 @@ Permission, change grants or substitute a default. Remaining Feature/Role/Agent 
 isolation, expected-state comparisons, lock ordering, rollback and ORM cache behavior on their database/connection.
 Controlled in-memory tests are not that qualification. No prior-format reader or migration is supplied.
 
+## Optional evidence in the removal transaction
+
+With an optional final audit repository supplied, the handler adds `feature.removed` after the final full-state
+removal and before that same transaction commits. It records the typed removed Feature, actual prior revision/status
+and related Permission, null successor, originating actor, real message correlation and trusted Clock outcome time.
+A broken binding needs no Permission lookup to describe its actual prior relationship. No stored Feature timestamp,
+successor revision, raw name or plan is invented. Omitted/null storage makes no durable-audit promise; configured
+storage failure aborts staged removal/reference release/evidence together. The existing CURRENT discovery and final
+CAS are unchanged. Qualify actual storage mapping/connection/fences separately before enabling this composition.
+
 ## Commit, publication and retry
 
 On confirmed success, `FeatureRemoved` publishes **after** commit. Its exact safe payload is `feature_id`, `name`,
 with typed getters and canonical `fromArray()`/`toArray()` round trips. It records the removed identity, not a
 historical name reservation. Discovery, validation and pre-commit write/commit failures publish no removal success;
-confirmed pre-commit failures roll back the stored removal and reference release.
+confirmed pre-commit failures roll back the stored removal, reference release and enabled evidence together.
+Committed evidence survives publication failure, including failure of both publishers; uncertain commit outcomes
+retain the actual persisted state/evidence without claiming rollback or fabricating a later historical record.
 
 Any failure attempts `CommandFailedEvent` with the original safe command and constant `Feature removal failed.`
 text under the [operation-outcome contract](operation-outcomes.md), then rethrows the **same original throwable**,

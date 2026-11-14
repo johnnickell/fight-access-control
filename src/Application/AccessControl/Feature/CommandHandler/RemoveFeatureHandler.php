@@ -6,9 +6,18 @@ namespace Fight\AccessControl\Application\AccessControl\Feature\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\RemoveFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureRemoved;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
+use Fight\Common\Application\Error\Exception\InvalidInput;
 use Fight\Common\Application\Error\Exception\PreconditionFailed;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Error\Exception\RuleViolation;
@@ -34,8 +43,10 @@ final readonly class RemoveFeatureHandler implements CommandHandler
     public function __construct(
         private FeatureReferenceDiscovery $discovery,
         private FeatureRepository $featureRepository,
+        private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -54,9 +65,10 @@ final readonly class RemoveFeatureHandler implements CommandHandler
     {
         /** @var RemoveFeature $command */
         $command = $commandMessage->payload();
+        $messageId = $commandMessage->id();
         try {
             /** @var FeatureRemoved $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): FeatureRemoved {
+            $event = $this->unitOfWork->commitTransactional(function () use ($command, $messageId): FeatureRemoved {
                 $feature = $this->featureRepository->getById($command->getFeatureId());
                 if ($feature === null) {
                     throw new ResourceNotFound('The Feature does not exist.');
@@ -78,8 +90,24 @@ final readonly class RemoveFeatureHandler implements CommandHandler
                     }
                 }
 
+                $actorId = $command->getActorId();
+                if ($this->auditEvidenceRepository !== null && $actorId === null) {
+                    throw new InvalidInput('Enabled Feature audit requires originating actor provenance.');
+                }
+
                 if (!$this->featureRepository->remove($feature)) {
                     throw new StateConflict('The Feature changed concurrently.');
+                }
+
+                if ($this->auditEvidenceRepository !== null) {
+                    $this->auditEvidenceRepository->add(AuditEvidence::record(
+                        $actorId,
+                        new AuditSubject($feature->getId()),
+                        AuditAction::FEATURE_REMOVED,
+                        $this->clock->now(),
+                        new AuditFeatureOutcome(AuditFeatureState::fromFeature($feature), null),
+                        new AuditCorrelation($messageId, null)
+                    ));
                 }
 
                 return new FeatureRemoved($feature->getId(), $feature->getName());

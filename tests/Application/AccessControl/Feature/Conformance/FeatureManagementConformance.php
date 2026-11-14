@@ -26,6 +26,7 @@ use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -46,7 +47,13 @@ abstract class FeatureManagementConformance extends TestCase
         $unit = $environment->unitOfWork();
         $eventDispatcher = $environment->events();
         $name = FeatureName::fromString('dashboard');
-        new CreateFeatureHandler($featureRepository, $permissionRepository, $unit, $eventDispatcher)
+        new CreateFeatureHandler(
+            $featureRepository,
+            $permissionRepository,
+            new FixedClock('2026-01-01'),
+            $unit,
+            $eventDispatcher
+        )
             ->handle(CommandMessage::create(new CreateFeature($name, $first->getId())));
         $stored = $featureRepository->getByName($name);
         self::assertInstanceOf(Feature::class, $stored);
@@ -96,6 +103,7 @@ abstract class FeatureManagementConformance extends TestCase
         $create = new CreateFeatureHandler(
             $featureRepository,
             $environment->permissions(),
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         );

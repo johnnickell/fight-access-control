@@ -54,9 +54,27 @@ use OpenApi\Attributes as OA;
         )
     ]
 )]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.OptionalFeatureActor',
+    description: 'Optional originating provenance, not authorization. Enabled audit requires an admitted origin before mutation.',
+    oneOf: [
+        new OA\Schema(properties: [
+            new OA\Property(property: 'actor_kind', type: 'null'),
+            new OA\Property(property: 'actor_id', type: 'null')
+        ]),
+        new OA\Schema(required: ['actor_kind', 'actor_id'], properties: [
+            new OA\Property(property: 'actor_kind', type: 'string', enum: ['user', 'agent']),
+            new OA\Property(property: 'actor_id', type: 'string', format: 'uuid')
+        ]),
+        new OA\Schema(required: ['actor_kind', 'actor_id'], properties: [
+            new OA\Property(property: 'actor_kind', type: 'string', enum: ['system', 'anonymous']),
+            new OA\Property(property: 'actor_id', type: 'string', enum: ['00000000-0000-0000-0000-000000000000'])
+        ])
+    ]
+)]
 #[OA\Schema(schema: 'Fight.AccessControl.FeatureName', type: 'string', minLength: 1, maxLength: 128, pattern: '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?![\\s\\S])')]
-#[OA\Schema(schema: 'Fight.AccessControl.CreateFeature', required: ['name', 'permission_id'], properties: [new OA\Property(property: 'name', ref: '#/components/schemas/Fight.AccessControl.FeatureName'), new OA\Property(property: 'permission_id', type: 'string', format: 'uuid')])]
-#[OA\Schema(schema: 'Fight.AccessControl.RemoveFeature', required: ['feature_id', 'expected_revision'], properties: [new OA\Property(property: 'feature_id', type: 'string', format: 'uuid'), new OA\Property(property: 'expected_revision', type: 'integer', minimum: 1)])]
+#[OA\Schema(schema: 'Fight.AccessControl.CreateFeature', allOf: [new OA\Schema(ref: '#/components/schemas/Fight.AccessControl.OptionalFeatureActor')], required: ['name', 'permission_id'], properties: [new OA\Property(property: 'name', ref: '#/components/schemas/Fight.AccessControl.FeatureName'), new OA\Property(property: 'permission_id', type: 'string', format: 'uuid'), new OA\Property(property: 'actor_kind', type: ['string', 'null'], enum: ['user', 'agent', 'system', 'anonymous', null]), new OA\Property(property: 'actor_id', type: ['string', 'null'], format: 'uuid')])]
+#[OA\Schema(schema: 'Fight.AccessControl.RemoveFeature', allOf: [new OA\Schema(ref: '#/components/schemas/Fight.AccessControl.OptionalFeatureActor')], required: ['feature_id', 'expected_revision'], properties: [new OA\Property(property: 'feature_id', type: 'string', format: 'uuid'), new OA\Property(property: 'expected_revision', type: 'integer', minimum: 1), new OA\Property(property: 'actor_kind', type: ['string', 'null'], enum: ['user', 'agent', 'system', 'anonymous', null]), new OA\Property(property: 'actor_id', type: ['string', 'null'], format: 'uuid')])]
 #[OA\Schema(schema: 'Fight.AccessControl.SetFeaturePermission', required: ['feature_id', 'permission_id', 'expected_revision'], properties: [new OA\Property(property: 'feature_id', type: 'string', format: 'uuid'), new OA\Property(property: 'permission_id', type: 'string', format: 'uuid'), new OA\Property(property: 'expected_revision', type: 'integer', minimum: 1)])]
 #[OA\Schema(schema: 'Fight.AccessControl.SetFeatureStatus', required: ['feature_id', 'status', 'expected_revision'], properties: [new OA\Property(property: 'feature_id', type: 'string', format: 'uuid'), new OA\Property(property: 'status', type: 'string', enum: ['off', 'preview', 'on']), new OA\Property(property: 'expected_revision', type: 'integer', minimum: 1)])]
 #[OA\Schema(schema: 'Fight.AccessControl.GetFeatureById', required: ['feature_id'], properties: [new OA\Property(property: 'feature_id', type: 'string', format: 'uuid')])]
