@@ -214,8 +214,14 @@ final class FeaturePolicyCommandTest extends TestCase
             'create' => new CreateFeatureHandler($features, $permissions, $unitOfWork, $events),
             'provision' => new ProvisionFeaturesHandler($discovery, $features, $permissions, $unitOfWork, $events),
             'remove' => new RemoveFeatureHandler($discovery, $features, $unitOfWork, $events),
-            'status' => new SetFeatureStatusHandler($features, $unitOfWork, $events),
-            'permission' => new SetFeaturePermissionHandler($features, $permissions, $unitOfWork, $events),
+            'status' => new SetFeatureStatusHandler($features, new FixedClock($now), $unitOfWork, $events),
+            'permission' => new SetFeaturePermissionHandler(
+                $features,
+                $permissions,
+                new FixedClock($now),
+                $unitOfWork,
+                $events
+            ),
             default => new ReconcileManagedPolicyHandler(
                 $permissions,
                 $roles,

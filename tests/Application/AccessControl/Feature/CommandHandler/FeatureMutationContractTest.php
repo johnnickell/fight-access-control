@@ -31,6 +31,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -108,11 +109,17 @@ final class FeatureMutationContractTest extends TestCase
                 new RemoveFeature($featureId, 1)
             ],
             'status' => [
-                new SetFeatureStatusHandler($features, $unitOfWork, $events),
+                new SetFeatureStatusHandler($features, new FixedClock(new DateTimeImmutable()), $unitOfWork, $events),
                 new SetFeatureStatus($featureId, FeatureStatus::OFF, 1)
             ],
             default => [
-                new SetFeaturePermissionHandler($features, $permissions, $unitOfWork, $events),
+                new SetFeaturePermissionHandler(
+                    $features,
+                    $permissions,
+                    new FixedClock(new DateTimeImmutable()),
+                    $unitOfWork,
+                    $events
+                ),
                 new SetFeaturePermission($featureId, $permissionId, 1)
             ]
         };

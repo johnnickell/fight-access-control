@@ -100,7 +100,7 @@ John approved the complete four-TASK plan, now written as kind chore with orders
 | [TASK-00160](../tasks/00160-TASK.md) | Code-defined provisioning with explicit provenance and per-created-Feature evidence | ProvisionFeatures (1). | TASK-00122 |
 | [TASK-00161](../tasks/00161-TASK.md) | Atomic per-changed-subject managed-policy reconciliation | ReconcileManagedPolicy (1). | TASK-00122 |
 
-All four are ready-for-agent because scope is settled; each waits only on TASK-00122 directly, inheriting TASK-00121.
+All four were approved ready-for-agent because scope is settled; each names only TASK-00122 directly, inheriting TASK-00121.
 No mutual dependency is demonstrated and orders are preference, not a serial chain. The allocation accounts for
 2 + 2 + 1 + 1 = 6/6 handlers without overlap/omission; the shared read-only planner is a TASK-00161 collaborator, not
 another handler or an audit writer. Refresh actual additions/moves/removals at execution. These are planning counts,
@@ -144,14 +144,18 @@ checkout separately. No consumer/Common repair, production schema operation, pol
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 413 | [TASK-00158](../tasks/00158-TASK.md) | Audit Feature creation and retirement | ready-for-agent |
-| 414 | [TASK-00159](../tasks/00159-TASK.md) | Audit Feature setting changes | ready-for-agent |
+| 414 | [TASK-00159](../tasks/00159-TASK.md) | Audit Feature setting changes | done |
 | 415 | [TASK-00160](../tasks/00160-TASK.md) | Audit code-defined Feature provisioning | ready-for-agent |
 | 416 | [TASK-00161](../tasks/00161-TASK.md) | Audit managed-policy reconciliation | ready-for-agent |
 ## Decisions and Progress
 
-John approved this requirement in the complete six-TICKET split, then the complete four-TASK plan now written as
-TASK-00158–00161. Each is ready-for-agent with only TASK-00122 as a direct blocker; none is implemented or independently
-accepted. Earlier scope/order/blockers and first Board selection TASK-00107 remain unchanged. Manifest allocation is
+TASK-00159 is done for independently accepted Feature setting behavior and nonvisual QA. The other three slices
+remain unfinished in this checkout, so this TICKET and EPIC-00017 remain open. See the owning TASK and canonical
+Land handoff for its accepted candidate and subsequent delivery outcomes; consumer qualification remains separate.
+
+At the historical planning checkpoint, John approved this requirement in the complete six-TICKET split, then the
+complete four-TASK plan as TASK-00158–00161. Each was ready-for-agent with only TASK-00122 as a direct blocker;
+none was implemented or independently accepted at that checkpoint. Earlier scope/order/blockers and first Board selection TASK-00107 remain unchanged. Manifest allocation is
 planning coverage, not source audit or product/consumer qualification.
 
 Planning only: no source/dependency/Common/consumer mutation, product build, new checkout/branch/worktree,
