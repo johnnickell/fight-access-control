@@ -4,11 +4,20 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Feature\CommandHandler;
 
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeaturePermission;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeaturePermissionChanged;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\Common\Application\Error\Exception\InvalidInput;
 use Fight\Common\Application\Error\Exception\PreconditionFailed;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Error\Exception\StateConflict;
@@ -33,8 +42,10 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
     public function __construct(
         private FeatureRepository $featureRepository,
         private PermissionRepository $permissionRepository,
+        private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -54,8 +65,12 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
         /** @var SetFeaturePermission $command */
         $command = $commandMessage->payload();
         try {
+            $messageId = $commandMessage->id();
             /** @var FeaturePermissionChanged|null $event */
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): ?FeaturePermissionChanged {
+            $event = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                $messageId
+            ): ?FeaturePermissionChanged {
                 $feature = $this->featureRepository->getById($command->getFeatureId());
                 if ($feature === null) {
                     throw new ResourceNotFound('The Feature does not exist.');
@@ -79,6 +94,11 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
                 }
 
                 $successor = $feature->withPermission($command->getPermissionId());
+                $actorId = $command->getActorId();
+                if ($successor !== $feature && $this->auditEvidenceRepository !== null && $actorId === null) {
+                    throw new InvalidInput('Feature audit requires explicit actor provenance.');
+                }
+
                 try {
                     if (!$this->featureRepository->replace($feature, $successor)) {
                         throw new StateConflict('The Feature changed concurrently.');
@@ -92,6 +112,20 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
 
                 if ($successor === $feature) {
                     return null;
+                }
+
+                if ($this->auditEvidenceRepository !== null && $actorId !== null) {
+                    $this->auditEvidenceRepository->add(AuditEvidence::record(
+                        $actorId,
+                        new AuditSubject($feature->getId()),
+                        AuditAction::FEATURE_PERMISSION_CHANGED,
+                        $this->clock->now(),
+                        new AuditFeatureOutcome(
+                            AuditFeatureState::fromFeature($feature),
+                            AuditFeatureState::fromFeature($successor)
+                        ),
+                        new AuditCorrelation($messageId, null)
+                    ));
                 }
 
                 return new FeaturePermissionChanged(

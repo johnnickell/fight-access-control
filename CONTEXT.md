@@ -1,5 +1,15 @@
 # Fight AccessControl Context
 
+## Optional Feature setting audit — TASK-00159 Work
+
+Both setting handlers support optional final nullable audit storage and require the existing Application Clock
+before the Unit of Work. Both Commands accept optional direct typed originating actor IDs with canonical nullable
+kind/ID fields. Enabled real changes admit provenance before persistence and explicitly record bounded typed Feature
+before/after revision, status and Permission relationships in the same transaction, with actual message correlation
+and trusted outcome time. Validated no-change remains unaudited; full-state/reference fences and ordinary failure
+semantics remain. See [current composition](docs/feature-management.md#optional-atomic-setting-audit-unreleased).
+Independent Review and nonvisual QA remain required; this is not consumer database qualification or delivery.
+
 ## Direct Agent Permission audit — TASK-00157 accepted checkpoint
 
 The three direct Permission handlers now support optional last nullable audit storage. Each owns one transaction

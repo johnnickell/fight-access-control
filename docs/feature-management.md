@@ -19,8 +19,56 @@ Consumers must update exception catches directly; Domain constructor validation,
 and malformed persisted state remain distinct internal boundaries. Common's opt-in safe middleware renders deliberate
 absence/precondition/conflict/rule intent as generic 404/412/409/422, and unknown/native/identity faults as generic 500.
 Never classify by diagnostic text or codes. Existing local transaction-result annotations describe owned Event/null
-or Event-list branches while the UoW remains native mixed. No new result DTO, generic supplier or optional audit is
+or Event-list branches while the UoW remains native mixed. No new result DTO or generic supplier is
 introduced. See [operation outcomes](operation-outcomes.md#managed-policy-composition) for the shared policy path.
+
+## Optional atomic setting audit (unreleased)
+
+`SetFeatureStatusHandler` and `SetFeaturePermissionHandler` now require the existing Application
+`Timing\Service\Clock` before the Unit of Work, and accept an optional **last nullable**
+`AuditEvidenceRepository`. Omission/null deliberately disables durable audit. A configured writer must join the
+Feature repository's actual connection and transaction; failure is not permission to discard evidence.
+
+Both Commands accept optional final `actorId: UserId|AgentId|SystemId|AnonymousId|null`. Canonical serialization
+includes nullable `actor_kind` and `actor_id`; supply both together, or neither/nulls for absent provenance.
+Trusted entry callers supply the originating identity, even when a worker executes later. Actor IDs grant no
+management, binding, availability or business-action authority. No ambient resolver or fallback actor is used.
+Enabled real changes reject missing provenance with `InvalidInput` before persistence. Disabled work and fully
+validated no-change require no new audit-only actor. Stale or invalid-reference no-ops still reject.
+
+```php
+$handler = new SetFeatureStatusHandler(
+    $featureRepository,
+    $clock,
+    $unitOfWork,
+    $eventDispatcher,
+    $auditEvidenceRepository,
+);
+$commandBus->execute(new SetFeatureStatus($featureId, FeatureStatus::PREVIEW, $expectedRevision, $originatingActorId));
+```
+
+Register the handler with that same configured bus. Binding uses the analogous constructor with
+`$permissionRepository` after `$featureRepository`. Any existing Permission tier remains eligible: this is a
+Feature relationship, not a Role/Agent grant. No package authorization is added.
+
+After authoritative full-state replacement, the handler explicitly inserts one `feature.status_changed` or
+`feature.permission_changed` record before commit, under the retained Permission-reference fence. The existing
+`AuditFeatureOutcome` contains only before/after revision, status and typed Permission identity; the primary
+subject is the Feature. No Permission mutation/revision, Feature timestamp, name, raw message, entity, diagnostic
+or free text is captured. Evidence has a unique identity, actual incoming message correlation and trusted Clock
+outcome time. It is not automatically authorized public/log output.
+
+Audit failure or a losing state/reference fence rolls back staged Feature/evidence together, preserving unrelated
+state and concurrent winners. Unknown commit acknowledgement remains uncertain; do not blindly replay or backfill.
+Ordinary success/subscriber publication failure still throws after commit and cannot erase either state or evidence;
+secondary failure reporting cannot replace the primary throwable. Fully validated no-change inserts nothing and
+publishes no mutation success. Enabling audit later does not manufacture historical records.
+
+**Pre-v1 adoption:** update current constructor/named callers and Command/schema mappings directly, then qualify
+actual evidence mapping, shared connection, transaction/isolation, all-writer reference fences and cache bypass.
+Package transaction-aware tests model these properties, not a production database, entry policy or deployment.
+There is no legacy reader, compatibility mode, migration/backfill or rejected-attempt store. Other Feature and
+managed-policy audit paths retain their own TASKs.
 
 ## Precise Domain types (unreleased)
 

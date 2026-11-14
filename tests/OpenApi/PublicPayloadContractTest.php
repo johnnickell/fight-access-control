@@ -66,12 +66,48 @@ final class PublicPayloadContractTest extends TestCase
             $schema = self::schema(basename($schema->{'$ref'}));
         }
 
-        self::assertEqualsCanonicalizing(array_keys($payload), $schema->required ?? [], $name.' required');
-        self::assertEqualsCanonicalizing(array_keys($payload), array_keys((array) ($schema->properties ?? [])), $name);
-        foreach (array_keys($payload) as $field) {
+        $required = array_keys($payload);
+        $properties = array_keys((array) ($schema->properties ?? []));
+        if (in_array($name, ['SetFeatureStatus', 'SetFeaturePermission'], true)) {
+            $required = array_values(array_diff($required, ['actor_kind', 'actor_id']));
+            foreach ($schema->allOf as $part) {
+                $properties = array_merge($properties, array_keys((array) ($part->properties ?? [])));
+            }
+
+            $properties = array_merge($properties, ['actor_kind', 'actor_id']);
+        }
+
+        self::assertEqualsCanonicalizing($required, $schema->required ?? [], $name.' required');
+        self::assertEqualsCanonicalizing(array_keys($payload), $properties, $name);
+        foreach ($required as $field) {
             $invalid = $payload;
             unset($invalid[$field]);
             self::assertFalse(self::valid($name, (object) $invalid), $name.' missing '.$field);
+        }
+    }
+
+    public function test_feature_setting_provenance_is_optional_but_paired_and_typed(): void
+    {
+        foreach (['SetFeatureStatus', 'SetFeaturePermission'] as $name) {
+            $base = [
+                'feature_id'        => PublicMessageSamples::ID,
+                'expected_revision' => 1,
+                'status'            => 'on',
+                'permission_id'     => PublicMessageSamples::ID
+            ];
+            self::assertTrue(self::valid($name, $base));
+            self::assertTrue(self::valid($name, $base + ['actor_kind' => null, 'actor_id' => null]));
+            self::assertTrue(self::valid($name, $base + ['actor_kind' => 'user', 'actor_id' => PublicMessageSamples::ID]));
+            $invalidActors = [
+                ['actor_kind' => 'user'],
+                ['actor_id' => PublicMessageSamples::ID],
+                ['actor_kind' => 'user', 'actor_id' => null],
+                ['actor_kind' => 'worker', 'actor_id' => PublicMessageSamples::ID],
+                ['actor_kind' => 'agent', 'actor_id' => 7]
+            ];
+            foreach ($invalidActors as $invalid) {
+                self::assertFalse(self::valid($name, $base + $invalid));
+            }
         }
     }
 

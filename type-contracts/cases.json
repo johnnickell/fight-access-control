@@ -654,8 +654,8 @@
         {"line": 54, "identifier": "phpstan.dumpType", "message": "Dumped type: array{name: string, permission_id: string}"},
         {"line": 55, "identifier": "phpstan.dumpType", "message": "Dumped type: array{default_permission_name: string|null}"},
         {"line": 56, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, expected_revision: int}"},
-        {"line": 57, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, permission_id: string, expected_revision: int}"},
-        {"line": 58, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, status: 'off'|'on'|'preview', expected_revision: int}"},
+        {"line": 57, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, permission_id: string, expected_revision: int, actor_kind: string|null, actor_id: string|null}"},
+        {"line": 58, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, status: 'off'|'on'|'preview', expected_revision: int, actor_kind: string|null, actor_id: string|null}"},
         {"line": 59, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, name: string, permission_id: string}"},
         {"line": 60, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, permission_id: string, revision: int}"},
         {"line": 61, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, name: string}"},
@@ -667,7 +667,9 @@
         {"line": 67, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string}"},
         {"line": 68, "identifier": "phpstan.dumpType", "message": "Dumped type: array{page: int, per_page: int, orderings: array<string, string>}"},
         {"line": 69, "identifier": "phpstan.dumpType", "message": "Dumped type: array{}"},
-        {"line": 70, "identifier": "phpstan.dumpType", "message": "Dumped type: list<string>"}
+        {"line": 70, "identifier": "phpstan.dumpType", "message": "Dumped type: list<string>"},
+        {"line": 74, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\AnonymousId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\SystemId|Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId|null"},
+        {"line": 75, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\AnonymousId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\SystemId|Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId|null"}
       ]
     },
     {
@@ -681,7 +683,8 @@
         {"line": 25, "identifier": "argument.type", "message": "Parameter #1 $feature of closure expects Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Feature, Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Feature|null given."},
         {"line": 26, "identifier": "argument.type", "message": "Parameter #1 $callback of function array_map expects (callable(Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Query\\FeaturePreparationIssue): mixed)|null, Closure(Fight\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureId): string given."},
         {"line": 28, "identifier": "argument.type", "message": "Parameter #1 $issue of closure expects Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Query\\FeaturePreparationIssue, array<string, string> given."},
-        {"line": 30, "identifier": "argument.type", "message": "Parameter #1 $revision of closure expects int, string|null given."}
+        {"line": 30, "identifier": "argument.type", "message": "Parameter #1 $revision of closure expects int, string|null given."},
+        {"line": 31, "identifier": "argument.type", "message": "Parameter #4 $actorId of class Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Command\\SetFeaturePermission constructor expects Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\AnonymousId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\SystemId|Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId|null, Fight\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureId given."}
       ]
     },
     {

@@ -68,10 +68,18 @@ final class FeatureTypeContractsTest extends TestCase
         yield 'provision' => [ProvisionFeatures::class, ['default_permission_name' => null]];
         yield 'remove' => [RemoveFeature::class, ['feature_id' => $featureId, 'expected_revision' => 1]];
         yield 'permission' => [SetFeaturePermission::class, [
-            'feature_id' => $featureId, 'permission_id' => $permissionId, 'expected_revision' => 1
+            'feature_id'        => $featureId,
+            'permission_id'     => $permissionId,
+            'expected_revision' => 1,
+            'actor_kind'        => null,
+            'actor_id'          => null
         ]];
         yield 'status' => [SetFeatureStatus::class, [
-            'feature_id' => $featureId, 'status' => 'preview', 'expected_revision' => 1
+            'feature_id'        => $featureId,
+            'status'            => 'preview',
+            'expected_revision' => 1,
+            'actor_kind'        => null,
+            'actor_id'          => null
         ]];
         yield 'created' => [FeatureCreated::class, [
             'feature_id' => $featureId, 'name' => 'checkout', 'permission_id' => $permissionId
@@ -103,6 +111,10 @@ final class FeatureTypeContractsTest extends TestCase
     {
         foreach (self::validMessages() as $label => [$class, $payload]) {
             foreach ($payload as $key => $original) {
+                if (in_array($key, ['actor_kind', 'actor_id'], true)) {
+                    continue;
+                }
+
                 $missing = $payload;
                 unset($missing[$key]);
                 yield $label.' missing '.$key => [$class, $missing];

@@ -71,4 +71,6 @@ static function (
         static fn(FeaturePreparationIssue $item): string => $item->getName()->toString(),
         $result->getIssues()
     ));
+    dumpType($permission->getActorId());
+    dumpType($status->getActorId());
 };
