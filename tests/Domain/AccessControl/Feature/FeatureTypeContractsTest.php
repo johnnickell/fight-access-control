@@ -64,16 +64,28 @@ final class FeatureTypeContractsTest extends TestCase
     {
         $featureId = '018f0000-0000-7000-8000-000000000001';
         $permissionId = '018f0000-0000-7000-8000-000000000002';
-        yield 'create' => [CreateFeature::class, ['name' => 'checkout', 'permission_id' => $permissionId]];
+        yield 'create' => [CreateFeature::class, [
+            'name' => 'checkout', 'permission_id' => $permissionId, 'actor_kind' => null, 'actor_id' => null
+        ]];
         yield 'provision' => [ProvisionFeatures::class, [
             'default_permission_name' => null, 'actor_kind' => null, 'actor_id' => null
         ]];
-        yield 'remove' => [RemoveFeature::class, ['feature_id' => $featureId, 'expected_revision' => 1]];
+        yield 'remove' => [RemoveFeature::class, [
+            'feature_id' => $featureId, 'expected_revision' => 1, 'actor_kind' => null, 'actor_id' => null
+        ]];
         yield 'permission' => [SetFeaturePermission::class, [
-            'feature_id' => $featureId, 'permission_id' => $permissionId, 'expected_revision' => 1
+            'feature_id'        => $featureId,
+            'permission_id'     => $permissionId,
+            'expected_revision' => 1,
+            'actor_kind'        => null,
+            'actor_id'          => null
         ]];
         yield 'status' => [SetFeatureStatus::class, [
-            'feature_id' => $featureId, 'status' => 'preview', 'expected_revision' => 1
+            'feature_id'        => $featureId,
+            'status'            => 'preview',
+            'expected_revision' => 1,
+            'actor_kind'        => null,
+            'actor_id'          => null
         ]];
         yield 'created' => [FeatureCreated::class, [
             'feature_id' => $featureId, 'name' => 'checkout', 'permission_id' => $permissionId
@@ -105,6 +117,10 @@ final class FeatureTypeContractsTest extends TestCase
     {
         foreach (self::validMessages() as $label => [$class, $payload]) {
             foreach ($payload as $key => $original) {
+                if (in_array($key, ['actor_kind', 'actor_id'], true)) {
+                    continue;
+                }
+
                 $missing = $payload;
                 unset($missing[$key]);
                 yield $label.' missing '.$key => [$class, $missing];

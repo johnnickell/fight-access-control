@@ -19,8 +19,93 @@ Consumers must update exception catches directly; Domain constructor validation,
 and malformed persisted state remain distinct internal boundaries. Common's opt-in safe middleware renders deliberate
 absence/precondition/conflict/rule intent as generic 404/412/409/422, and unknown/native/identity faults as generic 500.
 Never classify by diagnostic text or codes. Existing local transaction-result annotations describe owned Event/null
-or Event-list branches while the UoW remains native mixed. No new result DTO, generic supplier or optional audit is
-introduced. See [operation outcomes](operation-outcomes.md#managed-policy-composition) for the shared policy path.
+or Event-list branches while the UoW remains native mixed. No new result DTO or generic supplier is introduced.
+Manual creation, retirement and setting changes offer the optional audit compositions below; provisioning remains separate. See [operation outcomes](operation-outcomes.md#managed-policy-composition) for the shared policy path.
+
+## Optional manual lifecycle audit (unreleased)
+
+`CreateFeatureHandler` and `RemoveFeatureHandler` take the existing Application `Timing\Service\Clock` before
+`TransactionalUnitOfWork`, and an optional **last** nullable `AuditEvidenceRepository`. Omitted/null deliberately
+disables durable audit; configured storage failure never falls back to disabled behavior. Supply the ordinary UoW,
+Feature/Permission repositories and audit adapter on the same actual connection and enclosing transaction. No Event
+inspection, transaction decorator, independent audit commit or post-commit subscriber is needed.
+
+`CreateFeature` and `RemoveFeature` accept optional last typed `actorId`: `UserId`, `AgentId`, `SystemId` or
+`AnonymousId`. Trusted entry callers supply the real originating identity, not a worker replacement or guessed
+target. This grants no management authority. Canonical payloads include nullable `actor_kind` and `actor_id`;
+provenance may be omitted/null when auditing is disabled. With enabled storage, missing attribution rejects
+before the first mutation requiring evidence. There is no ambient principal lookup or system/anonymous fallback.
+System/anonymous kinds retain their distinct fixed-nil identities, not User/Agent nil substitutes.
+
+After authoritative persistence and before commit, enabled creation records `feature.created` with a typed Feature
+subject and `AuditFeatureOutcome(null, AuditFeatureState)` containing actual OFF/revision 1 and the related Permission
+ID. Enabled retirement records `feature.removed` with the authoritative prior state and null successor. Both use
+a fresh evidence identity, incoming message ID and trusted Clock outcome time. Feature stores no timestamp: the
+clock does not fabricate one or use message/database insertion time. Shared Feature-created definitions are already
+available for separately owned code-defined provisioning; that handler is not changed by this slice.
+
+Evidence contains no Feature/Permission names, messages, entities or diagnostics. Treat identifiers/evidence as
+restricted stored facts, not automatically public logs/responses. Duplicate creation, stale/recreated retirement,
+current references, incomplete/wrong-scope discovery and final CAS/reference loss add no committed evidence.
+Any existing Permission tier remains eligible as a binding; this is a reference, not a grant.
+
+Audit failure rolls back staged Feature/reference/evidence together, preserving concurrent winners and the primary
+throwable even if failure notification also fails. Unknown commit acknowledgement remains uncertain. Ordinary
+post-commit publication/subscriber failure still throws while committed state/evidence survive; failure notification
+is not a rollback receipt. No audit backfill or retry deduplication is invented for previously unaudited history.
+
+**Pre-v1 adoption:** update constructor/named callers, current actor-kind/UUID messages and persistence mapping
+explicitly. Qualify the real shared connection, constraints, locks, rollback and both uncertain outcomes before
+opt-in. Package in-memory mapped fixtures establish modeled outcomes only; no schema operation, compatibility reader,
+consumer change, release or deployment is supplied. See [retirement](feature-retirement.md) for its unchanged guards.
+
+## Optional atomic setting audit (unreleased)
+
+`SetFeatureStatusHandler` and `SetFeaturePermissionHandler` now require the existing Application
+`Timing\Service\Clock` before the Unit of Work, and accept an optional **last nullable**
+`AuditEvidenceRepository`. Omission/null deliberately disables durable audit. A configured writer must join the
+Feature repository's actual connection and transaction; failure is not permission to discard evidence.
+
+Both Commands accept optional final `actorId: UserId|AgentId|SystemId|AnonymousId|null`. Canonical serialization
+includes nullable `actor_kind` and `actor_id`; supply both together, or neither/nulls for absent provenance.
+Trusted entry callers supply the originating identity, even when a worker executes later. Actor IDs grant no
+management, binding, availability or business-action authority. No ambient resolver or fallback actor is used.
+Enabled real changes reject missing provenance with `InvalidInput` before persistence. Disabled work and fully
+validated no-change require no new audit-only actor. Stale or invalid-reference no-ops still reject.
+
+```php
+$handler = new SetFeatureStatusHandler(
+    $featureRepository,
+    $clock,
+    $unitOfWork,
+    $eventDispatcher,
+    $auditEvidenceRepository,
+);
+$commandBus->execute(new SetFeatureStatus($featureId, FeatureStatus::PREVIEW, $expectedRevision, $originatingActorId));
+```
+
+Register the handler with that same configured bus. Binding uses the analogous constructor with
+`$permissionRepository` after `$featureRepository`. Any existing Permission tier remains eligible: this is a
+Feature relationship, not a Role/Agent grant. No package authorization is added.
+
+After authoritative full-state replacement, the handler explicitly inserts one `feature.status_changed` or
+`feature.permission_changed` record before commit, under the retained Permission-reference fence. The existing
+`AuditFeatureOutcome` contains only before/after revision, status and typed Permission identity; the primary
+subject is the Feature. No Permission mutation/revision, Feature timestamp, name, raw message, entity, diagnostic
+or free text is captured. Evidence has a unique identity, actual incoming message correlation and trusted Clock
+outcome time. It is not automatically authorized public/log output.
+
+Audit failure or a losing state/reference fence rolls back staged Feature/evidence together, preserving unrelated
+state and concurrent winners. Unknown commit acknowledgement remains uncertain; do not blindly replay or backfill.
+Ordinary success/subscriber publication failure still throws after commit and cannot erase either state or evidence;
+secondary failure reporting cannot replace the primary throwable. Fully validated no-change inserts nothing and
+publishes no mutation success. Enabling audit later does not manufacture historical records.
+
+**Pre-v1 adoption:** update current constructor/named callers and Command/schema mappings directly, then qualify
+actual evidence mapping, shared connection, transaction/isolation, all-writer reference fences and cache bypass.
+Package transaction-aware tests model these properties, not a production database, entry policy or deployment.
+There is no legacy reader, compatibility mode, migration/backfill or rejected-attempt store. Other Feature and
+managed-policy audit paths retain their own TASKs.
 
 ## Precise Domain types (unreleased)
 

@@ -373,11 +373,11 @@ final class HandlerFailureContractTest extends TestCase
             ),
             Feature\CreateFeatureHandler::class => new Feature\CreateFeatureHandler(
                 $featureRepository,
-                $permissionRepository, $unitOfWork, $eventDispatcher
+                $permissionRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             Feature\SetFeaturePermissionHandler::class => new Feature\SetFeaturePermissionHandler(
                 $featureRepository,
-                $permissionRepository, $unitOfWork, $eventDispatcher
+                $permissionRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             Feature\ProvisionFeaturesHandler::class => new Feature\ProvisionFeaturesHandler(
                 $discovery,
@@ -385,10 +385,11 @@ final class HandlerFailureContractTest extends TestCase
             ),
             Feature\RemoveFeatureHandler::class => new Feature\RemoveFeatureHandler(
                 $discovery,
-                $featureRepository, $unitOfWork, $eventDispatcher
+                $featureRepository, $clock, $unitOfWork, $eventDispatcher
             ),
             Feature\SetFeatureStatusHandler::class => new Feature\SetFeatureStatusHandler(
                 $featureRepository,
+                $clock,
                 $unitOfWork,
                 $eventDispatcher
             ),

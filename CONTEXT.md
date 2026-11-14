@@ -13,6 +13,38 @@ Review/nonvisual QA and delivery remain separate. Package models do not qualify 
 connections/locks, scanner completeness, setup authority or activation. No sibling Feature handlers are implemented
 by this slice.
 
+## Optional Feature setting audit — TASK-00159 accepted checkpoint
+
+Both setting handlers support optional final nullable audit storage and require the existing Application Clock
+before the Unit of Work. Both Commands accept optional direct typed originating actor IDs with canonical nullable
+kind/ID fields. Enabled real changes admit provenance before persistence and explicitly record bounded typed Feature
+before/after revision, status and Permission relationships in the same transaction, with actual message correlation
+and trusted outcome time. Validated no-change remains unaudited; full-state/reference fences and ordinary failure
+semantics remain. See [current composition](docs/feature-management.md#optional-atomic-setting-audit-unreleased).
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`a65b1a39b522b2c6c2f2c8172171a43e3c099a44` (66 independent scenarios / 466 checks, plus 329 tests / 5,239 assertions).
+TASK-00159 is done; unfinished siblings keep TICKET-00046 and EPIC-00017 open. Earlier full-gate evidence is
+retained with current administrative checks. Publication/final verification remain pending at this checkpoint;
+canonical `.runs/handoffs/TASK-00159/land.md` owns subsequent delivery and retirement outcomes. This is not
+consumer database qualification, merge, release or deployment.
+
+## Manual Feature lifecycle audit — TASK-00158 accepted checkpoint
+
+Manual creation and guarded retirement now accept optional last nullable audit storage and Application Clock before
+UoW. Their Commands carry optional typed originating provenance with canonical nullable kind/UUID fields. Enabled
+records join the actual mutation/reference transaction: typed Feature and related Permission, initial/prior state,
+trusted outcome time and real message correlation. Disabled composition adds no audit-only input requirement.
+Existing OFF/revision 1 creation, uniqueness/reference fences, complete CURRENT discovery, final full-state CAS and
+ordinary failure semantics remain. Shared `AuditFeatureOutcome`/`AuditFeatureState` already describe both actions;
+code-defined provisioning remains separately owned by TASK-00160. See
+[current composition](docs/feature-management.md#optional-manual-lifecycle-audit-unreleased).
+Independent Review ACCEPT and nonvisual QA PASS qualify candidate `55dd330f5c716af6e10e443ec06684cff5d6c603`;
+QA passed 53 scenarios / 627 checks. TASK is done; unfinished siblings keep TICKET-00046 and EPIC-00017 open.
+Canonical `.runs/handoffs/TASK-00158/work.md` owns original verification/runtime evidence; independent reports remain
+unchanged. Publication/final delivery verification and owned retirement are pending at this administrative checkpoint;
+canonical `.runs/handoffs/TASK-00158/land.md` owns their actual outcomes. Package fixtures do not qualify consumer
+storage/connections/locks, scanner completeness, entry authority or deployment.
+
 ## Direct Agent Permission audit — TASK-00157 accepted checkpoint
 
 The three direct Permission handlers now support optional last nullable audit storage. Each owns one transaction
