@@ -32,7 +32,8 @@ interface AgentOperationAuthorization
      * Return explicitly established originating provenance, not a parsed caller label or missing-data fallback.
      * Deliberate autonomous or anonymous entry may establish the corresponding fixed identity. Supplying an audit
      * identity never grants authority, and neither operation nor caller labels are necessarily UUIDs. Null explicitly
-     * leaves audit provenance absent: authorized original-key resolution needs no new audit-only identity, while an
+     * leaves originating provenance absent for disabled audit; any supplied origin is retained independently of audit.
+     * Authorized original-key resolution needs no new audit-only identity and never replaces retained origin, while an
      * enabled new mutation must reject absent provenance before its first state change. Null never grants authority.
      */
     public function authorize(

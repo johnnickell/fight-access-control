@@ -52,11 +52,14 @@ serialized actor/scope, metadata and enqueue-time authorization never confer exe
 is not promised the worker's exception.
 
 Inject the same capabilities as provisioning: `AgentRepository`, `AgentCredentialOperationRepository`,
-`AuditEvidenceRepository`, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`, `HmacSharedSecretCipher`,
-`AgentDeliveryCipher`, `Clock`, `TransactionalUnitOfWork`, `EventDispatcher`, and optional `AgentOperationLimits`.
+`AgentOperationAuthorization`, `HmacSharedSecretGenerator`, `HmacSharedSecretCipher`,
+`AgentDeliveryCipher`, `Clock`, `TransactionalUnitOfWork`, `EventDispatcher`, optional `AgentOperationLimits`, then
+optional last nullable `AuditEvidenceRepository`. Omitted/null disables durable audit, not authorization or retirement.
+See [optional atomic issuance audit](agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased) for
+required current origin hydration, evidence mapping, atomic failure and later opt-in semantics shared by both handlers.
 The new mandatory `AgentOperationAuthorization::authorizeRotation(scope, destination, target)` authenticates the real
 invoker and fences current scope, explicit delegation, target authority and destination ownership **before key lookup**.
-It returns only a bounded safe audit identity. Every retry, including collision resolution and retired original
+It returns explicitly established nullable originating provenance independently of the real invoker. Every retry, including collision resolution and retired original
 issuance, checks current authority again. Authorizing a retry must not require its original predecessor still current.
 No actor string, cached allow, outer transaction or nonparticipating external policy store substitutes for this port.
 
@@ -77,7 +80,8 @@ has no historical reader or selectable creation version; `canonicalize()` takes 
 
 Inside one package-owned transaction:
 
-1. Authorize current scope/target/destination and validate the safe audit identity.
+1. Authorize current scope/target/destination. Only absent-key enabled work requires originating audit identity,
+   admitted before its first mutation; existing resolution and disabled audit need no audit-only origin.
 2. Read the retained key, including tombstones. If present, resolve the original request; do not load/check a current
    predecessor, generate material, reserve another slot order, mutate authority, audit or publish another success fact.
 3. For an unseen key, load the target. `Agent::assertRecoverableRotation()` checks the exact active expected
@@ -90,7 +94,7 @@ Inside one package-owned transaction:
    predecessor's exact original operation, removes its material, advances its state revision and records supersession.
    Original correlation and delivered/terminal history survive. Missing correlation rejects without fabricating it.
    No key, decrypt or sink access is needed to cancel.
-6. Add the new pending operation/delivery and safe rotation audit; commit all state once. Capacity, cancellation,
+6. Add the new pending operation/delivery and enabled safe rotation audit; commit all state once. Capacity, cancellation,
    encryption, audit, authorization or persistence failure rolls back every write, including slot reservation and
    predecessor retirement. All adapters and authority writers must hold the shared fences until completion.
 

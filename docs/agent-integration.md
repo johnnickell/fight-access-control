@@ -78,8 +78,8 @@ round trips. Serializable Queries use their handlers' Common registrations; secr
 
 | Use case / public entry | Injected composition and outcome |
 | --- | --- |
-| [Provision](agent-provisioning-operations.md): `ProvisionAgent` / `ProvisionAgentHandler` | Registered void Common Command dispatch; Agent/operation/audit repositories, `AgentOperationAuthorization`, generator, authentication/delivery ciphers, Clock, UoW, EventDispatcher, optional limits. Independent authorized `GetAgentOperation` Query supplies original issuance/dispositions. |
-| [Rotate](agent-rotation-operations.md): `RotateAgentCredential` / `RotateAgentCredentialHandler` | Same capabilities and void dispatch; mandatory `authorizeRotation()` fences current scope, original target and destination. Atomic predecessor cancellation/successor/audit; original outcomes come only from independent authorized Query dispatch. |
+| [Provision](agent-provisioning-operations.md): `ProvisionAgent` / `ProvisionAgentHandler` | Registered void Common Command dispatch; Agent/operation repositories, optional last nullable audit repository, `AgentOperationAuthorization`, generator, authentication/delivery ciphers, Clock, UoW, EventDispatcher, optional limits. Independent authorized `GetAgentOperation` Query supplies original issuance/dispositions. |
+| [Rotate](agent-rotation-operations.md): `RotateAgentCredential` / `RotateAgentCredentialHandler` | Same capabilities and void dispatch; mandatory `authorizeRotation()` fences current scope, original target and destination. Atomic predecessor cancellation/successor/enabled audit; original outcomes come only from independent authorized Query dispatch. |
 | [Rename](agent-name-updates.md): `UpdateAgentHandler` / `UpdateAgent` | Agent repository with mandatory name-only `rename(id, name, now)`, Clock, UoW, EventDispatcher. The clock callback is sampled after writer admission; the repository returns exact persisted time or null for a validated no-op. Typed User/Agent initiator is provenance, not authorization. Current ACTIVE/operation/cohort fences include no-ops; no issuance/cancellation. Void synchronous dispatch; input-derived `{agent_id, name}` acknowledgement only on success. |
 | [Revoke](agent-credential-retirement.md): `AgentCredentialLifecycleService::revoke(actorId, agentId)` | Agent repository, audit, Clock, UoW, EventDispatcher. Consumers protect every entry point; actor ID is audit provenance only. Repository replacement atomically retires original delivery without key/sink access. |
 | [Status](agent-operation-status.md): `GetAgentOperationHandler` | `AgentCredentialOperationReadRepository` and `AgentOperationAuthorization::authorizeRead()`, before lookup and again with original target before disclosure. No UoW, material access, audit, event or new-work capacity. Safe `AgentOperationView`. |
@@ -95,9 +95,12 @@ The [shared replacement](audit-evidence.md) changes `AgentOperationAuthorization
 provenance. Keep actual invoker/delegation/scope/target/destination authorization independently fenced; do not parse
 its caller labels into UUIDs or grant authority from an audit ID. New audited issuance refuses null before mutation.
 Original-key resolution has no new audit-only actor requirement and creates no duplicate evidence. Revocation
-requires a direct typed actor. Current mandatory repository wiring and later delivery/maintenance audit coverage
-are unchanged; retaining origin durably for those future workers remains TICKET-00047 work. Update consumer port
-implementations directly; no compatibility readers or actual consumer qualification are supplied.
+requires a direct typed actor. Both issuers now use optional last nullable audit storage and retain nullable typed
+origin on the operation independently of evidence. Persist and hydrate its kind/UUID through every copy, retirement,
+expected-state comparison and tombstone; never replace it with a retrying worker. New issuance evidence includes
+its actual operation revision and existing issuedAt. See [current optional composition](agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased).
+Delivery/maintenance evidence insertion remains separately owned. Update current consumer mappings/constructors
+directly and qualify the actual shared connection; no compatibility reader, backfill or consumer qualification is supplied.
 
 ## Operation ownership and read/write composition (Unreleased)
 

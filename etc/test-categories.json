@@ -324,6 +324,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\AgentIssuanceAuditTest": {
+      "file": "tests/Application/AccessControl/Agent/CommandHandler/AgentIssuanceAuditTest.php",
+      "category": "Unit",
+      "reason": "Isolated issuance/audit/provenance behavior with controlled in-memory repositories, security, clock and transaction ports; modeled scalar hydration uses no real storage or worker process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\Agent\\CommandHandler\\AgentIssuanceContractTest": {
       "file": "tests/Application/AccessControl/Agent/CommandHandler/AgentIssuanceContractTest.php",
       "category": "Unit",

@@ -61,14 +61,14 @@ final readonly class RotationEnvironment
         ?AgentRepository $agentRepository = null,
         ?ProvisioningEnvironment $environment = null,
         ?Clock $clock = null,
-        ?AgentCredentialOperationRepository $operationRepository = null
+        ?AgentCredentialOperationRepository $operationRepository = null,
+        bool $auditEnabled = true
     ): IssuanceBusFixture {
         $environment ??= $this->provisioning;
 
         return new IssuanceBusFixture(new RotateAgentCredentialHandler(
             $agentRepository ?? $environment->agentRepository,
             $operationRepository ?? $environment->operationRepository,
-            $auditEvidenceRepository ?? $environment->auditEvidenceRepository,
             $environment->operationAuthorization,
             $generator ?? new readonly class ($environment) implements HmacSharedSecretGenerator {
                 public function __construct(private ProvisioningEnvironment $environment)
@@ -87,7 +87,8 @@ final readonly class RotationEnvironment
             $clock ?? new FixedClock(new DateTimeImmutable('2026-09-27T12:00:00+00:00')),
             $unitOfWork ?? $environment->transaction,
             $environment->eventDispatcher,
-            $limits ?? new AgentOperationLimits()
+            $limits ?? new AgentOperationLimits(),
+            $auditEnabled ? ($auditEvidenceRepository ?? $environment->auditEvidenceRepository) : null
         ), $environment->operationRepository, $environment->operationAuthorization);
     }
 }

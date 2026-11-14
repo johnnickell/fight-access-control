@@ -345,7 +345,8 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
                     $original->getCanonicalVersion(),
                     $original->getCanonicalRequest(),
                     $original->getIssuance(),
-                    $material
+                    $material,
+                    $original->getOriginatingActorId()
                 );
             } elseif ($case === 'wrong invocation') {
                 $env->decipher->wrongBinding = new DeliveryEnvironment()->issuance;
@@ -454,7 +455,8 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
                 99,
                 $original->getCanonicalRequest(),
                 $env->issuance,
-                $original->getMaterial()
+                $original->getMaterial(),
+                $original->getOriginatingActorId()
             );
         } elseif ($case === 'agent') {
             $agentRepository = $this->createStub(AgentRepository::class);
@@ -507,6 +509,7 @@ final class AgentCredentialDeliveryServiceTest extends TestCase
                     $original->getCanonicalRequest(),
                     $env->issuance,
                     null,
+                    $original->getOriginatingActorId(),
                     $disposition
                 );
                 self::assertSame(AgentDeliveryDisposition::RETIRED, $disposition);

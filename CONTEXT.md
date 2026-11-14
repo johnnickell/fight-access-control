@@ -1,5 +1,17 @@
 # Fight AccessControl Context
 
+## Recoverable Agent issuance audit — TASK-00162 Work
+
+Both registered issuance handlers now accept optional last nullable audit storage. Enabled evidence shares the
+actual issuance/reservation/rotation-retirement transaction, recording authoritative credential states, delivery,
+new operation revision, issuedAt and real scoped/message correlation. Operations retain explicit nullable typed
+origin independently of evidence through construction, hydration, transition copies and permanent tombstones.
+Invoker authorization remains separate; retries and later opt-in neither replace origin nor backfill evidence.
+Void Commands and authorized outcome Queries remain unchanged, including commit uncertainty and committed issuance
+after one/both publication failures. See [current composition](docs/agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased).
+This is Work implementation, not independent acceptance; TASK-00162 remains open pending Review and behavioral QA.
+Consumer persistence/connections/locks, crypto/sinks, restoration, activation/use and deployment remain unqualified.
+
 ## Optional Feature setting audit — TASK-00159 accepted checkpoint
 
 Both setting handlers support optional final nullable audit storage and require the existing Application Clock

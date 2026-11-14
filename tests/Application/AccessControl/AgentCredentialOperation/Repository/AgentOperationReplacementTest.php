@@ -33,6 +33,8 @@ final class AgentOperationReplacementTest extends TestCase
         yield 'delivery material swap' => ['material'];
         yield 'maintenance claim reset' => ['claim'];
         yield 'delivery claim reset' => ['delivery claim'];
+        yield 'maintenance origin rewrite' => ['maintenance origin'];
+        yield 'delivery origin rewrite' => ['delivery origin'];
     }
 
     /** @return iterable<string, array{string}> */
@@ -141,6 +143,7 @@ final class AgentOperationReplacementTest extends TestCase
             $original->getCanonicalRequest(),
             $original->getIssuance(),
             $material,
+            $original->getOriginatingActorId(),
             $disposition,
             stateRevision: $original->getStateRevision() + 1,
             attempt: $attempt,
@@ -292,12 +295,13 @@ final class AgentOperationReplacementTest extends TestCase
             $case === 'request' ? 'different-request' : $original->getCanonicalRequest(),
             $original->getIssuance(),
             $material,
+            str_ends_with($case, 'origin') ? null : $original->getOriginatingActorId(),
             stateRevision: $original->getStateRevision() + 1
         );
         try {
             $ports->transaction->commitTransactional(function () use ($ports, $original, $replacement, $case): void {
                 $ports->operationAuthorization->authorize($ports->key->getScope(), $ports->request->getDestination());
-                if ($case === 'claim') {
+                if ($case === 'claim' || $case === 'maintenance origin') {
                     $ports->operationRepository->replaceMaintenance($original, $replacement);
                 } else {
                     $ports->operationRepository->replaceDelivery(

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional last nullable audit repository for recoverable Agent provision/rotation Commands. Enabled evidence joins
+  issuance/reservation and rotation retirement in the same transaction, with original typed provenance and actual
+  operation revision. Origin is retained independently of audit through current hydration/copies/tombstones; retries
+  and later opt-in never backfill evidence or overwrite attribution. **Pre-v1:** update handler argument order,
+  operation origin kind/UUID persistence and `AuditAgentOutcome`'s required nullable `operation_revision` mapping.
+  Omitted/null disables durable audit, not authorization, fences or recovery. Void Commands/authorized outcome Queries
+  and uncertainty remain; publication failure cannot hide committed issuance. Consumers qualify real connections and
+  storage; no migration, schema/data operation or deployment is supplied. See
+  [issuance audit composition](docs/agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased).
+
 - Optional last nullable audit storage for Feature status and Permission-binding changes, with explicit typed
   originating provenance, actual revisions/relationships, trusted outcome time and message correlation in the
   owning transaction. Validated no-change adds no evidence; configured failure rolls back, and committed evidence

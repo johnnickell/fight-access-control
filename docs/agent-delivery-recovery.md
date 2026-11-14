@@ -22,7 +22,12 @@ generic-inference ownership. As an authenticated worker with explicit current
 delegation, call `recover(originalScope, registeredDestination)` once per scheduled pass. It selects one batch,
 then calls the actual delivery service once per item. The safe result maps original global delivery IDs to
 `AgentDeliveryResult` values. No process-local queue, event, initiating caller retry, claim token or secret is input.
-Constructing new services after restart does not change recovery authority.
+Constructing new services after restart does not change recovery authority. Issuance now retains explicit nullable
+typed origin on `AgentCredentialOperation`, independently of optional evidence. Consumer hydration/copies and complete
+expected-state comparisons must preserve its kind/UUID, even through retirement and tombstones. It is not public
+status data or worker authority. Never parse scope labels, substitute the current worker or query audit history to
+recover origin. Delivery audit insertion remains separately owned; see
+[issuance composition](agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased).
 
 Call `nextRunAt()` after the pass (also after a failed pass) to obtain the next bounded polling time. Consumers own
 scheduling, enumeration of their registered scope/destination pairs, worker authentication, concurrency limits and

@@ -140,7 +140,8 @@ final class AgentDeliveryMaintenanceServiceTest extends TestCase
             new AgentDeliveryMaterial(
                 EncryptedCredentialMaterial::fromString('invalid-test-ciphertext'),
                 'test-key-v1'
-            )
+            ),
+            $original->getOriginatingActorId()
         );
         self::assertSame(AgentMaintenanceResult::TERMINAL, $env->rewrapOriginal());
         self::assertSame(AgentDeliveryFailure::CORRUPT_MATERIAL, $env->delivery->operation()->getDeliveryFailure());
@@ -392,7 +393,8 @@ final class AgentDeliveryMaintenanceServiceTest extends TestCase
                 99,
                 $before->getCanonicalRequest(),
                 $issuance,
-                $before->getMaterial()
+                $before->getMaterial(),
+                $before->getOriginatingActorId()
             );
         }
 
@@ -524,7 +526,8 @@ final class AgentDeliveryMaintenanceServiceTest extends TestCase
             $original->getCanonicalVersion(),
             $original->getCanonicalRequest(),
             $original->getIssuance(),
-            $other->delivery->operation()->getMaterial()
+            $other->delivery->operation()->getMaterial(),
+            $original->getOriginatingActorId()
         );
         self::assertSame(AgentMaintenanceResult::TERMINAL, $env->rewrapOriginal());
         self::assertNull($env->delivery->operation()->getMaterial());

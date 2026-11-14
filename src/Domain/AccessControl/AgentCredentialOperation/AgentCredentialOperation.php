@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryAttempt;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryAuthority;
@@ -15,6 +16,9 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\A
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryReceipt;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenancePolicy;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use SensitiveParameter;
 
 /**
@@ -34,6 +38,7 @@ class AgentCredentialOperation
         private readonly string $canonicalRequest,
         private readonly AgentIssuance $issuance,
         #[SensitiveParameter] private readonly ?AgentDeliveryMaterial $material,
+        private readonly UserId|AgentId|SystemId|AnonymousId|null $originatingActorId,
         private readonly AgentDeliveryDisposition $deliveryDisposition = AgentDeliveryDisposition::PENDING,
         private readonly AgentCredentialDisposition $credentialDisposition = AgentCredentialDisposition::CURRENT,
         private readonly int $stateRevision = 0,
@@ -88,6 +93,14 @@ class AgentCredentialOperation
     public function getIssuance(): AgentIssuance
     {
         return $this->issuance;
+    }
+
+    /**
+     * Returns retained originating provenance for authorized workers without granting execution authority
+     */
+    public function getOriginatingActorId(): UserId|AgentId|SystemId|AnonymousId|null
+    {
+        return $this->originatingActorId;
     }
 
     /**
@@ -486,6 +499,7 @@ class AgentCredentialOperation
             $this->canonicalRequest,
             $this->issuance,
             null,
+            $this->originatingActorId,
             $this->deliveryDisposition,
             $this->credentialDisposition,
             $this->nextStateRevision(),
@@ -529,6 +543,7 @@ class AgentCredentialOperation
             $this->canonicalRequest,
             $this->issuance,
             null,
+            $this->originatingActorId,
             $this->retiredDeliveryDisposition(),
             $credentialDisposition,
             $this->nextStateRevision(),
@@ -554,6 +569,7 @@ class AgentCredentialOperation
             $this->canonicalRequest,
             $this->issuance,
             null,
+            $this->originatingActorId,
             $this->retiredDeliveryDisposition(),
             $this->credentialDisposition,
             $this->nextStateRevision(),
@@ -683,6 +699,7 @@ class AgentCredentialOperation
             $this->canonicalRequest,
             $this->issuance,
             $material,
+            $this->originatingActorId,
             $disposition,
             $this->credentialDisposition,
             $this->nextStateRevision(),

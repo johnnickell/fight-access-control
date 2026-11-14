@@ -234,6 +234,7 @@ final class InMemoryAgentCredentialOperationRepository implements
             ($this->operations[$key] ?? null) !== $expected
             || $replacement->getStateRevision() !== $expected->getStateRevision() + 1
             || $expected->getIssuance()->toArray() !== $replacement->getIssuance()->toArray()
+            || $expected->getOriginatingActorId() != $replacement->getOriginatingActorId()
             || $expected->getCanonicalRequest() !== $replacement->getCanonicalRequest()
             || $expected->getCanonicalVersion() !== $replacement->getCanonicalVersion()
             || ($expected->getMaterial() === null && $replacement->getMaterial() !== null)
@@ -366,6 +367,7 @@ final class InMemoryAgentCredentialOperationRepository implements
             || $this->agentRepository?->getById($expectedAgent->getId()) !== $expectedAgent
             || $replacement->getStateRevision() !== $expected->getStateRevision() + 1
             || $expected->getIssuance()->toArray() !== $replacement->getIssuance()->toArray()
+            || $expected->getOriginatingActorId() != $replacement->getOriginatingActorId()
             || $expected->getCanonicalVersion() !== $replacement->getCanonicalVersion()
             || $expected->getCanonicalRequest() !== $replacement->getCanonicalRequest()
             || $expected->getCredentialDisposition() !== $replacement->getCredentialDisposition()

@@ -83,12 +83,12 @@ final class ProvisioningEnvironment
         ?AuditEvidenceRepository $auditEvidenceRepository = null,
         ?AgentRepository $agentRepository = null,
         ?Clock $clock = null,
-        ?AgentCredentialOperationRepository $operationRepository = null
+        ?AgentCredentialOperationRepository $operationRepository = null,
+        bool $auditEnabled = true
     ): IssuanceBusFixture {
         return new IssuanceBusFixture(new ProvisionAgentHandler(
             $agentRepository ?? $this->agentRepository,
             $operationRepository ?? $this->operationRepository,
-            $auditEvidenceRepository ?? $this->auditEvidenceRepository,
             $this->operationAuthorization,
             $generator ?? new readonly class ($this) implements HmacSharedSecretGenerator {
                 public function __construct(private ProvisioningEnvironment $environment)
@@ -107,7 +107,8 @@ final class ProvisioningEnvironment
             $clock ?? new FixedClock(new DateTimeImmutable('2026-09-27T12:00:00+00:00')),
             $unitOfWork ?? $this->transaction,
             $this->eventDispatcher,
-            $limits ?? new AgentOperationLimits()
+            $limits ?? new AgentOperationLimits(),
+            $auditEnabled ? ($auditEvidenceRepository ?? $this->auditEvidenceRepository) : null
         ), $this->operationRepository, $this->operationAuthorization);
     }
 }
