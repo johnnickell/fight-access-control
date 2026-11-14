@@ -72,10 +72,18 @@ final class FeatureTypeContractsTest extends TestCase
             'feature_id' => $featureId, 'expected_revision' => 1, 'actor_kind' => null, 'actor_id' => null
         ]];
         yield 'permission' => [SetFeaturePermission::class, [
-            'feature_id' => $featureId, 'permission_id' => $permissionId, 'expected_revision' => 1
+            'feature_id'        => $featureId,
+            'permission_id'     => $permissionId,
+            'expected_revision' => 1,
+            'actor_kind'        => null,
+            'actor_id'          => null
         ]];
         yield 'status' => [SetFeatureStatus::class, [
-            'feature_id' => $featureId, 'status' => 'preview', 'expected_revision' => 1
+            'feature_id'        => $featureId,
+            'status'            => 'preview',
+            'expected_revision' => 1,
+            'actor_kind'        => null,
+            'actor_id'          => null
         ]];
         yield 'created' => [FeatureCreated::class, [
             'feature_id' => $featureId, 'name' => 'checkout', 'permission_id' => $permissionId

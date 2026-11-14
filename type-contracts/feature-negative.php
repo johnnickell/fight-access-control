@@ -28,4 +28,5 @@ static function (
     })($result->toArray()['issues'][0]);
     (static function (int $revision): void {
     })($view->toArray()['permission_name']);
+    new SetFeaturePermission($id, $permissionId, 1, $id);
 };

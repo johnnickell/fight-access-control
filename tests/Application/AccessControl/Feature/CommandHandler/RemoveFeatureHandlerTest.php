@@ -318,7 +318,12 @@ final class RemoveFeatureHandlerTest extends TestCase
             new DateTimeImmutable()
         );
         $this->permissionRepository->add($other);
-        new SetFeatureStatusHandler($this->featureRepository, $this->unit, $this->eventDispatcher)->handle(
+        new SetFeatureStatusHandler(
+            $this->featureRepository,
+            new FixedClock(new DateTimeImmutable('2026-01-01')),
+            $this->unit,
+            $this->eventDispatcher
+        )->handle(
             CommandMessage::create(new SetFeatureStatus($old->getId(), FeatureStatus::ON, 1))
         );
         $code = new class {
@@ -384,7 +389,12 @@ final class RemoveFeatureHandlerTest extends TestCase
             }, []), 2)
         ));
         self::assertInstanceOf(ResourceNotFound::class, $this->fails(
-            fn() => new SetFeatureStatusHandler($this->featureRepository, $this->unit, $this->eventDispatcher)->handle(
+            fn() => new SetFeatureStatusHandler(
+                $this->featureRepository,
+                new FixedClock(new DateTimeImmutable('2026-01-01')),
+                $this->unit,
+                $this->eventDispatcher
+            )->handle(
                 CommandMessage::create(new SetFeatureStatus($old->getId(), FeatureStatus::ON, 2))
             )
         ));

@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional last nullable audit storage for Feature status and Permission-binding changes, with explicit typed
+  originating provenance, actual revisions/relationships, trusted outcome time and message correlation in the
+  owning transaction. Validated no-change adds no evidence; configured failure rolls back, and committed evidence
+  survives ordinary publication failure. **Pre-v1:** both setting handlers now require Clock before the Unit of
+  Work; update current callers and nullable actor-kind/ID payload mappings, and qualify the actual shared connection
+  before opt-in. Disabled audit makes no durable-evidence promise; no authorization, backfill or schema operation
+  is supplied. See [Feature setting audit](docs/feature-management.md#optional-atomic-setting-audit-unreleased).
+
 - Optional final nullable audit repository for manual Feature creation and guarded retirement. Enabled evidence joins
   the mutation/reference transaction with typed origin/Feature/Permission, trusted outcome time, actual initial/prior
   revisions and incoming message correlation. **Pre-v1 caller change:** inject Application Clock before the UoW and

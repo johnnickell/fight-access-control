@@ -60,13 +60,24 @@ abstract class FeatureManagementConformance extends TestCase
         self::assertSame(FeatureStatus::OFF, $stored->getStatus());
         self::assertSame(1, $stored->getRevision());
 
-        new SetFeaturePermissionHandler($featureRepository, $permissionRepository, $unit, $eventDispatcher)->handle(
+        new SetFeaturePermissionHandler(
+            $featureRepository,
+            $permissionRepository,
+            new FixedClock(new DateTimeImmutable('2026-01-01')),
+            $unit,
+            $eventDispatcher
+        )->handle(
             CommandMessage::create(
                 new SetFeaturePermission($stored->getId(), $second->getId(), 1)
             )
         );
         try {
-            new SetFeatureStatusHandler($featureRepository, $unit, $eventDispatcher)->handle(CommandMessage::create(
+            new SetFeatureStatusHandler(
+                $featureRepository,
+                new FixedClock(new DateTimeImmutable('2026-01-01')),
+                $unit,
+                $eventDispatcher
+            )->handle(CommandMessage::create(
                 new SetFeatureStatus($stored->getId(), FeatureStatus::ON, 1)
             ));
             self::fail('Cross-field stale edit must reject.');
@@ -117,6 +128,7 @@ abstract class FeatureManagementConformance extends TestCase
             new SetFeaturePermissionHandler(
                 $featureRepository,
                 $environment->permissions(),
+                new FixedClock(new DateTimeImmutable('2026-01-01')),
                 $environment->unitOfWork(),
                 $environment->events()
             )->handle(CommandMessage::create(new SetFeaturePermission($stored->getId(), $second->getId(), 1)));

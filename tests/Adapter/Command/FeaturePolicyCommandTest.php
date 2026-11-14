@@ -220,8 +220,14 @@ final class FeaturePolicyCommandTest extends TestCase
                 $discovery,
                 $features, new FixedClock('2026-01-01'), $unitOfWork, $events
             ),
-            'status' => new SetFeatureStatusHandler($features, $unitOfWork, $events),
-            'permission' => new SetFeaturePermissionHandler($features, $permissions, $unitOfWork, $events),
+            'status' => new SetFeatureStatusHandler($features, new FixedClock($now), $unitOfWork, $events),
+            'permission' => new SetFeaturePermissionHandler(
+                $features,
+                $permissions,
+                new FixedClock($now),
+                $unitOfWork,
+                $events
+            ),
             default => new ReconcileManagedPolicyHandler(
                 $permissions,
                 $roles,

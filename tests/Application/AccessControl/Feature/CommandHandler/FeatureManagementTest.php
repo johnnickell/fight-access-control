@@ -472,7 +472,12 @@ final class FeatureManagementTest extends TestCase
 
     private function changeStatus(Feature $feature, FeatureStatus $status, int $revision): void
     {
-        new SetFeatureStatusHandler($this->featureRepository, $this->uow, $this->eventDispatcher)
+        new SetFeatureStatusHandler(
+            $this->featureRepository,
+            new FixedClock(new DateTimeImmutable('2026-01-01')),
+            $this->uow,
+            $this->eventDispatcher
+        )
             ->handle(CommandMessage::create(new SetFeatureStatus($feature->getId(), $status, $revision)));
     }
 
@@ -481,6 +486,7 @@ final class FeatureManagementTest extends TestCase
         new SetFeaturePermissionHandler(
             $this->featureRepository,
             $this->permissionRepository,
+            new FixedClock(new DateTimeImmutable('2026-01-01')),
             $this->uow,
             $this->eventDispatcher
         )

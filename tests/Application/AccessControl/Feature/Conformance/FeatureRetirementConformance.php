@@ -95,7 +95,12 @@ abstract class FeatureRetirementConformance extends TestCase
 
         $first = $featureRepository->getByName($name);
         self::assertInstanceOf(Feature::class, $first);
-        new SetFeatureStatusHandler($featureRepository, $environment->unitOfWork(), $environment->events())
+        new SetFeatureStatusHandler(
+            $featureRepository,
+            new FixedClock(new DateTimeImmutable('2026-01-01')),
+            $environment->unitOfWork(),
+            $environment->events()
+        )
             ->handle(CommandMessage::create(new SetFeatureStatus($first->getId(), FeatureStatus::ON, 1)));
         $delete = new RemoveFeatureHandler(
             $environment->discovery([]),
