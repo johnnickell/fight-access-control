@@ -97,7 +97,7 @@ final class FeatureMutationContractTest extends TestCase
         $events = new InMemoryEventDispatcher();
         $operation = match ($mode) {
             'create-permission' => [
-                new CreateFeatureHandler($features, $permissions, $unitOfWork, $events),
+                new CreateFeatureHandler($features, $permissions, new FixedClock('2026-01-01'), $unitOfWork, $events),
                 new CreateFeature($name, $permissionId)
             ],
             'provision-existing', 'provision-default' => [
@@ -105,7 +105,7 @@ final class FeatureMutationContractTest extends TestCase
                 new ProvisionFeatures('TEST_FEATURES')
             ],
             'remove' => [
-                new RemoveFeatureHandler($discovery, $features, $unitOfWork, $events),
+                new RemoveFeatureHandler($discovery, $features, new FixedClock('2026-01-01'), $unitOfWork, $events),
                 new RemoveFeature($featureId, 1)
             ],
             'status' => [

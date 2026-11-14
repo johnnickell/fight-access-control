@@ -143,14 +143,14 @@ checkout separately. No consumer/Common repair, production schema operation, pol
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 413 | [TASK-00158](../tasks/00158-TASK.md) | Audit Feature creation and retirement | ready-for-agent |
+| 413 | [TASK-00158](../tasks/00158-TASK.md) | Audit Feature creation and retirement | done |
 | 414 | [TASK-00159](../tasks/00159-TASK.md) | Audit Feature setting changes | done |
 | 415 | [TASK-00160](../tasks/00160-TASK.md) | Audit code-defined Feature provisioning | ready-for-agent |
 | 416 | [TASK-00161](../tasks/00161-TASK.md) | Audit managed-policy reconciliation | ready-for-agent |
 ## Decisions and Progress
 
-TASK-00159 is done for independently accepted Feature setting behavior and nonvisual QA. The other three slices
-remain unfinished in this checkout, so this TICKET and EPIC-00017 remain open. See the owning TASK and canonical
+TASK-00158 and TASK-00159 are done for independently accepted Feature lifecycle and setting behavior with nonvisual QA.
+Provisioning and managed-policy slices remain unfinished, so this TICKET and EPIC-00017 remain open. See the owning TASK and canonical
 Land handoff for its accepted candidate and subsequent delivery outcomes; consumer qualification remains separate.
 
 At the historical planning checkpoint, John approved this requirement in the complete six-TICKET split, then the

@@ -98,7 +98,9 @@ final class RemoveFeatureHandlerTest extends TestCase
         $event = new FeatureRemoved($this->feature->getId(), $this->feature->getName());
         self::assertSame([
             'feature_id'        => $this->feature->getId()->toString(),
-            'expected_revision' => 1
+            'expected_revision' => 1,
+            'actor_kind'        => null,
+            'actor_id'          => null
         ], $command->toArray());
         self::assertSame($command->toArray(), RemoveFeature::fromArray($command->toArray())->toArray());
         self::assertSame($event->toArray(), FeatureRemoved::fromArray($event->toArray())->toArray());
@@ -464,7 +466,13 @@ final class RemoveFeatureHandlerTest extends TestCase
 
     private function remove(FeatureReferenceDiscovery $discovery, int $revision, ?FeatureId $id = null): void
     {
-        new RemoveFeatureHandler($discovery, $this->featureRepository, $this->unit, $this->eventDispatcher)
+        new RemoveFeatureHandler(
+            $discovery,
+            $this->featureRepository,
+            new FixedClock('2026-01-01'),
+            $this->unit,
+            $this->eventDispatcher
+        )
             ->handle(CommandMessage::create(new RemoveFeature($id ?? $this->feature->getId(), $revision)));
     }
 

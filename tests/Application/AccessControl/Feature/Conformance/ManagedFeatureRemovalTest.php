@@ -199,7 +199,13 @@ final class ManagedFeatureRemovalTest extends TestCase
             $eventDispatcher = new InMemoryEventDispatcher();
             $discovery = new FixtureFeatureDiscovery(FeatureReferenceScope::CURRENT, new class {
             }, [], static fn(): bool => true);
-            new RemoveFeatureHandler($discovery, $featureRepository, $unit, $eventDispatcher)->handle(
+            new RemoveFeatureHandler(
+                $discovery,
+                $featureRepository,
+                new FixedClock('2026-01-01'),
+                $unit,
+                $eventDispatcher
+            )->handle(
                 CommandMessage::create(new RemoveFeature($retiring->getId(), 1))
             );
             self::assertNull($featureRepository->getById($retiring->getId()));

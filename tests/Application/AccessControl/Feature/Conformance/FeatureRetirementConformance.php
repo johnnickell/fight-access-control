@@ -40,6 +40,7 @@ abstract class FeatureRetirementConformance extends TestCase
         new CreateFeatureHandler(
             $featureRepository,
             $environment->permissions(),
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         )
@@ -52,6 +53,7 @@ abstract class FeatureRetirementConformance extends TestCase
             new RemoveFeatureHandler(
                 $environment->discovery(['dashboard']),
                 $featureRepository,
+                new FixedClock('2026-01-01'),
                 $environment->unitOfWork(),
                 $environment->events()
             )
@@ -65,6 +67,7 @@ abstract class FeatureRetirementConformance extends TestCase
         new RemoveFeatureHandler(
             $environment->discovery([]),
             $featureRepository,
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         )
@@ -84,6 +87,7 @@ abstract class FeatureRetirementConformance extends TestCase
         $create = new CreateFeatureHandler(
             $featureRepository,
             $environment->permissions(),
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         );
@@ -101,6 +105,7 @@ abstract class FeatureRetirementConformance extends TestCase
         $delete = new RemoveFeatureHandler(
             $environment->discovery([]),
             $featureRepository,
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         );

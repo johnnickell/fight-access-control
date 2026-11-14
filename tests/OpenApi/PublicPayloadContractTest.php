@@ -77,6 +77,13 @@ final class PublicPayloadContractTest extends TestCase
             $properties = array_merge($properties, ['actor_kind', 'actor_id']);
         }
 
+        if (in_array($name, ['CreateFeature', 'RemoveFeature'], true)) {
+            $required = array_values(array_diff($required, ['actor_kind', 'actor_id']));
+            $schema = clone $schema;
+            $schema->properties = $schema->allOf[1]->properties;
+            $properties = array_keys((array) $schema->properties);
+        }
+
         self::assertEqualsCanonicalizing($required, $schema->required ?? [], $name.' required');
         self::assertEqualsCanonicalizing(array_keys($payload), $properties, $name);
         foreach ($required as $field) {
@@ -107,6 +114,40 @@ final class PublicPayloadContractTest extends TestCase
             ];
             foreach ($invalidActors as $invalid) {
                 self::assertFalse(self::valid($name, $base + $invalid));
+            }
+        }
+    }
+
+    public function test_feature_lifecycle_provenance_is_optional_but_never_partial_or_guessed(): void
+    {
+        foreach (PublicMessageSamples::messages() as $name => [$class, $input]) {
+            if (!in_array($name, ['CreateFeature', 'RemoveFeature'], true)) {
+                continue;
+            }
+
+            unset($input['actor_kind'], $input['actor_id']);
+            self::assertTrue(self::valid($name, $input));
+            self::assertTrue(self::valid($name, $class::fromArray($input)->toArray()));
+            foreach (
+                [
+                ['actor_kind' => 'system', 'actor_id' => '00000000-0000-0000-0000-000000000000'],
+                ['actor_kind' => 'anonymous', 'actor_id' => '00000000-0000-0000-0000-000000000000'],
+                ['actor_kind' => 'agent', 'actor_id' => PublicMessageSamples::ID]
+                ] as $actor
+            ) {
+                self::assertTrue(self::valid($name, $class::fromArray($input + $actor)->toArray()));
+            }
+
+            foreach (
+                [
+                ['actor_kind' => 'user'],
+                ['actor_id' => PublicMessageSamples::ID],
+                ['actor_kind' => 'worker', 'actor_id' => PublicMessageSamples::ID],
+                ['actor_kind' => 'system', 'actor_id' => PublicMessageSamples::ID],
+                ['actor_kind' => null, 'actor_id' => PublicMessageSamples::ID]
+                ] as $actor
+            ) {
+                self::assertFalse(self::valid($name, $input + $actor));
             }
         }
     }

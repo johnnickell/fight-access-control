@@ -30,6 +30,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Feature\Discovery\Fixture
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Fixture\ChildFeatureAction;
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -106,7 +107,13 @@ final class EffectiveFeatureDiscoveryTest extends TestCase
         );
         foreach ($before as $feature) {
             try {
-                new RemoveFeatureHandler($current, $featureRepository, $unit, $eventDispatcher)->handle(
+                new RemoveFeatureHandler(
+                    $current,
+                    $featureRepository,
+                    new FixedClock('2026-01-01'),
+                    $unit,
+                    $eventDispatcher
+                )->handle(
                     CommandMessage::create(new RemoveFeature($feature->getId(), 1))
                 );
                 self::fail('Every effective current reference must block retirement.');
@@ -122,7 +129,13 @@ final class EffectiveFeatureDiscoveryTest extends TestCase
             static fn(): bool => true
         );
         foreach ($before as $feature) {
-            new RemoveFeatureHandler($empty, $featureRepository, $unit, $eventDispatcher)->handle(
+            new RemoveFeatureHandler(
+                $empty,
+                $featureRepository,
+                new FixedClock('2026-01-01'),
+                $unit,
+                $eventDispatcher
+            )->handle(
                 CommandMessage::create(new RemoveFeature($feature->getId(), 1))
             );
         }
