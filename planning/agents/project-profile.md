@@ -31,6 +31,10 @@ Correction-batch implementation/review still requires its full approved maintain
 private channel. Absence from public records proves neither availability nor unavailability: verify the authorized
 private handoff, and name the missing input if actually unavailable. General workflow maintenance does not require
 that brief. Never copy restricted criteria into tracked docs, logs intended for publication or PR prose.
+Resolve the canonical base through Git metadata before locating private handoffs: ignored evidence is not copied
+into a new linked checkout. Follow the existing TASK or correction-batch handoff to its approved source, check
+which criteria apply and honor later approved amendments. Historical access alone is not present access; an
+empty linked-checkout scratch directory alone is not proof that the source is missing.
 
 ### Provider resolution and target substitutions
 
@@ -109,7 +113,7 @@ assuming the current directory owns canonical evidence. Use these ignored target
 - `<base>/.runs/qa/<TASK-ID>/qa.md` — canonical independent behavioral report under the provider QA contract.
 - `.runs/tasks/<TASK-ID>/runs/` — owned execution scratch; `.runs/logs/<TASK-ID>/` and
   `.runs/handoffs/<TASK-ID>/` — complete gate logs/receipts and reusable handoffs.
-- `../.worktrees/<task-slug>/` — optional linked checkout outside ignored run scratch; retain useful evidence and owned runtime through review.
+- `<base>/.runs/worktrees/<task-slug>/` — isolated source checkout under the canonical base resolved above; retain useful evidence and owned runtime through review. Do not nest it under another linked checkout or relocate existing worktrees implicitly.
 
 Match repository, TASK/requirements, branch, full base/head and working-tree snapshot before advancing. Review and
 QA must be independent of implementation and its submitted acceptance evidence; green commands or child exit zero
@@ -315,7 +319,7 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - Follow the [Unit-only line coverage and test-quality policy](../../docs/engineering/standards/Testing.md#test-quality-and-suite-balance). Every production statement still requires executable coverage; the current all-suite statement gate does not establish the new Unit-only line requirement. The isolated fight-access-control PHP container is the
   package runtime; ./bin/planning-check and ./bin/build are mandatory pre-submit gates, and the build enforces
   PHPCS, PHPStan, architecture, Rector, PHPUnit, and exact statement coverage.
-- Keep ignored run artifacts in purpose-named subdirectories: `.runs/worktree/<task-slug>/` for worktree coordination scratch (source checkouts stay outside `.runs/`),
+- Keep ignored run artifacts in purpose-named subdirectories: `<base>/.runs/worktrees/<task-slug>/` for registered source worktrees,
   `.runs/notes/<task>/` for coordination, `.runs/logs/<task>/` for gate logs and receipts, and
   `.runs/handoffs/<task>/` for reusable handoffs. Canonical reviews remain `.runs/reviews/<TASK-ID>/review.md`.
   Do not create mixed-purpose dated folders directly under `.runs/`. See the approved
