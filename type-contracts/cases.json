@@ -641,6 +641,24 @@
       ]
     },
     {
+      "id": "feature-provenance-positive",
+      "kind": "positive",
+      "file": "feature-provenance-positive.php",
+      "diagnostics": [
+        {"line": 32, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\AnonymousId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\SystemId|Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId|null"}
+      ]
+    },
+    {
+      "id": "feature-provenance-negative",
+      "kind": "negative",
+      "file": "feature-provenance-negative.php",
+      "diagnostics": [
+        {"line": 10, "identifier": "argument.type", "message": "Parameter #2 $actorId of class Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Command\\ProvisionFeatures constructor expects Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\AnonymousId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\SystemId|Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId|null, Fight\\AccessControl\\Domain\\AccessControl\\Feature\\FeatureId given."},
+        {"line": 11, "identifier": "argument.type", "message": "Parameter #2 $actorId of class Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Command\\ProvisionFeatures constructor expects Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\AnonymousId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\SystemId|Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId|null, string given."},
+        {"line": 13, "identifier": "argument.type", "message": "Parameter #1 $actor of closure expects Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId, Fight\\AccessControl\\Domain\\AccessControl\\Agent\\AgentId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\AnonymousId|Fight\\AccessControl\\Domain\\AccessControl\\Audit\\SystemId|Fight\\AccessControl\\Domain\\AccessControl\\User\\UserId|null given."}
+      ]
+    },
+    {
       "id": "feature-contract-precision",
       "kind": "positive",
       "file": "feature-positive.php",
@@ -652,7 +670,7 @@
         {"line": 52, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Feature|null"},
         {"line": 53, "identifier": "phpstan.dumpType", "message": "Dumped type: Fight\\Common\\Domain\\Repository\\ResultSet<Fight\\AccessControl\\Domain\\AccessControl\\Feature\\Feature>"},
         {"line": 54, "identifier": "phpstan.dumpType", "message": "Dumped type: array{name: string, permission_id: string}"},
-        {"line": 55, "identifier": "phpstan.dumpType", "message": "Dumped type: array{default_permission_name: string|null}"},
+        {"line": 55, "identifier": "phpstan.dumpType", "message": "Dumped type: array{default_permission_name: string|null, actor_kind: string|null, actor_id: string|null}"},
         {"line": 56, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, expected_revision: int}"},
         {"line": 57, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, permission_id: string, expected_revision: int}"},
         {"line": 58, "identifier": "phpstan.dumpType", "message": "Dumped type: array{feature_id: string, status: 'off'|'on'|'preview', expected_revision: int}"},

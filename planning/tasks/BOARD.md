@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00158](00158-TASK.md) — Audit Feature creation and retirement.
+Active Task: [TASK-00160](00160-TASK.md) — Audit code-defined Feature provisioning.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 415 | [TASK-00160](00160-TASK.md) | Audit code-defined Feature provisioning | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | in-progress | [TASK-00122](00122-TASK.md) | — |
 
 ## Ready Frontier
 
@@ -17,7 +19,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 413 | [TASK-00158](00158-TASK.md) | Audit Feature creation and retirement | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 414 | [TASK-00159](00159-TASK.md) | Audit Feature setting changes | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
-| 415 | [TASK-00160](00160-TASK.md) | Audit code-defined Feature provisioning | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 416 | [TASK-00161](00161-TASK.md) | Audit managed-policy reconciliation | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 417 | [TASK-00162](00162-TASK.md) | Audit recoverable Agent issuance | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 418 | [TASK-00163](00163-TASK.md) | Audit Agent credential revocation | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |

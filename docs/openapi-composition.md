@@ -69,7 +69,9 @@ synchronous dispatch and post-commit facts. These additive components create no 
 
 ### Feature provisioning (v0.5.0)
 
-`Fight.AccessControl.ProvisionFeatures` describes the required nullable `default_permission_name` string. This is
+`Fight.AccessControl.ProvisionFeatures` describes the required nullable `default_permission_name` string and paired
+nullable `actor_kind`/`actor_id` provenance. Non-null pairs preserve User/Agent/System/Anonymous kind; the latter two
+require fixed nil IDs. See [current provisioning composition](feature-provisioning.md#optional-atomic-audit-unreleased). This is
 raw consumer configuration: a missing Feature requires a canonical resolvable Permission name, but a no-creation
 pass ignores unused configuration. The schema therefore adds no name-pattern constraint. Candidate references come
 from consumer-composed discovery, not an HTTP payload or serialized scanner. See [atomic provisioning](feature-provisioning.md).

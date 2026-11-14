@@ -212,7 +212,10 @@ final class FeaturePolicyCommandTest extends TestCase
         $roles = new InMemoryRoleRepository($unitOfWork);
         $handler = match ($family) {
             'create' => new CreateFeatureHandler($features, $permissions, $unitOfWork, $events),
-            'provision' => new ProvisionFeaturesHandler($discovery, $features, $permissions, $unitOfWork, $events),
+            'provision' => new ProvisionFeaturesHandler(
+                $discovery,
+                $features, $permissions, new FixedClock($now), $unitOfWork, $events
+            ),
             'remove' => new RemoveFeatureHandler($discovery, $features, $unitOfWork, $events),
             'status' => new SetFeatureStatusHandler($features, $unitOfWork, $events),
             'permission' => new SetFeaturePermissionHandler($features, $permissions, $unitOfWork, $events),

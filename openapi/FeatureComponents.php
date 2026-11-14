@@ -45,13 +45,34 @@ use OpenApi\Attributes as OA;
     schema: 'Fight.AccessControl.ProvisionFeatures',
     description: 'Provision complete candidate-code references through consumer-composed discovery. Completion is not activation readiness. Default configuration is validated only when creation is needed.',
     type: 'object',
-    required: ['default_permission_name'],
+    required: ['default_permission_name', 'actor_kind', 'actor_id'],
+    oneOf: [
+        new OA\Schema(properties: [
+            new OA\Property(property: 'actor_kind', type: 'null'),
+            new OA\Property(property: 'actor_id', type: 'null')
+        ]),
+        new OA\Schema(properties: [
+            new OA\Property(property: 'actor_kind', type: 'string', enum: ['user', 'agent']),
+            new OA\Property(property: 'actor_id', type: 'string', format: 'uuid')
+        ]),
+        new OA\Schema(properties: [
+            new OA\Property(property: 'actor_kind', type: 'string', enum: ['system', 'anonymous']),
+            new OA\Property(property: 'actor_id', type: 'string', enum: ['00000000-0000-0000-0000-000000000000'])
+        ])
+    ],
     properties: [
         new OA\Property(
             property: 'default_permission_name',
             description: 'Raw consumer configuration or null. A missing Feature requires a resolvable canonical Permission name; unused configuration is not validated.',
             type: ['string', 'null']
-        )
+        ),
+        new OA\Property(
+            property: 'actor_kind',
+            description: 'Explicit originating actor kind, or null with actor_id. Required for audited creation, not a grant.',
+            type: ['string', 'null'],
+            enum: ['user', 'agent', 'system', 'anonymous', null]
+        ),
+        new OA\Property(property: 'actor_id', type: ['string', 'null'], format: 'uuid')
     ]
 )]
 #[OA\Schema(schema: 'Fight.AccessControl.FeatureName', type: 'string', minLength: 1, maxLength: 128, pattern: '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?![\\s\\S])')]

@@ -6,6 +6,14 @@ namespace Fight\AccessControl\Application\AccessControl\Feature\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
 use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureConflictException;
@@ -17,6 +25,7 @@ use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\Common\Application\Error\Exception\RuleViolation;
 use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
@@ -40,8 +49,10 @@ final readonly class ProvisionFeaturesHandler implements CommandHandler
         private FeatureReferenceDiscovery $discovery,
         private FeatureRepository $featureRepository,
         private PermissionRepository $permissionRepository,
+        private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -60,12 +71,17 @@ final readonly class ProvisionFeaturesHandler implements CommandHandler
     {
         /** @var ProvisionFeatures $command */
         $command = $commandMessage->payload();
+        $messageId = $commandMessage->id();
 
         try {
             $references = $this->discovery->discover(FeatureReferenceScope::CANDIDATE)
                 ->getReferences(FeatureReferenceScope::CANDIDATE);
             /** @var list<FeatureCreated> $events */
-            $events = $this->unitOfWork->commitTransactional(function () use ($command, $references): array {
+            $events = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                $references,
+                $messageId
+            ): array {
                 $events = [];
                 $permission = null;
                 foreach ($references->getNames() as $name) {
@@ -80,6 +96,21 @@ final readonly class ProvisionFeaturesHandler implements CommandHandler
 
                     $permission ??= $this->resolveDefault($command->getDefaultPermissionName());
                     $feature = Feature::define(FeatureId::generate(), $name, $permission->getId());
+                    $evidence = null;
+                    if ($this->auditEvidenceRepository !== null) {
+                        $actorId = $command->getActorId() ?? throw new RuleViolation(
+                            'Audited Feature creation requires explicit originating provenance.'
+                        );
+                        $evidence = AuditEvidence::record(
+                            $actorId,
+                            new AuditSubject($feature->getId()),
+                            AuditAction::FEATURE_CREATED,
+                            $this->clock->now(),
+                            new AuditFeatureOutcome(null, AuditFeatureState::fromFeature($feature)),
+                            new AuditCorrelation($messageId, null)
+                        );
+                    }
+
                     try {
                         $this->featureRepository->add($feature);
                     } catch (FeatureConflictException | FeatureReferenceException $exception) {
@@ -87,6 +118,10 @@ final readonly class ProvisionFeaturesHandler implements CommandHandler
                             'Feature provisioning conflicts with current state.',
                             previous: $exception
                         );
+                    }
+
+                    if ($evidence !== null) {
+                        $this->auditEvidenceRepository->add($evidence);
                     }
 
                     $events[] = new FeatureCreated($feature->getId(), $name, $feature->getPermissionId());
