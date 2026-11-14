@@ -145,7 +145,7 @@ checkout separately. No consumer/Common repair, production schema operation, pol
 | --- | --- | --- | --- |
 | 413 | [TASK-00158](../tasks/00158-TASK.md) | Audit Feature creation and retirement | ready-for-agent |
 | 414 | [TASK-00159](../tasks/00159-TASK.md) | Audit Feature setting changes | ready-for-agent |
-| 415 | [TASK-00160](../tasks/00160-TASK.md) | Audit code-defined Feature provisioning | ready-for-agent |
+| 415 | [TASK-00160](../tasks/00160-TASK.md) | Audit code-defined Feature provisioning | done |
 | 416 | [TASK-00161](../tasks/00161-TASK.md) | Audit managed-policy reconciliation | ready-for-agent |
 ## Decisions and Progress
 

@@ -897,6 +897,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\ProvisionFeaturesAuditTest": {
+      "file": "tests/Application/AccessControl/Feature/CommandHandler/ProvisionFeaturesAuditTest.php",
+      "category": "Unit",
+      "reason": "Isolated provisioning outcomes with controlled discovery, clock and shared transaction-aware in-memory Feature/Permission/JSON audit ports; no real storage, filesystem, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\Feature\\CommandHandler\\ProvisionFeaturesHandlerTest": {
       "file": "tests/Application/AccessControl/Feature/CommandHandler/ProvisionFeaturesHandlerTest.php",
       "category": "Unit",

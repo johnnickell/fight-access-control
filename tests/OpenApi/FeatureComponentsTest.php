@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationPro
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationResult;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\ValidateFeaturePreparation;
 use OpenApi\Generator;
+use Opis\JsonSchema\Validator;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
@@ -40,6 +41,30 @@ final class FeatureComponentsTest extends TestCase
         self::assertArrayNotHasKey('pattern', $property);
         self::assertArrayNotHasKey('minLength', $property);
         self::assertSame('object', $schema['type']);
+        $validator = new Validator();
+        $jsonSchema = json_decode(json_encode($schema, JSON_THROW_ON_ERROR));
+        foreach (
+            [
+            [null, null], ['user', PublicMessageSamples::ID], ['agent', PublicMessageSamples::ID],
+            ['system', '00000000-0000-0000-0000-000000000000'],
+            ['anonymous', '00000000-0000-0000-0000-000000000000']
+            ] as [$kind, $id]
+        ) {
+            $payload = ['default_permission_name' => null, 'actor_kind' => $kind, 'actor_id' => $id];
+            self::assertTrue($validator->validate((object) $payload, $jsonSchema)->isValid());
+            self::assertSame($payload, ProvisionFeatures::fromArray($payload)->toArray());
+        }
+
+        foreach (
+            [
+            ['system', PublicMessageSamples::ID], ['anonymous', PublicMessageSamples::ID],
+            ['user', null], [null, PublicMessageSamples::ID], ['worker', PublicMessageSamples::ID], [1, true]
+            ] as [$kind, $id]
+        ) {
+            self::assertFalse($validator->validate((object) [
+                'default_permission_name' => null, 'actor_kind' => $kind, 'actor_id' => $id
+            ], $jsonSchema)->isValid());
+        }
     }
 
     public function test_preparation_query_and_result_schemas_match_safe_public_values(): void

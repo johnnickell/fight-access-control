@@ -82,7 +82,7 @@ final class PublicMessageSamples
             'EmailChangeGrant/Command/ExpireEmailChange'                     => 'actor_kind actor_id user_id email_change_grant_id occurred_at',
             'EmailChangeGrant/Command/RequestEmailChange'                    => 'actor_id user_id email',
             'Feature/Command/CreateFeature'                                  => 'name permission_id',
-            'Feature/Command/ProvisionFeatures'                              => 'default_permission_name',
+            'Feature/Command/ProvisionFeatures'                              => 'default_permission_name actor_kind actor_id',
             'Feature/Command/RemoveFeature'                                  => 'feature_id expected_revision',
             'Feature/Command/SetFeaturePermission'                           => 'feature_id permission_id expected_revision',
             'Feature/Command/SetFeatureStatus'                               => 'feature_id status expected_revision',

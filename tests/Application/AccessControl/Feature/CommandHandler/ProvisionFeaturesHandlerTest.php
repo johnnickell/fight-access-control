@@ -35,6 +35,7 @@ use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispat
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Discovery\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -542,6 +543,7 @@ final class ProvisionFeaturesHandlerTest extends TestCase
             $discovery,
             $featureRepository ?? $this->featureRepository,
             $permissionRepository ?? $this->permissionRepository,
+            new FixedClock('2026-01-01'),
             $unitOfWork ?? $this->unitOfWork,
             $this->eventDispatcher
         );

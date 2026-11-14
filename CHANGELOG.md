@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional last nullable audit repository for code-defined Feature provisioning. Enabled creation explicitly records
+  one typed initial Feature/Permission outcome inside the whole batch transaction, with trusted Clock time and shared
+  incoming message correlation. Empty/all-existing passes need no audit-only actor; disabled auditing makes no durable
+  evidence promise. Preserve authoritative retries, atomic reference/uniqueness guards and ordinary publication faults.
+  **Pre-v1 consumer obligation:** supply the new required Clock dependency, update the canonical Command/schema's
+  paired nullable `actor_kind`/`actor_id` fields, and qualify the real shared audit connection/mapping. Autonomous
+  callers supply fixed-nil SystemId once per Command without replacing User/Agent origins. No aliases, backfill,
+  migration, grants or reliable event delivery are added. See [provisioning composition](docs/feature-provisioning.md#optional-atomic-audit-unreleased).
+
 - Optional last nullable audit repository for direct Agent Permission grant, revocation and complete replacement.
   Handlers own the single assignment/evidence transaction; the internal coordinator no longer commits. Enabled
   evidence records actual assignment revisions, changed typed relationships, transition time and message correlation.
