@@ -67,7 +67,9 @@ final class FeatureTypeContractsTest extends TestCase
         yield 'create' => [CreateFeature::class, [
             'name' => 'checkout', 'permission_id' => $permissionId, 'actor_kind' => null, 'actor_id' => null
         ]];
-        yield 'provision' => [ProvisionFeatures::class, ['default_permission_name' => null]];
+        yield 'provision' => [ProvisionFeatures::class, [
+            'default_permission_name' => null, 'actor_kind' => null, 'actor_id' => null
+        ]];
         yield 'remove' => [RemoveFeature::class, [
             'feature_id' => $featureId, 'expected_revision' => 1, 'actor_kind' => null, 'actor_id' => null
         ]];
@@ -127,7 +129,9 @@ final class FeatureTypeContractsTest extends TestCase
                         continue;
                     }
 
-                    if ($class === ProvisionFeatures::class && is_string($wrong)) {
+                    if (
+                        $class === ProvisionFeatures::class && $key === 'default_permission_name' && is_string($wrong)
+                    ) {
                         continue;
                     }
 

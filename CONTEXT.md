@@ -1,5 +1,18 @@
 # Fight AccessControl Context
 
+## Optional provisioning audit — TASK-00160 Work
+
+Code-defined Feature provisioning now accepts explicit optional typed Command provenance, a required Application
+Clock and an optional last nullable audit repository. Enabled execution inserts one bounded initial Feature/Permission
+record per created subject inside the single batch transaction, sharing the real incoming message ID. Disabled and
+pure no-change passes require no new audit-only actor; no-change never backfills history. Existing lazy defaults,
+settings, discovery completeness, uniqueness/reference fences, uncertain commit, authoritative retry and ordinary
+publication failure remain. See [current composition](docs/feature-provisioning.md#optional-atomic-audit-unreleased).
+Work verification and candidate identities belong to canonical `.runs/handoffs/TASK-00160/work.md`; independent
+Review/nonvisual QA and delivery remain separate. Package models do not qualify production consumer storage,
+connections/locks, scanner completeness, setup authority or activation. No sibling Feature handlers are implemented
+by this slice.
+
 ## Optional Feature setting audit — TASK-00159 accepted checkpoint
 
 Both setting handlers support optional final nullable audit storage and require the existing Application Clock

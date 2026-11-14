@@ -215,7 +215,10 @@ final class FeaturePolicyCommandTest extends TestCase
                 $features,
                 $permissions, new FixedClock('2026-01-01'), $unitOfWork, $events
             ),
-            'provision' => new ProvisionFeaturesHandler($discovery, $features, $permissions, $unitOfWork, $events),
+            'provision' => new ProvisionFeaturesHandler(
+                $discovery,
+                $features, $permissions, new FixedClock($now), $unitOfWork, $events
+            ),
             'remove' => new RemoveFeatureHandler(
                 $discovery,
                 $features, new FixedClock('2026-01-01'), $unitOfWork, $events

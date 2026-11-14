@@ -101,7 +101,10 @@ final class FeatureMutationContractTest extends TestCase
                 new CreateFeature($name, $permissionId)
             ],
             'provision-existing', 'provision-default' => [
-                new ProvisionFeaturesHandler($discovery, $features, $permissions, $unitOfWork, $events),
+                new ProvisionFeaturesHandler(
+                    $discovery,
+                    $features, $permissions, new FixedClock('2026-01-01'), $unitOfWork, $events
+                ),
                 new ProvisionFeatures('TEST_FEATURES')
             ],
             'remove' => [
