@@ -59,10 +59,10 @@ final class AgentRevocationContractTest extends TestCase
         try {
             new AgentCredentialLifecycleService(
                 $repository,
-                $env->auditEvidenceRepository,
                 new FixedClock($agent->getCreatedAt()),
                 $env->transaction,
-                $env->eventDispatcher
+                $env->eventDispatcher,
+                $env->auditEvidenceRepository
             )->revoke(UserId::generate(), $agent->getId());
             self::fail('Expected classified refusal.');
         } catch (Throwable $throwable) {
@@ -90,10 +90,10 @@ final class AgentRevocationContractTest extends TestCase
         try {
             new AgentCredentialLifecycleService(
                 $repository,
-                $env->auditEvidenceRepository,
                 new FixedClock($env->agentRepository->all()[0]->getCreatedAt()),
                 $env->transaction,
-                $env->eventDispatcher
+                $env->eventDispatcher,
+                $env->auditEvidenceRepository
             )->revoke(UserId::generate(), $env->agentRepository->all()[0]->getId());
             self::fail('Wrong identity must remain internal.');
         } catch (LogicException $logicException) {
@@ -131,10 +131,10 @@ final class AgentRevocationContractTest extends TestCase
             try {
                 new AgentCredentialLifecycleService(
                     $repository,
-                    $env->auditEvidenceRepository,
                     new FixedClock($agent->getCreatedAt()),
                     $env->transaction,
-                    $dispatcher
+                    $dispatcher,
+                    $env->auditEvidenceRepository
                 )->revoke(UserId::generate(), $agent->getId());
                 self::fail('Revocation does not contain its primary fault as issuance success.');
             } catch (RuntimeException $failure) {

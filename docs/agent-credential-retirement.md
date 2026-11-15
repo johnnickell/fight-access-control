@@ -11,7 +11,7 @@ No real database/sink/consumer pass is claimed.
 
 | Entry point | Supported behavior / mandatory boundary |
 | --- | --- |
-| `AgentCredentialLifecycleService::revoke(actorId, agentId)` | Load exact current Agent, construct its terminal successor, replace through the repository and write safe audit in one package-owned transaction. Publish `AgentCredentialRevoked` only after commit. |
+| `AgentCredentialLifecycleService::revoke(actorId, agentId)` | Load exact current Agent, construct its terminal successor, replace through the repository and write enabled audit in one package-owned transaction. Publish `AgentCredentialRevoked` only after commit. |
 | Direct `Agent::revoke()` | Construct an immutable successor, preserving the authentication envelope and credential tuple. This alone is not a persisted revocation. |
 | Direct `AgentRepository::replace(expected, replacement)` | Compare the entire authoritative predecessor, validate the Domain successor and atomically retire its original delivery before persisting the successor. Never bypass this because the caller is not HTTP or not the lifecycle service. |
 | `RotateAgentCredential` / `RotateAgentCredentialHandler` / `Agent::rotateRecoverableCredential()` | Registered void Command coordination with operation correlation and this cancellation seam. Original outcomes use authorized Query dispatch; no direct service/result facade. |
@@ -43,7 +43,7 @@ fabricates an operation. Every predecessor uses the following indivisible operat
    Missing, ambiguous or mismatched correlation rejects; never manufacture an operation from an envelope or audit.
 3. Hold the original operation/delivery, destination binding and shared consumer authority fences through completion.
    Persist `operation->retireCredential(expected, replacement)` against the exact original state revision.
-4. Persist the Agent successor. The service then appends audit. Any cancellation, Agent persistence, audit or commit
+4. Persist the Agent successor. The service then appends audit when configured. Any cancellation, Agent persistence, enabled audit or commit
    rollback restores **all** writes, including the delivery copy and revision. No separately committed cancellation
    or partial Agent retirement may survive a rollback.
 5. Commit once, then publish. A direct consumer coordinator also owns its full audit transaction; it must use this
@@ -68,6 +68,49 @@ Agent/credential tuple, destination binding/write order and issuance time. It re
 `getStateRevision()` and records `REVOKED` or `SUPERSEDED` for the **original** credential. It never substitutes a
 successor's secret or metadata. Already-retired credential transitions reject; stale whole-record writes lose.
 `retireMaterial()` also advances the revision, so cleanup cannot leave old delivery snapshots writable.
+
+## Optional atomic revocation audit (Unreleased)
+
+Construct the current service with `AgentRepository`, `Clock`, `TransactionalUnitOfWork`, `EventDispatcher`, then
+optional last nullable `AuditEvidenceRepository`. For example:
+
+```php
+$lifecycle = new AgentCredentialLifecycleService(
+    $agentRepository,
+    $clock,
+    $unitOfWork,
+    $eventDispatcher,
+    auditEvidenceRepository: $auditEvidenceRepository,
+);
+$lifecycle->revoke($actorId, $agentId);
+```
+
+Omitted/null storage deliberately disables durable audit, not retirement, actor requirements or caller policy.
+The direct typed `UserId|AgentId|SystemId|AnonymousId` actor remains required in every composition; it establishes
+provenance, never permission. No ambient principal lookup, label conversion or fallback identity is supplied.
+This is a pre-v1 constructor-order change: update positional callers directly, without a compatibility overload.
+
+Enabled `agent.credential_revoked` evidence is explicitly inserted after successful full-state replacement and
+before commit in the same transaction as Agent authority and repository-owned original-delivery cancellation.
+It records the typed Agent, exact actor, trusted `revokedAt`, and real credential ID/revision and ACTIVE → REVOKED
+states. Revocation preserves the credential revision; it does not invent a new generic Agent revision. The current
+`AgentRepository::replace()` returns only a Boolean and exposes neither the resolved original operation key/delivery
+nor its state revision. Those audit fields remain null; the service does not guess them from actor/target IDs,
+inspect an Event or add material access merely for audit. Repository correlation/fencing remains mandatory.
+Evidence uses a fresh identity, not a universal command-deduplication token, and contains no envelope, secret,
+raw request or diagnostic text. Evidence access and retention still need consumer protection.
+
+Configured audit failure aborts all staged authority/cancellation/evidence writes. Already revoked, missing,
+wrong-identity and stale targets retain their refusals and create no committed evidence; repeated invocation is
+not a no-change mutation record. Uncertain commit acknowledgement still throws without proving rollback.
+Confirmed evidence survives ordinary subscriber/publication failure, including both publishers failing, while the
+exact primary fault still throws. There is no warning-return conversion or later audit backfill.
+
+Use `AgentCredentialLifecycleServiceTest` for omitted/null/enabled composition, all four typed actor kinds,
+exact persisted facts and both actual uncertain outcomes. `AgentCredentialRetirementTest`, revocation contract tests
+and delivery/lifecycle conformance retain rollback, competing-writer, cohort/restoration and post-commit coverage.
+Package in-memory transactions do not qualify consumer storage: bind audit and both repositories to the actual
+shared connection/transaction and prove mapping, locks, rollback and restart there before opting in.
 
 ## Expected-state transitions and authority fences
 

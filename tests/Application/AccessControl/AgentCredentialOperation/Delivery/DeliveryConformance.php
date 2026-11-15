@@ -193,10 +193,10 @@ abstract class DeliveryConformance extends TestCase
         $ports = $fixture->ports();
         new AgentCredentialLifecycleService(
             $ports->agentRepository,
-            $ports->auditEvidenceRepository,
             $ports->clock,
             $ports->transaction,
-            $ports->eventDispatcher
+            $ports->eventDispatcher,
+            $ports->auditEvidenceRepository
         )->revoke(UserId::generate(), $issuance->getAgentId());
     }
 

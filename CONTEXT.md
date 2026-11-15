@@ -17,6 +17,23 @@ checkpoint; canonical `.runs/handoffs/TASK-00164/land.md` owns subsequent outcom
 No consumer storage/connections/locks, crypto/sinks, physical process loss, restoration, activation/use, merge,
 release or deployment qualification is claimed.
 
+## Optional Agent revocation audit — TASK-00163 accepted checkpoint
+
+Credential revocation now takes optional last nullable audit storage after Agent repository, Clock, UoW and
+EventDispatcher. Enabled evidence joins full-state authority replacement and repository-owned original-delivery
+retirement, with the still-required typed actor, actual credential states/revision and exact trusted revocation
+time. The Boolean replacement interface exposes no original operation key/delivery/revision; evidence leaves
+those facts absent rather than guessing. Omitted/null disables durable audit only. Existing caller policy,
+cohort/restoration/CAS fences, terminal refusals, uncertain acknowledgement and ordinary primary-fault publication
+behavior remain. See [current composition](docs/agent-credential-retirement.md#optional-atomic-revocation-audit-unreleased).
+Canonical `.runs/handoffs/TASK-00163/work.md` owns original verification evidence. Independent Review v3 ACCEPT
+and nonvisual QA PASS cover candidate `7f88049961e6a78887ce980a03c83a51be78eeaa` (39 independent scenarios /
+454 checks plus 311 focused tests / 5,675 assertions). TASK-00163 is done; unfinished siblings keep TICKET-00047
+and EPIC-00017 open. Earlier full-gate evidence is retained with current administrative checks. Publication/final
+verification and eligible retirement are pending at this checkpoint; canonical `.runs/handoffs/TASK-00163/land.md`
+owns subsequent outcomes. Minimum composition retains 43 advisories across 13 packages; ordinary resolution
+reports none. Package models do not qualify consumer connections, locks, storage, sinks or deployment.
+
 ## Recoverable Agent issuance audit — TASK-00162 accepted checkpoint
 
 Both registered issuance handlers now accept optional last nullable audit storage. Enabled evidence shares the

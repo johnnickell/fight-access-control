@@ -85,10 +85,10 @@ final readonly class DeliveryEnvironment
     {
         new AgentCredentialLifecycleService(
             $this->provisioning->agentRepository,
-            $this->provisioning->auditEvidenceRepository,
             $this->clock,
             $this->provisioning->transaction,
-            $this->provisioning->eventDispatcher
+            $this->provisioning->eventDispatcher,
+            $this->provisioning->auditEvidenceRepository
         )->revoke(UserId::generate(), $this->issuance->getAgentId());
     }
 }

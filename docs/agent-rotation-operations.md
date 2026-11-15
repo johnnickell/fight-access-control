@@ -64,8 +64,9 @@ issuance, checks current authority again. Authorizing a retry must not require i
 No actor string, cached allow, outer transaction or nonparticipating external policy store substitutes for this port.
 
 The old `AgentCredentialLifecycleService::rotate()` and aggregate `rotateCredential()` are removed, not callable
-rejection stubs. `AgentCredentialLifecycleService` accepts Agent repository, audit repository, Clock, Unit of Work
-and event dispatcher. Its `revoke()` behavior, including publication-failure rethrow, is unchanged. The
+rejection stubs. `AgentCredentialLifecycleService` accepts Agent repository, Clock, Unit of Work, event dispatcher,
+then optional last nullable audit repository. See [optional revocation audit](agent-credential-retirement.md#optional-atomic-revocation-audit-unreleased).
+Its retirement and publication-failure rethrow behavior is unchanged. The
 [current Agent contract](agent-current-contract.md) has no legacy/adoption mode or recovery marker.
 
 ## Request binding and transaction

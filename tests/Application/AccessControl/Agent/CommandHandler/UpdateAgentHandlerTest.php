@@ -673,10 +673,10 @@ final class UpdateAgentHandlerTest extends TestCase
     {
         new AgentCredentialLifecycleService(
             $env->agentRepository,
-            $env->auditEvidenceRepository,
             new FixedClock(self::NOW),
             $env->transaction,
-            $env->eventDispatcher
+            $env->eventDispatcher,
+            $env->auditEvidenceRepository
         )->revoke(UserId::generate(), $id);
     }
 

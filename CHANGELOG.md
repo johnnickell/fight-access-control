@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   disables durability, not current worker authorization; no fallback actor, Event, backfill or schema operation.
   See [delivery audit composition](docs/agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased).
 
+- Optional last nullable audit repository for Agent credential revocation. Enabled typed evidence commits with
+  authority retirement and original-delivery cancellation; omitted/null disables durable audit, not required actor,
+  caller policy or writer fences. Exact credential state/revision and trusted revocation time remain; unavailable
+  operation correlation is not fabricated. Audit failure rolls back staged state; uncertain acknowledgement and
+  ordinary post-commit publication faults still throw, preserving committed evidence and the primary fault.
+  **Pre-v1:** move audit storage to the final constructor position and qualify the actual shared connection before
+  opt-in. No backfill, grants or consumer data operation is supplied. See
+  [revocation composition](docs/agent-credential-retirement.md#optional-atomic-revocation-audit-unreleased).
+
 - Optional last nullable audit repository for recoverable Agent provision/rotation Commands. Enabled evidence joins
   issuance/reservation and rotation retirement in the same transaction, with original typed provenance and actual
   operation revision. Origin is retained independently of audit through current hydration/copies/tombstones; retries
