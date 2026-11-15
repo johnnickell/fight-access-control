@@ -1,5 +1,17 @@
 # Fight AccessControl Context
 
+## Optional Agent revocation audit — TASK-00163 Work
+
+Credential revocation now takes optional last nullable audit storage after Agent repository, Clock, UoW and
+EventDispatcher. Enabled evidence joins full-state authority replacement and repository-owned original-delivery
+retirement, with the still-required typed actor, actual credential states/revision and exact trusted revocation
+time. The Boolean replacement interface exposes no original operation key/delivery/revision; evidence leaves
+those facts absent rather than guessing. Omitted/null disables durable audit only. Existing caller policy,
+cohort/restoration/CAS fences, terminal refusals, uncertain acknowledgement and ordinary primary-fault publication
+behavior remain. See [current composition](docs/agent-credential-retirement.md#optional-atomic-revocation-audit-unreleased).
+Canonical `.runs/handoffs/TASK-00163/work.md` owns verification/candidate evidence. Independent Review/nonvisual QA
+remain required; package models do not qualify consumer connections, locks, storage, sinks or deployment.
+
 ## Recoverable Agent issuance audit — TASK-00162 accepted checkpoint
 
 Both registered issuance handlers now accept optional last nullable audit storage. Enabled evidence shares the

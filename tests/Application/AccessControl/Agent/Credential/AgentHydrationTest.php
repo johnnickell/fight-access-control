@@ -56,10 +56,10 @@ final class AgentHydrationTest extends TestCase
         if ($revoked) {
             new AgentCredentialLifecycleService(
                 $env->agentRepository,
-                $env->auditEvidenceRepository,
                 $clock,
                 $env->transaction,
-                $env->eventDispatcher
+                $env->eventDispatcher,
+                $env->auditEvidenceRepository
             )->revoke(UserId::generate(), $issuance->getAgentId());
         }
 

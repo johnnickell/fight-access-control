@@ -444,10 +444,10 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $ports = $fixture->ports();
         new AgentCredentialLifecycleService(
             $ports->agentRepository,
-            $ports->auditEvidenceRepository,
             $ports->clock,
             $ports->transaction,
-            $ports->eventDispatcher
+            $ports->eventDispatcher,
+            $ports->auditEvidenceRepository
         )->revoke(UserId::generate(), $issuance->getAgentId());
         $before = $fixture->state();
         $generations = $fixture->generations();
@@ -698,10 +698,10 @@ abstract class IssuanceRecoveryConformance extends TestCase
                 $ports = $fixture->ports();
                 new AgentCredentialLifecycleService(
                     $ports->agentRepository,
-                    $ports->auditEvidenceRepository,
                     $ports->clock,
                     $ports->transaction,
-                    $ports->eventDispatcher
+                    $ports->eventDispatcher,
+                    $ports->auditEvidenceRepository
                 )->revoke(UserId::generate(), $request->getAgentId());
             }
         ]);

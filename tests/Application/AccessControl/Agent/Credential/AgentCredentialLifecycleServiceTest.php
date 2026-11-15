@@ -14,7 +14,9 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialLifecycleFailed;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRevoked;
 use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentCredentialRotated;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Application\Error\Exception\ApplicationException;
 use Fight\Common\Domain\Exception\DomainException;
@@ -37,7 +39,10 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function failures(): iterable
     {
-        foreach (['absent', 'stale', 'repository', 'audit', 'commit', 'publication', 'both publishers'] as $case) {
+        foreach (
+            ['absent', 'stale', 'repository', 'audit', 'audit both publishers', 'commit', 'publication',
+                'both publishers'] as $case
+        ) {
             yield $case => [$case];
         }
     }
@@ -51,7 +56,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         $original = $env->operationRepository->operations[$env->key->toString()];
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository(
             $env->transaction,
-            failAfterSave: $case === 'audit'
+            failAfterSave: str_starts_with($case, 'audit')
         );
         $fault = new RuntimeException('Original failure');
         $agentRepository = $env->agentRepository;
@@ -68,16 +73,19 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
 
         $env->transaction->failNextCommit = $case === 'commit';
         $eventDispatcher = new InMemoryEventDispatcher(static function (object $event) use ($case, $fault): void {
-            if ($case === 'both publishers' || ($case === 'publication' && $event instanceof AgentCredentialRevoked)) {
+            if (
+                str_contains($case, 'both publishers')
+                || ($case === 'publication' && $event instanceof AgentCredentialRevoked)
+            ) {
                 throw $fault;
             }
         });
         $service = new AgentCredentialLifecycleService(
             $agentRepository,
-            $auditEvidenceRepository,
             new FixedClock($agent->getCreatedAt()->modify('+5 minutes')),
             $env->transaction,
-            $eventDispatcher
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         $actorId = UserId::generate();
         try {
@@ -86,7 +94,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
         } catch (ApplicationException | LogicException | RuntimeException $failure) {
             if (in_array($case, ['repository', 'publication', 'both publishers'], true)) {
                 self::assertSame($fault, $failure);
-            } elseif ($case === 'audit') {
+            } elseif (str_starts_with($case, 'audit')) {
                 self::assertSame($auditEvidenceRepository->failure(), $failure);
             }
         }
@@ -103,7 +111,7 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
             self::assertSame($original, $env->operationRepository->operations[$env->key->toString()]);
         }
 
-        if ($case === 'both publishers') {
+        if (str_contains($case, 'both publishers')) {
             self::assertSame([], $eventDispatcher->events());
         } else {
             self::assertCount(1, $eventDispatcher->events());
@@ -111,6 +119,150 @@ final class AgentCredentialLifecycleServiceTest extends TestCase
             self::assertInstanceOf(AgentCredentialLifecycleFailed::class, $failure);
             self::assertSame($actorId, $failure->getActorId());
             self::assertSame('Agent credential lifecycle failed.', $failure->getErrorMessage());
+        }
+    }
+
+    /** @return iterable<string, array{string, UserId|AgentId|SystemId|AnonymousId}> */
+    public static function auditCompositions(): iterable
+    {
+        foreach (['omitted', 'null', 'enabled'] as $mode) {
+            $actors = [UserId::generate(), AgentId::generate(), SystemId::generate(), AnonymousId::generate()];
+            foreach ($actors as $actor) {
+                yield $mode.' '.$actor::class => [$mode, $actor];
+            }
+        }
+    }
+
+    #[DataProvider('auditCompositions')]
+    public function test_optional_audit_preserves_retirement_and_exact_admitted_facts(
+        string $mode,
+        UserId|AgentId|SystemId|AnonymousId $actor
+    ): void {
+        $env = new ProvisioningEnvironment();
+        $env->bus()->commandBus->execute(new ProvisionAgent($env->key, $env->request));
+        $agent = $env->agentRepository->all()[0];
+        $beforeOperations = $env->operationRepository->operations;
+        $beforeAudit = $env->auditEvidenceRepository->all();
+        $at = new DateTimeImmutable('2026-09-28T12:05:00.123456+00:00');
+        $args = [$env->agentRepository, new FixedClock($at), $env->transaction, $env->eventDispatcher];
+        if ($mode !== 'omitted') {
+            $args[] = $mode === 'enabled' ? $env->auditEvidenceRepository : null;
+        }
+
+        $service = new AgentCredentialLifecycleService(...$args);
+        $service->revoke($actor, $agent->getId());
+
+        $revoked = $env->agentRepository->getById($agent->getId());
+        self::assertSame(AgentState::REVOKED, $revoked->getState());
+        self::assertSame($at, $revoked->getUpdatedAt());
+        $operation = $env->operationRepository->operations[$env->key->toString()];
+        self::assertNull($operation->getMaterial());
+        self::assertSame($beforeOperations[$env->key->toString()]->getIssuance(), $operation->getIssuance());
+        self::assertSame(
+            $beforeOperations[$env->key->toString()]->getStateRevision() + 1,
+            $operation->getStateRevision()
+        );
+        $records = $env->auditEvidenceRepository->all();
+        self::assertCount(count($beforeAudit) + (int) ($mode === 'enabled'), $records);
+        if ($mode === 'enabled') {
+            $record = $records[array_key_last($records)];
+            self::assertSame($actor, $record->actorId());
+            $payload = $record->toArray();
+            self::assertSame(['kind' => 'agent', 'id' => $agent->getId()->toString()], $payload['subject']);
+            self::assertSame('agent.credential_revoked', $payload['action']);
+            self::assertSame($at->format('Y-m-d\TH:i:s.uP'), $payload['occurred_at']);
+            self::assertNull($payload['correlation']);
+            self::assertSame([
+                'before'             => [
+                    'credential_id'       => $agent->getCredentialId()->toString(),
+                    'credential_revision' => $agent->getCredentialRevision(),
+                    'state'               => AgentState::ACTIVE->value
+                ],
+                'after'              => [
+                    'credential_id'       => $agent->getCredentialId()->toString(),
+                    'credential_revision' => $agent->getCredentialRevision(),
+                    'state'               => AgentState::REVOKED->value
+                ],
+                'delivery_id'        => null,
+                'operation_revision' => null
+            ], $payload['facts']);
+            self::assertSame($payload, AuditEvidence::fromArray($payload)->toArray());
+        } else {
+            self::assertSame($beforeAudit, $records);
+        }
+
+        try {
+            $service->revoke($actor, $agent->getId());
+            self::fail('Already revoked authority is a rejection, not an audited no-op.');
+        } catch (ApplicationException) {
+            self::assertSame($records, $env->auditEvidenceRepository->all());
+            self::assertSame($operation, $env->operationRepository->operations[$env->key->toString()]);
+        }
+    }
+
+    /** @return iterable<string, array{bool, bool}> */
+    public static function uncertainOutcomes(): iterable
+    {
+        foreach ([false, true] as $enabled) {
+            foreach ([false, true] as $committed) {
+                yield ($enabled ? 'enabled' : 'disabled').' '.($committed ? 'committed' : 'rolled back') => [
+                    $enabled, $committed
+                ];
+            }
+        }
+    }
+
+    #[DataProvider('uncertainOutcomes')]
+    public function test_lost_acknowledgement_rethrows_exact_primary_without_guessing_rollback(
+        bool $enabled,
+        bool $committed
+    ): void {
+        $env = new ProvisioningEnvironment();
+        $env->bus()->commandBus->execute(new ProvisionAgent($env->key, $env->request));
+        $agent = $env->agentRepository->all()[0];
+        $beforeOperations = $env->operationRepository->operations;
+        $beforeAudit = $env->auditEvidenceRepository->all();
+        $fault = new RuntimeException('Commit acknowledgement unavailable.');
+        $fail = static function () use ($fault): void {
+            throw $fault;
+        };
+        if ($committed) {
+            $env->transaction->afterCommit = $fail;
+        } else {
+            $env->transaction->beforeCommit = $fail;
+        }
+
+        $attempted = [];
+        $dispatcher = new InMemoryEventDispatcher(static function (object $event) use (&$attempted): void {
+            $attempted[] = $event;
+
+            throw new RuntimeException('Secondary publication unavailable.');
+        });
+        try {
+            new AgentCredentialLifecycleService(
+                $env->agentRepository,
+                new FixedClock($agent->getCreatedAt()),
+                $env->transaction,
+                $dispatcher,
+                $enabled ? $env->auditEvidenceRepository : null
+            )->revoke(UserId::generate(), $agent->getId());
+            self::fail('An uncertain acknowledgement must not become success.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame($fault, $runtimeException);
+        }
+
+        self::assertCount(1, $attempted);
+        self::assertInstanceOf(AgentCredentialLifecycleFailed::class, $attempted[0]);
+        self::assertSame(
+            $committed ? AgentState::REVOKED : AgentState::ACTIVE,
+            $env->agentRepository->getById($agent->getId())->getState()
+        );
+        self::assertCount(count($beforeAudit) + (int) ($enabled && $committed), $env->auditEvidenceRepository->all());
+        if ($committed) {
+            self::assertNull($env->operationRepository->operations[$env->key->toString()]->getMaterial());
+        } else {
+            self::assertSame($beforeOperations, $env->operationRepository->operations);
+            self::assertSame($beforeAudit, $env->auditEvidenceRepository->all());
         }
     }
 
