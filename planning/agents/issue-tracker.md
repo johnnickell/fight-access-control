@@ -5,8 +5,9 @@ implementation, confirm its acceptance criteria, dependencies, branch, seams, an
 
 A TASK is executable only when its status is `ready-for-agent` and every `blocked_by` TASK is terminal. Use
 the purpose-named `.runs/` subdirectories in the [project profile](project-profile.md#tests-and-delivery) for scratch
-and copy durable outcomes back into the TASK. Isolated TASK source checkouts stay outside `.runs/`; run from
-that checkout and follow the ownership-qualified lifecycle and guarded removal instructions in
+and copy durable outcomes back into the TASK. Create new TASK source worktrees at
+`<repo_path>/.runs/worktrees/<task-slug>/`, using the canonical base checkout resolved through Git metadata.
+Preserve existing registered paths. Run from the selected checkout and follow the ownership-qualified lifecycle and guarded removal instructions in
 [local tooling](../../docs/engineering/LOCAL_TOOLING.md).
 
 Keep the TASK, Board, parent TICKET, EPIC, and Roadmap synchronized. A TASK becomes `done` only after acceptance

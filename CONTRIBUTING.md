@@ -28,7 +28,9 @@ Use Git Flow:
 
 Keep each effort isolated in its assigned branch and selected checkout. Reuse a TASK checkout choice already
 made; otherwise resolve main checkout versus isolated worktree before implementation. Use purpose-named `.runs/` subdirectories from the
-[project profile](planning/agents/project-profile.md#tests-and-delivery), with isolated checkouts outside `.runs/` and separate ignored notes, logs, handoffs and reviews. `.runs/` is gitignored and must never be staged.
+[project profile](planning/agents/project-profile.md#tests-and-delivery). Create new source worktrees at
+`<repo_path>/.runs/worktrees/<slug>/`, using the canonical base checkout resolved through Git metadata. Preserve
+existing registered paths and keep notes, logs, handoffs and reviews separate. `.runs/` is gitignored and must never be staged.
 Preserve unrelated changes and do not copy consumer implementations into this library.
 
 ## Package PHP runtime
