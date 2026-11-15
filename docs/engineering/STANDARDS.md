@@ -32,15 +32,15 @@ This adoption does not certify all existing code against the baseline. Its compa
 ### AccessControl run layout
 
 - **Rule:** Use purpose-named `.runs/` subdirectories as specified by the
-  [project profile](../../planning/agents/project-profile.md#tests-and-delivery), including singular
-  `.runs/worktree/<task-slug>/` for linked worktrees. Do not group unrelated artifact types beneath dated top-level
-  run folders. Retain existing evidence; relocation or cleanup requires proved ownership and authorization.
+  [project profile](../../planning/agents/project-profile.md#tests-and-delivery), including
+  `<repo_path>/.runs/worktrees/<task-slug>/` for linked source worktrees under the canonical base checkout.
+  Do not group unrelated artifact types beneath dated top-level run folders. Retain existing evidence; relocation or cleanup requires proved ownership and authorization.
 - **Scope:** AccessControl TASK worktrees and their evidence only.
 - **Rationale:** Clear subdirectories distinguish checkouts, notes, logs, handoffs and reviews while TASK names
   preserve ownership across those locations.
-- **Approval/reference:** John explicitly corrected TASK-00046's location to `.runs/worktree/*` on 2026-09-27 and
-  requested clear `.runs` subdirectories for future work. This supersedes the dated run layout preserved in PR #55;
-  the shared Delivery standard's plural `.runs/worktrees/` spelling does not apply in this repository.
+- **Approval/reference:** On 2026-11-14 John standardized Fight source worktrees at `<repo_path>/.runs/worktrees/`.
+  This supersedes the 2026-09-27 singular-directory exception and the later sibling-checkout guidance. Existing
+  checkout locations and historical receipts remain unchanged; new work follows the shared Delivery layout.
 
 ### AccessControl OpenAPI contract integration tests
 
