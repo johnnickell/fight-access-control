@@ -11,6 +11,53 @@ partial deployment. Mandatory [cohort guards](agent-operation-cohorts.md) fence 
 cleanup authority to the persisted generation. [Package restoration](agent-restoration-safety.md) is implemented;
 [real consumer qualification](agent-operation-evidence.md#consumer-gap-register) and release remain separate.
 
+## Optional atomic maintenance audit (Unreleased)
+
+All three methods accept a final optional `UserId|AgentId|SystemId|null $actorId = null`. Supply the real
+originating User/Agent for delegated work, or explicit fixed-nil `SystemId::generate()` for genuinely autonomous
+maintenance. Never derive it from the target Agent, operation scope or authorization epoch. Attribution grants
+no maintenance, delivery, cleanup or physical-key authority.
+
+The constructor accepts optional last `?AuditEvidenceRepository $auditEvidenceRepository = null`, after policy.
+Omitted/null intentionally disables durable audit. Enabled meaningful work requires provenance before mutation
+or external cleanup admission; configured failure cannot silently disable audit. Disabled and pure no-change
+execution need no newly added audit-only actor. Existing business authorization still applies.
+
+```php
+$maintenance = new AgentDeliveryMaintenanceService(
+    $operationRepository,
+    $maintenanceAuthorization,
+    $rewrapper,
+    $cleanup,
+    $clock,
+    $unitOfWork,
+    auditEvidenceRepository: $auditEvidenceRepository
+);
+$maintenance->expire($originalKey, $historicalDestination, $deliveryId, SystemId::generate());
+```
+
+Enabled `agent.material_rewrapped`, `agent.material_failed`, `agent.material_expired` and `agent.sink_cleaned`
+records explicitly join the **actual outcome transaction/connection**. `AuditAgentMaintenanceOutcome` contains
+only typed original credential/delivery relationships, actual consecutive operation revisions, validated wrapping
+version labels and retained typed failure classification. The Agent subject and complete original scoped operation
+key preserve correlation without serializing issuance, ciphertext, receipts or requests. Occurrence time is the
+trusted time used for the outcome, not original issuance/message time. No credential or Permission revision is
+invented. Evidence identity is unique, not a generic replay key, and evidence is not automatically public/log-safe.
+
+Rewrap and permanent source-loss evidence share their bounded fenced write. Expiry, including the early rewrap
+branch, records one real removal at original retention without requiring target-key admission. Same-target,
+no-copy, unexpired, transient and helper/no-change work adds none; later opt-in never backfills history.
+Cleanup admission and external exact-tuple removal add no evidence. Only a newly persisted acknowledgement records
+cleanup in the separate reauthorized acknowledgement transaction. Audit failure rolls back that acknowledgement
+and its evidence, **not sink erasure**. Lost responses and either uncertain commit outcome retain same-tuple retry,
+tombstones, receipt/order history and no-recreation protection. Already acknowledged cleanup adds no record.
+Trusted authority time is checked again after audit work; all existing cohort/reference/CAS/lifecycle fences remain.
+
+**Pre-v1 consumer obligation:** opt in per maintenance owner, map the new action/facts and typed actors on the
+same real connection, and qualify rollback, uncertainty, races and external sink recovery. No Event, audit Query,
+production adapter, migration/backfill, key destruction or activation/use authority is added. Package tests are
+modeled proof, not qualification of actual consumer storage, locks, cryptography, sinks or restoration.
+
 ## Public composition
 
 Domain maintenance policy/work/key-version values and Application maintenance coordination/ports now belong to
@@ -30,7 +77,8 @@ separate aggregate-named write repository and UoW below; all existing expected-s
   arrived yet. It never deletes operation correlation or permits reuse of an old operation key.
 
 Inject `AgentCredentialOperationRepository`, `AgentMaintenanceAuthorization`, `AgentDeliveryRewrapper`,
-`AgentCredentialCleanup`, trusted `Clock`, shared `TransactionalUnitOfWork` and optional `AgentMaintenancePolicy`.
+`AgentCredentialCleanup`, trusted `Clock`, shared `TransactionalUnitOfWork`, optional `AgentMaintenancePolicy`
+and optional last nullable audit repository.
 No production implementation of these consumer capabilities is included. Repository and authorization must
 participate on the package transaction's connection; unsupported participation or an outer/nested transaction fails
 closed. No new event is required: persisted state is the maintenance outcome, not an issuance/delivery fact.
@@ -227,6 +275,9 @@ Package evidence:
   actual provision/delivery/revocation paths, retry history and original-byte recovery, transient/permanent/corrupt
   outcomes, stale writes, key admission fences, capacity isolation, both outcomes of uncertain commits, outside-
   transaction cleanup, replay, current delivered protection, authorization/time/ABA and safe rollback.
+- [Optional audit tests](../tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentMaintenanceAuditTest.php):
+  explicit autonomous/delegated provenance, exact time/revisions/relationships, no-change, state/evidence rollback,
+  both uncertain outcomes, sink-response loss, audit failure after erasure and fenced losing writers.
 - [Read tests](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/AgentMaintenanceQueryTest.php): multiple bounded
   pages past obsolete reservations, all-scope accounting including unknown versions, target/scope rechecks, no query
   mutation/material access and safe failure. [Generated schemas](../tests/OpenApi/AgentDeliveryComponentsTest.php)

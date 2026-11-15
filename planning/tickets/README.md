@@ -50,7 +50,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00044](00044-TICKET.md) | Audit User account and credential journeys | done |
 | [TICKET-00045](00045-TICKET.md) | Audit Role, membership and Agent administration | done |
 | [TICKET-00046](00046-TICKET.md) | Audit Feature and managed-policy changes | done |
-| [TICKET-00047](00047-TICKET.md) | Audit Agent credential and recovery outcomes | ready-for-agent |
+| [TICKET-00047](00047-TICKET.md) | Audit Agent credential and recovery outcomes | done |
 | [TICKET-00048](00048-TICKET.md) | Qualify audit composition and document consumer adoption | ready-for-agent |
 | [TICKET-00049](00049-TICKET.md) | Declare effective action requirements | done |
 | [TICKET-00050](00050-TICKET.md) | Enforce Feature admission across five frameworks | ready-for-agent |

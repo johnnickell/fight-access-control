@@ -1,5 +1,22 @@
 # Fight AccessControl Context
 
+## Optional Agent material maintenance audit — TASK-00165 accepted checkpoint
+
+All three maintenance paths now accept optional final nullable audit storage and optional direct typed User/Agent/
+System provenance. Real rewrap, permanent material failure, expiry and newly persisted cleanup acknowledgement join
+bounded evidence to their actual write transaction with original relationships/scoped key, actual operation revisions
+and trusted outcome time. Disabled/no-change work gains no audit-only actor requirement; existing authority/fences
+remain. Cleanup audit rollback cannot undo external erasure; exact-tuple recovery and tombstone history remain.
+Expiry through rewrap no longer depends on target-key admission. See [current composition](docs/agent-delivery-maintenance.md#optional-atomic-maintenance-audit-unreleased).
+Independent Review v3 ACCEPT and nonvisual QA PASS qualify candidate `ff9ba80bae19b7d7a9e255db80a7811a1ce6aba8`;
+QA passed 30 independent scenarios / 209 checks plus 1,435 focused tests / 15,466 assertions. Earlier full gate is
+retained: 9,976 tests / 98,456 assertions, exact 11,638/11,638 all-suite statements and separate Unit-only executable
+lines across 548 source files, no exclusions. TASK-00165 is done; unfinished siblings keep its parents open.
+Publication/final verification and eligible retirement are pending at this checkpoint; canonical
+`.runs/handoffs/TASK-00165/land.md` owns their outcomes. Minimum resolution retains 43 advisories across 13 development
+packages; ordinary reports none. Consumer storage/connections/locks, crypto/sinks, restoration, physical-key operations,
+activation/use, merge, release and deployment remain separate.
+
 ## Optional Agent delivery audit — TASK-00164 accepted checkpoint
 
 Delivery now accepts optional last nullable audit storage. Enabled evidence joins the actual claim-terminalization
