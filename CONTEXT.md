@@ -18,6 +18,23 @@ eligible retirement are pending at this checkpoint; canonical `.runs/handoffs/TA
 Minimum composition retains 43 advisories across 13 packages; ordinary resolution reports none. Consumer
 persistence/connections/locks, crypto/sinks, restoration, activation/use, merge, release and deployment remain separate.
 
+## Optional managed-policy audit — TASK-00161 accepted checkpoint
+
+Reconciliation now supports optional final nullable audit storage and explicit optional typed originating Command
+provenance. Enabled evidence joins the complete Role/Permission mutation transaction with actual Role incarnation/
+revisions and memberships, admitted Permission facts, trusted reconciliation time and incoming message correlation.
+The shared planner/preview remain read-only; Feature references remain guards only. Unchanged subjects add no audit
+record and existing summary Events, final fences and ordinary failure/uncertainty semantics remain. See
+[composition](docs/operation-outcomes.md#optional-atomic-reconciliation-audit-unreleased). Work's normal full gate
+passes 9,709 tests / 95,990 assertions and exact 11,471/11,471 statements and Unit-only lines across 547 source files.
+The final Work gate reports 95,998 assertions; the count above is the earlier successful execution. Independent
+Review v3 ACCEPT and nonvisual QA PASS cover clean candidate `f6fb5c358fc9691e829bdc6a723c6eb233b0520c`
+(33 scenarios / 481 checks plus 152 tests / 1,074 assertions). TASK-00161 is done. All four family TASKs are done,
+so TICKET-00046 closes; unfinished families keep EPIC-00017 open. Canonical `.runs/handoffs/TASK-00161/work.md`
+retains minimum-lane warnings and complete evidence; `land.md` owns the subsequent base-integration, publication
+and retirement outcomes. Publication/final verification are pending at this accepted checkpoint. Consumer
+persistence/connection/locks and entry policy qualification, merge, release and deployment remain separate.
+
 ## Optional provisioning audit — TASK-00160 Work
 
 Code-defined Feature provisioning now accepts explicit optional typed Command provenance, a required Application

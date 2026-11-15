@@ -206,6 +206,53 @@ ordered outcomes, late final-boundary conflicts, rollback, eligible retry and pu
 SQL isolation, real adapter locks or independent processes. Qualify those against the actual shared transaction,
 including both concurrent winner orders, expected-state conflicts, rollback and indeterminate commit outcomes.
 
+### Optional atomic reconciliation audit (Unreleased)
+
+`ReconcileManagedPolicyHandler` accepts an optional last nullable `AuditEvidenceRepository`. Omitted/null intentionally
+means no durable audit. With storage configured, each meaningful Role/Permission creation, reconciliation or removal
+inserts one record inside the same complete policy transaction, after the authoritative repository mutation and before
+commit. The shared planner and preview remain read-only. Features only guard Permission removal; they gain no records.
+
+Trusted callers pass the originating `UserId`, `AgentId`, `SystemId` or `AnonymousId` through the Command's optional
+`actorId`. Canonical payloads include nullable `actor_kind` and `actor_id`; supply both values together or neither.
+Missing origin rejects enabled changed work before its first audited mutation. Disabled and purely unchanged passes
+need no new audit-only actor. Workers retain the originating identity, never infer it from labels or replace it with a
+worker/system identity. Attribution grants no entry, target or reconciliation authority.
+
+```php
+$handler = new ReconcileManagedPolicyHandler(
+    permissionRepository: $permissionRepository,
+    roleRepository: $roleRepository,
+    managedPolicyPlanner: $managedPolicyPlanner,
+    unitOfWork: $unitOfWork,
+    eventDispatcher: $eventDispatcher,
+    clock: $clock,
+    auditEvidenceRepository: $auditEvidenceRepository,
+);
+$commandBus->execute(new ReconcileManagedPolicy(policy: $policy, actorId: $originatingActorId));
+```
+
+Bind this handler through its existing Command registration. All repositories, final reference/tier fences and the
+Unit of Work must join the actual same connection/transaction, not merely report an active transaction. Evidence uses
+one trusted reconciliation time shared with changed state and the success Event, unique record IDs and the incoming
+message ID. Correlation is not a replay/deduplication guarantee. No Event subscriber or transaction decorator is needed.
+
+Managed Role actions are `managed_role.created`, `managed_role.reconciled` and `managed_role.removed`.
+`AuditManagedRoleOutcome` retains complete Role incarnation/revisions and typed before/after Permission memberships.
+Names, policy snapshots and arbitrary context are omitted; revisions establish even name-only transitions. Permission
+actions reuse `permission.created`, `permission.reconciled`, `permission.removed` and admitted `AuditPermissionOutcome`
+name/tier/managed facts, never invented revisions. Creation has no predecessor; removal has no successor. Unchanged
+items, including a planned reconciliation that is already converged when reread, add no mutation record. Existing
+no-change final fences and `ManagedPolicyReconciled` publication, even for empty/unchanged plans, remain intact.
+
+Configured audit failure or any later reference/tier/CAS/commit loss rolls back the entire staged batch and evidence.
+A lost commit acknowledgement remains uncertain, not proof of rollback or permission for replay/backfill. Ordinary
+post-commit publication failure still throws the primary fault and leaves committed evidence intact, even if failure
+notification also fails. Consumers must protect evidence access and rethrown diagnostics. Opt-in requires current
+mapping/schema support and actual shared-connection, both-winner race and uncertainty qualification; package fixtures
+do not qualify production adapters, entry policy, other writers or deployment. No compatibility reader or backfill
+is provided.
+
 ### Serialized policy types (Unreleased)
 
 `ManagedPolicy::fromArray()` and its preview/reconcile messages validate dynamic decoded input: `permissions`,

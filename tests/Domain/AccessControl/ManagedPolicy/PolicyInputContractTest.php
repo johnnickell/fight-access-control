@@ -97,7 +97,10 @@ final class PolicyInputContractTest extends TestCase
         $data = self::policy();
         self::assertSame($data, ManagedPolicy::fromArray($data)->toArray());
         self::assertSame($data, PreviewManagedPolicy::fromArray($data)->toArray());
-        self::assertSame($data, ReconcileManagedPolicy::fromArray($data)->toArray());
+        self::assertSame(
+            [...$data, 'actor_kind' => null, 'actor_id' => null],
+            ReconcileManagedPolicy::fromArray($data)->toArray()
+        );
     }
 
     public function test_event_time_cannot_be_missing_typed_or_empty_default_to_now(): void

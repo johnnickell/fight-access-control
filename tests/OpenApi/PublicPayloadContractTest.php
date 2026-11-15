@@ -84,12 +84,36 @@ final class PublicPayloadContractTest extends TestCase
             $properties = array_keys((array) $schema->properties);
         }
 
+        if ($name === 'ReconcileManagedPolicy') {
+            $required = array_values(array_diff($required, ['actor_kind', 'actor_id']));
+        }
+
         self::assertEqualsCanonicalizing($required, $schema->required ?? [], $name.' required');
         self::assertEqualsCanonicalizing(array_keys($payload), $properties, $name);
         foreach ($required as $field) {
             $invalid = $payload;
             unset($invalid[$field]);
             self::assertFalse(self::valid($name, (object) $invalid), $name.' missing '.$field);
+        }
+    }
+
+    public function test_policy_provenance_is_optional_but_paired_and_typed(): void
+    {
+        $base = ['permissions' => [], 'roles' => [], 'referenced_permission_ids' => []];
+        foreach (
+            [[], ['actor_kind' => null, 'actor_id' => null], [
+            'actor_kind' => 'agent', 'actor_id' => PublicMessageSamples::ID
+            ]] as $actor
+        ) {
+            self::assertTrue(self::valid('ReconcileManagedPolicy', $base + $actor));
+        }
+
+        foreach (
+            [['actor_kind' => 'user'], ['actor_id' => PublicMessageSamples::ID], [
+            'actor_kind' => 'worker', 'actor_id' => PublicMessageSamples::ID
+            ], ['actor_kind' => 'agent', 'actor_id' => null]] as $actor
+        ) {
+            self::assertFalse(self::valid('ReconcileManagedPolicy', $base + $actor));
         }
     }
 

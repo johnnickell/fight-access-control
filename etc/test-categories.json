@@ -1029,6 +1029,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\ManagedPolicy\\CommandHandler\\ManagedPolicyAuditTest": {
+      "file": "tests/Application/AccessControl/ManagedPolicy/CommandHandler/ManagedPolicyAuditTest.php",
+      "category": "Unit",
+      "reason": "Reconciliation with controlled shared in-memory Role/Permission/audit transactions, race and fault ports; no real storage, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\ManagedPolicy\\CommandHandler\\ReconcileManagedPolicyHandlerTest": {
       "file": "tests/Application/AccessControl/ManagedPolicy/CommandHandler/ReconcileManagedPolicyHandlerTest.php",
       "category": "Unit",
@@ -1551,6 +1557,12 @@
       "reason": "Isolated typed authentication evidence construction, hydration and outcome admission; no external boundary.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditManagedRoleOutcomeTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditManagedRoleOutcomeTest.php",
+      "category": "Unit",
+      "reason": "Isolated typed evidence values, admission and canonical persistence round trips; no external boundary.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditEvidenceContractTest": {
       "file": "tests/Domain/AccessControl/Audit/AuditEvidenceContractTest.php",
       "category": "Unit",
@@ -1669,6 +1681,12 @@
       "file": "tests/Domain/AccessControl/ManagedPolicy/ManagedPolicyTest.php",
       "category": "Unit",
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\ReconcileManagedPolicyProvenanceTest": {
+      "file": "tests/Domain/AccessControl/ManagedPolicy/ReconcileManagedPolicyProvenanceTest.php",
+      "category": "Unit",
+      "reason": "Isolated Command provenance types, validation and canonical round trips; no external boundary.",
       "methods": {}
     },
     "Fight\\Test\\AccessControl\\Domain\\AccessControl\\ManagedPolicy\\PolicyInputContractTest": {
