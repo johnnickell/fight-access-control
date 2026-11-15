@@ -599,6 +599,17 @@ final class AgentDeliveryMaintenanceServiceTest extends TestCase
         self::assertFalse($env->delivery->sink->verify($newReceipt, $env->delivery->issuance));
     }
 
+    public function test_expiry_through_rewrap_does_not_require_target_key_admission(): void
+    {
+        $env = new MaintenanceEnvironment();
+        $env->delivery->clock->advance(86400);
+        $env->delivery->provisioning->operationRepository->closedKeyVersions['test-key-v2'] = true;
+
+        self::assertSame(AgentMaintenanceResult::EXPIRED, $env->rewrapOriginal());
+        self::assertNull($env->delivery->operation()->getMaterial());
+        self::assertSame(0, $env->rewraps);
+    }
+
     public function test_cleanup_override_preserves_explicit_recovery_window(): void
     {
         $env = new MaintenanceEnvironment();

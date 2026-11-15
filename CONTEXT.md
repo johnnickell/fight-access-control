@@ -1,5 +1,16 @@
 # Fight AccessControl Context
 
+## Optional Agent material maintenance audit — TASK-00165 Work
+
+All three maintenance paths now accept optional final nullable audit storage and optional direct typed User/Agent/
+System provenance. Real rewrap, permanent material failure, expiry and newly persisted cleanup acknowledgement join
+bounded evidence to their actual write transaction with original relationships/scoped key, actual operation revisions
+and trusted outcome time. Disabled/no-change work gains no audit-only actor requirement; existing authority/fences
+remain. Cleanup audit rollback cannot undo external erasure; exact-tuple recovery and tombstone history remain.
+Expiry through rewrap no longer depends on target-key admission. See [current composition](docs/agent-delivery-maintenance.md#optional-atomic-maintenance-audit-unreleased).
+Canonical Work evidence owns verification/candidate details. Independent Review/nonvisual QA remain required;
+consumer storage/connections/locks, crypto/sinks, restoration, physical-key operations and activation/use remain separate.
+
 ## Recoverable Agent issuance audit — TASK-00162 accepted checkpoint
 
 Both registered issuance handlers now accept optional last nullable audit storage. Enabled evidence shares the

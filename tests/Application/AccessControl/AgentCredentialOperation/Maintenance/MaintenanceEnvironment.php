@@ -10,6 +10,7 @@ use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maint
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryRewrapper;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceAuthorization;
 use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryMaterial;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
@@ -21,7 +22,9 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenancePolicy;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\BoundAgentDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
 use LogicException;
@@ -31,6 +34,10 @@ use Throwable;
 final class MaintenanceEnvironment implements AgentMaintenanceAuthorization, AgentDeliveryRewrapper
 {
     public readonly DeliveryEnvironment $delivery;
+
+    public bool $auditEnabled = false;
+
+    public UserId|AgentId|SystemId|null $actorId = null;
 
     public bool $permitted = true;
 
@@ -67,7 +74,8 @@ final class MaintenanceEnvironment implements AgentMaintenanceAuthorization, Age
             $this->delivery->sink,
             $this->delivery->clock,
             $this->delivery->transaction,
-            $policy ?? new AgentMaintenancePolicy()
+            $policy ?? new AgentMaintenancePolicy(),
+            $this->auditEnabled ? $this->delivery->provisioning->auditEvidenceRepository : null
         );
     }
 
@@ -79,7 +87,8 @@ final class MaintenanceEnvironment implements AgentMaintenanceAuthorization, Age
             $issuance->getKey(),
             $issuance->getDestination(),
             $issuance->getDeliveryId(),
-            new AgentDeliveryKeyVersion($version)
+            new AgentDeliveryKeyVersion($version),
+            $this->actorId
         );
     }
 
@@ -87,7 +96,12 @@ final class MaintenanceEnvironment implements AgentMaintenanceAuthorization, Age
     {
         $issuance = $this->delivery->issuance;
 
-        return $this->service()->expire($issuance->getKey(), $issuance->getDestination(), $issuance->getDeliveryId());
+        return $this->service()->expire(
+            $issuance->getKey(),
+            $issuance->getDestination(),
+            $issuance->getDeliveryId(),
+            $this->actorId
+        );
     }
 
     public function cleanup(?AgentMaintenancePolicy $policy = null): AgentMaintenanceResult
@@ -97,7 +111,8 @@ final class MaintenanceEnvironment implements AgentMaintenanceAuthorization, Age
         return $this->service($policy)->cleanup(
             $issuance->getKey(),
             $issuance->getDestination(),
-            $issuance->getDeliveryId()
+            $issuance->getDeliveryId(),
+            $this->actorId
         );
     }
 

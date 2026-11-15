@@ -663,6 +663,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Maintenance\\AgentMaintenanceAuditTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentMaintenanceAuditTest.php",
+      "category": "Unit",
+      "reason": "Controlled in-memory state/audit transactions, modeled independent sink/tombstones and trusted clock/authorization ports; no real storage, crypto, network or process boundary.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Maintenance\\AgentMaintenanceContractTest": {
       "file": "tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentMaintenanceContractTest.php",
       "category": "Unit",
@@ -1543,6 +1549,12 @@
       "file": "tests/Domain/AccessControl/Audit/AuditCreationAdmissionTest.php",
       "category": "Unit",
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditAgentMaintenanceOutcomeTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditAgentMaintenanceOutcomeTest.php",
+      "category": "Unit",
+      "reason": "Isolated typed maintenance facts, action admission and hydration with real values; no external boundary.",
       "methods": {}
     },
     "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditAgentNameOutcomeTest": {

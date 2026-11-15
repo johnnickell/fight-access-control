@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional final nullable audit storage and direct typed originating User/Agent/System provenance for all three Agent
+  material maintenance paths. Real rewrap, permanent material failure, expiry and cleanup acknowledgement record
+  bounded original relationships, operation revisions, scoped key and trusted outcome time in their actual write
+  transaction. No-change adds none; audit failure cannot undo external cleanup and retains exact-tuple recovery.
+  Expiry reached through rewrap needs no target-key admission. **Pre-v1:** consumers opting in must map new
+  maintenance actions/facts and qualify the real shared audit connection and sink recovery. Null disables durable
+  audit, not existing authority/fences. No backfill, Event, physical-key operation or consumer qualification is added.
+  See [maintenance composition](docs/agent-delivery-maintenance.md#optional-atomic-maintenance-audit-unreleased).
+
 - Optional last nullable audit repository for recoverable Agent provision/rotation Commands. Enabled evidence joins
   issuance/reservation and rotation retirement in the same transaction, with original typed provenance and actual
   operation revision. Origin is retained independently of audit through current hydration/copies/tombstones; retries

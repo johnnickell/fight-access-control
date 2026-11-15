@@ -89,6 +89,14 @@ TASK-00182 updates issuance names and execution contracts without claiming the o
 | STATUS / RET | [GetAgentOperationHandlerTest](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/GetAgentOperationHandlerTest.php) / [AgentCredentialRetirementTest](../tests/Application/AccessControl/Agent/Credential/AgentCredentialRetirementTest.php) | [TASK-00047](../planning/tasks/00047-TASK.md) / [TASK-00050](../planning/tasks/00050-TASK.md); [status](agent-operation-status.md#executable-evidence-and-limits) / [retirement](agent-credential-retirement.md#package-evidence-and-remaining-qualification) maps |
 | DEL / REC / MAINT | [AgentCredentialDeliveryServiceTest](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentCredentialDeliveryServiceTest.php) / [AgentDeliveryRecoveryServiceTest](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryRecoveryServiceTest.php) / [AgentDeliveryMaintenanceServiceTest](../tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentDeliveryMaintenanceServiceTest.php) | [TASK-00051](../planning/tasks/00051-TASK.md) / [TASK-00052](../planning/tasks/00052-TASK.md) / [TASK-00053](../planning/tasks/00053-TASK.md); [delivery](agent-credential-delivery.md#evidence-and-limits), [recovery](agent-delivery-recovery.md#api-and-verification-boundaries), [maintenance](agent-delivery-maintenance.md#adapter-obligations-and-acceptance-evidence) maps |
 
+TASK-00165 adds [optional maintenance audit](agent-delivery-maintenance.md#optional-atomic-maintenance-audit-unreleased)
+with [modeled outcome/evidence tests](../tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentMaintenanceAuditTest.php)
+for rewrap, permanent source failure, expiry and cleanup acknowledgement. Enabled evidence shares each actual write
+transaction; cleanup still has separate admission and external erasure. Audit rollback does not remove the sink
+non-recreation tombstone. Tests cover direct typed provenance, original correlation/revisions/time, no-change,
+both uncertain outcomes, losing fences and same-tuple recovery after erasure/audit failure. Canonical TASK Work
+handoff owns current gate/dependency identities; independent acceptance and real consumer qualification remain separate.
+
 Reference `contend()` schedules are serialized; predecessor P/ROT tests inject actual loser rollback/CAS and winner
 visibility, not parallel database sessions. Delivery/sink/cohort/restore suites use deterministic barriers over
 modeled persisted state. `restart()` reconstructs services, not an OS kill. Direct repository rotation tests prove

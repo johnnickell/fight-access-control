@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00163](00163-TASK.md) — Audit Agent credential revocation.
+Active Task: [TASK-00165](00165-TASK.md) — Audit Agent material maintenance.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 420 | [TASK-00165](00165-TASK.md) | Audit Agent material maintenance | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | in-progress | [TASK-00122](00122-TASK.md) | — |
 
 ## Ready Frontier
 
@@ -17,7 +19,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 418 | [TASK-00163](00163-TASK.md) | Audit Agent credential revocation | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 419 | [TASK-00164](00164-TASK.md) | Audit Agent delivery outcomes and scheduler recovery | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md), [TASK-00162](00162-TASK.md) | — |
-| 420 | [TASK-00165](00165-TASK.md) | Audit Agent material maintenance | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 421 | [TASK-00168](00168-TASK.md) | Demonstrate ordinary Role audit composition | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | [TASK-00167](00167-TASK.md), [TASK-00153](00153-TASK.md) | — |
 | 504 | [TASK-00174](00174-TASK.md) | Enforce Laravel Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md) | — |
 | 504 | [TASK-00175](00175-TASK.md) | Enforce CodeIgniter 4 Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md), [TASK-00106](00106-TASK.md) | — |

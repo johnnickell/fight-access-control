@@ -48,7 +48,7 @@ final class AgentWorkerFailureSourceTest extends TestCase
     /** @return iterable<string, array{string, int, Throwable}> */
     public static function clockFaults(): iterable
     {
-        foreach (['delivery' => 12, 'rewrap' => 8, 'expire' => 6, 'cleanup' => 14] as $operation => $samples) {
+        foreach (['delivery' => 12, 'rewrap' => 11, 'expire' => 7, 'cleanup' => 17] as $operation => $samples) {
             foreach (range(1, $samples) as $sample) {
                 foreach (self::faults() as $name => [$failure]) {
                     yield $operation.':'.$sample.':'.$name => [$operation, $sample, $failure];
@@ -98,7 +98,7 @@ final class AgentWorkerFailureSourceTest extends TestCase
         } else {
             self::assertSame($before, $env->delivery->operation());
             self::assertFalse($env->delivery->operation()->isSinkCleaned());
-            self::assertSame($operation === 'cleanup' && $sample >= 8 ? 1 : 0, $env->delivery->sink->cleanups);
+            self::assertSame($operation === 'cleanup' && $sample >= 9 ? 1 : 0, $env->delivery->sink->cleanups);
         }
 
         $this->assertRecovery($env, $operation);

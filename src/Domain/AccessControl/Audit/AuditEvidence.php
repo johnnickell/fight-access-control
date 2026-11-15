@@ -32,6 +32,7 @@ use Fight\Common\Domain\Type\Arrayable;
  * @phpstan-import-type GrantOutcomePayload from AuditGrantOutcome
  * @phpstan-import-type AgentOutcomePayload from AuditAgentOutcome
  * @phpstan-import-type AgentNameOutcomePayload from AuditAgentNameOutcome
+ * @phpstan-import-type MaintenanceOutcomePayload from AuditAgentMaintenanceOutcome
  * @phpstan-import-type SessionRevocationPayload from AuditSessionRevocation
  * @phpstan-import-type RevisionsPayload from AuditRoleRevisions
  * @phpstan-import-type FeatureOutcomePayload from AuditFeatureOutcome
@@ -45,7 +46,7 @@ use Fight\Common\Domain\Type\Arrayable;
  *     subject: SubjectPayload, action: string, occurred_at: string, correlation: ?CorrelationPayload,
  *     facts: UserOutcomePayload|GrantOutcomePayload|AgentOutcomePayload|SessionRevocationPayload|RevisionsPayload
  *         |FeatureOutcomePayload|PermissionOutcomePayload|RolePermissionPayload|AuthenticationOutcomePayload
- *         |AgentPermissionPayload|AgentNameOutcomePayload|UserRolePayload|ManagedRolePayload
+ *         |AgentPermissionPayload|AgentNameOutcomePayload|UserRolePayload|ManagedRolePayload|MaintenanceOutcomePayload
  * }
  *
  * @phpstan-consistent-constructor
@@ -66,10 +67,19 @@ class AuditEvidence implements Arrayable
         private readonly AuditUserOutcome|AuditGrantOutcome|AuditAgentOutcome
         |AuditSessionRevocation|AuditRoleRevisions|AuditFeatureOutcome|AuditPermissionOutcome
         |AuditRolePermissionOutcome|AuditAuthenticationOutcome|AuditAgentPermissionOutcome
-        |AuditAgentNameOutcome|AuditUserRoleOutcome|AuditManagedRoleOutcome $facts,
+        |AuditAgentNameOutcome|AuditUserRoleOutcome|AuditManagedRoleOutcome|AuditAgentMaintenanceOutcome $facts,
         private readonly ?AuditCorrelation $correlation
     ) {
         $subjectId = $subject->getId();
+        if ($facts instanceof AuditAgentMaintenanceOutcome && $subjectId instanceof AgentId) {
+            $facts->assertOutcome($action);
+            if ($actorId instanceof AnonymousId || $correlation?->getOperationKey() === null) {
+                throw new DomainException('Audit maintenance requires provenance and its scoped original key.');
+            }
+
+            return;
+        }
+
         if (
             $facts instanceof AuditAgentNameOutcome && $subjectId instanceof AgentId
             && $action === AuditAction::AGENT_NAME_CHANGED
@@ -202,7 +212,8 @@ class AuditEvidence implements Arrayable
         DateTimeImmutable $occurredAt,
         AuditUserOutcome|AuditGrantOutcome|AuditAgentOutcome|AuditSessionRevocation|AuditRoleRevisions
         |AuditFeatureOutcome|AuditPermissionOutcome|AuditRolePermissionOutcome|AuditAuthenticationOutcome
-        |AuditAgentPermissionOutcome|AuditAgentNameOutcome|AuditUserRoleOutcome|AuditManagedRoleOutcome $facts,
+        |AuditAgentPermissionOutcome|AuditAgentNameOutcome|AuditUserRoleOutcome|AuditManagedRoleOutcome
+        |AuditAgentMaintenanceOutcome $facts,
         ?AuditCorrelation $correlation
     ): static {
         return new static(AuditEvidenceId::generate(), $actorId, $subject, $action, $occurredAt, $facts, $correlation);
@@ -255,6 +266,9 @@ class AuditEvidence implements Arrayable
         }
 
         $facts = match ($action) {
+            AuditAction::AGENT_MATERIAL_REWRAPPED, AuditAction::AGENT_MATERIAL_FAILED,
+            AuditAction::AGENT_MATERIAL_EXPIRED,
+                AuditAction::AGENT_SINK_CLEANED => AuditAgentMaintenanceOutcome::fromArray($data['facts']),
             AuditAction::AGENT_PERMISSION_GRANTED, AuditAction::AGENT_PERMISSION_REVOKED,
                 AuditAction::AGENT_PERMISSIONS_REPLACED => AuditAgentPermissionOutcome::fromArray($data['facts']),
             AuditAction::AGENT_NAME_CHANGED => AuditAgentNameOutcome::fromArray($data['facts']),
@@ -353,7 +367,7 @@ class AuditEvidence implements Arrayable
     public function getFacts(): AuditUserOutcome|AuditGrantOutcome|AuditAgentOutcome
         |AuditSessionRevocation|AuditRoleRevisions|AuditFeatureOutcome|AuditPermissionOutcome|AuditRolePermissionOutcome
         |AuditAuthenticationOutcome|AuditAgentPermissionOutcome|AuditAgentNameOutcome|AuditUserRoleOutcome
-        |AuditManagedRoleOutcome
+        |AuditManagedRoleOutcome|AuditAgentMaintenanceOutcome
     {
         return $this->facts;
     }
