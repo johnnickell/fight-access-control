@@ -18,6 +18,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   audit, not existing authority/fences. No backfill, Event, physical-key operation or consumer qualification is added.
   See [maintenance composition](docs/agent-delivery-maintenance.md#optional-atomic-maintenance-audit-unreleased).
 
+- Optional last nullable audit storage for Agent delivery outcomes and delegating scheduler recovery. Enabled
+  evidence joins the actual delivery/claim-terminalization transaction with retained typed origin, credential/delivery
+  relationships, scoped original operation key, actual revisions and trusted outcome time. Claims/admissions/polls
+  and unchanged receipt reconciliation add none. Audit failure rolls back staged state/evidence, never an external
+  send; receipt-first recovery and both uncertain outcomes remain. **Pre-v1:** map four delivery actions and complete
+  `AuditAgentDeliveryOutcome` facts and qualify the shared connection/fences and sink before opt-in. Omitted/null
+  disables durability, not current worker authorization; no fallback actor, Event, backfill or schema operation.
+  See [delivery audit composition](docs/agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased).
+
+- Optional last nullable audit repository for Agent credential revocation. Enabled typed evidence commits with
+  authority retirement and original-delivery cancellation; omitted/null disables durable audit, not required actor,
+  caller policy or writer fences. Exact credential state/revision and trusted revocation time remain; unavailable
+  operation correlation is not fabricated. Audit failure rolls back staged state; uncertain acknowledgement and
+  ordinary post-commit publication faults still throw, preserving committed evidence and the primary fault.
+  **Pre-v1:** move audit storage to the final constructor position and qualify the actual shared connection before
+  opt-in. No backfill, grants or consumer data operation is supplied. See
+  [revocation composition](docs/agent-credential-retirement.md#optional-atomic-revocation-audit-unreleased).
+
 - Optional last nullable audit repository for recoverable Agent provision/rotation Commands. Enabled evidence joins
   issuance/reservation and rotation retirement in the same transaction, with original typed provenance and actual
   operation revision. Origin is retained independently of audit through current hydration/copies/tombstones; retries

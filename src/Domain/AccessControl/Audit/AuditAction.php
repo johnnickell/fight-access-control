@@ -53,6 +53,10 @@ enum AuditAction: string
     case AGENT_MATERIAL_FAILED = 'agent.material_failed';
     case AGENT_MATERIAL_EXPIRED = 'agent.material_expired';
     case AGENT_SINK_CLEANED = 'agent.sink_cleaned';
+    case AGENT_DELIVERY_CONFIRMED = 'agent.delivery.confirmed';
+    case AGENT_DELIVERY_FAILED = 'agent.delivery.failed';
+    case AGENT_DELIVERY_EXPIRED = 'agent.delivery.expired';
+    case AGENT_DELIVERY_EXHAUSTED = 'agent.delivery.exhausted';
     case AGENT_PERMISSION_GRANTED = 'agent.permission_granted';
     case AGENT_PERMISSION_REVOKED = 'agent.permission_revoked';
     case AGENT_PERMISSIONS_REPLACED = 'agent.permissions_replaced';

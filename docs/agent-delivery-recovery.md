@@ -26,7 +26,12 @@ Constructing new services after restart does not change recovery authority. Issu
 typed origin on `AgentCredentialOperation`, independently of optional evidence. Consumer hydration/copies and complete
 expected-state comparisons must preserve its kind/UUID, even through retirement and tombstones. It is not public
 status data or worker authority. Never parse scope labels, substitute the current worker or query audit history to
-recover origin. Delivery audit insertion remains separately owned; see
+recover origin. Optional delivery evidence is now inserted only by the delivery service in its actual outcome
+transaction, including claim-path expiry/exhaustion. Inject its optional last audit repository, not a scheduler
+writer or wrapping transaction. Claims/admissions/polls and unchanged receipt reconciliation add none;
+`nextRunAt()` remains pure. Enabled missing-origin admission fails before send, and configured audit failure cannot
+silently disable evidence or reverse an external effect. See
+[delivery audit composition](agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased) and
 [issuance composition](agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased).
 
 Call `nextRunAt()` after the pass (also after a failed pass) to obtain the next bounded polling time. Consumers own

@@ -81,6 +81,12 @@ correlation; record identity/correlation is neither authority nor universal dedu
   from an ACTIVE predecessor to a distinct ACTIVE credential. Revocation retains the same credential identity and
   revision while changing ACTIVE to REVOKED. Noncreation outcomes retain arbitrary authoritative existing revisions,
   including terminal revision limits where no increment is needed. Issuance requires its real scoped operation correlation.
+- `AuditAgentDeliveryOutcome` retains typed credential/delivery relationships, original credential revision and
+  actual before/after operation revisions/dispositions, with a closed optional failure classification. Four actions
+  distinguish confirmation, committed failure, expiry and exhausted attempts. Full original scoped-key correlation
+  is required. The delivery owner supplies retained origin and exact transition time inside the real outcome
+  transaction; internal claims/admissions/polls add none. No receipt, material or diagnostic payload is admitted.
+  See [optional delivery composition](agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased).
 - `AuditAgentNameOutcome` admits only `{name_changed: true}` for `agent.name_changed`, with a typed Agent subject
   and the existing required UserId/AgentId origin. The owning handler supplies exact persisted changedAt and actual
   message correlation. No name text, credential snapshot, synthetic name revision or assignment revision is captured.
