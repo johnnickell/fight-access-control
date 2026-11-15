@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Optional Agent delivery audit — TASK-00164 Work
+## Optional Agent delivery audit — TASK-00164 accepted checkpoint
 
 Delivery now accepts optional last nullable audit storage. Enabled evidence joins the actual claim-terminalization
 or outcome transaction with retained typed originating identity, Agent/credential/delivery relationships, scoped
@@ -9,9 +9,13 @@ enabled admission before send; current worker authority remains independent. Rec
 writer/transaction, and nextRunAt remains pure. Claims/admissions/polls and unchanged receipt reconciliation add none.
 Audit failure rolls back staged outcome/evidence, not external staging; receipt-first recovery and both uncertain
 outcomes remain. See [composition](docs/agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased).
-Canonical `.runs/handoffs/TASK-00164/work.md` owns executed checks and candidate identity. Independent Review,
-behavioral QA and delivery remain separate. No consumer storage/connections/locks, crypto/sinks, physical process
-loss, restoration, activation/use, release or deployment qualification is claimed.
+Independent Review v3 ACCEPT and nonvisual QA PASS cover clean candidate
+`53e377bd4068fd71131bcfaca494591d34733cb9`: 49 independent scenarios / 663 checks, plus 1,141 tests / 14,479 assertions.
+TASK-00164 is done; unfinished siblings keep TICKET-00047 and EPIC-00017 open. Earlier full gate is retained with
+current administrative checks. Publication/final delivery verification and owned retirement remain pending at this
+checkpoint; canonical `.runs/handoffs/TASK-00164/land.md` owns subsequent outcomes, while Work owns original checks.
+No consumer storage/connections/locks, crypto/sinks, physical process loss, restoration, activation/use, merge,
+release or deployment qualification is claimed.
 
 ## Recoverable Agent issuance audit — TASK-00162 accepted checkpoint
 

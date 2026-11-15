@@ -147,7 +147,9 @@ not invented Feature mutations. Preserve existing event, batch, reference/tier a
 TICKET-00047's complete four-TASK plan is approved/written as [TASK-00162](tasks/00162-TASK.md) paired issuance/
 retained origin, [TASK-00163](tasks/00163-TASK.md) revocation, [TASK-00164](tasks/00164-TASK.md) delivery/scheduler
 recovery and [TASK-00165](tasks/00165-TASK.md) material maintenance. Orders 417–420 each directly consume TASK-00122;
-TASK-00164 also waits on TASK-00162's real retained-origin output. No mutual barrier or issuance wait on independent
+TASK-00164 consumes TASK-00162's implemented retained-origin output and is independently accepted with required
+nonvisual QA. Revocation and maintenance remain unfinished, keeping this ticket and EPIC-00017 open.
+No mutual barrier or issuance wait on independent
 revocation/maintenance follows. Six service owners/eight outcome entries are allocated, not added CommandHandlers or
 source/product/consumer qualification; nextRunAt stays pure scheduling. Preserve canonical/public issuance identity,
 independent worker authorization, meaningful claim-path expiry/exhaustion, receipt-first restart, actual mutation/
