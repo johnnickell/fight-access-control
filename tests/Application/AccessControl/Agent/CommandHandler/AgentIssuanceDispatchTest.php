@@ -206,7 +206,6 @@ final class AgentIssuanceDispatchTest extends TestCase
             $handler = new RotateAgentCredentialHandler(
                 $env->agentRepository,
                 $env->operationRepository,
-                $env->auditEvidenceRepository,
                 $env->operationAuthorization,
                 new readonly class ($env) implements HmacSharedSecretGenerator {
                     public function __construct(private ProvisioningEnvironment $environment)
@@ -224,7 +223,8 @@ final class AgentIssuanceDispatchTest extends TestCase
                 new BoundAgentDeliveryCipher(),
                 new FixedClock(new DateTimeImmutable('2026-11-04T18:00:00Z')),
                 $env->transaction,
-                $env->eventDispatcher
+                $env->eventDispatcher,
+                auditEvidenceRepository: $env->auditEvidenceRepository
             );
 
             return new IssuanceBusFixture($handler, $env->operationRepository, $env->operationAuthorization);

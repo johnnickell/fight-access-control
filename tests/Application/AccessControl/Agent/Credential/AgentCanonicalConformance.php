@@ -279,14 +279,14 @@ abstract class AgentCanonicalConformance extends DeliveryConformance
         $arguments = [
             $ports->agentRepository,
             $ports->operationRepository,
-            $ports->auditEvidenceRepository,
             $ports->operationAuthorization,
             $ports->generator,
             $ports->cipher,
             $ports->deliveryCipher,
             $ports->clock,
             $ports->transaction,
-            $ports->eventDispatcher
+            $ports->eventDispatcher,
+            'auditEvidenceRepository' => $ports->auditEvidenceRepository
         ];
         if ($request instanceof AgentProvisioningRequest) {
             $handler = new ProvisionAgentHandler(...$arguments);

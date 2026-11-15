@@ -74,6 +74,9 @@ correlation; record identity/correlation is neither authority nor universal dedu
   | Invitation/password-reset delivery expiry | Exact family grant/delivery generation, advancing once with EXPIRED delivery; no User/recovery-authority mutation |
 
 - `AuditAgentOutcome` captures credential identities/revisions/lifecycle and the actual issuance delivery ID.
+  Its current persisted shape also requires nullable `operation_revision`: issuance records the actual newly inserted
+  operation revision; revocation does not invent one. Both issuers now support
+  [optional atomic audit and retained typed origin](agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased).
   Provisioning has no predecessor and starts ACTIVE at credential revision zero; rotation advances exactly once
   from an ACTIVE predecessor to a distinct ACTIVE credential. Revocation retains the same credential identity and
   revision while changing ACTIVE to REVOKED. Noncreation outcomes retain arbitrary authoritative existing revisions,

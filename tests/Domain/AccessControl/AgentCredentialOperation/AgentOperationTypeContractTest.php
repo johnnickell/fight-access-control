@@ -161,6 +161,7 @@ final class AgentOperationTypeContractTest extends TestCase
             $request->canonicalize(),
             AgentIssuance::fromArray($data),
             null,
+            null,
             AgentDeliveryDisposition::RETIRED
         );
         $this->expectException(AgentOperationRejectedException::class);
@@ -175,6 +176,7 @@ final class AgentOperationTypeContractTest extends TestCase
             new AgentProvisioningRequest('Agent', $issuance->getDestination())->canonicalize(),
             $issuance,
             new AgentDeliveryMaterial(EncryptedCredentialMaterial::fromString('test-copy'), 'test-v1'),
+            null,
             stateRevision: PHP_INT_MAX
         );
         $this->expectException(AgentOperationRejectedException::class);
@@ -232,6 +234,7 @@ final class AgentOperationTypeContractTest extends TestCase
             'retained-request',
             $issuance,
             new AgentDeliveryMaterial(EncryptedCredentialMaterial::fromString('test-copy'), 'test-v1'),
+            null,
             stateRevision: PHP_INT_MAX,
             attempt: new AgentDeliveryAttempt(PHP_INT_MAX, AgentDeliveryClaimId::generate(), $issuance->getIssuedAt()),
             deliveryPolicy: new AgentDeliveryPolicy()

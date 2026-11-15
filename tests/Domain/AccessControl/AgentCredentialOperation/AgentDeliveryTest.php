@@ -468,7 +468,8 @@ final class AgentDeliveryTest extends TestCase
                 1,
                 $this->now()
             ),
-            new AgentDeliveryMaterial(EncryptedCredentialMaterial::fromString('separate-delivery-copy'), 'key-v1')
+            new AgentDeliveryMaterial(EncryptedCredentialMaterial::fromString('separate-delivery-copy'), 'key-v1'),
+            null
         );
     }
 }

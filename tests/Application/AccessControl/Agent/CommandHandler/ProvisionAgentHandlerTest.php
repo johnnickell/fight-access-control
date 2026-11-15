@@ -543,7 +543,8 @@ final class ProvisionAgentHandlerTest extends TestCase
                 $case === 'version' ? 99 : $stored->getCanonicalVersion(),
                 $canonical,
                 $stored->getIssuance(),
-                $stored->getMaterial()
+                $stored->getMaterial(),
+                $stored->getOriginatingActorId()
             );
         }
 

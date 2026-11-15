@@ -15,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\A
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryPolicy;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryReceipt;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenancePolicy;
 use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\DeliveryEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -108,6 +109,7 @@ final class AgentOperationHydrationTest extends TestCase
                 $original->getCanonicalRequest(),
                 $original->getIssuance(),
                 $material,
+                $original->getOriginatingActorId(),
                 $delivery,
                 $credential,
                 0,
@@ -144,6 +146,7 @@ final class AgentOperationHydrationTest extends TestCase
                 $original->getCanonicalRequest(),
                 $original->getIssuance(),
                 $original->getMaterial(),
+                $original->getOriginatingActorId(),
                 stateRevision: 2,
                 attempt: $attempt,
                 deliveryPolicy: $policy
@@ -174,6 +177,7 @@ final class AgentOperationHydrationTest extends TestCase
             $admitted->getCanonicalRequest(),
             $admitted->getIssuance(),
             $admitted->getMaterial(),
+            $admitted->getOriginatingActorId(),
             stateRevision: $admitted->getStateRevision(),
             attempt: $admitted->getAttempt(),
             deliveryPolicy: $admitted->getDeliveryPolicy()
@@ -216,8 +220,12 @@ final class AgentOperationHydrationTest extends TestCase
             $now,
             $admitted->getStateRevision()
         );
+        $agent = $env->provisioning->agentRepository->all()[0];
+        $retired = $original->retireCredential($agent, $agent->revoke($now));
         foreach (
             [$original, $claim, $admitted, $delivered, $retry, $retry->retireMaterial(),
+            $original->rewrapMaterial($original->getMaterial(), $now), $retired,
+            $retired->confirmCleanup($now->modify('+3 days'), new AgentMaintenancePolicy()),
             $original->expireMaterial($now->modify('+1 day')),
             $original->failMaterial(AgentDeliveryFailure::KEY_RETIRED),
             $original->retireMaterial()] as $snapshot
@@ -227,6 +235,7 @@ final class AgentOperationHydrationTest extends TestCase
                 $snapshot->getCanonicalRequest(),
                 $snapshot->getIssuance(),
                 $snapshot->getMaterial(),
+                $snapshot->getOriginatingActorId(),
                 $snapshot->getDeliveryDisposition(),
                 $snapshot->getCredentialDisposition(),
                 $snapshot->getStateRevision(),
@@ -238,6 +247,7 @@ final class AgentOperationHydrationTest extends TestCase
                 $snapshot->isSinkCleaned()
             );
             self::assertEquals($snapshot, $hydrated);
+            self::assertSame($original->getOriginatingActorId(), $snapshot->getOriginatingActorId());
         }
     }
 }

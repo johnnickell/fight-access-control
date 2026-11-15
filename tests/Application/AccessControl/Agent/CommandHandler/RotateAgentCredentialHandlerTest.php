@@ -382,7 +382,8 @@ final class RotateAgentCredentialHandlerTest extends TestCase
                 99,
                 $stored->getCanonicalRequest(),
                 $stored->getIssuance(),
-                null
+                null,
+                $stored->getOriginatingActorId()
             );
         }
 

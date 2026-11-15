@@ -131,14 +131,14 @@ abstract class DeliveryConformance extends TestCase
         $handler = new RotateAgentCredentialHandler(
             $ports->agentRepository,
             $ports->operationRepository,
-            $ports->auditEvidenceRepository,
             $ports->operationAuthorization,
             $ports->generator,
             $ports->cipher,
             $ports->deliveryCipher,
             $ports->clock,
             $ports->transaction,
-            $ports->eventDispatcher
+            $ports->eventDispatcher,
+            auditEvidenceRepository: $ports->auditEvidenceRepository
         );
         $result = new IssuanceBusFixture($handler, $ports->operationReadRepository, $ports->operationAuthorization)
             ->dispatchAndRead(new RotateAgentCredential(
@@ -167,7 +167,6 @@ abstract class DeliveryConformance extends TestCase
         $handler = new ProvisionAgentHandler(
             $ports->agentRepository,
             $ports->operationRepository,
-            $ports->auditEvidenceRepository,
             $ports->operationAuthorization,
             $ports->generator,
             $ports->cipher,
@@ -175,7 +174,8 @@ abstract class DeliveryConformance extends TestCase
             $ports->clock,
             $ports->transaction,
             $ports->eventDispatcher,
-            $limits ?? new AgentOperationLimits()
+            $limits ?? new AgentOperationLimits(),
+            $ports->auditEvidenceRepository
         );
         $result = new IssuanceBusFixture($handler, $ports->operationReadRepository, $ports->operationAuthorization)
             ->dispatchAndRead(

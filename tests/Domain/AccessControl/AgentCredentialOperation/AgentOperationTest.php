@@ -148,7 +148,7 @@ final class AgentOperationTest extends TestCase
     {
         $issuance = $this->issuance();
         $request = new AgentProvisioningRequest(' ', $issuance->getDestination());
-        $operation = new AgentCredentialOperation(99, 'unrecognized binding', $issuance, null);
+        $operation = new AgentCredentialOperation(99, 'unrecognized binding', $issuance, null, null);
         try {
             $operation->resolve($request);
             self::fail('Unknown versions cannot fall through to a current canonicalizer.');
@@ -168,7 +168,7 @@ final class AgentOperationTest extends TestCase
         $issuance = $this->issuance();
         $material = new AgentDeliveryMaterial(EncryptedCredentialMaterial::fromString('private-ciphertext'), 'key-v1');
         $request = new AgentProvisioningRequest(' Agent ', $issuance->getDestination());
-        $operation = new AgentCredentialOperation(2, $request->canonicalize(), $issuance, $material);
+        $operation = new AgentCredentialOperation(2, $request->canonicalize(), $issuance, $material, null);
         self::assertSame(2, $operation->getCanonicalVersion());
         self::assertSame($request->canonicalize(), $operation->getCanonicalRequest());
         self::assertSame($issuance, $operation->getIssuance());
@@ -241,6 +241,7 @@ final class AgentOperationTest extends TestCase
             'retained-request',
             $issuance,
             null,
+            null,
             AgentDeliveryDisposition::RETIRED
         );
         $revoked = $agent->revoke($issuance->getIssuedAt());
@@ -288,6 +289,7 @@ final class AgentOperationTest extends TestCase
                 'request',
                 AgentIssuance::fromArray($data),
                 null,
+                null,
                 AgentDeliveryDisposition::RETIRED
             );
             try {
@@ -304,12 +306,12 @@ final class AgentOperationTest extends TestCase
     {
         $issuance = $this->issuance();
         $material = new AgentDeliveryMaterial(EncryptedCredentialMaterial::fromString('ciphertext'), 'v1');
-        $operation = new AgentCredentialOperation(2, 'request', $issuance, $material, stateRevision: 5);
+        $operation = new AgentCredentialOperation(2, 'request', $issuance, $material, null, stateRevision: 5);
         self::assertTrue($operation->hasPendingDeliveryAtRevision(5));
         self::assertFalse($operation->hasPendingDeliveryAtRevision(4));
         self::assertFalse($operation->retireMaterial()->hasPendingDeliveryAtRevision(6));
         $this->expectException(AgentOperationRejectedException::class);
-        new AgentCredentialOperation(2, 'request', $issuance, $material, stateRevision: -1);
+        new AgentCredentialOperation(2, 'request', $issuance, $material, null, stateRevision: -1);
     }
 
     private function issuance(int $revision = 0, int $order = 1): AgentIssuance

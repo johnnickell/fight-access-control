@@ -61,7 +61,6 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
     public function __construct(
         private AgentRepository $agentRepository,
         private AgentCredentialOperationRepository $operationRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private AgentOperationAuthorization $operationAuthorization,
         private HmacSharedSecretGenerator $hmacSharedSecretGenerator,
         private HmacSharedSecretCipher $hmacSharedSecretCipher,
@@ -69,7 +68,8 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher,
-        private AgentOperationLimits $limits = new AgentOperationLimits()
+        private AgentOperationLimits $limits = new AgentOperationLimits(),
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -171,7 +171,7 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
                             throw new AgentOperationRejection($missingReason);
                         }
 
-                        if ($actor === null) {
+                        if ($actor === null && $this->auditEvidenceRepository !== null) {
                             throw new AgentIssuanceFailed();
                         }
 
@@ -229,7 +229,7 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
     private function issue(
         AgentOperationKey $key,
         AgentRotationRequest $request,
-        UserId|AgentId|SystemId|AnonymousId $actor,
+        UserId|AgentId|SystemId|AnonymousId|null $actor,
         MessageId $messageId
     ): AgentIssuance {
         $canonicalRequest = $request->canonicalize();
@@ -317,7 +317,8 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
             AgentOperationCanonicalization::VERSION,
             $canonicalRequest,
             $issuance,
-            $material
+            $material,
+            $actor
         );
         try {
             $this->operationRepository->add($operation, $this->limits);
@@ -332,15 +333,16 @@ final readonly class RotateAgentCredentialHandler implements CommandHandler
             );
         }
 
-        $this->auditEvidenceRepository->add(AuditEvidence::record(
-            $actor,
+        $this->auditEvidenceRepository?->add(AuditEvidence::record(
+            $actor ?? throw new AgentIssuanceFailed(),
             new AuditSubject($request->getAgentId()),
             AuditAction::AGENT_CREDENTIAL_ROTATED,
             $issuedAt,
             new AuditAgentOutcome(
                 AuditAgentState::fromAgent($agent),
                 AuditAgentState::fromAgent($successor),
-                $issuance->getDeliveryId()
+                $issuance->getDeliveryId(),
+                $operation->getStateRevision()
             ),
             new AuditCorrelation($messageId, $key)
         ));

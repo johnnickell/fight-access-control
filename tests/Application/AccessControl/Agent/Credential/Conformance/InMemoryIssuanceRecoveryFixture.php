@@ -223,7 +223,8 @@ final class InMemoryIssuanceRecoveryFixture extends IssuanceRecoveryFixture impl
             $version,
             $operation->getCanonicalRequest(),
             $operation->getIssuance(),
-            $operation->getMaterial()
+            $operation->getMaterial(),
+            $operation->getOriginatingActorId()
         );
     }
 

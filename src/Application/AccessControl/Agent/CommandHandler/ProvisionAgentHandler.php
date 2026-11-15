@@ -61,7 +61,6 @@ final readonly class ProvisionAgentHandler implements CommandHandler
     public function __construct(
         private AgentRepository $agentRepository,
         private AgentCredentialOperationRepository $operationRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private AgentOperationAuthorization $operationAuthorization,
         private HmacSharedSecretGenerator $hmacSharedSecretGenerator,
         private HmacSharedSecretCipher $hmacSharedSecretCipher,
@@ -69,7 +68,8 @@ final readonly class ProvisionAgentHandler implements CommandHandler
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher,
-        private AgentOperationLimits $limits = new AgentOperationLimits()
+        private AgentOperationLimits $limits = new AgentOperationLimits(),
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -165,7 +165,7 @@ final readonly class ProvisionAgentHandler implements CommandHandler
                             throw new AgentOperationRejection(AgentOperationFailure::CONTENTION);
                         }
 
-                        if ($actor === null) {
+                        if ($actor === null && $this->auditEvidenceRepository !== null) {
                             throw new AgentIssuanceFailed();
                         }
 
@@ -217,7 +217,7 @@ final readonly class ProvisionAgentHandler implements CommandHandler
     private function issue(
         AgentOperationKey $key,
         AgentProvisioningRequest $request,
-        UserId|AgentId|SystemId|AnonymousId $actor,
+        UserId|AgentId|SystemId|AnonymousId|null $actor,
         MessageId $messageId
     ): AgentIssuance {
         try {
@@ -276,7 +276,8 @@ final readonly class ProvisionAgentHandler implements CommandHandler
             AgentOperationCanonicalization::VERSION,
             $canonicalRequest,
             $issuance,
-            $material
+            $material,
+            $actor
         );
         try {
             $this->agentRepository->add($agent);
@@ -300,12 +301,17 @@ final readonly class ProvisionAgentHandler implements CommandHandler
             );
         }
 
-        $this->auditEvidenceRepository->add(AuditEvidence::record(
-            $actor,
+        $this->auditEvidenceRepository?->add(AuditEvidence::record(
+            $actor ?? throw new AgentIssuanceFailed(),
             new AuditSubject($agentId),
             AuditAction::AGENT_PROVISIONED,
             $issuedAt,
-            new AuditAgentOutcome(null, AuditAgentState::fromAgent($agent), $issuance->getDeliveryId()),
+            new AuditAgentOutcome(
+                null,
+                AuditAgentState::fromAgent($agent),
+                $issuance->getDeliveryId(),
+                $operation->getStateRevision()
+            ),
             new AuditCorrelation($messageId, $key)
         ));
 

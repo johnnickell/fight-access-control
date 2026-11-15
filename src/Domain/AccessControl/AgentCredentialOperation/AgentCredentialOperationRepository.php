@@ -11,6 +11,9 @@ use SensitiveParameter;
  * Interface AgentCredentialOperationRepository
  *
  * Persists operations, prepared delivery and slot order on the package Unit of Work's shared connection.
+ * Persist originatingActorId with its explicit nullable kind and ID, independently of optional audit storage.
+ * Hydration requires that current field; null means origin was deliberately absent, never system fallback.
+ * Every expected-state comparison and replacement preserves the original typed origin through terminal tombstones.
  * Secret-free queries use the independent AgentCredentialOperationReadRepository, not this write contract.
  * Every writer, including direct calls, acquires and validates getOperationContract() before effects, holding
  * the cohort fence through commit alongside subordinate authority/Agent/slot/key fences. Unsupported or missing

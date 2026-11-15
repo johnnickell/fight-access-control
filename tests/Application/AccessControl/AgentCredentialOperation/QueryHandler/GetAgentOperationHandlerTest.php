@@ -234,7 +234,8 @@ final class GetAgentOperationHandlerTest extends TestCase
             99,
             'historical-not-current-canonical-json',
             $stored->getIssuance(),
-            null
+            null,
+            $stored->getOriginatingActorId()
         );
         $environment->operationRepository->operations[$environment->key->toString()] = $unknown;
         $before = $this->effects($environment);

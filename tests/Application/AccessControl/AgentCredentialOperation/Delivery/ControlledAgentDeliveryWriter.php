@@ -56,6 +56,7 @@ final readonly class ControlledAgentDeliveryWriter
             $current->getCanonicalRequest(),
             $issuance,
             $material,
+            $current->getOriginatingActorId(),
             $disposition,
             AgentCredentialDisposition::CURRENT,
             $current->getStateRevision() + 1

@@ -24,7 +24,8 @@ No consumer adapter is supplied or qualified here.
   edge trimming and case-sensitive name equality; request kind is always `provision`.
 - Inject execution-scoped `AgentOperationAuthorization`. It authenticates the real invoker, authorizes the originating
   scope (including explicit current delegation) and destination, and holds same-connection authority and ownership
-  fences until transaction completion. It returns the authenticated audit actor ID. It neither starts nor commits
+  fences until transaction completion. It returns explicitly established nullable originating provenance, independently
+  of the real invoker. It neither starts nor commits
   transactions. Boolean allows, actor strings and cached external decisions are not substitutes. Unsupported
   compositions reject. Delegation never rewrites the original key.
 - `ProvisionAgent(key, request)` is an immutable secret-free Common Command. Its canonical array contains the scoped
@@ -37,9 +38,31 @@ No consumer adapter is supplied or qualified here.
   Neither dispatch acceptance nor confirmed issuance establishes delivery, activation or use authority.
 
 The consumer composition root constructs `ProvisionAgentHandler` with `AgentRepository`,
-`AgentCredentialOperationRepository`, `AuditEvidenceRepository`, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`,
-`HmacSharedSecretCipher`, `AgentDeliveryCipher`, `Clock`, `TransactionalUnitOfWork`, `EventDispatcher`, and optionally
-`AgentOperationLimits`. None of these capabilities is optional; omitting limits alone selects defaults.
+`AgentCredentialOperationRepository`, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`,
+`HmacSharedSecretCipher`, `AgentDeliveryCipher`, `Clock`, `TransactionalUnitOfWork`, `EventDispatcher`, optional
+`AgentOperationLimits`, and optional last nullable `AuditEvidenceRepository`. Omitted/null deliberately disables durable
+audit; a configured writer failure never disables it. Limits retain their defaults.
+
+### Optional atomic issuance audit (Unreleased)
+
+Both issuance handlers admit non-null originating provenance before the first enabled mutation. Disabled audit and
+pure original-key resolution need no audit-only identity. Supplied origin is retained even when audit is disabled;
+null stays explicitly absent, never a System fallback. The operation constructor requires nullable `originatingActorId`
+after material. Persist its kind and UUID independently of audit, and hydrate that current field explicitly. Every
+copy, expected-state comparison, retirement and permanent tombstone preserves it. Restarted/delegated workers use
+retained attribution, not their own identity, scope-label parsing or an audit Query. Provenance grants no authority.
+Canonical request/key, destination order, ciphertext associated data, Commands, issuance and public Views are unchanged.
+
+Enabled evidence joins the actual Agent/operation/reservation transaction, using typed credential states, delivery,
+scoped operation correlation, incoming message ID and original issuedAt. `AuditAgentOutcome.operation_revision` records
+the inserted operation's authoritative revision (0); revocation has no new-operation revision. Its current persisted
+facts shape requires this nullable field. No nonexistent predecessor operation or credential state is fabricated.
+Consumer adapters must update current mappings and qualify the same connection, all-writer fences and rollback.
+Later opt-in and original-key resolution never backfill evidence or replace retained origin. Configured audit failure
+rolls back staged issuance, reservation and, for rotation, predecessor retirement. Lost acknowledgement remains
+uncertain under either actual commit outcome. Both publication failures leave committed state/evidence discoverable
+through the authorized outcome Query; there is no returned or reconstructed warning. No consumer storage, schema,
+restore, cryptography, sink, activation/use or deployment qualification is claimed.
 
 ```php
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
@@ -85,7 +108,7 @@ No implicit operation ID, destination, returned result or warning is manufacture
 ## Transaction, persistence and concurrency
 
 One Common `TransactionalUnitOfWork` owns authorization, operation resolution or new issuance, Agent persistence,
-separate delivery encryption, destination write reservation and safe audit. All capabilities must share its connection.
+separate delivery encryption, destination write reservation and enabled audit. All configured writers must share its connection.
 The operation repository reads authoritative state, never an eventually consistent replica. Scope authorization occurs
 before key lookup, including retry and collision resolution. Existing keys validate the sole supported marker `2`
 before comparing the request; unsupported markers reject without fallback. Unseen keys use that same fixed

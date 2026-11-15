@@ -15,6 +15,19 @@ Current verification belongs to TASK-00182 and its canonical Work handoff; the F
 TASK-00059 evidence**, not a claim that those counts ran on this converted candidate. The matrix retains scenario
 ownership and current assertion references, with amended void/Query outcomes. No publication warnings remain.
 
+## TASK-00162 optional issuance audit evidence
+
+Both issuance owners now support omitted/null audit storage and retain explicit nullable typed originating identity
+on the operation independently of evidence. `AgentIssuanceAuditTest` covers both paths with all four actor kinds and
+absence, enabled/disabled composition, scalar kind/UUID hydration and delegated same-key resolution after restart,
+later opt-in without backfill, both actual uncertain-commit outcomes and one/both publisher failures. It also proves
+omitted-constructor composition and complete typed operation-revision evidence. Existing transaction-aware issuance,
+collision/capacity/predecessor/cohort/restoration tests continue to cover rollback and current fences.
+`AgentOperationHydrationTest` checks origin across transition copies; `AgentOperationReplacementTest` rejects
+maintenance/delivery origin rewrites. These are package models, not real consumer storage/worker qualification.
+Canonical Work evidence records the exact tested candidate, dependency lanes, logs and coverage. Independent Review
+and QA remain required; no acceptance follows from this inventory.
+
 ## Scope, provenance and result vocabulary
 
 Rows 01–25 preserve the order and every scenario in the pinned proposal's

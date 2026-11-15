@@ -777,7 +777,6 @@ abstract class IssuanceRecoveryConformance extends TestCase
         $arguments = [
             $ports->agentRepository,
             $ports->operationRepository,
-            $ports->auditEvidenceRepository,
             $ports->operationAuthorization,
             $ports->generator,
             $ports->cipher,
@@ -786,9 +785,8 @@ abstract class IssuanceRecoveryConformance extends TestCase
             $ports->transaction,
             $ports->eventDispatcher
         ];
-        if ($limits !== null) {
-            $arguments[] = $limits;
-        }
+        $arguments[] = $limits ?? new AgentOperationLimits();
+        $arguments[] = $ports->auditEvidenceRepository;
 
         if ($request instanceof AgentRotationRequest) {
             $command = new RotateAgentCredential($key, $request);

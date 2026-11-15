@@ -114,7 +114,8 @@ final class AgentMaintenanceQueryTest extends TestCase
             99,
             $last->getCanonicalRequest(),
             $last->getIssuance(),
-            $last->getMaterial()
+            $last->getMaterial(),
+            $last->getOriginatingActorId()
         );
         $handler = $this->counter($env);
         self::assertSame(CountAgentDeliveryKeyReferences::class, $handler::queryRegistration());

@@ -46,13 +46,14 @@ final class AuditCreationAdmissionTest extends TestCase
                 yield 'Agent revision '.$revision.' hydrate '.(int) $hydrate => [
                     AuditAction::AGENT_PROVISIONED,
                     [
-                        'before'      => null,
-                        'after'       => [
+                        'before'             => null,
+                        'after'              => [
                             'credential_id'       => AgentCredentialId::generate()->toString(),
                             'credential_revision' => $revision,
                             'state'               => 'active'
                         ],
-                        'delivery_id' => AgentDeliveryId::generate()->toString()
+                        'delivery_id'        => AgentDeliveryId::generate()->toString(),
+                        'operation_revision' => 0
                     ],
                     $hydrate
                 ];
@@ -162,7 +163,12 @@ final class AuditCreationAdmissionTest extends TestCase
             $successor['credential_id'] = AgentCredentialId::generate()->toString();
             yield 'Agent exhausted rotation hydrate '.(int) $hydrate => [
                 AuditAction::AGENT_CREDENTIAL_ROTATED,
-                ['before' => $state, 'after' => $successor, 'delivery_id' => AgentDeliveryId::generate()->toString()],
+                [
+                    'before'             => $state,
+                    'after'              => $successor,
+                    'delivery_id'        => AgentDeliveryId::generate()->toString(),
+                    'operation_revision' => 0
+                ],
                 $hydrate
             ];
             $incarnation = explode(':', RoleRevision::initial()->toString())[0];

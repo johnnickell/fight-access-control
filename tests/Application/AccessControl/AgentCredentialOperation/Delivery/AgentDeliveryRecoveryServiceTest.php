@@ -544,6 +544,7 @@ final class AgentDeliveryRecoveryServiceTest extends TestCase
             $original->getCanonicalRequest(),
             $env->issuance,
             null,
+            $original->getOriginatingActorId(),
             AgentDeliveryDisposition::DELIVERED
         );
         self::assertSame(

@@ -262,6 +262,7 @@ final class AgentIssuanceContractTest extends TestCase
             $request->canonicalize(),
             $issuance,
             null,
+            $env->operationRepository->operations[$env->key->toString()]->getOriginatingActorId(),
             AgentDeliveryDisposition::RETIRED
         );
         $command = $this->command($env, $rotate, $key);

@@ -329,6 +329,7 @@ final class AgentCredentialRetirementTest extends TestCase
             $snapshot->getCanonicalRequest(),
             $snapshot->getIssuance(),
             $snapshot->getMaterial(),
+            $snapshot->getOriginatingActorId(),
             $snapshot->getDeliveryDisposition(),
             $snapshot->getCredentialDisposition(),
             7,

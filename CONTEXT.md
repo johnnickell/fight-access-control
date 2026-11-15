@@ -1,5 +1,23 @@
 # Fight AccessControl Context
 
+## Recoverable Agent issuance audit — TASK-00162 accepted checkpoint
+
+Both registered issuance handlers now accept optional last nullable audit storage. Enabled evidence shares the
+actual issuance/reservation/rotation-retirement transaction, recording authoritative credential states, delivery,
+new operation revision, issuedAt and real scoped/message correlation. Operations retain explicit nullable typed
+origin independently of evidence through construction, hydration, transition copies and permanent tombstones.
+Invoker authorization remains separate; retries and later opt-in neither replace origin nor backfill evidence.
+Void Commands and authorized outcome Queries remain unchanged, including commit uncertainty and committed issuance
+after one/both publication failures. See [current composition](docs/agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased).
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate `005c9c2cc78c32b862dc7094492d04d59e3b28bc`
+(62 independent scenarios / 792 checks, plus nine tests / 54 assertions). Land's behavior-preserving integration of
+the advanced Feature provisioning base passes a fresh complete gate: 9,723 tests / 96,078 assertions and exact
+11,392/11,392 statements and separate Unit-only executable lines across 546 source files, without exclusions.
+TASK-00162 is done; unfinished siblings keep TICKET-00047 and EPIC-00017 open. Publication/final verification and
+eligible retirement are pending at this checkpoint; canonical `.runs/handoffs/TASK-00162/land.md` owns their outcomes.
+Minimum composition retains 43 advisories across 13 packages; ordinary resolution reports none. Consumer
+persistence/connections/locks, crypto/sinks, restoration, activation/use, merge, release and deployment remain separate.
+
 ## Optional managed-policy audit — TASK-00161 accepted checkpoint
 
 Reconciliation now supports optional final nullable audit storage and explicit optional typed originating Command
