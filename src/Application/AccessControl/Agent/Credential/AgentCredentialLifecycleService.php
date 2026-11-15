@@ -42,10 +42,10 @@ final readonly class AgentCredentialLifecycleService
      */
     public function __construct(
         private AgentRepository $agentRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -53,7 +53,8 @@ final readonly class AgentCredentialLifecycleService
      * Revokes one authoritative Agent credential and its pending delivery in the package transaction
      *
      * Caller policy is consumer-owned. The repository fences the exact loaded predecessor and cancels its original
-     * operation without keys/sinks; audit commits with both changes. Publication faults still rethrow after commit.
+     * operation without keys/sinks. Optional audit commits with both changes when supplied; omitted/null storage
+     * deliberately disables durable evidence. Publication faults still rethrow after commit.
      */
     public function revoke(UserId|AgentId|SystemId|AnonymousId $actorId, AgentId $agentId): void
     {
@@ -83,7 +84,7 @@ final readonly class AgentCredentialLifecycleService
                         throw new StateConflict('The expected Agent authority is no longer authoritative.');
                     }
 
-                    $this->auditEvidenceRepository->add(AuditEvidence::record(
+                    $this->auditEvidenceRepository?->add(AuditEvidence::record(
                         $actorId,
                         new AuditSubject($agentId),
                         AuditAction::AGENT_CREDENTIAL_REVOKED,

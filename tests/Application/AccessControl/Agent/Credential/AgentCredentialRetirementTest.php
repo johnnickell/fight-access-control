@@ -656,10 +656,10 @@ final class AgentCredentialRetirementTest extends TestCase
     ): AgentCredentialLifecycleService {
         return new AgentCredentialLifecycleService(
             $environment->agentRepository,
-            $auditEvidenceRepository ?? $environment->auditEvidenceRepository,
             new FixedClock($this->now()),
             $environment->transaction,
-            $environment->eventDispatcher
+            $environment->eventDispatcher,
+            $auditEvidenceRepository ?? $environment->auditEvidenceRepository
         );
     }
 }

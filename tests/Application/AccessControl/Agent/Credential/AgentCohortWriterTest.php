@@ -161,10 +161,10 @@ final class AgentCohortWriterTest extends TestCase
                     ),
                     'revoke credential' => new AgentCredentialLifecycleService(
                         $ports->agentRepository,
-                        $ports->auditEvidenceRepository,
                         $env->clock,
                         $ports->transaction,
-                        $ports->eventDispatcher
+                        $ports->eventDispatcher,
+                        $ports->auditEvidenceRepository
                     )->revoke($actor, $agent->getId())
                 };
                 self::fail('Every writer requires a qualified current cohort.');

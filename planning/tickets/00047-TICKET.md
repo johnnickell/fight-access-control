@@ -165,7 +165,7 @@ choose the execution checkout separately. Apply ADR 0011 without legacy modes/ba
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 417 | [TASK-00162](../tasks/00162-TASK.md) | Audit recoverable Agent issuance | done |
-| 418 | [TASK-00163](../tasks/00163-TASK.md) | Audit Agent credential revocation | ready-for-agent |
+| 418 | [TASK-00163](../tasks/00163-TASK.md) | Audit Agent credential revocation | done |
 | 419 | [TASK-00164](../tasks/00164-TASK.md) | Audit Agent delivery outcomes and scheduler recovery | ready-for-agent |
 | 420 | [TASK-00165](../tasks/00165-TASK.md) | Audit Agent material maintenance | ready-for-agent |
 ## Decisions and Progress
