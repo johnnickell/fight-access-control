@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryPolicy;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Test\AccessControl\Application\AccessControl\Agent\Credential\ProvisioningEnvironment;
 use LogicException;
@@ -48,7 +49,8 @@ final readonly class DeliveryEnvironment
 
     public function service(
         ?AgentDeliveryPolicy $policy = null,
-        ?AgentCredentialSink $sink = null
+        ?AgentCredentialSink $sink = null,
+        ?AuditEvidenceRepository $auditEvidenceRepository = null
     ): AgentCredentialDeliveryService {
         return new AgentCredentialDeliveryService(
             $this->provisioning->agentRepository,
@@ -59,7 +61,8 @@ final readonly class DeliveryEnvironment
             $sink ?? $this->sink,
             $this->clock,
             $this->transaction,
-            $policy ?? new AgentDeliveryPolicy()
+            $policy ?? new AgentDeliveryPolicy(),
+            $auditEvidenceRepository
         );
     }
 

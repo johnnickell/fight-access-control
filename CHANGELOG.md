@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional last nullable audit storage for Agent delivery outcomes and delegating scheduler recovery. Enabled
+  evidence joins the actual delivery/claim-terminalization transaction with retained typed origin, credential/delivery
+  relationships, scoped original operation key, actual revisions and trusted outcome time. Claims/admissions/polls
+  and unchanged receipt reconciliation add none. Audit failure rolls back staged state/evidence, never an external
+  send; receipt-first recovery and both uncertain outcomes remain. **Pre-v1:** map four delivery actions and complete
+  `AuditAgentDeliveryOutcome` facts and qualify the shared connection/fences and sink before opt-in. Omitted/null
+  disables durability, not current worker authorization; no fallback actor, Event, backfill or schema operation.
+  See [delivery audit composition](docs/agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased).
+
 - Optional last nullable audit repository for Agent credential revocation. Enabled typed evidence commits with
   authority retirement and original-delivery cancellation; omitted/null disables durable audit, not required actor,
   caller policy or writer fences. Exact credential state/revision and trusted revocation time remain; unavailable

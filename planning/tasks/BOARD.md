@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00164](00164-TASK.md) — Audit Agent delivery outcomes and scheduler recovery.
+First ready Task: [TASK-00165](00165-TASK.md) — Audit Agent material maintenance.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 419 | [TASK-00164](00164-TASK.md) | Audit Agent delivery outcomes and scheduler recovery | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md), [TASK-00162](00162-TASK.md) | — |
 | 420 | [TASK-00165](00165-TASK.md) | Audit Agent material maintenance | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 421 | [TASK-00168](00168-TASK.md) | Demonstrate ordinary Role audit composition | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | [TASK-00167](00167-TASK.md), [TASK-00153](00153-TASK.md) | — |
 | 504 | [TASK-00174](00174-TASK.md) | Enforce Laravel Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | ready-for-agent | [TASK-00172](00172-TASK.md) | — |
@@ -213,6 +212,7 @@ No Tasks are currently in this state.
 | 416 | [TASK-00161](00161-TASK.md) | Audit managed-policy reconciliation | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/241 |
 | 417 | [TASK-00162](00162-TASK.md) | Audit recoverable Agent issuance | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/242 |
 | 418 | [TASK-00163](00163-TASK.md) | Audit Agent credential revocation | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/245 |
+| 419 | [TASK-00164](00164-TASK.md) | Audit Agent delivery outcomes and scheduler recovery | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | done | [TASK-00122](00122-TASK.md), [TASK-00162](00162-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/244 |
 | 499 | [TASK-00180](00180-TASK.md) | Map existing admission evidence | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | done | — | https://github.com/johnnickell/fight-access-control/pull/187 |
 | 501 | [TASK-00170](00170-TASK.md) | Declare and discover effective Feature requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | — | https://github.com/johnnickell/fight-access-control/pull/190 |
 | 502 | [TASK-00171](00171-TASK.md) | Declare effective portable Permission requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | [TASK-00170](00170-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/191 |

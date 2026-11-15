@@ -26,6 +26,12 @@ use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentDeliveryFailedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentDeliveryOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use LogicException;
 use SensitiveParameter;
@@ -50,7 +56,8 @@ final readonly class AgentCredentialDeliveryService
         private AgentCredentialSink $sink,
         private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private AgentDeliveryPolicy $policy = new AgentDeliveryPolicy()
+        private AgentDeliveryPolicy $policy = new AgentDeliveryPolicy(),
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -75,12 +82,13 @@ final readonly class AgentCredentialDeliveryService
                     return $original;
                 }
 
+                $outcomeAt = $this->now();
                 $replacement = $original->claimDelivery(
                     AgentDeliveryClaimId::generate(),
                     $this->policy,
-                    $this->now()
+                    $outcomeAt
                 );
-                $this->replaceDelivery($original, $replacement, $agent);
+                $this->persistOutcome($original, $replacement, $agent, $outcomeAt);
 
                 return $replacement;
             }, $commitUncertain);
@@ -104,14 +112,15 @@ final readonly class AgentCredentialDeliveryService
                 $agent = $this->currentAgent($original);
                 $authority = $this->authorize($original);
                 $attempt = $admitted->requireAttempt();
+                $outcomeAt = $this->now();
                 $replacement = $original->finishDelivery(
                     $attempt,
                     $authority,
                     $outcome,
-                    $this->now(),
+                    $outcomeAt,
                     $admitted->getStateRevision()
                 );
-                $this->replaceDelivery($original, $replacement, $agent);
+                $this->persistOutcome($original, $replacement, $agent, $outcomeAt);
 
                 return $replacement;
             }, $commitUncertain);
@@ -157,6 +166,11 @@ final readonly class AgentCredentialDeliveryService
             $original = $this->load($key, $destination, $deliveryId);
             $agent = $this->currentAgent($original);
             $authority = $this->authorize($original);
+            if ($this->auditEvidenceRepository !== null && $original->getOriginatingActorId() === null) {
+                // Reject known missing attribution before admitting materialization or a protected send.
+                throw new LogicException('Delivery audit requires retained originating provenance.');
+            }
+
             $replacement = $original->admitDelivery(
                 $claimed->requireAttempt(),
                 $authority,
@@ -167,6 +181,65 @@ final readonly class AgentCredentialDeliveryService
 
             return $replacement;
         }, $commitUncertain);
+    }
+
+    /**
+     * Records only meaningful outcomes inside their actual owning transaction
+     */
+    private function persistOutcome(
+        #[SensitiveParameter] AgentCredentialOperation $original,
+        #[SensitiveParameter] AgentCredentialOperation $replacement,
+        #[SensitiveParameter] Agent $agent,
+        DateTimeImmutable $outcomeAt
+    ): void {
+        if (
+            $this->auditEvidenceRepository === null
+            || $replacement->getDeliveryDisposition() === AgentDeliveryDisposition::PENDING
+        ) {
+            $this->replaceDelivery($original, $replacement, $agent);
+
+            return;
+        }
+
+        $actorId = $original->getOriginatingActorId();
+        if ($actorId === null) {
+            throw new LogicException('Delivery audit requires retained originating provenance.');
+        }
+
+        $action = match ($replacement->getDeliveryDisposition()) {
+            AgentDeliveryDisposition::DELIVERED => AuditAction::AGENT_DELIVERY_CONFIRMED,
+            AgentDeliveryDisposition::EXPIRED => AuditAction::AGENT_DELIVERY_EXPIRED,
+            AgentDeliveryDisposition::TERMINAL => match ($replacement->getDeliveryFailure()) {
+                null => AuditAction::AGENT_DELIVERY_EXHAUSTED,
+                default => AuditAction::AGENT_DELIVERY_FAILED
+            },
+            default => AuditAction::AGENT_DELIVERY_FAILED
+        };
+        $issuance = $original->getIssuance();
+        $evidence = AuditEvidence::record(
+            $actorId,
+            new AuditSubject($issuance->getAgentId()),
+            $action,
+            $outcomeAt,
+            new AuditAgentDeliveryOutcome(
+                $issuance->getCredentialId(),
+                $issuance->getCredentialRevision(),
+                $issuance->getDeliveryId(),
+                $original->getStateRevision(),
+                $replacement->getStateRevision(),
+                $original->getDeliveryDisposition(),
+                $replacement->getDeliveryDisposition(),
+                $replacement->getDeliveryFailure()
+            ),
+            new AuditCorrelation(null, $issuance->getKey())
+        );
+        $this->replaceDelivery($original, $replacement, $agent);
+        try {
+            $this->auditEvidenceRepository->add($evidence);
+        } catch (Throwable) {
+            // Audit storage supplies no business refusal or claim-contention intent.
+            throw new LogicException('Delivery audit persistence is unavailable.');
+        }
     }
 
     /**

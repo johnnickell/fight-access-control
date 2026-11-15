@@ -133,6 +133,25 @@ recovery does not reset them. Capacity gates new issuance, not existing status/d
 unavailable/indeterminate, not empty work or success. At-least-once effects and no extra routine human approval remain
 unchanged; no new default is selected here.
 
+## Optional delivery audit probes (Unreleased)
+
+[TASK-00164](../planning/tasks/00164-TASK.md) adds focused
+[`AgentDeliveryAuditTest`](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryAuditTest.php)
+and [`AuditAgentDeliveryOutcomeTest`](../tests/Domain/AccessControl/Audit/AuditAgentDeliveryOutcomeTest.php).
+They share transaction-aware Agent/operation/audit fixtures and an independently retained sink model. They prove
+all typed origins versus a different delegated worker, disabled/missing-origin composition, scheduler-only recovery,
+meaningful delivery/failure/expiry/exhaustion, exact outcome time/revisions/key and no duplicate polling evidence.
+Both actual outcomes of claim/admission/outcome uncertainty, audit failure before/after sink work and receipt-first
+recovery assert stored state/evidence and retained sink effects, not only invocation order. Current worker denial,
+late revocation and rewrap reject stale acknowledgement without delivery evidence.
+
+Bind these same fault boundaries to the consumer's actual shared connection, durable audit rows and independent sink
+observations. Reopen storage and restart real workers; prove failure rolls back state/evidence together but not an
+already accepted external send. The reference fixtures and scalar-origin/evidence hydration are package models, not
+real database, process-loss, cryptography, restoration or activation/use qualification. Existing reusable suites
+retain their original disabled-delivery-audit composition; a passing historical suite alone does not qualify opt-in.
+See the [current injection and mapping obligations](agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased).
+
 ## Consumer activation/use binding — mandatory, not executed here
 
 Bind the following **additional scenarios** to the consumer's real activation transaction and broker/use entry
