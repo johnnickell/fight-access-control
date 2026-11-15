@@ -597,6 +597,18 @@
       "reason": "Executes real SQLite/DBAL repository, schema and transaction behavior; retained integration protection.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentDeliveryAuditTest": {
+      "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryAuditTest.php",
+      "category": "Unit",
+      "reason": "Controlled transaction-aware in-memory Agent/operation/audit storage and independent sink model; scalar hydration and reconstructed workers use no real database, filesystem, network or process effects.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Audit\\AuditAgentDeliveryOutcomeTest": {
+      "file": "tests/Domain/AccessControl/Audit/AuditAgentDeliveryOutcomeTest.php",
+      "category": "Unit",
+      "reason": "Isolated typed outcome construction, hydration, action admission and serialization using real immutable values; no external storage or runtime effects.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\AgentCredentialOperation\\Delivery\\AgentCredentialDeliveryServiceTest": {
       "file": "tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentCredentialDeliveryServiceTest.php",
       "category": "Unit",

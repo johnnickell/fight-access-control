@@ -28,6 +28,23 @@ maintenance/delivery origin rewrites. These are package models, not real consume
 Canonical Work evidence records the exact tested candidate, dependency lanes, logs and coverage. Independent Review
 and QA remain required; no acceptance follows from this inventory.
 
+## TASK-00164 optional delivery audit evidence
+
+The delivery service now accepts optional last nullable audit storage. Its actual claim/outcome transaction records
+meaningful confirmed delivery, retryable/terminal failure and real expiry/exhaustion with retained typed origin,
+typed Agent/credential/delivery relationships, full scoped operation key, actual revisions and transition time.
+The scheduler delegates; claims/admissions/polls and unchanged receipt reconciliation add no mutation evidence.
+[`AgentDeliveryAuditTest`](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryAuditTest.php)
+adds shared transactional state/evidence observations, all three uncertain commits under both persisted outcomes,
+audit failure before/after sink work, receipt-first single recovery, missing-origin admission and stale writer cases.
+Typed facts round-trip/rejection coverage lives in
+[`AuditAgentDeliveryOutcomeTest`](../tests/Domain/AccessControl/Audit/AuditAgentDeliveryOutcomeTest.php).
+
+These are package model assertions, not independently accepted results or consumer qualification. Canonical Work,
+Review and QA evidence identify their own subjects and executed checks. Real shared connections/locks, durable sink
+receipts, physical process loss, restoration and activation/use remain the existing consumer gaps. See
+[current composition](agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased).
+
 ## Scope, provenance and result vocabulary
 
 Rows 01–25 preserve the order and every scenario in the pinned proposal's

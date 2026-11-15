@@ -51,6 +51,38 @@ The original TASK-00051 slice introduces no DTOs or optional delivery event. TAS
 Query; confirmed operation state remains the fact, not event delivery. TASK-00182's issuance/rotation confirmed-commit publication-containment
 exception is not extended; those Commands return void and expose no publication warnings.
 
+## Optional atomic delivery audit (Unreleased)
+
+`AgentCredentialDeliveryService` accepts an optional last nullable `AuditEvidenceRepository`, after the optional
+policy. Omitted/null intentionally disables durable evidence. When enabled, use the same connection and transaction
+as Agent/operation persistence and the Unit of Work; a repository that merely observes an active transaction is not
+sufficient. Configured storage failure returns `UNAVAILABLE` and rolls back the staged outcome and evidence.
+
+The worker consumes the operation's retained typed `originatingActorId`, never the current worker, scope labels,
+public View or an ambient principal. Current delegated execution authorization remains independent. Missing origin
+prevents enabled admission before materialization/send, and prevents claim-path expiry/exhaustion writes. Existing
+unaudited recorded outcomes and receipt-only polls need no new attribution and never backfill evidence.
+
+Enabled evidence records `agent.delivery.confirmed`, `agent.delivery.failed`, `agent.delivery.expired` or
+`agent.delivery.exhausted` in the transaction that commits the outcome. Expiry/exhaustion reached by `claimDelivery`
+is included. Temporary claims/admissions, rejected/deferred/unavailable attempts, polling and unchanged recorded-result
+reconciliation add none. `AuditAgentDeliveryOutcome` carries typed credential/delivery identities, the original
+credential revision, actual before/after operation revisions/dispositions and closed failure classification. The Agent
+is the typed subject; correlation is the full original scoped operation key, without an invented message ID. Time is
+the trusted instant passed to that transition, not issuance, claim or admission time reused for a later outcome.
+No material, receipt bytes, epoch/token, sink request, diagnostic or entity snapshot is captured.
+
+Claim, admission and outcome remain separate transactions. Audit rollback cannot undo external staging. After an
+outcome audit failure or lost acknowledgement, retain the original bytes/IDs and use receipt-first recovery; do not
+infer rollback of the sink, restage blindly or issue again. Both actual uncertain-commit outcomes remain possible.
+Recovery has no second audit writer or wrapping transaction; `nextRunAt()` stays pure scheduling.
+
+**Pre-v1 consumer obligation:** map the four new actions and complete `AuditAgentDeliveryOutcome` facts, preserve
+retained origin kind/UUID through restart, explicitly choose injection per worker and qualify the actual shared
+connection/fences and independent sink receipts before opt-in. There is no compatibility reader, migration/backfill,
+new Event or publication guarantee. Evidence is not automatically authorized public/log data. Package tests model
+persisted outcomes; real storage/locks, crypto, physical process loss, restoration and activation/use remain separate.
+
 ## Three independent transactions
 
 1. **Claim.** Authorize scope before lookup; validate exact operation key, destination, delivery ID and supported
