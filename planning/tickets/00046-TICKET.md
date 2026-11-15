@@ -2,7 +2,7 @@
 id: TICKET-00046
 epic: EPIC-00017
 title: Audit Feature and managed-policy changes
-status: ready-for-agent
+status: done
 ---
 
 # Audit Feature and managed-policy changes
@@ -146,13 +146,13 @@ checkout separately. No consumer/Common repair, production schema operation, pol
 | 413 | [TASK-00158](../tasks/00158-TASK.md) | Audit Feature creation and retirement | done |
 | 414 | [TASK-00159](../tasks/00159-TASK.md) | Audit Feature setting changes | done |
 | 415 | [TASK-00160](../tasks/00160-TASK.md) | Audit code-defined Feature provisioning | done |
-| 416 | [TASK-00161](../tasks/00161-TASK.md) | Audit managed-policy reconciliation | ready-for-agent |
+| 416 | [TASK-00161](../tasks/00161-TASK.md) | Audit managed-policy reconciliation | done |
 ## Decisions and Progress
 
-TASK-00158, TASK-00159 and TASK-00160 are done for independently accepted Feature lifecycle, setting and provisioning
-behavior with nonvisual QA. Managed-policy reconciliation remains unfinished, so this TICKET and EPIC-00017 remain
-open. Each owning TASK and canonical Land handoff retain its accepted candidate and subsequent delivery outcomes;
-consumer qualification remains separate.
+TASK-00158–00161 are done for independently accepted Feature lifecycle, setting, provisioning and managed-policy
+behavior with nonvisual QA. All four children are terminal, so this TICKET closes automatically. Unfinished audit
+families keep EPIC-00017 open. Each owning TASK and canonical Land handoff retain its accepted candidate and
+subsequent delivery outcomes; consumer qualification remains separate.
 
 At the historical planning checkpoint, John approved this requirement in the complete six-TICKET split, then the
 complete four-TASK plan as TASK-00158–00161. Each was ready-for-agent with only TASK-00122 as a direct blocker;

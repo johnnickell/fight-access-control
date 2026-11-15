@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00161](00161-TASK.md) — Audit managed-policy reconciliation.
+First ready Task: [TASK-00162](00162-TASK.md) — Audit recoverable Agent issuance.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 416 | [TASK-00161](00161-TASK.md) | Audit managed-policy reconciliation | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 417 | [TASK-00162](00162-TASK.md) | Audit recoverable Agent issuance | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 418 | [TASK-00163](00163-TASK.md) | Audit Agent credential revocation | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
 | 420 | [TASK-00165](00165-TASK.md) | Audit Agent material maintenance | [TICKET-00047](../tickets/00047-TICKET.md) — Audit Agent credential and recovery outcomes | ready-for-agent | [TASK-00122](00122-TASK.md) | — |
@@ -213,6 +212,7 @@ No Tasks are currently in this state.
 | 413 | [TASK-00158](00158-TASK.md) | Audit Feature creation and retirement | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/239 |
 | 414 | [TASK-00159](00159-TASK.md) | Audit Feature setting changes | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/238 |
 | 415 | [TASK-00160](00160-TASK.md) | Audit code-defined Feature provisioning | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/237 |
+| 416 | [TASK-00161](00161-TASK.md) | Audit managed-policy reconciliation | [TICKET-00046](../tickets/00046-TICKET.md) — Audit Feature and managed-policy changes | done | [TASK-00122](00122-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/241 |
 | 499 | [TASK-00180](00180-TASK.md) | Map existing admission evidence | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | done | — | https://github.com/johnnickell/fight-access-control/pull/187 |
 | 501 | [TASK-00170](00170-TASK.md) | Declare and discover effective Feature requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | — | https://github.com/johnnickell/fight-access-control/pull/190 |
 | 502 | [TASK-00171](00171-TASK.md) | Declare effective portable Permission requirements | [TICKET-00049](../tickets/00049-TICKET.md) — Declare effective action requirements | done | [TASK-00170](00170-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/191 |
