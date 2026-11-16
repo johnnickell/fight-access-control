@@ -1608,10 +1608,11 @@ consumer adoption or release obligation with other EPICs is selected. TASK-00170
 repeated class/method FeatureFlag, FeatureRequirements and shared pure Action/SelectedAction ancestry/association,
 with aligned scoped discovery and preparation/provisioning/retirement tests. TASK-00170 and TASK-00171 now have
 independent acceptance for the two metadata capabilities; TASK-00171 adds portable Permission metadata without a
-consumer Attribute dependency or native activation. TASK-00172's accepted shared/Slim/Yii Feature admission is described
-above; remaining native Feature and portable Permission integrations retain their own TASKs. The canonical handoffs
-own verification/runtime details. Metadata alone still activates no runtime gate; Agent OS's class-only Attribute is
-not a dependency or alias of the package API.
+consumer Attribute dependency or native activation. TASK-00172–00175 now supply independently accepted Feature
+admission across all five frameworks, completing TICKET-00050. Portable Permission integration and final reconciliation remain unfinished and keep EPIC-00018 open.
+The accepted checkpoints above preserve their original subjects; canonical handoffs own verification/runtime and
+subsequent integration/delivery details. Metadata alone still activates no runtime gate; Agent OS's class-only
+Attribute is not a dependency or alias of the package API.
 
 Selected EPIC-00018 TASK planning is complete. Next: `/skill:next` for Board-based selection, not automatic execution.
 All six EPIC-00017 audit TICKETs are now TASK-planned below, not implemented/qualified. EPIC-00015's added Agent
