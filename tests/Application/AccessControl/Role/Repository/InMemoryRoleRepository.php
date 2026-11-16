@@ -71,6 +71,11 @@ final readonly class InMemoryRoleRepository implements RoleRepository
         });
     }
 
+    public function transactionIdentity(): ?InMemoryUnitOfWork
+    {
+        return $this->unitOfWork;
+    }
+
     public function getById(RoleId $id): ?Role
     {
         foreach ($this->state->roles as $role) {

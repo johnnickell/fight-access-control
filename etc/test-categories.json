@@ -1215,6 +1215,12 @@
       "reason": "Role removal and registration interleavings over controlled in-memory state, audit and transaction ports; no real database, filesystem, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RoleAuditCompositionTest": {
+      "file": "tests/Application/AccessControl/Role/CommandHandler/RoleAuditCompositionTest.php",
+      "category": "Unit",
+      "reason": "Real routed Role handlers and controlled transaction/reference ports with in-memory JSON mapping and reconstitution; no real database, filesystem, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\Role\\CommandHandler\\RoleLifecycleAuditTest": {
       "file": "tests/Application/AccessControl/Role/CommandHandler/RoleLifecycleAuditTest.php",
       "category": "Unit",

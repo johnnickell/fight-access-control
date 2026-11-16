@@ -1,5 +1,15 @@
 # Fight AccessControl Context
 
+## Ordinary Role audit composition — TASK-00168 Work
+
+[Ordinary Role composition](docs/role-audit-composition.md) now demonstrates the three implemented lifecycle
+handlers with reusable mapped audit storage/fault cases and fresh modeled Role observations. The mapping matrix
+and exact Agent OS workaround-retirement prerequisites distinguish package proof from still-unexecuted consumer
+schema/connection/locks/process/access qualification. No production behavior, caller authority, reference/revision
+policy or sibling source changes. Canonical TASK Work evidence owns checks and candidate identity; independent
+Review/nonvisual QA remain required. No consumer adoption, workaround removal, data/schema operation or deployment
+is authorized by this package example.
+
 ## Local Docker sharing workaround — TASK-00183
 
 This host now retains AVF / gRPC FUSE by John's explicit 2026-11-16 workaround decision. The supported one-time
