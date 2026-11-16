@@ -1,7 +1,8 @@
 # Effective portable Permission declarations (Unreleased)
 
-TASK-00171 adds pure package metadata, not native HTTP enforcement. Existing adapters still use explicitly bound
-`PermissionDeclaration` values; TICKET-00051 owns their portable Attribute integration. No consumer Attribute,
+TASK-00171 adds pure package metadata. TASK-00177 connects it to the optional
+[Symfony native subscriber](symfony-permission-admission.md), including Attribute-only protection and explicit route
+additions. Other native portable integrations retain their TICKET-00051 owners. No consumer Attribute,
 framework bootstrap, discovery provider or Feature activation is required. `RequiresAgentPermission` and MCP remain separate.
 
 ## Declare and compose

@@ -28,6 +28,7 @@ use RuntimeException;
 use stdClass;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -289,7 +290,7 @@ final class PermissionSubscriberTest extends TestCase
             ++$calls;
 
             return $calls === 1 ? $environment->user() : null;
-        }, $this->protected(), projector: $this->challenge());
+        }, null, PermissionParentController::class.'::handle', projector: $this->challenge());
         NativeController::$work = function (Request $parent) use ($native): Response {
             $context = $parent->attributes->get(SecurityContext::class);
             $child = $parent->duplicate();
@@ -317,7 +318,7 @@ final class PermissionSubscriberTest extends TestCase
         $broken = false;
         $native = new NativeKernel(static function (Request $request) use ($authority, &$broken): RequestAuthority {
             return $authority->create($request, $broken);
-        }, $this->protected());
+        }, null, PermissionParentController::class.'::handle');
         self::assertSame(204, $native->request($this->request())->getStatusCode());
         self::assertSame('GET', $environment->request->getMethod());
         self::assertSame('/protected/123', $environment->request->getPath());
@@ -371,7 +372,7 @@ final class PermissionSubscriberTest extends TestCase
         $replay = false;
         $native = new NativeKernel(static function (Request $request) use ($authority, &$replay): RequestAuthority {
             return $authority->create($request, replay: $replay);
-        }, $this->protected(), projector: $this->challenge());
+        }, null, PermissionParentController::class.'::handle', projector: $this->challenge());
         NativeController::$work = function (Request $parent) use ($native, &$replay): Response {
             if ($native->trace->depth > 0) {
                 return new Response('', 204);
@@ -436,7 +437,11 @@ final class PermissionSubscriberTest extends TestCase
         ?string $value
     ): void {
         $environment = new AdmissionEnvironment();
-        $native = new NativeKernel(static fn(): RequestAuthority => $environment->user(), $this->protected());
+        $native = new NativeKernel(
+            static fn(): RequestAuthority => $environment->user(),
+            null,
+            PermissionParentController::class.'::handle'
+        );
         NativeController::$work = static function () use ($failure): never {
             throw $failure;
         };
@@ -640,6 +645,138 @@ final class PermissionSubscriberTest extends TestCase
         }, 17);
         self::assertSame(500, $native->request($this->request())->getStatusCode());
         self::assertSame(['report', 'response'], $native->trace->events);
+    }
+
+    #[DataProvider('forms')]
+    public function test_portable_attributes_and_explicit_closure_binding_protect_native_forms(string $form): void
+    {
+        NativeController::$trace = new NativeTrace();
+        $controller = match ($form) {
+            'method-string' => PermissionParentController::class.'::handle',
+            'method-array' => [PermissionParentController::class, 'handle'],
+            'invokable-class' => PermissionParentController::class,
+            'method-object' => [new PermissionParentController(), 'handle'],
+            'invokable-object' => new PermissionParentController(),
+            default => static function (Request $request): Response {
+                    NativeController::$trace->events[] = 'action';
+                    NativeController::$trace->contexts[] = $request->attributes->get(SecurityContext::class);
+
+                    return new Response('', 204);
+            }
+        };
+        $environment = new AdmissionEnvironment();
+        $route = $form === 'closure' ? $this->protected() : null;
+        $native = new NativeKernel(static fn(): RequestAuthority => $environment->user(false), $route, $controller);
+        self::assertSame(403, $native->request($this->request())->getStatusCode());
+        self::assertSame(['report', 'response'], $native->trace->events);
+        // A new dispatch selects fresh actual authority, not the denied snapshot.
+        $native = new NativeKernel(static fn(): RequestAuthority => $environment->user(), $route, $controller);
+        self::assertSame(204, $native->request($this->request())->getStatusCode());
+        self::assertContains('action', $native->trace->events);
+        self::assertSame(2, $environment->resolutions);
+    }
+
+    public function test_portable_admission_preserves_native_validation_arguments_and_independent_is_granted(): void
+    {
+        $environment = new AdmissionEnvironment();
+        $native = new NativeKernel(
+            static fn(): RequestAuthority => $environment->user(),
+            null,
+            PermissionParentController::class.'::handle'
+        );
+        $invalid = $this->request();
+        $invalid->query->set('name', '123');
+        self::assertSame(400, $native->request($invalid)->getStatusCode());
+        self::assertSame(['construct', 'validation', 'report', 'response'], $native->trace->events);
+        $native->trace->events = [];
+        $native->trace->nativeGranted = false;
+        self::assertSame(403, $native->request($this->request())->getStatusCode());
+        self::assertSame([
+            'construct', 'validation', 'arguments', 'is-granted:CONSUMER_RECORD:123', 'report', 'response'
+        ], $native->trace->events);
+        $native->trace->nativeGranted = true;
+        $native->trace->events = [];
+        self::assertSame(204, $native->request($this->request())->getStatusCode());
+        self::assertSame([
+            'construct', 'validation', 'arguments', 'is-granted:CONSUMER_RECORD:123', 'action', 'response'
+        ], $native->trace->events);
+    }
+
+    public function test_inherited_overridden_repeatable_and_route_requirements_accumulate(): void
+    {
+        $environment = new AdmissionEnvironment();
+        $native = new NativeKernel(
+            static fn(): RequestAuthority => $environment->user(),
+            $this->protected(),
+            PermissionParentController::class.'::handle'
+        );
+        self::assertSame(204, $native->request($this->request())->getStatusCode());
+        $native->routes->add('inherited', new Route('/inherited/{id}', [
+            '_controller' => PermissionChildController::class
+        ]));
+        // __invoke is inherited, but its handle() call is not a newly selected HTTP action.
+        self::assertSame(204, $native->request($this->request('/inherited/123'))->getStatusCode());
+        $native->routes->add('overridden', new Route('/overridden/{id}', [
+            '_controller' => PermissionChildController::class.'::handle'
+        ]));
+        self::assertSame(403, $native->request($this->request('/overridden/123'))->getStatusCode());
+        $native->routes->get('protected')->setDefault(PermissionDeclaration::class, new PermissionDeclaration(
+            AdmissionMode::PROTECTED,
+            [PermissionName::fromString('ACCOUNT_MANAGE')]
+        ));
+        self::assertSame(403, $native->request($this->request())->getStatusCode());
+        self::assertCount(2, $native->trace->contexts);
+    }
+
+    public function test_portable_mode_conflicts_and_malformed_attributes_reject_before_authentication(): void
+    {
+        foreach ([AdmissionMode::PUBLIC, AdmissionMode::AUTHENTICATED] as $mode) {
+            $native = new NativeKernel(static function (): never {
+                self::fail('Conflicting metadata must not authenticate.');
+            }, new PermissionDeclaration($mode), PermissionParentController::class.'::handle');
+            self::assertSame(500, $native->request($this->request())->getStatusCode());
+            self::assertSame(['report', 'response'], $native->trace->events);
+        }
+
+        $native = new NativeKernel(static function (): never {
+            self::fail('Malformed metadata must not authenticate.');
+        }, null, PermissionParentController::class.'::malformed');
+        self::assertSame(500, $native->request($this->request())->getStatusCode());
+        self::assertSame(['report', 'response'], $native->trace->events);
+    }
+
+    public function test_portable_metadata_failure_clears_incoming_context_on_a_reused_request(): void
+    {
+        $environment = new AdmissionEnvironment();
+        $native = new NativeKernel(
+            static fn(): RequestAuthority => $environment->user(),
+            null,
+            PermissionParentController::class.'::handle'
+        );
+        $request = $this->request();
+        self::assertSame(204, $native->request($request)->getStatusCode());
+        $native->routes->get('protected')->setDefault(
+            PermissionDeclaration::class,
+            new PermissionDeclaration(AdmissionMode::PUBLIC)
+        );
+        self::assertSame(500, $native->request($request)->getStatusCode());
+        self::assertFalse($request->attributes->has(SecurityContext::class));
+        self::assertSame(1, $environment->resolutions);
+    }
+
+    public function test_portable_controller_substitution_is_rejected_before_validation_or_arguments(): void
+    {
+        $environment = new AdmissionEnvironment();
+        $native = new NativeKernel(
+            static fn(): RequestAuthority => $environment->user(),
+            null,
+            PermissionParentController::class.'::handle'
+        );
+        $native->eventDispatcher->addListener(KernelEvents::CONTROLLER, static function (ControllerEvent $event): void {
+            $event->setController(static fn(): Response => new Response('bypass'));
+        }, 512);
+        self::assertSame(500, $native->request($this->request())->getStatusCode());
+        self::assertSame(['construct', 'report', 'response'], $native->trace->events);
     }
 
     private function protected(): PermissionDeclaration

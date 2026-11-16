@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00168](00168-TASK.md) — Demonstrate ordinary Role audit composition.
+Active Task: [TASK-00177](00177-TASK.md) — Integrate portable Permissions in Symfony.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 505 | [TASK-00177](00177-TASK.md) | Integrate portable Permissions in Symfony | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | in-progress | [TASK-00171](00171-TASK.md), [TASK-00104](00104-TASK.md) | — |
 
 ## Ready Frontier
 
@@ -17,7 +19,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 421 | [TASK-00168](00168-TASK.md) | Demonstrate ordinary Role audit composition | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | [TASK-00167](00167-TASK.md), [TASK-00153](00153-TASK.md) | — |
 | 505 | [TASK-00176](00176-TASK.md) | Integrate portable Permissions through PSR-15 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00103](00103-TASK.md) | — |
-| 505 | [TASK-00177](00177-TASK.md) | Integrate portable Permissions in Symfony | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00104](00104-TASK.md) | — |
 | 505 | [TASK-00178](00178-TASK.md) | Integrate portable Permissions in Laravel | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00105](00105-TASK.md) | — |
 | 505 | [TASK-00179](00179-TASK.md) | Integrate portable Permissions in CodeIgniter 4 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00106](00106-TASK.md) | — |
 

@@ -234,22 +234,25 @@ final class FeatureSubscriberTest extends TestCase
                 self::assertNotNull($permission);
                 $this->seed($features, $permission->getId(), FeatureStatus::PREVIEW);
                 $calls = 0;
+                $controllerClass = NativeController::class;
+                if ($mode === AdmissionMode::PROTECTED) {
+                    $controllerClass = PermissionParentController::class;
+                }
+
                 $native = new NativeKernel(
                     static function (Request $request) use ($authority, &$calls): RequestAuthority {
                         ++$calls;
 
                         return $authority->create($request);
                     },
-                    new PermissionDeclaration(
-                        $mode,
-                        $mode === AdmissionMode::PROTECTED ? [PermissionName::fromString('AGENT_PROFILE_READ')] : []
-                    ),
+                    $mode === AdmissionMode::PUBLIC ? new PermissionDeclaration($mode) : null,
+                    controller: $controllerClass.'::handle',
                     features: new FeatureAdmission(new FeatureAvailability(
                         $features,
                         $environment->permissionRepository
                     )),
                     requirements: new FeatureRequirements(
-                        SelectedAction::method(NativeController::class, 'handle'),
+                        SelectedAction::method($controllerClass, 'handle'),
                         'rollout'
                     ),
                     featureFirst: $featureFirst
@@ -283,11 +286,12 @@ final class FeatureSubscriberTest extends TestCase
 
                     return $environment->user(grant: false, permissionId: $id);
                 },
-                new PermissionDeclaration(AdmissionMode::PROTECTED, [PermissionName::fromString('AGENT_PROFILE_READ')]),
+                null,
+                controller: PermissionParentController::class.'::handle',
                 projector: $this->challenge(),
                 features: new FeatureAdmission(new FeatureAvailability($features, $permissions)),
                 requirements: new FeatureRequirements(
-                    SelectedAction::method(NativeController::class, 'handle'),
+                    SelectedAction::method(PermissionParentController::class, 'handle'),
                     'rollout'
                 ),
                 featureFirst: $featureFirst

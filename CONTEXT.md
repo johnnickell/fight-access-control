@@ -1,5 +1,15 @@
 # Fight AccessControl Context
 
+## Portable Symfony Permission admission — TASK-00177 Work
+
+The existing native PermissionSubscriber now composes the actual selected action's effective portable requirements
+and optional trusted route declaration through PermissionRequirements. Attribute-only protection, inherited/overridden
+conjunction and mode-conflict rejection require no Feature services. The early request gate remains before lazy
+construction; a resolved-controller checkpoint rejects substitution before validation. Independent native IsGranted,
+request-owned User/Agent authority and Common's selected safe-error boundary remain separate owners. See
+[Symfony composition](docs/symfony-permission-admission.md) for supported forms and limits. Work verification and
+candidate evidence belong to the canonical TASK handoff; independent Review/nonvisual QA remain required.
+
 ## Local Docker sharing workaround — TASK-00183
 
 This host now retains AVF / gRPC FUSE by John's explicit 2026-11-16 workaround decision. The supported one-time

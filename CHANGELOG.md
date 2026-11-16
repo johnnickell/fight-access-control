@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Portable `RequiresPermission` enforcement through the existing optional Symfony Permission subscriber. Effective
+  class/method/repeatable/inherited and route requirements accumulate without redundant route declarations; explicit
+  PUBLIC/AUTHENTICATED conflicts reject before authentication. Trusted native controller association is checked before
+  validation. Permission-only needs no Feature services; combined gates share request-owned authentication without
+  replaying Agent nonces. Native IsGranted remains independent. See [Symfony composition](docs/symfony-permission-admission.md)
+  for supported forms, early-construction limits and consumer-owned safe-error/bootstrap obligations.
+
 - Optional native CodeIgniter 4 Feature before-filter admission with cumulative trusted action/route requirements,
   fresh shared Feature evaluation and generic 404 only for ordinary unavailability. Feature-only registration needs
   no Permission filter. Both gates share request-owned provider selection and preserve each other's restrictions,

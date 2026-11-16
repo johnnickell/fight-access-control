@@ -102,12 +102,41 @@ final class IsolatedSubscriberTest extends TestCase
         $environment = new AdmissionEnvironment();
         $subscriber = new PermissionSubscriber($matcher, static fn(): RequestAuthority => $environment->user());
 
-        self::assertSame(['kernel.request' => ['onKernelRequest', 16]], $subscriber::getSubscribedEvents());
+        self::assertSame([
+            'kernel.request'    => ['onKernelRequest', 16],
+            'kernel.controller' => ['onKernelController', 256]
+        ], $subscriber::getSubscribedEvents());
         $subscriber->onKernelRequest($event);
         self::assertInstanceOf(SecurityContext::class, $event->getRequest()->attributes->get(SecurityContext::class));
         $event->getRequest()->attributes->set('_route', 'forged');
         $this->expectException(LogicException::class);
         $subscriber->onKernelRequest($event);
+    }
+
+    public function test_permission_controller_checkpoint_accepts_only_the_trusted_selected_action(): void
+    {
+        $event = $this->event();
+        $subscriber = new PermissionSubscriber(
+            $this->matcher($event, [PermissionDeclaration::class => new PermissionDeclaration(AdmissionMode::PUBLIC)]),
+            static fn(): null => null
+        );
+        $subscriber->onKernelRequest($event);
+
+        $kernel = $this->createStub(HttpKernelInterface::class);
+        $subscriber->onKernelController(new ControllerEvent(
+            $kernel,
+            [new IsolatedController(), 'handle'],
+            $event->getRequest(),
+            HttpKernelInterface::MAIN_REQUEST
+        ));
+        $this->expectException(LogicException::class);
+        $subscriber->onKernelController(new ControllerEvent(
+            $kernel,
+            static function (): void {
+            },
+            $event->getRequest(),
+            HttpKernelInterface::MAIN_REQUEST
+        ));
     }
 
     public function test_malformed_permission_declaration_fails_before_authority(): void
