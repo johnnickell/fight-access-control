@@ -180,6 +180,18 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Adapter\\Middleware\\Laravel\\FeatureMiddlewareTest": {
+      "file": "tests/Adapter/Middleware/Laravel/FeatureMiddlewareTest.php",
+      "category": "Integration",
+      "reason": "Executes actual Laravel routing/kernel, controller/form-request ordering, shared authentication and safe handler composition.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Middleware\\Laravel\\IsolatedFeatureMiddlewareTest": {
+      "file": "tests/Adapter/Middleware/Laravel/IsolatedFeatureMiddlewareTest.php",
+      "category": "Unit",
+      "reason": "Direct adapters with controlled router/route interfaces, in-memory authority and Feature repositories; no native pipeline or I/O.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Adapter\\Middleware\\Laravel\\IsolatedPermissionMiddlewareTest": {
       "file": "tests/Adapter/Middleware/Laravel/IsolatedPermissionMiddlewareTest.php",
       "category": "Unit",

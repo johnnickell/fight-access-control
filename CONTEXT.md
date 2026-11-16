@@ -842,6 +842,21 @@ administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns su
 and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
 no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
 
+## TASK-00174 Laravel Feature admission — accepted checkpoint
+
+Optional [native Laravel Feature middleware](docs/laravel-feature-admission.md) consumes the shared effective
+requirements/evaluator independently of Permission activation. Exact serving Route/action bindings and private
+active-chain authentication state preserve restrictions and trusted context across cooperating gates. Ordinary
+OFF/unmet PREVIEW becomes generic 404; configuration/provider/storage faults remain safe errors under Common's
+actual selected handler. Native tests cover supported lazy/static/legacy controller forms, inherited requirements,
+FormRequest order, reused/error/nested lifetimes and one Agent nonce. Legacy discovery may construct controllers
+before admission; ambient nested-state restoration and real consumer qualification remain separate. TASK-00174's
+canonical Work handoff owns dependency/runtime/gate evidence. Independent Review v3 ACCEPT and complete nonvisual
+QA PASS cover `6ea7915adcdf318d552771e3039d2f53624ceddf`, with no findings. TASK-00174 is done;
+unfinished children keep TICKET-00050/EPIC-00018 open. At this administrative checkpoint final publication/head
+verification and owned cleanup remain pending; canonical `.runs/handoffs/TASK-00174/land.md` owns subsequent
+outcomes. No consumer production qualification, approval, merge, release or deployment is claimed.
+
 ## TASK-00173 Symfony Feature admission — accepted checkpoint
 
 Optional [native Symfony Feature admission](docs/symfony-feature-admission.md) now consumes the shared effective

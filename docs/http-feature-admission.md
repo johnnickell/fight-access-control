@@ -8,6 +8,8 @@ and a trusted `SecurityContext` or deliberate anonymous null. It accepts only ac
 
 The optional [native Symfony Feature subscriber](symfony-feature-admission.md) consumes these same inward semantics
 without requiring PSR middleware or PermissionSubscriber activation; its native lifecycle and limits are distinct.
+[Native Laravel Feature middleware](laravel-feature-admission.md) also consumes the shared contract, with exact
+serving Route/action bindings, shared request authentication and Common's selected native safe handler.
 
 ## Ownership and runtime flow
 
