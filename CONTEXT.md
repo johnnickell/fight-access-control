@@ -1505,6 +1505,17 @@ use those accepted homes without resurrecting direct services/results or duplica
 verification and independent Review/QA are required; old-subject acceptance does not cover this candidate.
 TASK-00130/TASK-00162 typing/audit enhancements remain separately owned and are not implemented here.
 
+## TASK-00176 portable PSR-15 Permission admission — Work
+
+The PSR-15 `PermissionMiddleware` now consumes `PermissionRequirements` and a trusted native `SelectedAction`
+callback before existing inward admission. Attribute-only protection, inherited/overridden conjunction and explicit
+route additions are exercised separately through real Slim and Yii 3 routing. The declaration-only constructor is
+removed under ADR 0011; [HTTP composition](docs/http-permission-admission.md#portable-permission-admission-unreleased)
+shows current callers and native limits. No second merger, authority engine, Feature dependency or consumer change
+is added. Existing request-owned authentication, safe Common error owner and separate target-scope obligations remain.
+Work verification and candidate/runtime details belong to the canonical TASK handoff. Independent Review and
+nonvisual QA remain required; this checkpoint claims neither acceptance nor actual consumer qualification.
+
 ## Approved portable Feature and Permission admission destination
 
 TASK-00180's documentation-only [early evidence assessment](docs/http-permission-admission.md#portable-admission-evidence-assessment-unreleased)

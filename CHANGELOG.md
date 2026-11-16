@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional portable Permission admission through PSR-15, qualified separately with Slim and Yii 3. Effective
+  class/method/repeated/inherited Attributes and protected route additions use existing inward admission without
+  Feature activation. **Pre-v1:** construct `PermissionMiddleware` with `PermissionRequirements`, a trusted native
+  selected-action callback and the existing authority factory/shared request authentication; the declaration-only
+  constructor is removed. Missing/conflicting metadata fails closed before protected work. Consumer routes,
+  authentication, storage, sinks and target scope still require qualification. See
+  [HTTP composition](docs/http-permission-admission.md#portable-permission-admission-unreleased).
+
 - Optional final nullable audit storage and direct typed originating User/Agent/System provenance for all three Agent
   material maintenance paths. Real rewrap, permanent material failure, expiry and cleanup acknowledgement record
   bounded original relationships, operation revisions, scoped key and trusted outcome time in their actual write

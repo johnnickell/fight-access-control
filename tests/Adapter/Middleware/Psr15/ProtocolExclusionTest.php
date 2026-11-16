@@ -67,7 +67,7 @@ final class ProtocolExclusionTest extends TestCase
             $internal = in_array($case, ['subclass', 'lookup'], true);
             $diagnostics->expects($internal ? self::once() : self::never())->method('record');
             $responses = new McpResponseFactory(new ResponseFactory(), new StreamFactory(), $diagnostics);
-            $native = new NativePipeline($framework, new PermissionMiddleware(
+            $native = new NativePipeline($framework, PermissionGate::bind(
                 new PermissionDeclaration(AdmissionMode::AUTHENTICATED),
                 static fn(): never => throw new RuntimeException('Excluded ordinary collaborator must not resolve.')
             ), protocol: static function () use ($invoker, $responses): ResponseInterface {
@@ -118,7 +118,7 @@ final class ProtocolExclusionTest extends TestCase
             $expected = $responses->rejection($failure, $metadata, $scopes);
             $native = new NativePipeline(
                 $framework,
-                new PermissionMiddleware(
+                PermissionGate::bind(
                     null,
                     static fn(): never => throw new RuntimeException('Ordinary provider must remain excluded.')
                 ),

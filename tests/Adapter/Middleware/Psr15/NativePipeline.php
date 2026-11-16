@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Adapter\Middleware\Psr15;
 
 use Closure;
-use Fight\AccessControl\Adapter\Middleware\Psr15\PermissionMiddleware;
 use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Fight\Common\Adapter\Http\Error\SafeHttpDiagnostics;
@@ -38,7 +37,10 @@ use Yiisoft\Router\Route;
 use Yiisoft\Router\RouteCollection;
 use Yiisoft\Router\RouteCollector;
 
-/** @phpstan-type TargetFactory Closure(ServerRequestInterface): SelectedAction */
+/**
+ * @phpstan-type TargetFactory Closure(ServerRequestInterface): SelectedAction
+ * @phpstan-type GateFactory Closure(SelectedAction, TargetFactory): MiddlewareInterface
+ */
 final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnostics
 {
     public int $reports = 0;
@@ -63,14 +65,17 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
     private readonly RouteCollection $yiiRoutes;
 
     /**
-     * @phpstan-param MiddlewareInterface|Closure(SelectedAction, TargetFactory): MiddlewareInterface $permission
+     * @phpstan-param MiddlewareInterface|GateFactory $permission
+     * @phpstan-param MiddlewareInterface|GateFactory|null $otherPermission
+     * @param class-string<NativeController> $controller
      */
     public function __construct(
         private readonly string $framework,
         MiddlewareInterface|Closure $permission,
         string $form = 'method',
-        ?PermissionMiddleware $otherPermission = null,
-        ?Closure $protocol = null
+        MiddlewareInterface|Closure|null $otherPermission = null,
+        ?Closure $protocol = null,
+        string $controller = NativeController::class
     ) {
         $this->errors = $this->boundary();
         $this->slim = AppFactory::create(new ResponseFactory());
@@ -83,18 +88,18 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
 
             return $handler->handle($request);
         };
-        $slimAction = NativeController::class.':slim';
+        $slimAction = $controller.':slim';
         if ($form === 'inherited') {
             $slimAction = FeatureNativeChild::class.':slim';
         } elseif ($form === 'invokable') {
-            $slimAction = NativeController::class;
+            $slimAction = $controller;
         } elseif ($form === 'closure') {
             $slimAction = static fn(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface =>
-                new NativeController()->slim($request, $response);
+                new $controller()->slim($request, $response);
         }
 
         $slimPermission = $permission;
-        if ($permission instanceof Closure) {
+        if ($permission instanceof Closure || $otherPermission instanceof Closure) {
             $slimTarget = static function (ServerRequestInterface $request): SelectedAction {
                 $route = RouteContext::fromRequest($request)->getRoute();
                 if ($route === null) {
@@ -103,13 +108,20 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
 
                 return self::action($route->getCallable());
             };
-            $slimPermission = $permission(self::action($slimAction), $slimTarget);
+            if ($permission instanceof Closure) {
+                $slimPermission = $permission(self::action($slimAction), $slimTarget);
+            }
         }
 
         $this->slim->get('/protected/{id}', $slimAction)->add($validator)->add($slimPermission);
         $this->slim->get('/other', static fn($request, $response): ResponseInterface => $response->withStatus(202));
         if ($otherPermission !== null) {
-            $this->slim->get('/second/{id}', $slimAction)->add($validator)->add($otherPermission);
+            $otherSlim = $otherPermission;
+            if ($otherPermission instanceof Closure) {
+                $otherSlim = $otherPermission(self::action($slimAction), $slimTarget);
+            }
+
+            $this->slim->get('/second/{id}', $slimAction)->add($validator)->add($otherSlim);
         }
 
         if ($protocol !== null) {
@@ -117,18 +129,18 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
         }
 
         $this->slim->addRoutingMiddleware();
-        $yiiAction = [NativeController::class, 'yii'];
+        $yiiAction = [$controller, 'yii'];
         if ($form === 'inherited') {
             $yiiAction = [FeatureNativeChild::class, 'yii'];
         } elseif ($form === 'closure') {
             $yiiAction = static fn(ServerRequestInterface $request): ResponseInterface =>
-                new NativeController()->yii($request);
+                new $controller()->yii($request);
         }
 
         $yiiPermission = $permission;
+        // Bind the exact same immutable action definition to middleware and native dispatch.
+        $selected = self::action($yiiAction);
         if ($permission instanceof Closure) {
-            // Bind the exact same immutable action definition to middleware and native dispatch.
-            $selected = self::action($yiiAction);
             $yiiPermission = $permission($selected, static fn(): SelectedAction => $selected);
         }
 
@@ -139,8 +151,13 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
             Route::get('/other')->action(static fn(): ResponseInterface => new Response(202))
         );
         if ($otherPermission !== null) {
+            $otherYii = $otherPermission;
+            if ($otherPermission instanceof Closure) {
+                $otherYii = $otherPermission($selected, static fn(): SelectedAction => $selected);
+            }
+
             $collector->addRoute(Route::get('/second/{id}')
-                ->middleware($otherPermission->process(...), $validator)->action($yiiAction));
+                ->middleware($otherYii->process(...), $validator)->action($yiiAction));
         }
 
         if ($protocol !== null) {

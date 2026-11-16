@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Adapter\Middleware\Psr15;
 
 use Fight\AccessControl\Adapter\Middleware\Psr15\PermissionMiddleware;
+use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentProfileHandler;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionAdmission;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionRequirements;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
@@ -20,10 +22,12 @@ use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
 use Fight\Common\Adapter\Http\Psr17\JSendResponseFactory;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Test\AccessControl\Adapter\Http\OrdinaryFailureCases;
 use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
 use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -64,7 +68,7 @@ final class PermissionMiddlewareTest extends TestCase
             $grant = true;
             $valid = true;
             $fault = null;
-            $permission = new PermissionMiddleware($this->protected(), function () use (
+            $permission = PermissionGate::bind($this->protected(), function () use (
                 $environment,
                 &$grant,
                 &$valid,
@@ -119,7 +123,7 @@ final class PermissionMiddlewareTest extends TestCase
             public bool $brokenSnapshot = false;
         };
         $nativeAuthority = new NativeAgentAuthority($environment);
-        $permission = new PermissionMiddleware($this->protected(), function (ServerRequestInterface $request) use (
+        $permission = PermissionGate::bind($this->protected(), function (ServerRequestInterface $request) use (
             $nativeAuthority,
             &$providerCalls,
             $state
@@ -183,7 +187,7 @@ final class PermissionMiddlewareTest extends TestCase
         foreach (['missing', 'malformed', 'context', 'anonymous'] as $case) {
             NativeController::$constructed = 0;
             NativeController::$handled = 0;
-            $native = new NativePipeline($framework, new PermissionMiddleware(
+            $native = new NativePipeline($framework, PermissionGate::bind(
                 $case === 'missing' ? null : $this->protected(),
                 static function () use ($case): ?RequestAuthority {
                     if ($case === 'malformed') {
@@ -210,7 +214,7 @@ final class PermissionMiddlewareTest extends TestCase
     public function test_public_erases_copied_context_without_resolving_authentication(string $framework): void
     {
         $copied = new AdmissionEnvironment()->user()->resolve();
-        $native = new NativePipeline($framework, new PermissionMiddleware(
+        $native = new NativePipeline($framework, PermissionGate::bind(
             new PermissionDeclaration(AdmissionMode::PUBLIC),
             static function (): never {
                 throw new RuntimeException('Public target must not resolve a provider.');
@@ -221,7 +225,7 @@ final class PermissionMiddlewareTest extends TestCase
         self::assertSame(204, $native->request($request)->getStatusCode());
         self::assertSame([null], $native->contexts);
         self::assertSame(0, $native->reports);
-        $denied = new NativePipeline($framework, new PermissionMiddleware(
+        $denied = new NativePipeline($framework, PermissionGate::bind(
             $this->protected(),
             static fn(): null => null
         ));
@@ -232,14 +236,14 @@ final class PermissionMiddlewareTest extends TestCase
     #[DataProvider('frameworks')]
     public function test_nested_dispatch_requires_own_trusted_authority_not_parent_attribute(string $framework): void
     {
-        $inner = new NativePipeline($framework, new PermissionMiddleware(
-            $this->protected(),
+        $inner = new NativePipeline($framework, PermissionGate::bind(
+            null,
             static fn(): null => null
-        ));
-        $outer = new NativePipeline($framework, new PermissionMiddleware(
-            $this->protected(),
+        ), controller: PermissionNativeRead::class);
+        $outer = new NativePipeline($framework, PermissionGate::bind(
+            null,
             static fn(): RequestAuthority => new AdmissionEnvironment()->user()
-        ));
+        ), controller: PermissionNativeRead::class);
         $outer->beforeWork = static function (ServerRequestInterface $request) use ($inner): void {
             $parentSnapshot = $request->getAttribute(SecurityContext::class);
             self::assertInstanceOf(SecurityContext::class, $parentSnapshot);
@@ -254,7 +258,7 @@ final class PermissionMiddlewareTest extends TestCase
     #[DataProvider('frameworks')]
     public function test_common_safe_boundary_projection_sink_headers_and_render_fallback(string $framework): void
     {
-        $native = new NativePipeline($framework, new PermissionMiddleware(
+        $native = new NativePipeline($framework, PermissionGate::bind(
             $this->protected(),
             static fn(): null => null
         ));
@@ -316,8 +320,8 @@ final class PermissionMiddlewareTest extends TestCase
         $factory = static fn(): RequestAuthority => new AdmissionEnvironment()->user();
         $native = new NativePipeline(
             $framework,
-            new PermissionMiddleware($this->protected(), $factory),
-            otherPermission: new PermissionMiddleware(
+            PermissionGate::bind($this->protected(), $factory),
+            otherPermission: PermissionGate::bind(
                 new PermissionDeclaration(AdmissionMode::PROTECTED, [
                 PermissionName::fromString('OTHER_PERMISSION')
                 ]),
@@ -327,7 +331,7 @@ final class PermissionMiddlewareTest extends TestCase
         self::assertSame(204, $native->request($this->request())->getStatusCode());
         self::assertSame(403, $native->request($this->request('/second/AGENT_PROFILE_READ'))->getStatusCode());
         self::assertSame(1, $native->validators);
-        $authenticated = new NativePipeline($framework, new PermissionMiddleware(
+        $authenticated = new NativePipeline($framework, PermissionGate::bind(
             new PermissionDeclaration(AdmissionMode::AUTHENTICATED),
             static fn(): RequestAuthority => new AdmissionEnvironment()->user(false)
         ));
@@ -339,7 +343,7 @@ final class PermissionMiddlewareTest extends TestCase
         string $framework
     ): void {
         $environment = new AdmissionEnvironment();
-        $native = new NativePipeline($framework, new PermissionMiddleware(
+        $native = new NativePipeline($framework, PermissionGate::bind(
             $this->protected(),
             static fn(): RequestAuthority => $environment->user()
         ));
@@ -368,7 +372,7 @@ final class PermissionMiddlewareTest extends TestCase
 
     public function test_unknown_type_remains_500_even_with_a_deliberately_public_projection(): void
     {
-        $native = new NativePipeline('slim', new PermissionMiddleware($this->protected(), static fn(): never =>
+        $native = new NativePipeline('slim', PermissionGate::bind($this->protected(), static fn(): never =>
             throw new RuntimeException('PRIVATE AUTH SENTINEL', 401)));
         $native->errors = $native->boundary(new class implements SafeHttpProjector {
             public function project(Throwable $failure, int $status): SafeHttpPresentation
@@ -387,7 +391,7 @@ final class PermissionMiddlewareTest extends TestCase
 
     public function test_broken_fallback_factory_is_neutral_and_not_recursively_reported(): void
     {
-        $native = new NativePipeline('slim', new PermissionMiddleware($this->protected(), static fn(): null => null));
+        $native = new NativePipeline('slim', PermissionGate::bind($this->protected(), static fn(): null => null));
         $factory = $this->createMock(ResponseFactoryInterface::class);
         $factory->expects(self::exactly(2))->method('createResponse')->willThrowException(
             new RuntimeException('PRIVATE FACTORY')
@@ -400,6 +404,134 @@ final class PermissionMiddlewareTest extends TestCase
             self::assertSame('Unable to render safe HTTP error.', $runtimeException->getMessage());
             self::assertNull($runtimeException->getPrevious());
             self::assertSame(1, $native->reports);
+        }
+    }
+
+    #[DataProvider('frameworks')]
+    public function test_attribute_only_user_dispatch_and_route_additions_remain_distinct(string $framework): void
+    {
+        $environment = new AdmissionEnvironment();
+        $grant = true;
+        $factory = static function () use ($environment, &$grant): RequestAuthority {
+            return $environment->user($grant);
+        };
+        $native = new NativePipeline(
+            $framework,
+            PermissionGate::bind(null, $factory),
+            otherPermission: PermissionGate::bind(new PermissionDeclaration(
+                AdmissionMode::PROTECTED,
+                [PermissionName::fromString('OTHER_PERMISSION')]
+            ), $factory),
+            controller: PermissionNativeRead::class
+        );
+        NativeController::$constructed = 0;
+        NativeController::$handled = 0;
+        self::assertSame(204, $native->request($this->request())->getStatusCode());
+        // Identical native callable, distinct route-bound policy: the extra requirement cannot disappear.
+        self::assertSame(403, $native->request($this->request('/second/123'))->getStatusCode());
+        $grant = false;
+        self::assertSame(403, $native->request($this->request())->getStatusCode());
+        self::assertSame(1, $native->validators);
+        self::assertSame(1, NativeController::$constructed);
+        self::assertSame(1, NativeController::$handled);
+        self::assertSame(3, $environment->resolutions);
+    }
+
+    #[DataProvider('frameworks')]
+    public function test_attribute_inherited_overridden_invokable_agent_conjunction(string $framework): void
+    {
+        foreach ($framework === 'slim' ? ['method', 'invokable'] : ['method'] as $form) {
+            $environment = new ProfileToolEnvironment();
+            $authority = new NativeAgentAuthority($environment);
+            $native = new NativePipeline(
+                $framework,
+                PermissionGate::bind(null, $authority->create(...)),
+                $form,
+                controller: PermissionNativeChild::class
+            );
+            NativeController::$constructed = 0;
+            NativeController::$handled = 0;
+            self::assertSame(204, $native->request($this->request())->getStatusCode());
+            // Yii inherits the parent method; Slim overrides it without repeating its restriction.
+            $agent = $environment->storage->agentRepository->all()[0];
+            foreach (['AGENT_PROFILE_UPDATE', 'AGENT_PROFILE_READ'] as $name) {
+                $permission = $environment->permissionRepository->getByName(PermissionName::fromString($name));
+                self::assertNotNull($permission);
+                $environment->storage->agentRepository->restoreSnapshot([
+                    $agent->revokePermission($permission->getId(), $environment->now())
+                ]);
+                self::assertSame(403, $native->request($this->request())->getStatusCode());
+            }
+
+            self::assertSame(3, $environment->nonces->consumptionCalls());
+            self::assertSame(1, $native->validators);
+            self::assertSame(1, NativeController::$constructed);
+            self::assertSame(1, NativeController::$handled);
+        }
+    }
+
+    #[DataProvider('frameworks')]
+    public function test_selected_metadata_faults_never_become_refusals_or_resolve_authentication(
+        string $framework
+    ): void {
+        foreach (['mismatch', 'typed', 'malformed'] as $case) {
+            $calls = 0;
+            $native = new NativePipeline($framework, static function (
+                SelectedAction $action
+            ) use (
+                $case,
+                &$calls
+            ): PermissionMiddleware {
+                return new PermissionMiddleware(
+                    new PermissionRequirements($action, new PermissionDeclaration(AdmissionMode::PUBLIC)),
+                    static function () use ($case): SelectedAction {
+                        if ($case === 'typed') {
+                            throw new AuthenticationRequired('PRIVATE TARGET');
+                        }
+
+                        if ($case === 'malformed') {
+                            return SelectedAction::method(NativeController::class, 'missing');
+                        }
+
+                        return SelectedAction::invokable(NativeController::class);
+                    },
+                    static function () use (&$calls): null {
+                        ++$calls;
+
+                        return null;
+                    }
+                );
+            });
+            NativeController::$constructed = 0;
+            $response = $native->request($this->request());
+            self::assertSame(500, $response->getStatusCode(), $case);
+            self::assertSame('', $response->getHeaderLine('WWW-Authenticate'));
+            self::assertSame('{"status":"error","message":"Internal server error."}', (string) $response->getBody());
+            self::assertSame(0, $calls);
+            self::assertSame(0, $native->validators);
+            self::assertSame(0, NativeController::$constructed);
+            self::assertSame(1, $native->reports);
+        }
+    }
+
+    public function test_conflicting_explicit_modes_reject_during_native_binding_before_authentication(): void
+    {
+        foreach (['slim', 'yii'] as $framework) {
+            foreach ([AdmissionMode::PUBLIC, AdmissionMode::AUTHENTICATED] as $mode) {
+                NativeController::$constructed = 0;
+                try {
+                    new NativePipeline(
+                        $framework,
+                        PermissionGate::bind(new PermissionDeclaration($mode), static function (): never {
+                            self::fail('Invalid composition must not select authentication.');
+                        }),
+                        controller: PermissionNativeRead::class
+                    );
+                    self::fail('An explicit mode cannot erase Attributes.');
+                } catch (InvalidArgumentException) {
+                    self::assertSame(0, NativeController::$constructed);
+                }
+            }
         }
     }
 

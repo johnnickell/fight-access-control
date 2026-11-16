@@ -9,7 +9,9 @@ use Fight\AccessControl\Adapter\Http\CodeIgniter\RequestContexts;
 use Fight\AccessControl\Adapter\Http\Symfony\EventSubscriber\PermissionSubscriber;
 use Fight\AccessControl\Adapter\Middleware\Laravel\PermissionMiddleware as LaravelPermission;
 use Fight\AccessControl\Adapter\Middleware\Psr15\PermissionMiddleware;
+use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionRequirements;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Illuminate\Http\Request as LaravelRequest;
 use Psr\Http\Message\ServerRequestInterface;
@@ -32,10 +34,16 @@ function invalidHttpContracts(
     RequestContexts $contexts,
     CodeIgniterRequest $codeIgniterRequest,
     SecurityContext $context,
-    PermissionDeclaration $declaration
+    PermissionDeclaration $declaration,
+    PermissionRequirements $requirements,
+    SelectedAction $action
 ): void {
     $psr->process($request, $handler);
-    new PermissionMiddleware($declaration, static fn(ServerRequestInterface $request): SecurityContext => $context);
+    new PermissionMiddleware(
+        $requirements,
+        static fn(): SelectedAction => $action,
+        static fn(ServerRequestInterface $request): SecurityContext => $context
+    );
     new PermissionSubscriber($matcher, static fn(ServerRequestInterface $request): null => null);
     $laravel->handle($laravelRequest, static fn(LaravelRequest $request): string => 'not a native response');
     $contexts->set($codeIgniterRequest, $declaration);

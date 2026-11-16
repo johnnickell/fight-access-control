@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Adapter\Middleware\Psr15;
 
 use Closure;
+use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionAdmission;
-use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionRequirements;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
+use LogicException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Throwable;
 
 /**
  * Class PermissionMiddleware
@@ -28,10 +31,12 @@ final readonly class PermissionMiddleware implements MiddlewareInterface
     /**
      * Constructs PermissionMiddleware
      *
+     * @phpstan-param Closure(ServerRequestInterface): SelectedAction $selectedAction
      * @phpstan-param (Closure(ServerRequestInterface): ?RequestAuthority)|RequestAuthentication $authority
      */
     public function __construct(
-        private ?PermissionDeclaration $declaration,
+        private PermissionRequirements $requirements,
+        private Closure $selectedAction,
         Closure|RequestAuthentication $authority,
         private PermissionAdmission $admission = new PermissionAdmission()
     ) {
@@ -43,16 +48,22 @@ final readonly class PermissionMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Handles admission using only the declaration bound by trusted native route composition
+     * Handles effective admission for the actual trusted native selected action
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        try {
+            $declaration = $this->requirements->getDeclaration(($this->selectedAction)($request));
+        } catch (Throwable $throwable) {
+            throw new LogicException('Permission selected action resolution failed.', previous: $throwable);
+        }
+
         return $this->authentication->admit(
             $request,
             $handler,
             fn(?RequestAuthority $authority): ?SecurityContext =>
-                $this->admission->admit($this->declaration, $authority),
-            $this->declaration !== null && $this->declaration->mode !== AdmissionMode::PUBLIC
+                $this->admission->admit($declaration, $authority),
+            $declaration !== null && $declaration->mode !== AdmissionMode::PUBLIC
         );
     }
 }
