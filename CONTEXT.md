@@ -828,7 +828,7 @@ administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns su
 and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
 no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
 
-## TASK-00175 CodeIgniter 4 Feature admission — Work candidate
+## TASK-00175 CodeIgniter 4 Feature admission — accepted checkpoint
 
 Optional [CI4 Feature admission](docs/codeigniter-feature-admission.md) now consumes effective selected-action
 requirements and shared inward Feature evaluation without enabling PermissionFilter. Native matched router identity
@@ -837,8 +837,10 @@ Only ordinary OFF/unmet PREVIEW becomes generic 404; metadata/provider/storage/b
 Both gates now share native RequestAuthentication and preserve cooperating context with one request-owned provider/
 Agent nonce. The existing SafeCodeIgniter/SafeErrorResponder remains the sole selected JSON error owner; its outer
 lifecycle/non-JSON and process-global nesting limits remain explicit. Canonical `.runs/handoffs/TASK-00175/work.md`
-owns exact candidate, checks, dependency/runtime identities, warnings and limits. Independent Review/nonvisual QA
-remain pending; TASK and parents remain open. No consumer, publication, merge, release or deployment is claimed.
+owns implementation checks, dependency/runtime identities, warnings and limits. Independent Review ACCEPT and
+nonvisual QA PASS cover `46f9069122f86a2efc6da96eccbeaa3dedeb56fb`; TASK-00175 is complete, while unfinished
+siblings keep its parents open. Publication/final verification are pending at closeout; the canonical Land handoff
+owns subsequent results. No consumer qualification, merge, release or deployment is claimed.
 
 ## TASK-00173 Symfony Feature admission — accepted checkpoint
 
