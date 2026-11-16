@@ -98,6 +98,43 @@ absence separately. An exact unchanged `retained_unmerged` local ref is reported
 failed cleanup. Never delete a remote head, stop a shared VM, strip protections or archive source routinely.
 After successful retirement, repeat using the original absolute path; do not redirect through a surviving ref.
 
+## macOS Docker Desktop retained-handle workaround
+
+This host uses **Apple Virtualization framework / gRPC FUSE** as an explicitly approved local workaround
+(TASK-00183, John, 2026-11-16). Leave that selection enabled. Docker documents both AVF sharing choices in
+[Desktop settings](https://docs.docker.com/desktop/settings-and-maintenance/settings/); this is not a Docker
+promise of per-task descriptor release. The qualified environment was macOS 26.6.2 on Apple Silicon,
+Desktop 4.99.0 / Engine 29.9.3 and Worktrunk 0.81.0. Other hosts/backends need their own qualification.
+
+Backend maintenance is separate from task cleanup. On a separately authorized host, inspect workloads and
+record the current backend, container IDs/running intent and storage/resource identities first. Use supported
+Desktop Settings → General → File sharing implementation → gRPC FUSE, retaining the existing AVF selection,
+then the required normal Apply & Restart Engine. That interrupts shared services. Verify settled saved Settings,
+matching startup backend, engine availability and preservation afterward; retain originally stopped containers
+and other settings/data. Do not repeat this already completed host change, auto-toggle backends, edit private
+settings or restart shared Docker to recover ordinary cleanup. A different backend/virtualization transition
+requires its own exact authority.
+
+Under VirtioFS, unchanged-byte atomic replacement reproduced a write-capable VM descriptor surviving task down.
+Under gRPC FUSE, three same-path atomic-replacement cycles completed normal guarded retirement, but one separate
+post-down check held on an unqualified `com.docker.backend` directory reader before a later fresh removal passed.
+No write-capable descriptor was sampled in those cycles; this does **not** guarantee immediate release or prevent
+all future retention. Mixed upstream reports also preclude a universal fix claim
+([#168](https://github.com/docker/desktop-feedback/issues/168),
+[#218](https://github.com/docker/desktop-feedback/issues/218)).
+
+Keep the single Docker-first retirement procedure above and every source/ref/data/hook check. After a hold,
+retain source, registration and locator. Reobserve successful all-container inventory (including stopped/parent
+binds), host cwd/readers/writers and exact Git/private-output/hook identity. Only qualified changed conditions
+permit another normal retirement at the **original absolute path**; recheck same-path reuse as new identity.
+Unknown/writable handles or incomplete visibility still hold. Elapsed time, stable bytes and a prior success are
+not admission. No blind retry loop, retry queue, forced removal, writer exemption or routine shared restart.
+If conditions remain unqualified, report the exact consumer/visibility prerequisite to its owner and stop.
+
+This is local runtime/runbook adoption, not a shared guard fix. TASK-00183 left local `source.py` byte-identical
+to the inspected Agent OS supplier and left the local remover unchanged. Existing supplier provenance below
+still applies; no new supplier assent or supported per-export release contract is claimed.
+
 ## Runtime-free qualification fixtures
 
 An owning qualification caller can pass `runtime_free_fixture=True` to
