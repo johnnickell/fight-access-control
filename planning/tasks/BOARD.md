@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00168](00168-TASK.md) — Demonstrate ordinary Role audit composition.
+Active Task: [TASK-00183](00183-TASK.md) — Restore guarded cleanup after Docker file-sharing handle retention.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 420 | [TASK-00183](00183-TASK.md) | Restore guarded cleanup after Docker file-sharing handle retention | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 

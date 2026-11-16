@@ -1,5 +1,16 @@
 # Fight AccessControl Context
 
+## Local Docker sharing workaround — TASK-00183
+
+This host now retains AVF / gRPC FUSE by John's explicit 2026-11-16 workaround decision. The supported one-time
+Apply/restart completed; do not repeat it for task cleanup. Three atomic-replacement/same-path fixture removals
+succeeded, but a separate transient backend-directory reader check held before a later fresh removal passed.
+This is not immediate-release or universal-prevention proof. Source/supplier guards are unchanged: unknown or
+writable handles retain source, and only freshly qualified changed conditions admit normal Docker-first retirement.
+See the [owning runbook](docs/engineering/LOCAL_TOOLING.md#macos-docker-desktop-retained-handle-workaround) and
+[TASK-00183](planning/tasks/00183-TASK.md) for scope, preservation limits and evidence. Independent Review and
+nonvisual QA remain pending; no routine shared restart or automatic backlog cleanup is authorized.
+
 ## Optional Agent material maintenance audit — TASK-00165 accepted checkpoint
 
 All three maintenance paths now accept optional final nullable audit storage and optional direct typed User/Agent/
