@@ -24,6 +24,18 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\FeatureFilterTest": {
+      "file": "tests/Adapter/Http/CodeIgniter/FeatureFilterTest.php",
+      "category": "Integration",
+      "reason": "Executes actual native CI4 routing, before filters, controller and safe response lifecycle.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\IsolatedFeatureFilterTest": {
+      "file": "tests/Adapter/Http/CodeIgniter/IsolatedFeatureFilterTest.php",
+      "category": "Unit",
+      "reason": "Direct filter and authentication-state calls with controlled native request/router/response interfaces and in-memory authority; no native dispatch or external storage.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\IsolatedAdapterTest": {
       "file": "tests/Adapter/Http/CodeIgniter/IsolatedAdapterTest.php",
       "category": "Unit",

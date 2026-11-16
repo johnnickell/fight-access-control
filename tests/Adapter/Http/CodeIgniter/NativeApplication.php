@@ -23,13 +23,17 @@ use Config\Filters as FilterConfig;
 use Config\Logger as LoggerConfig;
 use Config\Modules;
 use Config\Routing;
+use Fight\AccessControl\Adapter\Http\CodeIgniter\FeatureFilter;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\PermissionFilter;
+use Fight\AccessControl\Adapter\Http\CodeIgniter\RequestAuthentication;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\RequestContexts;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\SafeCodeIgniter;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\SafeErrorResponder;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
+use Fight\AccessControl\Application\AccessControl\Feature\Admission\FeatureAdmission;
+use Fight\AccessControl\Application\AccessControl\Feature\FeatureRequirements;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Adapter\Http\Error\SafeHttpDiagnostics;
 use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
@@ -50,6 +54,15 @@ final class NativeApplication
     public array $nativeLogs = [];
 
     public readonly RequestContexts $contexts;
+
+    public readonly RequestAuthentication $authentication;
+
+    public ?FeatureAdmission $featureAdmission = null;
+
+    public mixed $featureRequirements = null;
+
+    /** @var list<string> */
+    public array $featureGates = ['feature'];
 
     public readonly PermissionFilter $filter;
 
@@ -80,10 +93,10 @@ final class NativeApplication
             }
         };
         $this->errors = new SafeErrorResponder($this->config, $diagnostics, $projector);
+        $this->authentication = new RequestAuthentication($authority, $this->contexts);
         $this->filter = new PermissionFilter(
             static fn() => Services::router(),
-            $authority,
-            $this->contexts,
+            $this->authentication,
             $this->errors
         );
         NativeFilter::$delegate = $this->filter;
@@ -113,6 +126,8 @@ final class NativeApplication
 
     public function run(IncomingRequest $request, string $permissionAlias = 'permission'): ResponseInterface
     {
+        // Reset before routing: unmatched routes never enter either admission filter.
+        $this->authentication->clear($request);
         // CI4's service registry, router, filters and response are request-owned.
         Services::reset();
         Factories::reset();
@@ -124,8 +139,11 @@ final class NativeApplication
 
         $routes = new RouteCollection(Services::locator(), new Modules(), $routing);
         $routes->setAutoRoute(false);
+
+        $gates = $this->featureAdmission === null ? [$permissionAlias] : $this->featureGates;
         $routes->match(['GET', 'POST'], 'protected/(:num)', $this->handler, [
-            'filter'                     => [$permissionAlias, 'validator'],
+            'filter'                     => [...$gates, 'validator'],
+            FeatureRequirements::class   => $this->featureRequirements,
             PermissionDeclaration::class => $this->declaration
         ]);
         $routes->get('restricted/(:num)', $this->handler, [
@@ -145,6 +163,19 @@ final class NativeApplication
             'validator'  => NativeValidator::class,
             'required'   => NativeRequiredFilter::class
         ];
+        if ($this->featureAdmission !== null) {
+            NativeFeatureFilter::$delegate = new FeatureFilter(
+                static fn() => Services::router(),
+                $this->authentication,
+                $this->featureAdmission,
+                $this->errors
+            );
+            $config->aliases['feature'] = NativeFeatureFilter::class;
+            if (!in_array('permission', $this->featureGates, true)) {
+                unset($config->aliases['permission']);
+            }
+        }
+
         $config->required = ['before' => [], 'after' => []];
         if ($this->requiredFilters) {
             $config->required = ['before' => ['required'], 'after' => ['required']];

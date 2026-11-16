@@ -842,6 +842,20 @@ administrative checkpoint; canonical `.runs/handoffs/TASK-00148/land.md` owns su
 and resource results. Original report subjects, historical Work proof and lowest-lane advisories remain preserved;
 no whole-library or actual consumer qualification, approval, merge, release or deployment is claimed.
 
+## TASK-00175 CodeIgniter 4 Feature admission — accepted checkpoint
+
+Optional [CI4 Feature admission](docs/codeigniter-feature-admission.md) now consumes effective selected-action
+requirements and shared inward Feature evaluation without enabling PermissionFilter. Native matched router identity
+and exact route binding precede authentication/ordinary validation/controller/action work for the documented forms.
+Only ordinary OFF/unmet PREVIEW becomes generic 404; metadata/provider/storage/binding faults remain safe errors.
+Both gates now share native RequestAuthentication and preserve cooperating context with one request-owned provider/
+Agent nonce. The existing SafeCodeIgniter/SafeErrorResponder remains the sole selected JSON error owner; its outer
+lifecycle/non-JSON and process-global nesting limits remain explicit. Canonical `.runs/handoffs/TASK-00175/work.md`
+owns implementation checks, dependency/runtime identities, warnings and limits. Independent Review ACCEPT and
+nonvisual QA PASS cover `46f9069122f86a2efc6da96eccbeaa3dedeb56fb`; TASK-00175 is complete, while unfinished
+siblings keep its parents open. Publication/final verification are pending at closeout; the canonical Land handoff
+owns subsequent results. No consumer qualification, merge, release or deployment is claimed.
+
 ## TASK-00174 Laravel Feature admission — accepted checkpoint
 
 Optional [native Laravel Feature middleware](docs/laravel-feature-admission.md) consumes the shared effective
@@ -1608,10 +1622,11 @@ consumer adoption or release obligation with other EPICs is selected. TASK-00170
 repeated class/method FeatureFlag, FeatureRequirements and shared pure Action/SelectedAction ancestry/association,
 with aligned scoped discovery and preparation/provisioning/retirement tests. TASK-00170 and TASK-00171 now have
 independent acceptance for the two metadata capabilities; TASK-00171 adds portable Permission metadata without a
-consumer Attribute dependency or native activation. TASK-00172's accepted shared/Slim/Yii Feature admission is described
-above; remaining native Feature and portable Permission integrations retain their own TASKs. The canonical handoffs
-own verification/runtime details. Metadata alone still activates no runtime gate; Agent OS's class-only Attribute is
-not a dependency or alias of the package API.
+consumer Attribute dependency or native activation. TASK-00172–00175 now supply independently accepted Feature
+admission across all five frameworks, completing TICKET-00050. Portable Permission integration and final reconciliation remain unfinished and keep EPIC-00018 open.
+The accepted checkpoints above preserve their original subjects; canonical handoffs own verification/runtime and
+subsequent integration/delivery details. Metadata alone still activates no runtime gate; Agent OS's class-only
+Attribute is not a dependency or alias of the package API.
 
 Selected EPIC-00018 TASK planning is complete. Next: `/skill:next` for Board-based selection, not automatic execution.
 All six EPIC-00017 audit TICKETs are now TASK-planned below, not implemented/qualified. EPIC-00015's added Agent

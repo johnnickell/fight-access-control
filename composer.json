@@ -63,7 +63,7 @@
     },
     "minimum-stability": "stable",
     "suggest": {
-        "codeigniter4/framework": "Enable explicit native CodeIgniter 4 permission admission and safe JSON errors (^4.7.6).",
+        "codeigniter4/framework": "Enable explicit native CodeIgniter 4 Permission or Feature admission and safe JSON errors (^4.7.6).",
         "laravel/framework": "Enable explicit native Laravel Permission or Feature middleware and Common safe handler (^13.40.0).",
         "slim/slim": "Enable the optional Slim permission target integration (^4.15.3).",
         "symfony/event-dispatcher": "Enable explicit native Symfony Permission or Feature admission (^8.1.5).",
