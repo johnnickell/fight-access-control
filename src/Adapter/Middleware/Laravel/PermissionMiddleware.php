@@ -28,18 +28,25 @@ final readonly class PermissionMiddleware
     /** @var WeakMap<Route, array{mixed, mixed}> */
     private WeakMap $targets;
 
+    private RequestAuthentication $authentication;
+
     /**
      * Constructs PermissionMiddleware
      *
      * @phpstan-param list<array{Route, mixed}> $targets
-     * @phpstan-param Closure(Request): ?RequestAuthority $authority
+     * @phpstan-param (Closure(Request): ?RequestAuthority)|RequestAuthentication $authority
      */
     public function __construct(
         private Router $router,
         array $targets,
-        private Closure $authority,
+        Closure|RequestAuthentication $authority,
         private PermissionAdmission $admission = new PermissionAdmission()
     ) {
+        if ($authority instanceof Closure) {
+            $authority = new RequestAuthentication($authority);
+        }
+
+        $this->authentication = $authority;
         $this->targets = new WeakMap();
         foreach ($targets as [$route, $declaration]) {
             if (isset($this->targets[$route])) {
@@ -75,16 +82,11 @@ final readonly class PermissionMiddleware
             throw new LogicException('Invalid target permission declaration.');
         }
 
-        $authority = null;
-        if ($declaration !== null && $declaration->mode !== AdmissionMode::PUBLIC) {
-            $authority = ($this->authority)($request);
-        }
-
-        $context = $this->admission->admit($declaration, $authority);
-        if ($context !== null) {
-            $request->attributes->set(SecurityContext::class, $context);
-        }
-
-        return $next($request);
+        return $this->authentication->admit(
+            $request,
+            $next,
+            fn(?RequestAuthority $authority): ?SecurityContext => $this->admission->admit($declaration, $authority),
+            $declaration !== null && $declaration->mode !== AdmissionMode::PUBLIC
+        );
     }
 }

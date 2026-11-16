@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Adapter\Middleware\Laravel;
 
 use Closure;
+use Fight\AccessControl\Adapter\Middleware\Laravel\FeatureMiddleware;
 use Fight\AccessControl\Adapter\Middleware\Laravel\PermissionMiddleware;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
@@ -114,6 +115,7 @@ final readonly class NativeApplication
         $this->router = $app->make('router');
         $this->kernel = new Kernel($app, $this->router);
         $this->kernel->prependToMiddlewarePriority(PermissionMiddleware::class);
+        $this->kernel->prependToMiddlewarePriority(FeatureMiddleware::class);
         $app->make('events')->listen(RequestHandled::class, function (RequestHandled $event): void {
             $this->trace->events[] = 'response';
             $event->response->headers->set('X-Lifecycle', 'preserved');
@@ -125,8 +127,15 @@ final readonly class NativeApplication
         return Request::create('https://example.test'.$path, server: ['HTTP_ACCEPT' => 'application/json']);
     }
 
-    public function route(string $path = '/protected/{id}', mixed $action = null, string $method = 'GET'): Route
-    {
+    /** @param list<class-string> $middleware */
+    public function route(
+        string $path = '/protected/{id}',
+        mixed $action = null,
+        string $method = 'GET',
+        array $middleware = [
+            PermissionMiddleware::class, SubstituteBindings::class, RecordingValidationMiddleware::class
+        ]
+    ): Route {
         $action ??= static function (Request $request, string $id): Response {
             ControllerWithFormRequest::$trace->events[] = 'action';
             ControllerWithFormRequest::$trace->contexts[] = $request->attributes->get(SecurityContext::class);
@@ -138,9 +147,7 @@ final readonly class NativeApplication
         };
 
         return $this->router->match([$method], $path, $action)
-            ->middleware([
-                PermissionMiddleware::class, SubstituteBindings::class, RecordingValidationMiddleware::class
-            ]);
+            ->middleware($middleware);
     }
 
     /**
