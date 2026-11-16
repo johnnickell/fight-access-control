@@ -1,14 +1,18 @@
 # Fight AccessControl Context
 
-## Ordinary Role audit composition — TASK-00168 Work
+## Ordinary Role audit composition — TASK-00168 accepted checkpoint
 
 [Ordinary Role composition](docs/role-audit-composition.md) now demonstrates the three implemented lifecycle
 handlers with reusable mapped audit storage/fault cases and fresh modeled Role observations. The mapping matrix
 and exact Agent OS workaround-retirement prerequisites distinguish package proof from still-unexecuted consumer
 schema/connection/locks/process/access qualification. No production behavior, caller authority, reference/revision
-policy or sibling source changes. Canonical TASK Work evidence owns checks and candidate identity; independent
-Review/nonvisual QA remain required. No consumer adoption, workaround removal, data/schema operation or deployment
-is authorized by this package example.
+policy or sibling source changes. Independent Review v3 ACCEPT and nonvisual QA PASS qualify clean candidate
+`fb56c123358dabec791a305a88a1bb6fa2bfd8b2` (40 executable scenarios / 233 QA checks plus a guidance walkthrough).
+TASK-00168 is done; unfinished TASK-00169 keeps TICKET-00048 and EPIC-00017 open. Earlier full-gate evidence is
+retained with current administrative checks. Canonical TASK Work evidence owns original checks; publication/final
+verification and retirement remain pending at this checkpoint, with actual outcomes in `.runs/handoffs/TASK-00168/land.md`.
+Minimum resolution retains 43 advisories across 13 development packages; ordinary reports none. No consumer adoption,
+workaround removal, data/schema operation or deployment is authorized by this package example.
 
 ## Local Docker sharing workaround — TASK-00183
 
