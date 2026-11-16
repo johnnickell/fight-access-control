@@ -151,7 +151,7 @@ authorized private criteria before implementation/review without disclosure; cho
 | 503 | [TASK-00172](../tasks/00172-TASK.md) | Enforce Feature admission through PSR-15 | done |
 | 504 | [TASK-00173](../tasks/00173-TASK.md) | Enforce Symfony Feature admission | done |
 | 504 | [TASK-00174](../tasks/00174-TASK.md) | Enforce Laravel Feature admission | ready-for-agent |
-| 504 | [TASK-00175](../tasks/00175-TASK.md) | Enforce CodeIgniter 4 Feature admission | ready-for-agent |
+| 504 | [TASK-00175](../tasks/00175-TASK.md) | Enforce CodeIgniter 4 Feature admission | in-progress |
 ## Decisions and Progress
 
 John approved this requirement and subsequently the complete four-TASK plan now TASK-00172–00175, orders 503/504/504/504.

@@ -8,6 +8,8 @@ and a trusted `SecurityContext` or deliberate anonymous null. It accepts only ac
 
 The optional [native Symfony Feature subscriber](symfony-feature-admission.md) consumes these same inward semantics
 without requiring PSR middleware or PermissionSubscriber activation; its native lifecycle and limits are distinct.
+The optional [native CodeIgniter 4 before-filter](codeigniter-feature-admission.md) likewise works without
+PermissionFilter activation and reuses the existing selected JSON error owner.
 
 ## Ownership and runtime flow
 

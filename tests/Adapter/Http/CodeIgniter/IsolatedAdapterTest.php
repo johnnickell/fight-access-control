@@ -18,6 +18,7 @@ use Config\Cache;
 use Config\Cookie;
 use Config\Services;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\PermissionFilter;
+use Fight\AccessControl\Adapter\Http\CodeIgniter\RequestAuthentication;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\RequestContexts;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\SafeCodeIgniter;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\SafeErrorResponder;
@@ -83,12 +84,11 @@ final class IsolatedAdapterTest extends TestCase
         $calls = 0;
         $filter = new PermissionFilter(
             static fn(): Router => $router,
-            static function () use ($environment, &$calls): RequestAuthority {
+            new RequestAuthentication(static function () use ($environment, &$calls): RequestAuthority {
                 ++$calls;
 
                 return $environment->user();
-            },
-            $contexts,
+            }, $contexts),
             $this->errors()
         );
         self::assertNull($filter->before($request));
@@ -118,10 +118,9 @@ final class IsolatedAdapterTest extends TestCase
         $response = $this->response();
         $filter = new PermissionFilter(
             static fn(): Router => $router,
-            static function (): never {
+            new RequestAuthentication(static function (): never {
                 self::fail('Invalid target must not authenticate.');
-            },
-            new RequestContexts(),
+            }, new RequestContexts()),
             $this->errors($response)
         );
 
