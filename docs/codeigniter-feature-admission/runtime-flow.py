@@ -2,8 +2,8 @@
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-REVISION = "48c6f6a1cb8d42f0f7869bc6fdb100e582cbcfa9"
-STATE = "PROPOSED TASK-00175 on base"
+REVISION = "07719c1d40f59c52dc40c47ea0be30ff5e4997c9"
+STATE = "Existing implementation"
 image = Image.new("RGB", (1280, 1130), "white")
 draw = ImageDraw.Draw(image)
 font_path = "/System/Library/Fonts/Supplemental/Arial.ttf"

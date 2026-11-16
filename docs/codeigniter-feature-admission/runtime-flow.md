@@ -1,7 +1,8 @@
 # CodeIgniter 4 Feature runtime view
 
-PROPOSED TASK-00175 implementation candidate on base `48c6f6a1cb8d42f0f7869bc6fdb100e582cbcfa9`.
-The canonical Work handoff records the candidate and its tested-content bridge. This bounded view supplements the
+Existing implementation at `07719c1d40f59c52dc40c47ea0be30ff5e4997c9`.
+The following documentation-only update pins this unchanged source revision and rendered caption. The canonical
+Work handoff records the final candidate and its tested-content bridge. This bounded view supplements the
 [owning composition guide](../codeigniter-feature-admission.md); it is not a whole class/dependency graph.
 
 ![Bounded CI4 Feature admission runtime flow](runtime-flow.png)
