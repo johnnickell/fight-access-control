@@ -24,12 +24,6 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
-    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\FeatureFilterTest": {
-      "file": "tests/Adapter/Http/CodeIgniter/FeatureFilterTest.php",
-      "category": "Integration",
-      "reason": "Executes actual native CI4 routing, before filters, controller and safe response lifecycle.",
-      "methods": {}
-    },
     "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\IsolatedFeatureFilterTest": {
       "file": "tests/Adapter/Http/CodeIgniter/IsolatedFeatureFilterTest.php",
       "category": "Unit",
@@ -40,18 +34,6 @@
       "file": "tests/Adapter/Http/CodeIgniter/IsolatedAdapterTest.php",
       "category": "Unit",
       "reason": "Direct adapter calls with controlled request/router/kernel interfaces and in-memory authority; no real framework pipeline, storage, network or business process.",
-      "methods": {}
-    },
-    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\PermissionFilterTest": {
-      "file": "tests/Adapter/Http/CodeIgniter/PermissionFilterTest.php",
-      "category": "Integration",
-      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
-      "methods": {}
-    },
-    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\SafeErrorResponderTest": {
-      "file": "tests/Adapter/Http/CodeIgniter/SafeErrorResponderTest.php",
-      "category": "Integration",
-      "reason": "Executes native framework routing/kernel/middleware and safe-response composition; not isolated adapter attribution.",
       "methods": {}
     },
     "Fight\\Test\\AccessControl\\Adapter\\Http\\Symfony\\EventSubscriber\\FeatureSubscriberTest": {

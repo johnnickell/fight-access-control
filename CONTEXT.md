@@ -1,5 +1,16 @@
 # Fight AccessControl Context
 
+## TASK-00168 CI4 coverage amendment — pending independent acceptance
+
+John approved replacing practical CI4 behavior with isolated unit tests and removing the affected bootstrap-dependent
+integration tests on the existing TASK-00168 PR. The shared-process CI4/Laravel helper collision is test-composition
+sensitivity, not a demonstrated production Role defect. Production code and coverage gates are unchanged.
+Current units do not qualify real CI4 route conversion, alias registration, native short-circuit/validator/controller/
+required-filter order, downstream exception interception or application/worker reset. See the
+[current verification boundary](docs/codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment).
+TASK-00175's earlier native acceptance and merged history, and the Role acceptance below, retain their original
+subjects. TASK-00168 is reopened only for this amendment; fresh independent Review/nonvisual QA are required.
+
 ## Ordinary Role audit composition — TASK-00168 accepted checkpoint
 
 [Ordinary Role composition](docs/role-audit-composition.md) now demonstrates the three implemented lifecycle

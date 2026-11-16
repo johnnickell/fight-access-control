@@ -19,7 +19,10 @@ When adding or changing tests, review their actual boundaries and update the man
 The isolated CodeIgniter tests load native class definitions but do not bootstrap an application, discover service
 files, open a cache or invoke a real router. Consumer-owned test service configuration and injected collaborators
 keep those boundaries controlled. PHPUnit subprocess isolation protects global framework configuration; it is not
-worker-process behavioral proof. Existing native pipeline, SQLite, security and process tests remain separate.
+worker-process behavioral proof. TASK-00168's explicit [CI4 amendment](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment)
+removes only its bootstrap-dependent native integration tests and unused fixtures; current CI4 units do not prove
+native dispatch, ordering or bootstrap/reset. Other frameworks' native pipelines, SQLite, security and process tests
+remain separate. Exact all-src statements and independently attributed Unit-only lines remain required.
 
 ## Evidence and enforcement
 
