@@ -8,7 +8,7 @@ User Role-derived versus Agent direct Permissions and separate target-scope auth
 
 ## Install and select deliberately
 
-The current selected combination is Common `^1.5.0`, Laravel framework `^13.40.0`, Symfony HttpFoundation/HttpKernel
+The current selected combination is Common `^1.5.1`, Laravel framework `^13.40.0`, Symfony HttpFoundation/HttpKernel
 `^8.1.11` and Event Dispatcher `^8.1.5`, on patched PHP 8.5.12. Laravel is a dev fixture and optional suggestion,
 not a required production framework. A consumer selecting Laravel installs and maintains its native components:
 
@@ -92,7 +92,10 @@ is not PUBLIC. Shared inward admission maps only deliberate authentication rejec
 incomplete Agent Permission snapshots and opaque resolution/storage faults remain server errors.
 
 On every middleware entry, the request's `SecurityContext::class` attribute is removed before checking target or
-selecting authority. Successful non-public admission sets a new immutable snapshot there. The middleware may be
+selecting authority. Successful non-public admission publishes its immutable snapshot there. When composing
+[native Feature admission](laravel-feature-admission.md), pass the same Laravel `RequestAuthentication` instance
+to both gates. Their private active-chain state preserves an already trusted context across public/empty gates
+and selects one provider without another authentication/nonce consumption; copied attributes are never authority. The middleware may be
 reused, but its factory must not close over a cached principal/request/provider singleton. Multiple Permissions
 share that request's single authentication/nonce consumption. Reusing the same signed nonce on a later request
 fails; the adapter does not reauthenticate for each Permission or replay an original nonce for continuation.

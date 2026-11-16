@@ -149,6 +149,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   validation, safe bounded failures and private zero-TTL responses; Query data and linked Resource/Skill targets
   need independent admission. See [Prompt authorization](docs/agent-prompt-authorization.md).
 
+- Optional native Laravel Feature middleware consumes effective inherited/class/method/route restrictions before
+  protected validation/action work, independently of Permission activation. Cooperating gates share trusted
+  request authentication and one Agent nonce; ordinary OFF/unmet PREVIEW becomes generic 404 while faults retain
+  Common's safe native owner. See [Laravel Feature composition](docs/laravel-feature-admission.md) for supported
+  forms, real construction/lifetime limits and consumer-owned qualification.
+
 - Optional native Symfony Feature admission before lazy controller resolution, independently selectable from
   PermissionSubscriber. Shared effective declarations and dispatch-owned authentication preserve inherited gates,
   trusted controller association and one Agent nonce across cooperating checks. Ordinary OFF/unmet PREVIEW is generic
