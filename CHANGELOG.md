@@ -13,7 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   class/method/repeated/inherited Attributes and protected route additions use existing inward admission without
   Feature activation. **Pre-v1:** construct `PermissionMiddleware` with `PermissionRequirements`, a trusted native
   selected-action callback and the existing authority factory/shared request authentication; the declaration-only
-  constructor is removed. Missing/conflicting metadata fails closed before protected work. Consumer routes,
+  constructor is removed. Missing/conflicting metadata fails closed before protected work. Supported Slim/Yii
+  entry recipes clone the concrete Slim PSR-7 request and strip copied context before every independent dispatch,
+  isolating nested same-object reentry while adjacent gates still share one authentication/nonce. Consumer routes,
   authentication, storage, sinks and target scope still require qualification. See
   [HTTP composition](docs/http-permission-admission.md#portable-permission-admission-unreleased).
 

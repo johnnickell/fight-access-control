@@ -129,7 +129,13 @@ Actual providers cache one request snapshot, so a second gate does not replay a 
 Do not interpose middleware that clones/rewrites the PSR request between these gates: such a request intentionally
 has no trusted shared entry and requires fresh selection rather than accepting copied authority. Use adjacent gates
 or a consumer-owned qualified composition; arbitrary request mutation is not an implicit trusted handoff. A nested
-independent dispatch must use its own incoming request/provider/nonce. Copied parent contexts confer no authority.
+independent dispatch must establish a distinct request identity before routing and strip copied SecurityContext,
+even when called with the parent's forwarded object. Use the concrete supported entry recipes in the
+[Permission guide](http-permission-admission.md#request-and-nested-lifetimes): clone the qualified Slim PSR-7 request
+at each Slim/Yii entry, then create Yii's fresh Router/CurrentRoute where applicable. A new Router alone is not a
+new authentication scope. Keep adjacent gates inside that one entry; each independent entry needing authentication
+selects its own provider. An independently signed Agent request needs its own valid nonce. Copied parent contexts
+confer no authority.
 Finally-scoped state is removed after success or exception; reused middleware/containers do not carry principals
 into sequential requests. Providers and signed requests must not be captured across factory invocations.
 

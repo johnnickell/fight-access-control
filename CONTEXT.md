@@ -1513,6 +1513,10 @@ route additions are exercised separately through real Slim and Yii 3 routing. Th
 removed under ADR 0011; [HTTP composition](docs/http-permission-admission.md#portable-permission-admission-unreleased)
 shows current callers and native limits. No second merger, authority engine, Feature dependency or consumer change
 is added. Existing request-owned authentication, safe Common error owner and separate target-scope obligations remain.
+R1 repair makes each supported Slim/Yii native entry clone the concrete Slim PSR-7 request and strip copied
+SecurityContext before routing. Distinct attributed nested targets sharing one authentication object now select
+independently, including same-object reentry; adjacent gates inside that entry still share one selection/nonce.
+The recipes do not claim arbitrary non-cloneable PSR request support. Supplier authentication is unchanged.
 Work verification and candidate/runtime details belong to the canonical TASK handoff. Independent Review and
 nonvisual QA remain required; this checkpoint claims neither acceptance nor actual consumer qualification.
 

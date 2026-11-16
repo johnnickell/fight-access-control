@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Adapter\Middleware\Psr15;
 
 use Fight\AccessControl\Adapter\Middleware\Psr15\PermissionMiddleware;
+use Fight\AccessControl\Adapter\Middleware\Psr15\RequestAuthentication;
 use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
 use Fight\AccessControl\Application\AccessControl\Agent\QueryHandler\GetAgentProfileHandler;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
@@ -236,23 +237,81 @@ final class PermissionMiddlewareTest extends TestCase
     #[DataProvider('frameworks')]
     public function test_nested_dispatch_requires_own_trusted_authority_not_parent_attribute(string $framework): void
     {
+        NativeController::$handled = 0;
+        $calls = 0;
+        $fault = false;
+        $selectedRequests = [];
+        $nestedStatus = null;
+        $parentPreserved = false;
+        $incoming = $this->request()->withHeader('X-Request-Probe', 'preserved')
+            ->withBody(new StreamFactory()->createStream('signed request body'))
+            ->withParsedBody(['value' => 7])->withCookieParams(['session' => 'test-cookie'])
+            ->withQueryParams(['b' => '2', 'a' => '1']);
+        $authentication = new RequestAuthentication(static function (ServerRequestInterface $request) use (
+            &$calls,
+            &$fault,
+            &$selectedRequests
+        ): ?RequestAuthority {
+            ++$calls;
+            $selectedRequests[] = $request;
+            if ($calls % 2 === 1) {
+                return new AdmissionEnvironment()->user();
+            }
+
+            if ($fault) {
+                throw new RuntimeException('PRIVATE NESTED PROVIDER FAILURE');
+            }
+
+            return null;
+        });
         $inner = new NativePipeline($framework, PermissionGate::bind(
             null,
-            static fn(): null => null
-        ), controller: PermissionNativeRead::class);
+            $authentication
+        ), controller: PermissionNativeNestedRead::class);
         $outer = new NativePipeline($framework, PermissionGate::bind(
             null,
-            static fn(): RequestAuthority => new AdmissionEnvironment()->user()
+            $authentication
         ), controller: PermissionNativeRead::class);
-        $outer->beforeWork = static function (ServerRequestInterface $request) use ($inner): void {
+        $outer->beforeWork = static function (ServerRequestInterface $request) use (
+            $inner,
+            &$nestedStatus,
+            &$parentPreserved
+        ): void {
             $parentSnapshot = $request->getAttribute(SecurityContext::class);
-            self::assertInstanceOf(SecurityContext::class, $parentSnapshot);
-            self::assertSame(401, $inner->request($request)->getStatusCode());
-            self::assertSame($parentSnapshot, $request->getAttribute(SecurityContext::class));
+            $nestedStatus = $inner->request($request)->getStatusCode();
+            $parentPreserved = $parentSnapshot instanceof SecurityContext
+                && $parentSnapshot === $request->getAttribute(SecurityContext::class);
         };
-        self::assertSame(204, $outer->request($this->request())->getStatusCode());
+        foreach ([false, true, false] as $fault) {
+            self::assertSame(204, $outer->request($incoming)->getStatusCode());
+            self::assertSame($fault ? 500 : 401, $nestedStatus);
+            self::assertTrue($parentPreserved);
+            self::assertNull($incoming->getAttribute(SecurityContext::class));
+        }
+
+        self::assertSame(6, $calls);
+        foreach ($selectedRequests as $request) {
+            self::assertNotSame($incoming, $request);
+            self::assertNull($request->getAttribute(SecurityContext::class));
+            self::assertSame($incoming->getMethod(), $request->getMethod());
+            self::assertSame((string) $incoming->getUri(), (string) $request->getUri());
+            self::assertSame($incoming->getHeaders(), $request->getHeaders());
+            self::assertSame($incoming->getParsedBody(), $request->getParsedBody());
+            self::assertSame($incoming->getCookieParams(), $request->getCookieParams());
+            self::assertSame($incoming->getQueryParams(), $request->getQueryParams());
+            self::assertSame($incoming->getServerParams(), $request->getServerParams());
+            self::assertSame($incoming->getUploadedFiles(), $request->getUploadedFiles());
+            self::assertSame($incoming->getRequestTarget(), $request->getRequestTarget());
+            self::assertSame($incoming->getProtocolVersion(), $request->getProtocolVersion());
+            self::assertSame((string) $incoming->getBody(), (string) $request->getBody());
+        }
+
         self::assertSame(0, $inner->validators);
-        self::assertSame(1, $outer->validators);
+        self::assertSame(3, $inner->reports);
+        self::assertSame(3, $outer->validators);
+        self::assertSame(3, NativeController::$handled);
+        self::assertNotSame($outer->contexts[0], $outer->contexts[1]);
+        self::assertNotSame($outer->contexts[1], $outer->contexts[2]);
     }
 
     #[DataProvider('frameworks')]

@@ -189,9 +189,18 @@ immutable snapshot within one short request. Cooperating downstream code uses th
 request-owned provider, not a second signed-request authentication transaction. Checking multiple requirements does
 not replay HMAC or consume another nonce. Failed requests do not make their partial context available to the next one.
 
-Nested dispatch must enter its own explicitly composed route admission with a new provider/context and trusted
-selection. A copied parent SecurityContext is ignored as authentication. This feature supplies **no implicit parent
-handoff**. For a same-short-request cooperating operation, use the already admitted snapshot in the original flow;
+Every independent native entry, including nested dispatch with the same forwarded object, must establish a
+**distinct request identity before routing** and remove copied `SecurityContext`. The executable recipes below
+clone the qualified concrete `Slim\Psr7\Request` and strip that attribute at each entry. They preserve request
+fields/body bytes for consumer canonicalization; they do not promise arbitrary non-cloneable PSR implementations.
+Other implementations need their own qualified entry composition. A fresh Yii Router alone does not establish
+this ownership boundary. Never use a client-copyable attribute as the trusted dispatch marker.
+
+Keep the same shared `RequestAuthentication` across adjacent cooperating gates **within** that dispatch, not as
+an implicit parent handoff. Each independent entry that needs authentication invokes the factory for a new
+provider/context and trusted selection, even if a reused container supplies the same authentication object.
+A copied parent SecurityContext is ignored as authentication. This feature supplies **no implicit parent handoff**.
+For a same-short-request cooperating operation, use the already admitted snapshot in the original flow;
 do not replay the parent's signed request through a fresh Agent provider. An independently authenticated nested Agent
 request needs its own valid nonce. Consumers needing a delegated nested identity must separately establish trusted
 handoff/provenance and scope; an arbitrary caller attribute is not that contract. Long-lived/background work uses
@@ -219,10 +228,18 @@ $route->add($protectedValidator);
 $route->add($permission); // Slim route middleware is LIFO: admission runs before validation.
 $app->addRoutingMiddleware();
 $app->add($errors); // Common SafeJSendErrorMiddleware, outermost on this selected ordinary HTTP pipeline.
-$response = $app->handle($request);
+// This is the entry for every independent dispatch, including nested same-object reentry.
+$entry = static function (Request $incoming) use ($app): ResponseInterface {
+    $request = (clone $incoming)->withoutAttribute(SecurityContext::class);
+
+    return $app->handle($request);
+};
+$response = $entry($request);
 ```
 
-Imports include Application `Action\SelectedAction`, `Authorization\Admission\PermissionRequirements`,
+Imports include concrete `Slim\Psr7\Request`, PSR `ResponseInterface`, Application
+`Authorization\Service\SecurityContext`, Application `Action\SelectedAction`,
+`Authorization\Admission\PermissionRequirements`,
 PSR `ServerRequestInterface` and Slim `Routing\RouteContext`. The example deliberately supports one known action;
 consumer extraction must match each actual supported native callable, never guess from headers/arguments.
 Qualified forms: closure `(request, response)` with its exact closure binding, invokable class-string and
@@ -255,14 +272,23 @@ $collector = new RouteCollector();
 $collector->addRoute($route);
 $routes = new RouteCollection($collector);
 $factory = new MiddlewareFactory($container);
-// Per incoming request, including nested dispatch:
-$router = new Router(new UrlMatcher($routes), $responseFactory, $factory, new CurrentRoute());
-$pipeline = new MiddlewareDispatcher($factory);
-$response = $pipeline->withMiddlewares([$errors->process(...), $router->process(...)])
-    ->dispatch($request, $notFoundHandler);
+// This is the entry for every independent dispatch, including nested same-object reentry.
+$entry = static function (Request $incoming) use (
+    $routes, $responseFactory, $factory, $errors, $notFoundHandler
+): ResponseInterface {
+    $request = (clone $incoming)->withoutAttribute(SecurityContext::class);
+    $router = new Router(new UrlMatcher($routes), $responseFactory, $factory, new CurrentRoute());
+    $pipeline = new MiddlewareDispatcher($factory);
+
+    return $pipeline->withMiddlewares([$errors->process(...), $router->process(...)])
+        ->dispatch($request, $notFoundHandler);
+};
+$response = $entry($request);
 ```
 
-Imports are the actual `Yiisoft\Router` Route/RouteCollector/RouteCollection/CurrentRoute,
+The same concrete `Slim\Psr7\Request`, PSR `ResponseInterface` and Application
+`Authorization\Service\SecurityContext` imports apply here. Other imports are the actual
+`Yiisoft\Router` Route/RouteCollector/RouteCollection/CurrentRoute,
 `Yiisoft\Router\FastRoute\UrlMatcher`, `Yiisoft\Router\Middleware\Router` and
 `Yiisoft\Middleware\Dispatcher` MiddlewareFactory/MiddlewareDispatcher. Admission uses the PSR-15 **process callable**
 that Yii's native definition factory supports, not a fabricated common router or an unsupported bare object definition.
@@ -274,7 +300,10 @@ methods, with native lazy resolution. No universal pre-container-construction pr
 
 `CurrentRoute` has single-assignment URI/route state. Do **not** reuse a Router/CurrentRoute across requests or nested
 routing. Reuse immutable route definitions/matcher services only with an actually qualified request-owned context.
-The fixtures serve repeated requests in one process with a new CurrentRoute/Router each time. Native unmatched
+The fixtures serve repeated/nested requests in one process with a cloned request stripped of copied context
+and a new CurrentRoute/Router each time. Distinct attributed targets with one shared authentication object prove
+fresh nested selection, denial/provider-fault cleanup and unchanged parent context. Both-order cooperating Agent
+gates still select once and consume one nonce inside an entry. Native unmatched
 routing delegates to the supplied 404 handler and never calls a stale protected target. Yii's native method-failure
 responses remain native responses. No request arguments or CurrentRoute name are used as authority/declarations.
 

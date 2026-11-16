@@ -25,6 +25,7 @@ use Slim\App;
 use Slim\Factory\AppFactory;
 use Slim\Psr7\Factory\ResponseFactory;
 use Slim\Psr7\Factory\StreamFactory;
+use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Routing\RouteContext;
 use Throwable;
@@ -169,6 +170,13 @@ final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnosti
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        if (!$request instanceof Request) {
+            throw new LogicException('This native entry requires the qualified Slim PSR-7 request implementation.');
+        }
+
+        // Each independent dispatch owns a distinct identity, even on same-object nested reentry.
+        // Only adjacent gates inside this entry may share the privately selected authentication state.
+        $request = (clone $request)->withoutAttribute(SecurityContext::class);
         if ($this->framework === 'slim') {
             return $this->slim->handle($request);
         }
