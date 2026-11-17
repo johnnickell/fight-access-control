@@ -1,5 +1,17 @@
 # Fight AccessControl Context
 
+## Integrated optional audit — TASK-00169 Work
+
+The [current outcome matrix](docs/audit-outcome-coverage.md) now reconciles every current handler and related
+synchronous/worker entry against implemented family optionality, typed facts and transaction/disposition boundaries.
+All covered owning writers use optional final nullable audit storage; omitted/null promises no durability and never
+disables business actors, authorization or fences. Configured failure aborts staged work. Mixed Role/Feature proof
+covers independent opt-in/out and later opt-in without backfill. Original supplier acceptance, current package
+checks and unexecuted actual consumer qualification remain separate. Canonical Work evidence owns exact tested
+candidate/log/source/dependency/runtime bridges; independent Review and nonvisual QA remain required. TASK-00182's
+void Commands/authorized Queries supersede historical issuance-warning wording. No consumer adoption, workaround
+removal, schema/data operation, release or deployment follows.
+
 ## Portable Symfony Permission admission — TASK-00177 accepted checkpoint
 
 The existing native PermissionSubscriber now composes the actual selected action's effective portable requirements

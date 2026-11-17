@@ -201,6 +201,16 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 
 ## Application and security behavior
 
+- **Current optional atomic audit (EPIC-00017):** every covered handler and related synchronous outcome owner uses
+  optional last nullable `AuditEvidenceRepository`, including formerly mandatory writers. Omitted/null deliberately
+  disables durability for that owner only; configured failure never does. Enabled evidence joins the actual mutation
+  transaction before commit. Later opt-in does not backfill history. Explicit typed origin grants no authority;
+  disabled/no-change work needs no new audit-only actor, while existing business actors and all admission/fence/
+  recovery contracts remain mandatory. See the [complete current outcome matrix](../../docs/audit-outcome-coverage.md),
+  [typed mapping](../../docs/audit-evidence.md) and [ordinary Role composition](../../docs/role-audit-composition.md).
+  Historical mandatory-audit releases/acceptance retain their subjects; package models do not qualify actual consumer
+  mapping, shared connections, locks, processes, keys/sinks, restoration or activation/use, or authorize workaround removal.
+
 - Secret-bearing activation, login, refresh, logout, password and email-confirmation operations remain synchronous.
   EPIC-00015 replaces ADR 0003's single AuthenticationService placement mandate with cohesive direct owners under
   the Architecture rule; TASK-00112 implements `UserAuthentication`, `SessionLifecycle`, `PasswordManagement` and
@@ -276,7 +286,7 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   prior-contract migration is supplied; modeled package tests do not qualify actual consumer restore/activation/use.
 - TASK-00068 removes TASK-00055's superseded legacy-Agent model, recovery marker and old-API stubs. Follow the
   [current Agent contract](../../docs/agent-current-contract.md): validated hydration and unconditional lifecycle
-  correlation/cancellation with audit atomicity. User delivery requires explicit claim identity/time and due time;
+  correlation/cancellation with enabled audit atomicity. User delivery requires explicit claim identity/time and due time;
   use [current worker composition](../../docs/credential-delivery.md), not the removed transport-confirmation Command.
   `ManagedPolicyPlanner` requires all four repositories, including Agent; it has no older optional composition.
   No prior-data conversion, legacy adoption or schema migration is a package obligation.

@@ -1,18 +1,20 @@
 # Operation outcomes
 
-The current package contract separates business persistence, required audit, notification and consumer presentation.
+The current package contract separates business persistence, configured atomic audit, notification and consumer presentation.
 Commands and synchronous authentication methods retain their established authorization and transaction boundaries.
 Queries remain read-only. This composition is published in [v0.8.0](release-0.8.0.md), not part of v0.7.0;
 the overview separates verified package publication from unexecuted consumer qualification.
 Unreleased [User/session type validation](user-session-type-contracts.md) preserves these outcomes and fences;
 shape validation is not authorization, diagnostic sanitization or consumer persistence qualification.
 
-The [living audit outcome matrix](audit-outcome-coverage.md) reconciles every current handler and related sensitive/
-worker entry with EPIC-00017's approved optional-audit target and its pending family/conformance proof. Current
-writers and this guide's implemented guarantees remain the baseline except the eight account lifecycle handlers:
-Unreleased TASK-00123 supports explicit optional last audit injection there. Omitted/null disables durability only;
-configured audit still joins the mutation transaction and fails staged work on error. Remaining families retain
-current required wiring until their own optionality work lands.
+The [current audit outcome matrix](audit-outcome-coverage.md) reconciles every handler and related sensitive/worker
+entry, including all family suppliers and the ordinary Role/conformance bindings. **Unreleased:** audit storage is
+optional last nullable everywhere in that surface, including formerly mandatory writers. Omitted/null disables
+durable evidence only; configured audit is required inside the mutation transaction and failure aborts staged work.
+Mixed per-owner composition is intentional. Later opt-in never backfills history or manufactures evidence during
+validated no-change/original-key resolution. Existing required actors, authorization, coupled writes, reference/
+cohort/restoration fences and recovery remain mandatory independently of audit. Historical releases retain their
+original mandatory-audit contract; they are not documentation of this breaking current composition.
 
 ## Notifications and callers
 
@@ -27,7 +29,7 @@ notification policy**: consumers must separately sanitize responses and logs and
 
 ## Persistence and publication
 
-- Confirmed pre-commit failures roll back staged mutation and required audit, with no success event.
+- Confirmed pre-commit failures roll back staged mutation and configured audit, with no success event.
 - Success events publish only after confirmed commit. A subsequent publisher or synchronous subscriber fault still
   throws; it does not undo the committed state or acknowledge success to the caller.
 - Lost commit acknowledgement is not proof of rollback. Reconcile using authoritative current state under current
@@ -76,7 +78,7 @@ $replacementUser->changePassword($passwordHash, $changedAt);
 ```
 
 Persist that successor through the existing `UserRepository::replaceAuthenticationAuthority()` inside the same
-Unit of Work as recovery cancellation, session revocation and required audit. Do not separately increment a revision.
+Unit of Work as recovery cancellation, session revocation and configured audit. Do not separately increment a revision.
 Login and activation still require `replaceAuthenticationAuthorityAndAddRefreshSession()`; email confirmation retains
 its dedicated full-state replacement. Aggregate encapsulation does not replace complete expected-state CAS,
 exact-one revision validation, coupled session insertion, single-use grants or transaction-duration fences.
@@ -112,8 +114,8 @@ Implement mandatory `UserRepository::validateRecoveryAuthority(expectedUser)` ag
 state. Successful validation holds the same per-User fence as every User and password-reset grant writer through
 transaction completion, even without a User mutation. Issuance validates the requested canonical identity under
 that fence before persisting a pristine matching generation. Redemption couples validation, consumption, User
-replacement, session revocation and required audit. Authority-changing operations couple cancellation and User
-mutation with their existing audit; failure rolls back both. No cancellation is deferred until after commit.
+replacement, session revocation and configured audit. Authority-changing operations couple cancellation and User
+mutation with enabled evidence; configured write failure rolls back both. No cancellation is deferred until after commit.
 
 Use one real connection/Unit of Work and a consistent **User-before-grant** lock order. All authentication, lifecycle,
 email, Role, direct repository, issuance, replacement, revocation, cleanup and worker writers participate. A prior

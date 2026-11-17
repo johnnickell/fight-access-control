@@ -123,7 +123,9 @@ Do not confuse those removals with permission to weaken current safety. Success 
 uncertainty and Agent issuance's scoped publication policy remain distinct under the profile. TASK-00182's Work candidate now replaces the direct issuance services/results with registered void Commands and
 independent authorized outcome Queries. The returned-warning caller contract is removed; the guarantee that
 publication failure cannot hide committed issuance remains. Independent acceptance is separate.
-Required audit in current source is unchanged here; EPIC-00017's optional-atomic audit destination has separate owners.
+EPIC-00017's covered owners now use optional final nullable audit storage. Enabled evidence remains atomic;
+disabled use makes no durability promise and does not weaken any other mutation, authorization or recovery fence.
+See the [complete current outcome matrix](../../audit-outcome-coverage.md) for family ownership and qualification limits.
 Exact owned-statement coverage and OpenAPI integration coverage remain mandatory. An actual source/policy mismatch
 returns to its named TASK/decision owner; this guidance neither repairs it nor authorizes later work.
 
