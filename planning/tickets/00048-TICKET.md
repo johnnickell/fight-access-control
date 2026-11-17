@@ -2,10 +2,26 @@
 id: TICKET-00048
 epic: EPIC-00017
 title: Qualify audit composition and document consumer adoption
-status: ready-for-agent
+status: done
 ---
 
 # Qualify audit composition and document consumer adoption
+
+## Current package acceptance
+
+All four child TASKs are independently accepted with applicable QA. TASK-00169's final reconciliation is accepted at
+`50f1ab533299cd16625c1538956b0caa3703ac6c`, with 142 QA cases / 1,288 executable assertions and retained full-gate
+evidence. The current inventory accounts for 39 handlers, seven synchronous User entries and six remaining Agent
+entries, not 52 writers. TICKET-00048 closes with its terminal children. Actual consumer qualification and workaround
+removal remain separate. Publication/cleanup outcomes belong to the canonical TASK-00169 Land handoff.
+
+## Current contract amendment
+
+TASK-00182 supersedes this plan's historical issuance-warning wording. Current provision/rotation Commands return
+void and independent authorized outcome Queries resolve retained issuance/dispositions. Confirmed issuance survives
+both publishers failing; no returned, stored or reconstructed publication warning remains. TASK-00169 consumes all
+completed suppliers against current source without rewriting their original acceptance. TASK-00168's original Role
+composition and later CI4 isolated-unit amendment remain distinct subjects; units do not qualify native bootstrap.
 
 ## Problem and Outcome
 
@@ -134,8 +150,9 @@ PostgresRoleMutationAudit. Package bindings are not real SQL/process/consumer pr
 TASK-00169 reconciles complete candidate-compatible family acceptance and adds only missing cross-family proof.
 Preserve mixed opt-in/opt-out, no later backfill, committed terminal-replay revocation despite refusal, benign no-change,
 changed-subject batches, retained-origin restart and claim-path expiry/exhaustion. External send/cleanup cannot be
-rolled back by database audit failure; rewrap stays inside its bounded fenced transaction. Only issuance retains
-confirmed-result sanitized publication warnings. Reconcile current profile/guides/examples/Unreleased notes without
+rolled back by database audit failure; rewrap stays inside its bounded fenced transaction. Only issuance contains
+confirmed-commit publication faults under the current void/authorized-Query amendment; no returned or reconstructed
+warnings remain. Reconcile current profile/guides/examples/Unreleased notes without
 rewriting historical acceptance or weakening actual authorization/recovery fences. Substantive supplier defects
 return through their real owner and affected independent acceptance, not a duplicate redesign here.
 
@@ -160,8 +177,8 @@ and task scope/orders/blockers remain unchanged.
 | 399 | [TASK-00166](../tasks/00166-TASK.md) | Maintain complete audit outcome coverage | done |
 | 400 | [TASK-00167](../tasks/00167-TASK.md) | Provide reusable audit transaction conformance | done |
 | 421 | [TASK-00168](../tasks/00168-TASK.md) | Demonstrate ordinary Role audit composition | done |
-| 422 | [TASK-00169](../tasks/00169-TASK.md) | Qualify integrated audit coverage and reconcile guidance | ready-for-agent |
-## Decisions and Progress
+| 422 | [TASK-00169](../tasks/00169-TASK.md) | Qualify integrated audit coverage and reconcile guidance | done |
+## Historical planning decisions and progress
 
 John approved this requirement in EPIC-00017's six-TICKET split and subsequently the complete four-TASK plan, now
 TASK-00166–00169. All six audit TICKETs are fully TASK-planned as 24 chores (2 + 5 + 5 + 4 + 4 + 4), not implemented/
