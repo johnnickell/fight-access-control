@@ -14,7 +14,8 @@ TASK-00179 now selects `SafeNativeLogger` before native formatting/cache/handler
 Common `SafeHttpDiagnostics` owner as `SafeErrorResponder`. Correction to the earlier Work hold: CI4 supports an
 explicit logger service replacement; a thin ingress to the existing owner is not a competing reporter. The loop
 alone still cannot intercept swallowed native failures. Select both services as shown below; no vendor change or
-native Attribute safeguard disablement is needed. Independent Review and nonvisual QA remain required.
+native Attribute safeguard disablement is needed. TASK-00179 has independent Review ACCEPT and nonvisual QA PASS
+for this package boundary; actual consumer composition remains separately qualified.
 
 The separate fixture mistake is corrected: before native test bootstrap, the Permission fixture defines its own
 `WRITEPATH` under ignored `var/tests/task-00179/native-permission/<process>/`. Native logs, file cache, sessions,

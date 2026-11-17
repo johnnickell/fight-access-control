@@ -2,7 +2,7 @@
 id: TICKET-00051
 epic: EPIC-00018
 title: Enforce portable Permission declarations across five frameworks
-status: ready-for-agent
+status: done
 ---
 
 # Enforce portable Permission declarations across five frameworks
@@ -161,7 +161,15 @@ criteria before implementation/review without disclosure, and explicitly choose 
 | 505 | [TASK-00176](../tasks/00176-TASK.md) | Integrate portable Permissions through PSR-15 | done |
 | 505 | [TASK-00177](../tasks/00177-TASK.md) | Integrate portable Permissions in Symfony | done |
 | 505 | [TASK-00178](../tasks/00178-TASK.md) | Integrate portable Permissions in Laravel | done |
-| 505 | [TASK-00179](../tasks/00179-TASK.md) | Integrate portable Permissions in CodeIgniter 4 | in-progress |
+| 505 | [TASK-00179](../tasks/00179-TASK.md) | Integrate portable Permissions in CodeIgniter 4 | done |
+## Current package outcome
+
+TASK-00176–00179 now have independent technical acceptance and applicable nonvisual QA across all five frameworks.
+All children are terminal, completing this ticket. Each TASK retains its exact accepted candidate, native boundary,
+minimum/ordinary/isolation proof and limitations; no single report is relabeled as combined acceptance. TICKET-00052
+still owns final candidate-compatible composition reconciliation; actual consumer qualification remains separate.
+The planning checkpoints below retain their original subjects.
+
 ## Decisions and Progress
 
 John approved the requirement split and subsequently this complete four-TASK plan, now TASK-00176–00179 at equal order

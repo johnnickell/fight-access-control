@@ -160,8 +160,9 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 - TASK-00103 establishes the first PSR-15 permission adapter and its Composer/autoload, architecture, mirrored
   `tests/Adapter`, style/static-analysis/default-suite and exact owned-statement coverage wiring. Follow the
   [HTTP admission guide](../../docs/http-permission-admission.md) for qualified Slim/Yii 3 composition and limits.
-  [CI4 composition](../../docs/codeigniter-permission-admission.md) now has TASK-00106's Work implementation;
-  independent acceptance remains required. [Laravel composition](../../docs/laravel-permission-admission.md) now has
+  [CI4 composition](../../docs/codeigniter-permission-admission.md) has TASK-00106's accepted base integration and
+  TASK-00179's independently reviewed and QA-accepted portable Permission/native diagnostic composition.
+  [Laravel composition](../../docs/laravel-permission-admission.md) now has
   TASK-00105's independently reviewed and QA-accepted implementation with Common `^1.4.1`. Other native adapters
   retain their own TASK evidence. Do not implement adapters or change executable inputs through planning edits.
 - Reuse public Fight Common values and identities: context IDs extend UniqueId, email is the common EmailAddress,
