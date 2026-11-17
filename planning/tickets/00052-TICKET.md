@@ -2,7 +2,7 @@
 id: TICKET-00052
 epic: EPIC-00018
 title: Qualify independent and combined admission
-status: ready-for-agent
+status: done
 ---
 
 # Qualify independent and combined admission
@@ -86,19 +86,19 @@ explicitly, preserve unrelated work and retain complete local evidence under tas
 
 ## Acceptance Evidence
 
-- [ ] A compact current five-framework evidence map distinguishes Feature-only, Permission-only and combined paths, actual
+- [x] A compact current five-framework evidence map distinguishes Feature-only, Permission-only and combined paths, actual
   implemented/accepted suppliers and remaining external qualification; no pending or sampled case is labeled complete.
-- [ ] Sufficient existing unit/native evidence and only necessary gap tests establish cumulative inherited/route
+- [x] Sufficient existing unit/native evidence and only necessary gap tests establish cumulative inherited/route
   declarations, independent enablement and both-gate enforcement, without Feature-ON/public/anonymous bypass, stale
   context or duplicate authentication/nonce effects. No new test per framework/requirement/combination is required.
-- [ ] Generic Feature denial, retained Permission refusals and configuration/operational faults remain distinct and
+- [x] Generic Feature denial, retained Permission refusals and configuration/operational faults remain distinct and
   safe through actual native reporting/response/fallback paths, with one redacted reporting owner and explicit limits.
-- [ ] Native order/controller/response/lifetime proof, optional dependency isolation and supported minimum/ordinary
+- [x] Native order/controller/response/lifetime proof, optional dependency isolation and supported minimum/ordinary
   composition agree with current docs/examples and candidate-compatible evidence, without duplicate source ownership.
-- [ ] Actual executable/test/build-input changes have focused checks, regression-first defect proof, canonical full
+- [x] Actual executable/test/build-input changes have focused checks, regression-first defect proof, canonical full
   gate/exact owned production coverage and complete evidence; strictly documentation-only work follows the existing
   evidence-reuse rule. Independent Review/nonvisual QA are separate from writing tests; no duplicate testing programme.
-- [ ] Consumer adoption requirements remain explicit and unclaimed; no package fixture/guide grants deployment authority
+- [x] Consumer adoption requirements remain explicit and unclaimed; no package fixture/guide grants deployment authority
   or proves real consumer authentication/scanner/persistence/bootstrap/sink/proxy behavior.
 
 ## Exclusions
@@ -143,8 +143,17 @@ examples/Unreleased and actual consumer limits remain in scope; no consumer adop
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 499 | [TASK-00180](../tasks/00180-TASK.md) | Map existing admission evidence | done |
-| 506 | [TASK-00181](../tasks/00181-TASK.md) | Close composition gaps and reconcile guidance | in-progress |
-## Decisions and Progress
+| 506 | [TASK-00181](../tasks/00181-TASK.md) | Close composition gaps and reconcile guidance | done |
+## Current package outcome
+
+Both children are independently accepted with applicable nonvisual QA. TASK-00181 reconciles all five families and
+three selections against candidate-compatible supplier evidence, with no new tests or supplier repair. Its current
+[evidence map](../../docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased) preserves
+CI4's explicit Feature-native amendment, separate Permission-native proof and actual consumer obligations. All
+acceptance evidence above is satisfied within that amended package boundary; original supplier reports retain their
+subjects. This completes TICKET-00052 and EPIC-00018, not consumer qualification, publication, merge or release.
+
+## Historical decisions and progress
 
 John approved the requirement split, then expressly rejected unnecessary extra functional tests and approved the lean
 two-chore plan now TASK-00180/00181. Earlier declaration/native plans are TASK-00170–00179; all four EPIC-00018 TICKETs

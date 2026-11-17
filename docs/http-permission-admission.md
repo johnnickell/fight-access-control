@@ -63,9 +63,9 @@ the owners; this does not imply acceptance of sibling integrations or actual con
 ## Current portable admission reconciliation (Unreleased)
 
 TASK-00181 reconciles TASK-00180's early assessment with the accepted declaration and native suppliers. The existing
-checks below cover the current package contracts; no additional composition test was needed. This is Work's evidence
-assessment, not independent acceptance of TASK-00181 or actual consumer qualification. The historical assessment below
-retains the original gaps; it is not today's installation guidance.
+checks below cover the current package contracts; no additional composition test was needed. Independent Review
+ACCEPT and nonvisual QA PASS qualify TASK-00181's reconciliation, not actual consumer composition. The historical
+assessment below retains the original gaps; it is not today's installation guidance.
 
 ### Five families, independently selected capabilities
 
@@ -99,7 +99,8 @@ The four early gaps are therefore disposed as: effective declarations supplied b
 Feature paths supplied by TASK-00172–00175 with the CI4 amendment; cooperation supplied by existing shared/native
 checks and their accepted lifetime repairs; final compatibility established by current source/test and integrated-gate
 bridges. No substantive supplier defect was identified or repaired here. No new suite, minimum rerun, policy or quota
-is needed. Independent Review and nonvisual QA must still challenge this reconciliation.
+is needed. Independent Review and nonvisual QA accepted this reconciliation; exact subjects and retained-gate
+provenance belong to [TASK-00181](../planning/tasks/00181-TASK.md).
 
 Consumer duties remain unchanged: qualify real authentication/signature canonicalization/nonce storage, complete
 route/filter registration and scanner/code identity, record/tenant scope and alternate entries, persistence/cache/locks,
