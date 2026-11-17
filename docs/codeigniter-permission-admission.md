@@ -153,8 +153,10 @@ No global exception-handler replacement, native logging disablement or automatic
 `SafeCodeIgniter::handleRequest()` delegates the native implementation, catches failures before native 404 override/
 global handling, discards partial buffered output and invokes that responder. This covers routing, ordinary before
 filters, controller-attribute hooks, construction/init, validation, action, ordinary after filters and remaining
-`handleRequest()` work. Handled filter denial is already a Response and is not reported again. Tests include native
-PageNotFound and action/after-filter failures with zero raw native logger calls and one diagnostic attempt.
+`handleRequest()` work. Handled filter denial is already a Response and is not reported again. The removed native
+integration tests historically covered PageNotFound and action/after-filter failures with zero raw native logger calls
+and one diagnostic attempt. Current controlled loop-seam units do not prove downstream native dispatch or logger
+interception; consumers must qualify those boundaries separately.
 
 **Outside this boundary:** startup, pre-system events, required-before filters, required-after filters, post-system,
 response sending/streaming, shutdown, fatal resource exhaustion and other code outside `handleRequest()`. Earlier
