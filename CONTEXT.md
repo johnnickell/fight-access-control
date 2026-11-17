@@ -16,6 +16,39 @@ unfinished native siblings keep its parents open. Publication/final verification
 at this checkpoint; canonical `.runs/handoffs/TASK-00177/land.md` owns their outcomes. Actual consumer qualification,
 merge, release and deployment remain separate.
 
+## TASK-00168 CI4 coverage amendment — accepted checkpoint
+
+John approved replacing practical CI4 behavior with isolated unit tests and removing the affected bootstrap-dependent
+integration tests on the existing TASK-00168 PR. The shared-process CI4/Laravel helper collision is test-composition
+sensitivity, not a demonstrated production Role defect. Production code and coverage gates are unchanged.
+Current units do not qualify real CI4 route conversion, alias registration, native short-circuit/validator/controller/
+required-filter order, downstream exception interception or application/worker reset. See the
+[current verification boundary](docs/codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment).
+TASK-00175's earlier native acceptance and merged history, and the Role acceptance below, retain their original
+subjects. Fresh independent Review v3 ACCEPT and nonvisual QA PASS qualify amendment candidate
+`c5ee0083ee0b522ee499b6003a5cfebaa2bca0fd`: 27 executable QA cases / 161 assertions plus a guide walkthrough and
+267 focused tests / 3,371 assertions using the unchanged owning pre-Composer launcher. The plain Composer-first
+command remains a documented failed invocation, not a passing rerun. The retained full gate passes 10,113 tests /
+99,273 assertions, exact 11,875 statements and separate Unit-only lines across all 554 source files, no exclusions.
+Earlier full gate retained; current documentation/planning checks qualify administrative closeout. TASK-00168 is done;
+unfinished TASK-00169 keeps its parents open. Same-PR publication/final verification and eligible retirement remain
+pending at this checkpoint; canonical `.runs/handoffs/TASK-00168/land.md` owns subsequent outcomes. No consumer
+adoption, workaround removal, merge, release or deployment is implied.
+
+## Ordinary Role audit composition — TASK-00168 accepted checkpoint
+
+[Ordinary Role composition](docs/role-audit-composition.md) now demonstrates the three implemented lifecycle
+handlers with reusable mapped audit storage/fault cases and fresh modeled Role observations. The mapping matrix
+and exact Agent OS workaround-retirement prerequisites distinguish package proof from still-unexecuted consumer
+schema/connection/locks/process/access qualification. No production behavior, caller authority, reference/revision
+policy or sibling source changes. Independent Review v3 ACCEPT and nonvisual QA PASS qualify clean candidate
+`fb56c123358dabec791a305a88a1bb6fa2bfd8b2` (40 executable scenarios / 233 QA checks plus a guidance walkthrough).
+TASK-00168 is done; unfinished TASK-00169 keeps TICKET-00048 and EPIC-00017 open. Earlier full-gate evidence is
+retained with current administrative checks. Canonical TASK Work evidence owns original checks; publication/final
+verification and retirement remain pending at this checkpoint, with actual outcomes in `.runs/handoffs/TASK-00168/land.md`.
+Minimum resolution retains 43 advisories across 13 development packages; ordinary reports none. No consumer adoption,
+workaround removal, data/schema operation or deployment is authorized by this package example.
+
 ## Local Docker sharing workaround — TASK-00183
 
 This host now retains AVF / gRPC FUSE by John's explicit 2026-11-16 workaround decision. The supported one-time
@@ -927,8 +960,9 @@ PermissionDeclaration/admission semantics. Independent Review ACCEPT and nonvisu
 Earlier full gate retained: 7,080 tests / 78,397 assertions, exact 9,324/9,324 global and 19/19 added statements.
 Publication/final delivery verification remain pending at this closeout checkpoint; canonical
 `.runs/handoffs/TASK-00171/land.md` owns subsequent bridge/delivery/resource results. Original reports and minimum-lane
-warnings remain preserved. Native portable Permission integration and the remaining native Feature peers stay
-unfinished; the accepted shared/Slim/Yii Feature slice is described above. This is not whole-library or actual consumer qualification.
+warnings remain preserved. TASK-00176 and TASK-00177 now qualify portable Permission admission for Slim/Yii and
+Symfony as described in their checkpoints. Laravel/CI4 portable integration and final reconciliation remain unfinished.
+Feature admission is accepted across all five frameworks under TICKET-00050. This is not whole-library or actual consumer qualification.
 The earlier TASK-00149 acceptance below covers its original narrower contract, not this new behavior.
 TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT
 and nonvisual QA PASS cover candidate `713837ab11122cafc5a66d00c0c0e6174eedb333`, with no open findings;
@@ -1534,6 +1568,28 @@ accepted TASK-00114 from develop: operation values/failures, workers and Queries
 use those accepted homes without resurrecting direct services/results or duplicating Query models. Fresh integrated
 verification and independent Review/QA are required; old-subject acceptance does not cover this candidate.
 TASK-00130/TASK-00162 typing/audit enhancements remain separately owned and are not implemented here.
+
+## TASK-00176 portable PSR-15 Permission admission — accepted checkpoint
+
+The PSR-15 `PermissionMiddleware` now consumes `PermissionRequirements` and a trusted native `SelectedAction`
+callback before existing inward admission. Attribute-only protection, inherited/overridden conjunction and explicit
+route additions are exercised separately through real Slim and Yii 3 routing. The declaration-only constructor is
+removed under ADR 0011; [HTTP composition](docs/http-permission-admission.md#portable-permission-admission-unreleased)
+shows current callers and native limits. No second merger, authority engine, Feature dependency or consumer change
+is added. Existing request-owned authentication, safe Common error owner and separate target-scope obligations remain.
+R1 repair makes each supported Slim/Yii native entry clone the concrete Slim PSR-7 request and strip copied
+SecurityContext before routing. Distinct attributed nested targets sharing one authentication object now select
+independently, including same-object reentry; adjacent gates inside that entry still share one selection/nonce.
+The recipes do not claim arbitrary non-cloneable PSR request support. Supplier authentication is unchanged.
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`5b5e6b0b236fc03558c92144f9f0e123425edf32`, with R1 resolved and 13 passed QA scenarios. TASK-00176 is done;
+unfinished native Permission siblings keep TICKET-00051/EPIC-00018 open. Land's behavior-preserving integration
+of develop `e946c13622d31e33e98e634fb6dbec2141607ab1` passes a fresh full gate: 10,123 tests / 99,791 assertions,
+exact 11,878/11,878 statements and separate Unit-only executable lines across 554 files, without exclusions.
+Branch coverage was not collected. The earlier streaming socket-timeout root cause remains unproven;
+later passes do not establish general cold-load reliability. Publication/final-head checks are pending at this
+closeout checkpoint; canonical `.runs/handoffs/TASK-00176/land.md` owns the exact provenance and delivery/resource
+outcomes. Work owns original qualification/runtime evidence. No actual consumer qualification is claimed.
 
 ## Approved portable Feature and Permission admission destination
 

@@ -8,6 +8,8 @@ TASK-00125 adds [optional reset request/delivery/expiry composition](credential-
 TASK-00126 adds [optional email-change composition](credential-delivery.md#optional-email-change-audit-composition-unreleased)
 for request/cancel/delivery/expiry, including self-service outcomes.
 TASK-00127 adds [optional synchronous User/session composition](user-authentication.md#optional-atomic-audit).
+TASK-00168 demonstrates [ordinary Role lifecycle composition and consumer mapping/retirement prerequisites](role-audit-composition.md),
+using TASK-00153's implemented optional lifecycle writers.
 TASK-00154 adds [optional custom Role Permission grant/revoke composition](role-membership-contracts.md#optional-role-permission-audit-composition).
 TASK-00155 adds [optional User Role membership composition](role-membership-contracts.md#optional-user-membership-audit-composition).
 TASK-00156 adds [optional Agent name-change composition](agent-name-updates.md#optional-atomic-name-change-audit-unreleased).

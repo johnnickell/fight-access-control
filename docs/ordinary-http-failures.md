@@ -88,7 +88,12 @@ contract. Keep unknown/internal faults as server failures; do not add a compatib
 another renderer. Select Common `^1.5.0`, supply real request-owned authentication, safe diagnostics, finite public
 projections and required scheme metadata, and qualify actual middleware/listener order and final responses.
 
-Maintained native fixtures cover Slim/Yii/Symfony and present Laravel/CI4 category/privacy paths, safe metadata,
+TASK-00168's explicit [CI4 coverage amendment](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment)
+removes the CI4 bootstrap-dependent integration tests; current isolated units retain controlled filter/responder and
+loop-seam behavior. Native routing/aliases, short-circuit/order, downstream application interception and bootstrap/reset
+are now separate unverified framework obligations. Earlier CI4 reports retain their historical subjects.
+
+Maintained native fixtures cover Slim/Yii/Symfony and present Laravel category/privacy paths, safe metadata,
 report/fallback/order, fresh request/nonce behavior and protocol exclusion. Supported-minimum, ordinary and optional
 no-dev lanes are package composition evidence, not every version in a semver range. Local Work evidence records
 exact locks, source/tag identities, counts, coverage and warnings; independent Review/behavioral QA remain required.

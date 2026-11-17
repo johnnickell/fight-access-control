@@ -4,32 +4,26 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Adapter\Http\CodeIgniter;
 
-use CodeIgniter\Controller;
-use CodeIgniter\HTTP\ResponseInterface;
 use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
+use LogicException;
 
 #[FeatureFlag('rollout')]
 #[FeatureFlag('rollout')]
-class FeatureParent extends Controller
+class FeatureParent
 {
     public function __construct()
     {
-        NativeController::$events[] = 'construct';
+        throw new LogicException('Metadata selection must not construct a controller.');
     }
 
     #[FeatureFlag('parent-gate')]
-    public function handle(string $id): ResponseInterface
+    public function handle(): void
     {
-        NativeController::$events[] = 'action';
-        if (NativeController::$work !== null) {
-            (NativeController::$work)($this->request);
-        }
-
-        return $this->response->setStatusCode(204)->setHeader('X-Action', $id);
+        throw new LogicException('Admission must not execute the selected action.');
     }
 
-    public function __invoke(string $id): ResponseInterface
+    public function __invoke(): void
     {
-        return $this->handle($id);
+        throw new LogicException('Admission must not execute the selected action.');
     }
 }

@@ -8,6 +8,7 @@ use CodeIgniter\Cache\CacheInterface;
 use CodeIgniter\Cache\ResponseCache;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Config\Factories;
+use CodeIgniter\HTTP\CLIRequest;
 use CodeIgniter\HTTP\ContentSecurityPolicy;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -25,11 +26,13 @@ use Fight\AccessControl\Adapter\Http\CodeIgniter\SafeErrorResponder;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Adapter\Http\Error\SafeHttpDiagnostics;
 use Fight\Common\Adapter\Http\Error\SafeHttpMetadata;
 use Fight\Common\Adapter\Http\Error\SafeHttpPresentation;
 use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
+use Fight\Test\AccessControl\Adapter\Http\OrdinaryFailureCases;
 use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -223,6 +226,145 @@ final class IsolatedAdapterTest extends TestCase
 
         self::assertSame($response, new ReflectionMethod($app, 'handleRequest')->invoke($app, null, $cache));
         self::assertSame($level, ob_get_level());
+    }
+
+    /** @return iterable<string, array{string, int}> */
+    public static function permissionOutcomes(): iterable
+    {
+        yield 'missing declaration' => ['missing', 500];
+        yield 'CLI request' => ['cli', 500];
+        yield 'anonymous' => ['anonymous', 401];
+        yield 'expired authentication' => ['expired', 401];
+        yield 'no grant' => ['denied', 403];
+        yield 'provider fault' => ['fault', 500];
+    }
+
+    #[DataProvider('permissionOutcomes')]
+    public function test_permission_refusals_and_faults_clear_context_and_use_safe_type_policy(
+        string $outcome,
+        int $status
+    ): void {
+        $environment = new AdmissionEnvironment();
+        $contexts = new RequestContexts();
+        $request = $this->createStub(IncomingRequest::class);
+        if ($outcome === 'cli') {
+            $request = $this->createStub(CLIRequest::class);
+        }
+
+        if ($request instanceof IncomingRequest) {
+            $contexts->set($request, $environment->user()->resolve());
+        }
+
+        $router = $this->createStub(Router::class);
+        $router->method('getMatchedRoute')->willReturn(['target', 'controller']);
+        $router->method('getMatchedRouteOptions')->willReturn([
+            PermissionDeclaration::class => $outcome === 'missing' ? null : new PermissionDeclaration(
+                AdmissionMode::PROTECTED,
+                [PermissionName::fromString('AGENT_PROFILE_READ')]
+            )
+        ]);
+        $response = $this->createMock(ResponseInterface::class);
+        $response->expects(self::once())->method('setStatusCode')->with($status)->willReturnSelf();
+        $response->method('setJSON')->willReturnSelf();
+        $projector = $this->createStub(SafeHttpProjector::class);
+        $projector->method('project')->willReturnCallback(static fn(): SafeHttpPresentation => new SafeHttpPresentation(
+            metadata: $status === 401 ? new SafeHttpMetadata(challenge: 'Signature realm="unit"') : null
+        ));
+        $diagnostics = $this->createMock(SafeHttpDiagnostics::class);
+        $diagnostics->expects(self::once())->method('report');
+        $filter = new PermissionFilter(
+            static fn(): Router => $router,
+            new RequestAuthentication(static fn(): ?RequestAuthority => match ($outcome) {
+                'missing', 'cli' => self::fail('Invalid selection must not authenticate.'),
+                'anonymous' => null,
+                default => $environment->user(
+                    grant: $outcome !== 'denied',
+                    valid: $outcome !== 'expired',
+                    fault: $outcome === 'fault' ? new RuntimeException('private provider fault') : null
+                )
+            }, $contexts),
+            new SafeErrorResponder(
+                $this->config(),
+                $diagnostics,
+                $projector,
+                static fn(): ResponseInterface => $response
+            )
+        );
+
+        self::assertSame($response, $filter->before($request));
+        if ($request instanceof IncomingRequest) {
+            self::assertNull($contexts->get($request));
+        }
+    }
+
+    /** @return iterable<string, array{string, int, string}> */
+    public static function ordinaryFailures(): iterable
+    {
+        yield from OrdinaryFailureCases::cases();
+    }
+
+    #[DataProvider('ordinaryFailures')]
+    public function test_error_bridge_passes_only_the_encoded_safe_envelope_to_the_response(
+        string $case,
+        int $status,
+        string $message
+    ): void {
+        $failure = OrdinaryFailureCases::failure($case);
+        $diagnostics = $this->createMock(SafeHttpDiagnostics::class);
+        $diagnostics->expects(self::once())->method('report')->with($failure);
+        $response = $this->createMock(ResponseInterface::class);
+        $response->expects(self::once())->method('setStatusCode')->with($status)->willReturnSelf();
+        $response->expects(self::once())->method('setJSON')->with(self::callback(
+            static function (string $json) use ($status, $message): bool {
+                OrdinaryFailureCases::assertBody($json, $status, $message);
+
+                return true;
+            }
+        ))->willReturnSelf();
+        $errors = new SafeErrorResponder(
+            $this->config(),
+            $diagnostics,
+            responses: static fn(): ResponseInterface => $response
+        );
+
+        self::assertSame($response, $errors->respond($failure));
+    }
+
+    public function test_failed_partial_render_is_discarded_and_diagnostics_failure_is_not_reported_again(): void
+    {
+        $failure = new RuntimeException('private original');
+        $diagnostics = $this->createMock(SafeHttpDiagnostics::class);
+        $diagnostics->expects(self::once())->method('report')->with($failure);
+        $partial = $this->createStub(ResponseInterface::class);
+        $partial->method('setStatusCode')->willReturnSelf();
+        $partial->method('setJSON')->willThrowException(new RuntimeException('private encoder failure'));
+        $fallback = $this->createMock(ResponseInterface::class);
+        $fallback->expects(self::once())->method('setStatusCode')->with(500)->willReturnSelf();
+        $fallback->expects(self::once())->method('setJSON')
+            ->with('{"status":"error","message":"Internal server error."}')->willReturnSelf();
+        $calls = 0;
+        $errors = new SafeErrorResponder(
+            $this->config(),
+            $diagnostics,
+            responses: static function () use (&$calls, $partial, $fallback): ResponseInterface {
+                return ++$calls === 1 ? $partial : $fallback;
+            }
+        );
+        self::assertSame($fallback, $errors->respond($failure));
+        self::assertSame(2, $calls);
+
+        $diagnostics = $this->createMock(SafeHttpDiagnostics::class);
+        $diagnostics->expects(self::once())->method('report')->willThrowException(new RuntimeException('private sink'));
+        $response = $this->createMock(ResponseInterface::class);
+        $response->expects(self::once())->method('setStatusCode')->with(500)->willReturnSelf();
+        $response->expects(self::once())->method('setJSON')
+            ->with('{"status":"error","message":"Internal server error."}')->willReturnSelf();
+        $errors = new SafeErrorResponder(
+            $this->config(),
+            $diagnostics,
+            responses: static fn(): ResponseInterface => $response
+        );
+        self::assertSame($response, $errors->respond($failure));
     }
 
     private function config(): App

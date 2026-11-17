@@ -9,6 +9,44 @@ before-filter admission and its thin Common-backed selected JSON error bridge. T
 validation privacy and all seven native contracts are reconciled in [ordinary HTTP failures](ordinary-http-failures.md).
 The combined EPIC release is not yet complete.
 
+TASK-00168's explicit [CI4 coverage amendment](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment)
+removes its bootstrap-dependent native integration tests and retains isolated package behavior checks. CI4 native
+ordering, alias/route conversion, downstream interception and bootstrap/reset proof in the earlier inventory below
+is historical, not current executable coverage. Other frameworks' native protection is unchanged.
+
+## Portable Permission admission (Unreleased)
+
+TASK-00176 connects [effective portable requirements](permission-requirements.md) to the existing PSR-15 middleware,
+separately exercised through actual Slim and Yii 3 dispatch. `PermissionMiddleware` now takes
+`PermissionRequirements`, a trusted `Closure(ServerRequestInterface): SelectedAction`, and the existing authority
+factory or shared `RequestAuthentication`. Update callers directly; the former declaration-only constructor is removed.
+The middleware validates selected-action association before selecting authentication, then calls existing
+`PermissionAdmission`. It adds no merger, policy engine, Feature collaborator, business message or audit write.
+
+Attribute-only actions are PROTECTED. Class/method/repeated/inherited/overridden-parent requirements accumulate;
+protected route additions also apply. PUBLIC/AUTHENTICATED route modes conflict with effective Attributes. Raw
+route list/type/mode/duplicate validation still runs before effective deduplication. No Attribute and no explicit
+route policy remains a configuration fault, not PUBLIC. Closures need an explicit trusted route declaration.
+Metadata construction can reject at bootstrap; dynamic target lookup/mismatch faults produce safe 500 before
+authentication or protected validation/construction/action. Target lookup cannot manufacture an authentication refusal.
+
+```text
+trusted native route/action --> SelectedAction --> PermissionRequirements
+                                      ^                     |
+                                      |             association check
+                                actual selection             |
+                                      +----------------------+
+                                                             v
+request-owned authentication ----------------------> PermissionAdmission --> protected work
+```
+
+The native tests retain existing User Role-derived/Agent direct authority, error/header/fallback and lifetime proof,
+and add portable Attribute-only User admission, inherited/overridden/invokable Agent conjunction, exact route additions,
+metadata fault order and cooperation with Feature gates in either order with one nonce. Shared declaration tests own
+raw malformed Attribute/mode validation. These package fixtures do not qualify consumer routes, scanners, bootstrap,
+crypto, storage, sinks or target/tenant scope. Independent Review/QA and final cross-framework reconciliation remain
+separate; this change activates no other native adapter or consumer application.
+
 ## Feature cooperation (Unreleased)
 
 [PSR-15 Feature admission](http-feature-admission.md) now consumes effective declarations independently of this
@@ -45,7 +83,7 @@ native admission/integration ownership; metadata proof is not native acceptance.
 | Yii 3 | Same shared source/tests, separately selecting `yii`: actual Yii router/dispatcher and process callable, not inferred from Slim. New Router/CurrentRoute per request; closure and class/method forms qualified, not universal invokable support. | Native Feature-only pending TASK-00172; portable Permission pending TASK-00176. Combined portable admission unqualified; retain Yii-specific routing lifetime. |
 | Symfony | TASK-00104: [subscriber](../src/Adapter/Http/Symfony/EventSubscriber/PermissionSubscriber.php), [native tests](../tests/Adapter/Http/Symfony/EventSubscriber/PermissionSubscriberTest.php), [guide](symfony-permission-admission.md). Trusted rematch at kernel.request priority 16, after routing 32 and before controller resolution; independent validation/IsGranted still apply. | Feature-only pending TASK-00173; portable Permission pending TASK-00177. Combined portable admission unqualified. kernel.controller alone cannot preserve the existing early construction guarantee. |
 | Laravel | TASK-00105: [middleware](../src/Adapter/Middleware/Laravel/PermissionMiddleware.php), [native tests](../tests/Adapter/Middleware/Laravel/PermissionMiddlewareTest.php), [guide](laravel-permission-admission.md). Exact serving Route/action bindings, admission before bindings/FormRequest/action. Legacy controller middleware discovery can construct before admission. | Feature-only pending TASK-00174; portable Permission pending TASK-00178. Combined portable admission unqualified. Reuse present native groundwork rather than implement TASK-00105 again. |
-| CodeIgniter 4 | TASK-00106: [filter](../src/Adapter/Http/CodeIgniter/PermissionFilter.php), [native tests](../tests/Adapter/Http/CodeIgniter/PermissionFilterTest.php), [guide](codeigniter-permission-admission.md). Current matched options, zero-argument delegating shell, before-filter Response short-circuit, request-keyed contexts and explicit safe loop. | Feature-only pending TASK-00175; portable Permission pending TASK-00179. Combined portable admission unqualified. Reuse the existing generic error bridge without activating Permission; process-global reentrant nested loops remain unsupported. |
+| CodeIgniter 4 | TASK-00106: [filter](../src/Adapter/Http/CodeIgniter/PermissionFilter.php), [isolated units](../tests/Adapter/Http/CodeIgniter/IsolatedAdapterTest.php), [guide](codeigniter-permission-admission.md). Current matched options, zero-argument delegating shell, before-filter Response short-circuit, request-keyed contexts and explicit safe loop. | Feature-only pending TASK-00175; portable Permission pending TASK-00179. Combined portable admission unqualified. Reuse the existing generic error bridge without activating Permission; process-global reentrant nested loops remain unsupported. |
 
 The shared/native tests above execute actual providers with controlled persistence/crypto and assert denied work,
 status/headers, context and nonce effects. They are not merely injection counts. Permission-only base operation is
@@ -67,7 +105,7 @@ Application test paths are under `tests/Application/AccessControl/`; production 
 | Trusted current authority, no invalid-context-to-anonymous fallback, one authentication/nonce and isolated request lifetime | [RequestAuthority](../src/Application/AccessControl/Authorization/Admission/RequestAuthority.php), PermissionAdmissionTest and each native test above prove real User/Agent resolution, copied-context rejection, ordinary multiple-Permission single nonce, fresh sequential requests and supported nested isolation. Current PUBLIC admission deliberately clears context and skips authentication. These are sufficient base Permission facts, **not** a trusted cross-capability context-sharing contract. Feature context adaptation/cooperation is pending TASK-00172 and native peers; portable peers must preserve it without trusting incoming attributes. |
 | Generic Feature 404 versus missing/broken definitions, configuration/provider/storage faults and Permission refusal/challenge | FeatureAvailabilityTest already distinguishes false from missing/broken/mismatched/state/storage exceptions. Native Permission tests establish known 401/403 versus opaque 500 and validated consumer challenges. Reuse [ordinary HTTP failures](ordinary-http-failures.md) and its actual current categories; HTTP translation of ordinary Feature denial only is pending TASK-00172–00175. Do not reuse optional earlier broken-binding concealment advice as the new Feature contract. |
 | Native order, construction, target/response lifetime, exceptions and unsupported forms | The five-family references above establish existing Permission boundaries, not universal pre-construction protection. Symfony tests cover distinct main/subrequests and RequestStack restoration; Laravel covers reused/nested requests but not automatic ambient router/container restoration; CI4 covers reset sequential requests and distinct context keys, not reentrant global-service dispatch. New metadata/Feature insertion must preserve these limits in its owning native slice. Admission/merging creates no business Command/Query/Event, transaction or mutation audit; normal authentication effects remain separate. |
-| One safe reporting owner, header/negotiation/finite output/fallback, protocol exclusions | PSR native tests plus [ProtocolExclusionTest](../tests/Adapter/Middleware/Psr15/ProtocolExclusionTest.php), Symfony native tests, Laravel [SafeLifecycleTest](../tests/Adapter/Middleware/Laravel/SafeLifecycleTest.php), CI4 native tests and [SafeErrorResponderTest](../tests/Adapter/Http/CodeIgniter/SafeErrorResponderTest.php) cover sink/projector/encoder/renderer faults, one report attempt and safe finite output. Current TASK-00146 reconciles all paths. Reuse this evidence; only new Feature translation/insertion needs its supplier proof. Selected JSON is not global HTML safety; MCP/OAuth envelopes stay separate. Symfony needs `handleAllThrowables: true`; outer/later response handling is not automatically contained. |
+| One safe reporting owner, header/negotiation/finite output/fallback, protocol exclusions | PSR native tests plus [ProtocolExclusionTest](../tests/Adapter/Middleware/Psr15/ProtocolExclusionTest.php), Symfony native tests, Laravel [SafeLifecycleTest](../tests/Adapter/Middleware/Laravel/SafeLifecycleTest.php), CI4 [isolated responder units](../tests/Adapter/Http/CodeIgniter/IsolatedAdapterTest.php) cover controlled adapter behavior, not current native dispatch. The [CI4 amendment](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment) removes its bootstrap-dependent integration proof. Other listed native tests cover sink/projector/encoder/renderer faults, one report attempt and safe finite output. Current TASK-00146 reconciles all paths. Reuse this evidence; only new Feature translation/insertion needs its supplier proof. Selected JSON is not global HTML safety; MCP/OAuth envelopes stay separate. Symfony needs `handleAllThrowables: true`; outer/later response handling is not automatically contained. |
 | Independent installation, optional dependencies, tagged sufficient minimum/ordinary lanes and current guidance | [composer.json](../composer.json) requires Common `^1.5.0` and PSR contracts, with native frameworks dev-only/suggested and no automatic registration. [Current minima and consumer bounds](ordinary-http-failures.md#consumer-obligations-and-evidence-bounds) supersede historical tag floors. TASK-00103–00106 supplied isolated/core/native lanes; TASK-00146 requalified current Common/native minima and optional no-dev lanes. Reuse their exact retained locks/tag/source/exit/acceptance evidence, not an installed path or coverage percentage. Those lanes do not yet qualify unimplemented Feature/portable selections or every version in a semver range. |
 
 ### Genuine gaps and smallest recovery inputs
@@ -107,14 +145,14 @@ operation, compatibility mode, release, deployment or new grant is authorized by
 The constructor rejects wrong types, associative arrays, duplicate names, empty protected requirements and
 requirements on other modes. Permission names retain their existing canonical validation. Pure optional
 [PermissionRequirements](permission-requirements.md) composes portable Attributes using the shared selected-action
-traversal. The optional [Symfony subscriber](symfony-permission-admission.md) now consumes it for the trusted
-selected native action; other portable-native paths retain their own integration owners. There is no production
-scanner, route-name allowlist, weakening override rule or implicit public default.
+traversal. The PSR-15 middleware and optional [Symfony subscriber](symfony-permission-admission.md) now consume it
+for the trusted selected native action; remaining portable-native paths retain their own integration owners.
+There is no production scanner, route-name allowlist, weakening override rule or implicit public default.
 A missing declaration (`null`) fails as configuration error, before resolving authentication. Invalid declarations
 normally fail at composition/bootstrap; dynamic composition faults also remain server failures.
 
-Bind a `Adapter\Middleware\Psr15\PermissionMiddleware` instance containing that declaration **directly to each
-selected native route**, before validation and action invocation. The native router selects the route; the bound
+Bind a `Adapter\Middleware\Psr15\PermissionMiddleware` instance containing effective requirements and a trusted
+selected-action callback **directly to each selected native route**, before validation and action invocation. The native router selects the route; the bound
 instance is its exact association, independent of callback identity. Two routes sharing a callback may have different
 requirements. Headers, route arguments, request attributes and copied principal/Permission arrays cannot select or
 replace the declaration. Every ordinary route must deliberately install its admission instance, including explicit
@@ -157,9 +195,18 @@ immutable snapshot within one short request. Cooperating downstream code uses th
 request-owned provider, not a second signed-request authentication transaction. Checking multiple requirements does
 not replay HMAC or consume another nonce. Failed requests do not make their partial context available to the next one.
 
-Nested dispatch must enter its own explicitly composed route admission with a new provider/context and trusted
-selection. A copied parent SecurityContext is ignored as authentication. This feature supplies **no implicit parent
-handoff**. For a same-short-request cooperating operation, use the already admitted snapshot in the original flow;
+Every independent native entry, including nested dispatch with the same forwarded object, must establish a
+**distinct request identity before routing** and remove copied `SecurityContext`. The executable recipes below
+clone the qualified concrete `Slim\Psr7\Request` and strip that attribute at each entry. They preserve request
+fields/body bytes for consumer canonicalization; they do not promise arbitrary non-cloneable PSR implementations.
+Other implementations need their own qualified entry composition. A fresh Yii Router alone does not establish
+this ownership boundary. Never use a client-copyable attribute as the trusted dispatch marker.
+
+Keep the same shared `RequestAuthentication` across adjacent cooperating gates **within** that dispatch, not as
+an implicit parent handoff. Each independent entry that needs authentication invokes the factory for a new
+provider/context and trusted selection, even if a reused container supplies the same authentication object.
+A copied parent SecurityContext is ignored as authentication. This feature supplies **no implicit parent handoff**.
+For a same-short-request cooperating operation, use the already admitted snapshot in the original flow;
 do not replay the parent's signed request through a fresh Agent provider. An independently authenticated nested Agent
 request needs its own valid nonce. Consumers needing a delegated nested identity must separately establish trusted
 handoff/provenance and scope; an arbitrary caller attribute is not that contract. Long-lived/background work uses
@@ -171,17 +218,38 @@ Opt in to `slim/slim:^4.15.3` and a suitable PSR-7/17 implementation (fixtures u
 factory below is consumer-owned and constructs one of the real providers described above; it is not a package service ID.
 
 ```php
-$permission = new PermissionMiddleware($declaration, $authorityFactory);
+$selected = SelectedAction::method(ReportAction::class, 'handle');
+$requirements = new PermissionRequirements($selected, $declaration); // null route policy is valid for Attributes.
+$selectedAction = static function (ServerRequestInterface $request): SelectedAction {
+    $route = RouteContext::fromRequest($request)->getRoute();
+    if ($route?->getCallable() !== ReportAction::class.':handle') {
+        throw new LogicException('Unexpected selected action.');
+    }
+
+    return SelectedAction::method(ReportAction::class, 'handle');
+};
+$permission = new PermissionMiddleware($requirements, $selectedAction, $authorityFactory);
 $route = $app->get('/reports/{id}', ReportAction::class.':handle');
 $route->add($protectedValidator);
 $route->add($permission); // Slim route middleware is LIFO: admission runs before validation.
 $app->addRoutingMiddleware();
 $app->add($errors); // Common SafeJSendErrorMiddleware, outermost on this selected ordinary HTTP pipeline.
-$response = $app->handle($request);
+// This is the entry for every independent dispatch, including nested same-object reentry.
+$entry = static function (Request $incoming) use ($app): ResponseInterface {
+    $request = (clone $incoming)->withoutAttribute(SecurityContext::class);
+
+    return $app->handle($request);
+};
+$response = $entry($request);
 ```
 
-Qualified forms: closure `(request, response)`, invokable class-string and `ClassName:method`, with native route
-arguments present. Routing occurs before route-bound admission. The fixture proves denied requests skip the validator,
+Imports include concrete `Slim\Psr7\Request`, PSR `ResponseInterface`, Application
+`Authorization\Service\SecurityContext`, Application `Action\SelectedAction`,
+`Authorization\Admission\PermissionRequirements`,
+PSR `ServerRequestInterface` and Slim `Routing\RouteContext`. The example deliberately supports one known action;
+consumer extraction must match each actual supported native callable, never guess from headers/arguments.
+Qualified forms: closure `(request, response)` with its exact closure binding, invokable class-string and
+`ClassName:method`, including inherited/overridden methods, with native route arguments present. Routing occurs before route-bound admission. The fixture proves denied requests skip the validator,
 action and lazy construction of these selected action forms. It does not promise pre-construction protection for
 objects instantiated earlier by consumer bootstrap/container setup, or every Slim invocation strategy/middleware.
 Do not install Slim's raw-debug error renderer or the legacy Common JSend middleware on the same selected path.
@@ -196,30 +264,52 @@ Opt in to `yiisoft/router:^4.0.2`, `yiisoft/router-fastroute:^4.0.3` and
 `yiisoft/injector:^1.2.2`. These are Yii 3 components, not Yii 2 or a claim about every Yii application package.
 
 ```php
+$action = [ReportAction::class, 'handle'];
+$selected = SelectedAction::method($action[0], $action[1]);
+$permission = new PermissionMiddleware(
+    new PermissionRequirements($selected, $declaration),
+    static fn(ServerRequestInterface $request): SelectedAction => $selected,
+    $authorityFactory
+);
 $route = Route::get('/reports/{id}')
     ->middleware($permission->process(...), $protectedValidator)
-    ->action([ReportAction::class, 'handle']);
+    ->action($action);
 $collector = new RouteCollector();
 $collector->addRoute($route);
 $routes = new RouteCollection($collector);
 $factory = new MiddlewareFactory($container);
-// Per incoming request, including nested dispatch:
-$router = new Router(new UrlMatcher($routes), $responseFactory, $factory, new CurrentRoute());
-$pipeline = new MiddlewareDispatcher($factory);
-$response = $pipeline->withMiddlewares([$errors->process(...), $router->process(...)])
-    ->dispatch($request, $notFoundHandler);
+// This is the entry for every independent dispatch, including nested same-object reentry.
+$entry = static function (Request $incoming) use (
+    $routes, $responseFactory, $factory, $errors, $notFoundHandler
+): ResponseInterface {
+    $request = (clone $incoming)->withoutAttribute(SecurityContext::class);
+    $router = new Router(new UrlMatcher($routes), $responseFactory, $factory, new CurrentRoute());
+    $pipeline = new MiddlewareDispatcher($factory);
+
+    return $pipeline->withMiddlewares([$errors->process(...), $router->process(...)])
+        ->dispatch($request, $notFoundHandler);
+};
+$response = $entry($request);
 ```
 
-Imports are the actual `Yiisoft\Router` Route/RouteCollector/RouteCollection/CurrentRoute,
+The same concrete `Slim\Psr7\Request`, PSR `ResponseInterface` and Application
+`Authorization\Service\SecurityContext` imports apply here. Other imports are the actual
+`Yiisoft\Router` Route/RouteCollector/RouteCollection/CurrentRoute,
 `Yiisoft\Router\FastRoute\UrlMatcher`, `Yiisoft\Router\Middleware\Router` and
 `Yiisoft\Middleware\Dispatcher` MiddlewareFactory/MiddlewareDispatcher. Admission uses the PSR-15 **process callable**
 that Yii's native definition factory supports, not a fabricated common router or an unsupported bare object definition.
-The native route middleware list runs admission before the validator/action. Qualified actions are a closure and
-`[ClassName::class, 'method']`, with native lazy resolution. No universal pre-container-construction promise is made.
+Bind the exact immutable `$action` definition to both the route and its middleware; do not attach this binding to
+a different action or resolve policy from copied request attributes. For a closure, use `SelectedAction::closure()`
+with that same closure object and an explicit route declaration. The native route middleware list runs admission
+before the validator/action. Qualified actions are a closure and `[ClassName::class, 'method']`, including inherited
+methods, with native lazy resolution. No universal pre-container-construction promise is made.
 
 `CurrentRoute` has single-assignment URI/route state. Do **not** reuse a Router/CurrentRoute across requests or nested
 routing. Reuse immutable route definitions/matcher services only with an actually qualified request-owned context.
-The fixtures serve repeated requests in one process with a new CurrentRoute/Router each time. Native unmatched
+The fixtures serve repeated/nested requests in one process with a cloned request stripped of copied context
+and a new CurrentRoute/Router each time. Distinct attributed targets with one shared authentication object prove
+fresh nested selection, denial/provider-fault cleanup and unchanged parent context. Both-order cooperating Agent
+gates still select once and consume one nonce inside an entry. Native unmatched
 routing delegates to the supplied 404 handler and never calls a stale protected target. Yii's native method-failure
 responses remain native responses. No request arguments or CurrentRoute name are used as authority/declarations.
 

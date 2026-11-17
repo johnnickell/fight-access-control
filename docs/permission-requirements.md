@@ -1,8 +1,10 @@
 # Effective portable Permission declarations (Unreleased)
 
-TASK-00171 adds pure package metadata. TASK-00177 connects it to the optional
-[Symfony native subscriber](symfony-permission-admission.md), including Attribute-only protection and explicit route
-additions. Other native portable integrations retain their TICKET-00051 owners. No consumer Attribute,
+TASK-00171 adds pure package metadata. TASK-00176 connects it to existing
+[PSR-15 admission through Slim and Yii 3](http-permission-admission.md#portable-permission-admission-unreleased),
+and TASK-00177 connects it to the optional [Symfony native subscriber](symfony-permission-admission.md).
+Both support Attribute-only protection and explicit route additions. Remaining native portable integrations
+retain their TICKET-00051 owners. No consumer Attribute,
 framework bootstrap, discovery provider or Feature activation is required. `RequiresAgentPermission` and MCP remain separate.
 
 ## Declare and compose
@@ -110,7 +112,8 @@ TASK-00145 or shared TASK-00170 contracts. Structural inventory is not independe
 | Existing admission composition | Metadata leaves authority unresolved; later admission checks every Permission |
 
 Shared traversal's own `FeatureRequirementsTest` retains interface, static trait alias and unsupported selection proof.
-These are package metadata and controlled authority fixtures, not actual native HTTP ordering, installed consumer
-bootstrap/scanning/authentication/storage qualification, deployment or release. Independent Review and behavioral QA
+These are package metadata and controlled authority fixtures. The separate PSR-15 native tests qualify that
+middleware's portable insertion/order and supported forms, not installed consumer bootstrap/scanning/authentication/
+storage, deployment or release. Independent Review and behavioral QA
 remain distinct from Work checks. No useful screenshot exists for this pure library API; executable declarations,
 returned modes/names and rejection/effect assertions are the nonvisual evidence.

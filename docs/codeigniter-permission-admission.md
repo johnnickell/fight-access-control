@@ -7,6 +7,17 @@ a global exception handler. CI3, arbitrary PHP interception and portable Permiss
 The separately enabled [Feature filter](codeigniter-feature-admission.md) consumes the same generic bridge.
 The combined five-framework release remains unfinished and unversioned.
 
+## Current verification boundary — TASK-00168 amendment
+
+The operator approved removal of the CI4 bootstrap-dependent native integration tests, with practical package behavior
+covered by isolated units instead. See the [amendment and explicit unverified obligations](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment).
+Earlier TASK-00106/00146/00175 native qualification remains historical, not a current test suite promise.
+Controlled filter/responder/loop-seam tests retain decision, failure, context and safe policy checks. They do not
+execute native route matching, alias registration, controller/validator ordering, required filters or downstream
+application dispatch. The native sequence and target forms below describe intended consumer composition and earlier
+observations; consumers must now qualify those framework boundaries separately. No production code or coverage gate
+is weakened. Real framework guarantees cannot be inferred from mocked request/router/response ports.
+
 ## Trusted declaration and native filter wiring
 
 Use explicit PHP routes with a single `PermissionDeclaration` custom option keyed by its class name:
@@ -81,7 +92,7 @@ Do not reroute, replace the request/controller or mutate route options after adm
 
 ## Native order and lifetime
 
-The tested native sequence is required-before filters → native routing/route-attribute discovery → ordinary before
+The historically tested native sequence is required-before filters → routing/route-attribute discovery → ordinary before
 filters → controller-attribute before hooks → controller construction/init → action → ordinary after filters →
 controller-attribute after hooks → remaining native processing → required-after filters/post-system/send.
 A returned `ResponseInterface` from the before filter skips later ordinary validators, controller construction and
@@ -91,8 +102,8 @@ Qualified targets are a fully qualified `\\ClassName::method/$1` route string, `
 `\\ClassName::__invoke/$1` and a closure, with actual captured route parameters. Already constructed objects, service
 aliases, `_remap`, auto-routing, magic/static callbacks and arbitrary route loaders need separate qualification.
 Native route-attribute discovery can instantiate attribute metadata **before** admission; no promise covers those
-constructors or earlier bootstrap/required/global filters. Controller construction after the filter is proved for
-these selected forms. Native validation and `Restrict` remain additional independent rejection boundaries.
+constructors or earlier bootstrap/required/global filters. Controller construction after the filter was historically
+proved for these selected forms. Native validation and `Restrict` remain additional independent rejection boundaries.
 Direct methods, buses, workers and use cases still enforce their own authorization and record/relationship scope.
 
 The filter/responder/context map may be reused. A new router or repeated gate clears that exact request's previous context
@@ -105,9 +116,9 @@ its snapshot into future authority; re-enter admission before reuse.
 
 CI4's service registry, router, filters and native response are request-scoped. The consumer must call
 `$authentication->clear($incomingRequest)` at dispatch entry before routing/required filters, including when reusing
-a request object: a routing failure may never reach this filter. The fixture performs that reset and resets native
-registries between requests while reusing the package filter/responder/map. Actual worker bootstrap/reset is the
-consumer's duty; this is not certification of a long-running server. **Reentrant/nested CI4 dispatch sharing the
+a request object: a routing failure may never reach this filter. The removed fixture reset native registries between
+requests while reusing the package filter/responder/map; current units do not prove it. Actual worker bootstrap/reset
+is the consumer's duty; this is not certification of a long-running server. **Reentrant/nested CI4 dispatch sharing the
 process-global service registry or the same mutable request is not supported.** No native subrequest API or implicit
 caller delegation is supplied. Distinct independent request-context isolation is tested, not concurrent nested loops.
 Later protected continuation uses the [current-authority owner](agent-continuation-authorization.md) separately.
@@ -142,8 +153,10 @@ No global exception-handler replacement, native logging disablement or automatic
 `SafeCodeIgniter::handleRequest()` delegates the native implementation, catches failures before native 404 override/
 global handling, discards partial buffered output and invokes that responder. This covers routing, ordinary before
 filters, controller-attribute hooks, construction/init, validation, action, ordinary after filters and remaining
-`handleRequest()` work. Handled filter denial is already a Response and is not reported again. Tests include native
-PageNotFound and action/after-filter failures with zero raw native logger calls and one diagnostic attempt.
+`handleRequest()` work. Handled filter denial is already a Response and is not reported again. The removed native
+integration tests historically covered PageNotFound and action/after-filter failures with zero raw native logger calls
+and one diagnostic attempt. Current controlled loop-seam units do not prove downstream native dispatch or logger
+interception; consumers must qualify those boundaries separately.
 
 **Outside this boundary:** startup, pre-system events, required-before filters, required-after filters, post-system,
 response sending/streaming, shutdown, fatal resource exhaustion and other code outside `handleRequest()`. Earlier
@@ -174,7 +187,9 @@ Common v1.4.0's native JSend helper passes an already encoded string to `setJSON
 as **unencoded input**, producing a JSON string rather than an envelope object. It is not appropriate for this bridge:
 we use Common's finite `JSendEnvelope::toJson()` with native `setJSON($encoded)` (default false). No supplier is patched,
 no second semantic policy is introduced. Native response failure, nonfinite/deep/object/invalid-UTF8 projections and
-both fallback factory/render failures have executable proof, including decoding the actual final body.
+both fallback factory/render failures had native integration proof, including decoding the actual final body.
+Current direct units retain controlled response-port encoding/failure checks and limited native response leaf checks,
+not full application lifecycle proof.
 
 This is an explicitly selected **JSON-only ordinary HTTP path**, regardless of Accept, including HTML preference or
 no Accept. It does not claim automatic HTML sanitization or negotiation. Non-JSON applications keep their separately
@@ -185,7 +200,8 @@ filter: PUBLIC is not a protocol exclusion. No JSON-RPC concealment, OAuth chall
 
 Current package Common minimum is `^1.5.0` for the selected safe-error composition. TASK-00146 requalifies CI4
 categories/privacy and native ordering alongside the other present peers; see
-[ordinary HTTP contracts](ordinary-http-failures.md). Current full default tests recheck CI4 on that dependency.
+[ordinary HTTP contracts](ordinary-http-failures.md). Current full default tests retain CI4 units, not those removed
+native application journeys.
 The identities/counts below preserve TASK-00106's original qualification, not today's installed lock.
 
 At that checkpoint the ordinary installed lane and isolated exact-minimum lane used tagged **Common v1.4.0**

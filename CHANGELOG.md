@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   replaying Agent nonces. Native IsGranted remains independent. See [Symfony composition](docs/symfony-permission-admission.md)
   for supported forms, early-construction limits and consumer-owned safe-error/bootstrap obligations.
 
+- Optional portable Permission admission through PSR-15, qualified separately with Slim and Yii 3. Effective
+  class/method/repeated/inherited Attributes and protected route additions use existing inward admission without
+  Feature activation. **Pre-v1:** construct `PermissionMiddleware` with `PermissionRequirements`, a trusted native
+  selected-action callback and the existing authority factory/shared request authentication; the declaration-only
+  constructor is removed. Missing/conflicting metadata fails closed before protected work. Supported Slim/Yii
+  entry recipes clone the concrete Slim PSR-7 request and strip copied context before every independent dispatch,
+  isolating nested same-object reentry while adjacent gates still share one authentication/nonce. Consumer routes,
+  authentication, storage, sinks and target scope still require qualification. See
+  [HTTP composition](docs/http-permission-admission.md#portable-permission-admission-unreleased).
 - Optional native CodeIgniter 4 Feature before-filter admission with cumulative trusted action/route requirements,
   fresh shared Feature evaluation and generic 404 only for ordinary unavailability. Feature-only registration needs
   no Permission filter. Both gates share request-owned provider selection and preserve each other's restrictions,
