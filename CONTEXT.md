@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Portable Symfony Permission admission — TASK-00177 Work
+## Portable Symfony Permission admission — TASK-00177 accepted checkpoint
 
 The existing native PermissionSubscriber now composes the actual selected action's effective portable requirements
 and optional trusted route declaration through PermissionRequirements. Attribute-only protection, inherited/overridden
@@ -10,7 +10,11 @@ request-owned User/Agent authority and Common's selected safe-error boundary rem
 [Symfony composition](docs/symfony-permission-admission.md) for supported forms and limits. Both cooperating subscribers
 initialize dispatch state before target resolution, so metadata refusal in either order clears completed/copied context
 without authenticating or clearing a distinct parent request. Work verification and candidate evidence belong to the
-canonical TASK handoff; independent Review/nonvisual QA remain required.
+canonical Work handoff. Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`036a630d2159b2725770d648acaf56a3bf915be6` (50 QA scenarios, zero failed/incomplete). TASK-00177 is done;
+unfinished native siblings keep its parents open. Publication/final verification and eligible retirement are pending
+at this checkpoint; canonical `.runs/handoffs/TASK-00177/land.md` owns their outcomes. Actual consumer qualification,
+merge, release and deployment remain separate.
 
 ## Local Docker sharing workaround — TASK-00183
 

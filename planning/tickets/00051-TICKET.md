@@ -159,7 +159,7 @@ criteria before implementation/review without disclosure, and explicitly choose 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 505 | [TASK-00176](../tasks/00176-TASK.md) | Integrate portable Permissions through PSR-15 | ready-for-agent |
-| 505 | [TASK-00177](../tasks/00177-TASK.md) | Integrate portable Permissions in Symfony | in-progress |
+| 505 | [TASK-00177](../tasks/00177-TASK.md) | Integrate portable Permissions in Symfony | done |
 | 505 | [TASK-00178](../tasks/00178-TASK.md) | Integrate portable Permissions in Laravel | ready-for-agent |
 | 505 | [TASK-00179](../tasks/00179-TASK.md) | Integrate portable Permissions in CodeIgniter 4 | ready-for-agent |
 ## Decisions and Progress

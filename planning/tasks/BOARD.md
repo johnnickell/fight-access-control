@@ -5,13 +5,11 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-Active Task: [TASK-00177](00177-TASK.md) — Integrate portable Permissions in Symfony.
+First ready Task: [TASK-00168](00168-TASK.md) — Demonstrate ordinary Role audit composition.
 
 ## In Progress
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 505 | [TASK-00177](00177-TASK.md) | Integrate portable Permissions in Symfony | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | in-progress | [TASK-00171](00171-TASK.md), [TASK-00104](00104-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Ready Frontier
 
@@ -220,3 +218,4 @@ No Tasks are currently in this state.
 | 504 | [TASK-00173](00173-TASK.md) | Enforce Symfony Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | done | [TASK-00172](00172-TASK.md), [TASK-00104](00104-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/197 |
 | 504 | [TASK-00174](00174-TASK.md) | Enforce Laravel Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | done | [TASK-00172](00172-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/248 |
 | 504 | [TASK-00175](00175-TASK.md) | Enforce CodeIgniter 4 Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | done | [TASK-00172](00172-TASK.md), [TASK-00106](00106-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/249 |
+| 505 | [TASK-00177](00177-TASK.md) | Integrate portable Permissions in Symfony | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | done | [TASK-00171](00171-TASK.md), [TASK-00104](00104-TASK.md) | — |
