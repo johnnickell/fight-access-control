@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Portable `RequiresPermission` enforcement through the existing optional Laravel Permission middleware.
+  Attribute-only protection, inherited/overridden requirements and protected route additions use the shared pure
+  resolver; explicit PUBLIC/AUTHENTICATED conflicts reject before authentication. Native route identity, early
+  validation denial and request-owned User/Agent authority remain intact. Cooperating Feature gates share one
+  authentication/nonce without accepting copied context. Common remains the sole selected safe-error owner.
+  See [Laravel composition](docs/laravel-permission-admission.md) for supported forms and construction/runtime limits.
+
 - Portable `RequiresPermission` enforcement through the existing optional Symfony Permission subscriber. Effective
   class/method/repeatable/inherited and route requirements accumulate without redundant route declarations; explicit
   PUBLIC/AUTHENTICATED conflicts reject before authentication. Trusted native controller association is checked before

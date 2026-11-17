@@ -10,6 +10,7 @@ use Fight\AccessControl\Application\AccessControl\Authorization\Admission\Admiss
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionAdmission;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
+use Fight\AccessControl\Application\AccessControl\Authorization\Attribute\RequiresPermission;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -518,6 +519,88 @@ final class PermissionMiddlewareTest extends TestCase
         self::assertSame(204, $native->request()->getStatusCode());
         self::assertSame(3, $environment->nonces->consumptionCalls());
         self::assertCount(1, $native->trace->reports);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function portableForms(): iterable
+    {
+        foreach (['method-string', 'method-array', 'invokable', 'inherited'] as $form) {
+            yield $form => [$form];
+        }
+    }
+
+    #[DataProvider('portableForms')]
+    public function test_portable_attributes_alone_protect_real_native_controller_forms(string $form): void
+    {
+        $native = new NativeApplication();
+        $agent = new ProfileToolEnvironment();
+        $factory = new NativeAgentAuthority($agent);
+        $action = match ($form) {
+            'method-string' => PermissionChildController::class.'@handle',
+            'method-array' => [PermissionChildController::class, 'handle'],
+            'inherited' => [PermissionChildController::class, '__invoke'],
+            default => PermissionChildController::class
+        };
+        $route = $native->route(action: $action);
+        $users = new AdmissionEnvironment();
+        $native->protect([[$route, null]], static fn(): RequestAuthority => $users->user(false));
+        self::assertSame(403, $native->request()->getStatusCode());
+        self::assertSame(['report', 'response'], $native->trace->events);
+        $native->protect([[$route, null]], $factory->create(...));
+        $request = NativeApplication::incoming('/protected/123?name=valid');
+        self::assertSame(204, $native->request($request)->getStatusCode());
+        self::assertContains('form-rules', $native->trace->events);
+        self::assertContains('bus', $native->trace->events);
+        self::assertSame(1, $agent->nonces->consumptionCalls());
+        self::assertInstanceOf(SecurityContext::class, $request->attributes->get(SecurityContext::class));
+    }
+
+    public function test_overridden_parent_and_route_requirements_cannot_be_weakened(): void
+    {
+        $native = new NativeApplication();
+        $users = new AdmissionEnvironment();
+        $route = $native->route(action: [PermissionChildController::class, 'handle']);
+        $native->protect([[$route, null]], static fn(): RequestAuthority => $users->user());
+        // The User has READ, but the overridden parent's UPDATE remains required.
+        self::assertSame(403, $native->request()->getStatusCode());
+        self::assertNotContains('construct', $native->trace->events);
+        $agent = new ProfileToolEnvironment();
+        $factory = new NativeAgentAuthority($agent);
+        $native->protect([[$route, new PermissionDeclaration(AdmissionMode::PROTECTED, [
+            PermissionName::fromString('AGENT_PROFILE_WRITE')
+        ])]], $factory->create(...));
+        self::assertSame(403, $native->request()->getStatusCode());
+        self::assertSame(1, $agent->nonces->consumptionCalls());
+        self::assertNotContains('form-rules', $native->trace->events);
+        self::assertNotContains('action', $native->trace->events);
+    }
+
+    public function test_explicit_modes_conflict_with_portable_requirements_before_authentication(): void
+    {
+        foreach ([AdmissionMode::PUBLIC, AdmissionMode::AUTHENTICATED] as $mode) {
+            $native = new NativeApplication();
+            $route = $native->route(action: [PermissionChildController::class, 'handle']);
+            $native->protect([[$route, new PermissionDeclaration($mode)]], static function (): never {
+                self::fail('Conflicting metadata must not authenticate.');
+            });
+            $response = $native->request();
+            self::assertSame(500, $response->getStatusCode());
+            self::assertSame('{"status":"error","message":"Internal server error."}', $response->getContent());
+            self::assertSame(['report', 'response'], $native->trace->events);
+        }
+    }
+
+    public function test_invalid_native_attribute_target_is_a_safe_fault_not_a_public_closure(): void
+    {
+        $native = new NativeApplication();
+        $route = $native->route(action: #[RequiresPermission('AGENT_PROFILE_READ')] static function (): Response {
+            self::fail('RequiresPermission is not valid on a closure declaration.');
+        });
+        $native->protect([[$route, null]], static function (): never {
+            self::fail('Invalid attribute must not authenticate.');
+        });
+        self::assertSame(500, $native->request()->getStatusCode());
+        self::assertSame(['report', 'response'], $native->trace->events);
     }
 
     private function protected(): PermissionDeclaration

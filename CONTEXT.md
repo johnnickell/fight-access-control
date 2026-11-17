@@ -1,5 +1,17 @@
 # Fight AccessControl Context
 
+## Portable Laravel Permission admission — TASK-00178 Work
+
+The existing native PermissionMiddleware now resolves the exact bound Route's normalized action through
+SelectedRouteAction and shared PermissionRequirements before authentication. Attribute-only protection,
+class/method/repeated/inherited/overridden-parent conjunction and protected route additions need no Feature services.
+Explicit PUBLIC/AUTHENTICATED conflicts and invalid metadata remain safe faults. Native bindings/FormRequest/action
+ordering, legacy eager controller construction limits and request-owned User/Agent lifetimes remain unchanged.
+Cooperating Feature middleware shares RequestAuthentication without replaying Agent nonces or trusting copied context.
+Common remains the selected safe report/render owner. See [Laravel composition](docs/laravel-permission-admission.md).
+Canonical `.runs/handoffs/TASK-00178/work.md` owns candidate verification and limits; independent Review/nonvisual QA
+are pending. This is package fixture proof, not consumer qualification, acceptance, publication or release.
+
 ## Portable Symfony Permission admission — TASK-00177 accepted checkpoint
 
 The existing native PermissionSubscriber now composes the actual selected action's effective portable requirements

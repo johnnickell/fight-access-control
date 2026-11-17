@@ -291,7 +291,7 @@ final class FeatureMiddlewareTest extends TestCase
         $features->seed(FeatureStatus::PREVIEW, permissionId: $permission->getId());
 
         $native = new NativeApplication($this->challenge());
-        $route = $this->route($native);
+        $route = $this->route($native, [PermissionChildController::class, 'handle']);
         $route->middleware(PermissionMiddleware::class);
         if ($permissionFirst) {
             $native->kernel->prependToMiddlewarePriority(PermissionMiddleware::class);
@@ -307,11 +307,11 @@ final class FeatureMiddlewareTest extends TestCase
         };
         $authentication = $this->install($native, $features, [[$route, $this->requirements($route)]], $select);
         $native->app->instance(PermissionMiddleware::class, new PermissionMiddleware($native->router, [
-            [$route, new PermissionDeclaration(AdmissionMode::PROTECTED, [
-                PermissionName::fromString('AGENT_PROFILE_READ')
-            ])]
+            [$route, null]
         ], $authentication));
-        self::assertSame(204, $native->request()->getStatusCode());
+        self::assertSame(204, $native->request(
+            NativeApplication::incoming('/protected/123?name=valid')
+        )->getStatusCode());
         self::assertSame(1, $calls);
         self::assertSame(1, $agent->nonces->consumptionCalls());
         $features->seed(FeatureStatus::OFF, permissionId: $permission->getId());

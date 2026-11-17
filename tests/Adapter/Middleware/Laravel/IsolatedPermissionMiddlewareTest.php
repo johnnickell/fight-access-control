@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\Authorization\Admission\Admiss
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
 use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
@@ -30,19 +31,27 @@ final class IsolatedPermissionMiddlewareTest extends TestCase
         yield 'not bound' => ['unbound'];
         yield 'changed action' => ['changed'];
         yield 'invalid declaration' => ['invalid'];
+        yield 'missing action' => ['null'];
+        yield 'unsupported action' => ['unsupported'];
     }
 
     #[DataProvider('invalidTargets')]
     public function test_invalid_native_target_never_reaches_authority_or_next(string $problem): void
     {
         $route = $this->createStub(Route::class);
-        $action = 'controller';
-        $route->method('getAction')->willReturnCallback(static function () use (&$action): string {
+        $action = static fn(): Response => new Response();
+        $route->method('getAction')->willReturnCallback(static function () use (&$action): mixed {
             return $action;
         });
         $router = $this->createStub(Router::class);
         $router->method('getCurrentRoute')->willReturn($problem === 'missing' ? null : $route);
         $request = $this->request($route);
+        if ($problem === 'null') {
+            $action = null;
+        } elseif ($problem === 'unsupported') {
+            $action = 'container-alias@handle';
+        }
+
         $declaration = $problem === 'invalid' ? 'forged' : new PermissionDeclaration(AdmissionMode::AUTHENTICATED);
         $gate = new PermissionMiddleware(
             $router,
@@ -65,7 +74,7 @@ final class IsolatedPermissionMiddlewareTest extends TestCase
     public function test_admitted_context_replaces_copied_authority_and_public_path_does_not_authenticate(): void
     {
         $route = $this->createStub(Route::class);
-        $route->method('getAction')->willReturn('controller');
+        $route->method('getAction')->willReturn(static fn(): Response => new Response());
         $router = $this->createStub(Router::class);
         $router->method('getCurrentRoute')->willReturn($route);
         $request = $this->request($route);
@@ -94,6 +103,24 @@ final class IsolatedPermissionMiddlewareTest extends TestCase
             self::assertFalse($next->attributes->has(SecurityContext::class));
 
             return $response;
+        });
+    }
+
+    public function test_effective_class_and_overridden_metadata_are_enforced_without_construction(): void
+    {
+        $route = $this->createStub(Route::class);
+        $route->method('getAction')->willReturn(PermissionChildController::class.'@handle');
+        $router = $this->createStub(Router::class);
+        $router->method('getCurrentRoute')->willReturn($route);
+        $users = new AdmissionEnvironment();
+        $middleware = new PermissionMiddleware(
+            $router,
+            [[$route, null]],
+            static fn(): RequestAuthority => $users->user()
+        );
+        $this->expectException(PermissionDenied::class);
+        $middleware->handle($this->request($route), static function (): never {
+            self::fail('The overridden parent requires UPDATE as well as READ.');
         });
     }
 
