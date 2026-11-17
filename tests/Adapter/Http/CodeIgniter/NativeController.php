@@ -4,41 +4,18 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Adapter\Http\CodeIgniter;
 
-use Closure;
-use CodeIgniter\Controller;
-use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\Router\Attributes\Restrict;
+use LogicException;
 
-final class NativeController extends Controller
+/** Selected code metadata only; no native controller lifecycle is exercised */
+final class NativeController
 {
-    /** @var list<string> */
-    public static array $events = [];
-
-    public static ?Closure $work = null;
-
     public function __construct()
     {
-        self::$events[] = 'construct';
+        throw new LogicException('Metadata selection must not construct a controller.');
     }
 
-    public function handle(string $id): ResponseInterface
+    public function handle(): never
     {
-        self::$events[] = 'action';
-        if (self::$work !== null) {
-            (self::$work)($this->request);
-        }
-
-        return $this->response->setStatusCode(204)->setHeader('X-Action', $id);
-    }
-
-    #[Restrict(environment: 'production')]
-    public function restricted(string $id): ResponseInterface
-    {
-        return $this->handle($id);
-    }
-
-    public function __invoke(string $id): ResponseInterface
-    {
-        return $this->handle($id);
+        throw new LogicException('Admission must not execute the selected action.');
     }
 }

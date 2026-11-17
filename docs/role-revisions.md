@@ -91,8 +91,9 @@ neither reservation nor transaction admission.
 meaning; omitted or explicit null deliberately disables durable evidence. The required `UserId` actor remains
 required and is attribution, not administrative authority. No Command or Event wire fields change.
 
-Inject the upgraded audit repository directly alongside ordinary `TransactionalUnitOfWork`, not an Event-inspecting
-transaction decorator. For example, using consumer-owned adapters on one actual connection:
+See [ordinary Role audit composition](role-audit-composition.md) for the executable modeled binding, complete
+mapping matrix and exact prerequisites to retire the Agent OS workaround. Inject the upgraded audit repository
+directly alongside ordinary `TransactionalUnitOfWork`, not an Event-inspecting transaction decorator. For example, using consumer-owned adapters on one actual connection:
 
 ```php
 $create = new CreateCustomRoleHandler($roleRepository, $clock, $unitOfWork, $eventDispatcher, $auditEvidenceRepository);

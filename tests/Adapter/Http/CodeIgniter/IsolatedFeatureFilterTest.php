@@ -270,6 +270,187 @@ final class IsolatedFeatureFilterTest extends TestCase
         self::assertNull($contexts->get($parent));
     }
 
+    /** @return iterable<string, array{FeatureStatus, bool, bool, bool}> */
+    public static function statusMatrix(): iterable
+    {
+        foreach (FeatureStatus::cases() as $status) {
+            foreach ([false, true] as $authenticated) {
+                foreach ([false, true] as $grant) {
+                    yield $status->name.'-'.(int) $authenticated.'-'.(int) $grant => [
+                        $status,
+                        $authenticated,
+                        $grant,
+                        $status === FeatureStatus::ON
+                            || $status === FeatureStatus::PREVIEW && $authenticated && $grant
+                    ];
+                }
+            }
+        }
+    }
+
+    #[DataProvider('statusMatrix')]
+    public function test_status_and_exact_snapshot_grant_control_feature_admission(
+        FeatureStatus $status,
+        bool $authenticated,
+        bool $grant,
+        bool $allowed
+    ): void {
+        [$admission, $features, $id] = $this->admission();
+        $features->records = [];
+        $features->seed(Feature::reconstitute(
+            FeatureId::generate(),
+            FeatureName::fromString('rollout'),
+            $id,
+            $status,
+            1
+        ));
+        $router = $this->router();
+        $action = static fn(): null => null;
+        $router->method('controllerName')->willReturn($action);
+        $router->method('getMatchedRoute')->willReturn(['route', $action]);
+        $router->method('getMatchedRouteOptions')->willReturn([
+            FeatureRequirements::class => new FeatureRequirements(SelectedAction::closure($action), 'rollout')
+        ]);
+        $environment = new AdmissionEnvironment();
+        $contexts = new RequestContexts();
+        $authentication = new RequestAuthentication(
+            static fn(): ?RequestAuthority => $authenticated ? $environment->user($grant, permissionId: $id) : null,
+            $contexts
+        );
+        $failure = null;
+        $response = $this->createStub(ResponseInterface::class);
+        $filter = new FeatureFilter(
+            static fn(): Router => $router,
+            $authentication,
+            $admission,
+            $this->errors($response, $failure)
+        );
+        $request = $this->createStub(IncomingRequest::class);
+
+        self::assertSame($allowed ? null : $response, $filter->before($request));
+        self::assertSame(!$allowed, $failure instanceof ResourceNotFound);
+        self::assertSame($allowed && $authenticated, $contexts->get($request) !== null);
+    }
+
+    /** @return iterable<string, array{bool}> */
+    public static function gateOrders(): iterable
+    {
+        yield 'feature first' => [true];
+        yield 'permission first' => [false];
+    }
+
+    #[DataProvider('gateOrders')]
+    public function test_cooperating_restrictive_gates_share_selection_but_neither_grants_the_other(
+        bool $featureFirst
+    ): void {
+        [$admission, $features, $id] = $this->admission();
+        $router = $this->router();
+        $action = static fn(): null => null;
+        $router->method('controllerName')->willReturn($action);
+        $router->method('getMatchedRoute')->willReturn(['route', $action]);
+        $declaration = new PermissionDeclaration(AdmissionMode::AUTHENTICATED);
+        $router->method('getMatchedRouteOptions')->willReturnCallback(static function () use (
+            $action,
+            &$declaration
+        ): array {
+            return [
+                FeatureRequirements::class   => new FeatureRequirements(SelectedAction::closure($action), 'rollout'),
+                PermissionDeclaration::class => $declaration
+            ];
+        });
+        $contexts = new RequestContexts();
+        $environment = new AdmissionEnvironment();
+        $calls = 0;
+        $authority = static function () use ($environment, $id, &$calls): RequestAuthority {
+            ++$calls;
+
+            return $environment->user(permissionId: $id);
+        };
+        $authentication = new RequestAuthentication($authority, $contexts);
+        $failure = null;
+        $response = $this->createStub(ResponseInterface::class);
+        $errors = $this->errors($response, $failure);
+        $feature = new FeatureFilter(static fn(): Router => $router, $authentication, $admission, $errors);
+        $permission = new PermissionFilter(static fn(): Router => $router, $authentication, $errors);
+        [$first, $second] = $featureFirst ? [$feature, $permission] : [$permission, $feature];
+        $request = $this->createStub(IncomingRequest::class);
+        self::assertNull($first->before($request));
+        $context = $contexts->get($request);
+        self::assertNull($second->before($request));
+        self::assertSame($context->getAuthenticatedAuthority(), $contexts->get($request)->getAuthenticatedAuthority());
+        self::assertSame(1, $calls);
+        self::assertSame(1, $environment->resolutions);
+
+        $authentication->clear($request);
+        $declaration = new PermissionDeclaration(AdmissionMode::PROTECTED, [
+            PermissionName::fromString('ACCOUNT_MANAGE')
+        ]);
+        self::assertNull($feature->before($request));
+        self::assertSame($response, $permission->before($request));
+        self::assertNull($contexts->get($request));
+        $authentication->clear($request);
+        $declaration = new PermissionDeclaration(AdmissionMode::PUBLIC);
+        $features->records = [];
+        $features->seed(Feature::reconstitute(
+            FeatureId::generate(),
+            FeatureName::fromString('rollout'),
+            $id,
+            FeatureStatus::OFF,
+            1
+        ));
+        self::assertNull($permission->before($request));
+        self::assertSame($response, $feature->before($request));
+        self::assertInstanceOf(ResourceNotFound::class, $failure);
+        self::assertNull($contexts->get($request));
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function effectiveNames(): iterable
+    {
+        foreach (['rollout', 'parent-gate', 'child-gate', 'method-gate', 'route-gate'] as $name) {
+            yield $name => [$name];
+        }
+    }
+
+    #[DataProvider('effectiveNames')]
+    public function test_selected_method_conjoins_inherited_overridden_and_route_requirements_without_construction(
+        string $blocked
+    ): void {
+        [$admission, $features, $id] = $this->admission();
+        $features->records = [];
+        foreach (['rollout', 'parent-gate', 'child-gate', 'method-gate', 'route-gate'] as $name) {
+            $features->seed(Feature::reconstitute(
+                FeatureId::generate(),
+                FeatureName::fromString($name),
+                $id,
+                $name === $blocked ? FeatureStatus::OFF : FeatureStatus::ON,
+                1
+            ));
+        }
+
+        $router = $this->router();
+        $router->method('controllerName')->willReturn(FeatureController::class);
+        $router->method('methodName')->willReturn('handle');
+        $router->method('getMatchedRoute')->willReturn(['route', 'handler']);
+        $router->method('getMatchedRouteOptions')->willReturn([
+            FeatureRequirements::class => new FeatureRequirements(
+                SelectedAction::method(FeatureController::class, 'handle'),
+                'route-gate'
+            )
+        ]);
+        $response = $this->createStub(ResponseInterface::class);
+        $failure = null;
+        $filter = new FeatureFilter(
+            static fn(): Router => $router,
+            new RequestAuthentication(static fn(): null => null, new RequestContexts()),
+            $admission,
+            $this->errors($response, $failure)
+        );
+
+        self::assertSame($response, $filter->before($this->createStub(IncomingRequest::class)));
+        self::assertInstanceOf(ResourceNotFound::class, $failure);
+    }
+
     /** @return array{FeatureAdmission, InMemoryFeatureRepository, PermissionId} */
     private function admission(): array
     {

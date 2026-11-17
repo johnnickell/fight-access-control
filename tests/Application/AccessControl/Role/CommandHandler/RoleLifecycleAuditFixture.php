@@ -20,6 +20,7 @@ use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\MappedAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepositoryState;
@@ -33,9 +34,11 @@ final readonly class RoleLifecycleAuditFixture
 
     public InMemoryRoleRepository $roleRepository;
 
+    public InMemoryUserRepository $userRepository;
+
     public InMemoryRoleRepositoryState $state;
 
-    public InMemoryAuditEvidenceRepository $audit;
+    public InMemoryAuditEvidenceRepository|MappedAuditEvidenceRepository $audit;
 
     public InMemoryEventDispatcher $eventDispatcher;
 
@@ -53,12 +56,20 @@ final readonly class RoleLifecycleAuditFixture
         bool $omitAudit = false,
         bool $failAudit = false,
         ?InMemoryEventDispatcher $eventDispatcher = null,
-        ?Clock $clock = null
+        ?Clock $clock = null,
+        bool $mappedAudit = false,
+        bool $failBeforeAudit = false
     ) {
         $this->unitOfWork = new InMemoryUnitOfWork();
         $this->state = new InMemoryRoleRepositoryState();
         $this->roleRepository = new InMemoryRoleRepository($this->unitOfWork, state: $this->state);
-        $this->audit = new InMemoryAuditEvidenceRepository($this->unitOfWork, failAfterSave: $failAudit);
+        $this->userRepository = new InMemoryUserRepository($this->unitOfWork);
+        $audit = new InMemoryAuditEvidenceRepository($this->unitOfWork, failAfterSave: $failAudit);
+        if ($mappedAudit) {
+            $audit = new MappedAuditEvidenceRepository($this->unitOfWork, $failAudit, $failBeforeAudit);
+        }
+
+        $this->audit = $audit;
         $this->eventDispatcher = $eventDispatcher ?? new InMemoryEventDispatcher();
         $this->outcomeTime = new DateTimeImmutable('2030-01-08T12:34:56.123456Z');
         $this->original = Role::define(
@@ -94,7 +105,7 @@ final readonly class RoleLifecycleAuditFixture
             ),
             'remove' => new RemoveCustomRoleHandler(
                 $this->roleRepository,
-                new InMemoryUserRepository($this->unitOfWork),
+                $this->userRepository,
                 $clock,
                 $this->unitOfWork,
                 $this->eventDispatcher,

@@ -18,11 +18,15 @@ Adapter → Application → Domain. The error box compresses response propagatio
 | 2 | [RequestAuthentication::begin/authority](../../src/Adapter/Http/CodeIgniter/RequestAuthentication.php) | Private request/router identity clears earlier attempts and selects one actual request provider across cooperating gates. |
 | 3 | FeatureFilter::before → RequestAuthority::resolve → [FeatureAdmission::admit](../../src/Application/AccessControl/Feature/Admission/FeatureAdmission.php) | Compressed ordered hop to a concrete User/Agent snapshot or deliberate anonymous null, never a copied grant. |
 | 4 | FeatureAdmission::admit → [FeatureAvailability::isAvailable](../../src/Application/AccessControl/Feature/Service/FeatureAvailability.php) | All effective requirements use fresh authoritative Feature settings and exact stored Permission bindings. |
-| 5 | FeatureFilter::before, [native fixture](../../tests/Adapter/Http/CodeIgniter/NativeApplication.php) | Null permits later native validators/construction/action; a native Response short-circuits them. Independently selected Permission admission must also pass. |
+| 5 | FeatureFilter::before, [controlled filter units](../../tests/Adapter/Http/CodeIgniter/IsolatedFeatureFilterTest.php) | Null permits later native validators/construction/action; a native Response short-circuits them. Independently selected Permission admission must also pass. |
 | F | FeatureFilter::before, [SafeCodeIgniter::handleRequest](../../src/Adapter/Http/CodeIgniter/SafeCodeIgniter.php), [SafeErrorResponder::respond](../../src/Adapter/Http/CodeIgniter/SafeErrorResponder.php) | Ordinary Feature unavailability alone becomes generic 404. The unchanged Common-backed bridge owns one safe report/response and downstream interception, not the before-filter catch alone. |
 
 Omitted: provider authentication/HMAC/nonce stores, repository internals, detailed Common fallback, full Permission
 flow, earlier/bootstrap/required filters, send/shutdown, global reentrant loops, non-JSON entry points and installed
 consumer composition. Source traces were inspected; an arrow is not execution, acceptance or security proof.
-Native tests and independent reports own behavioral claims. Rendering uses local Python/Pillow with no network or
+TASK-00168's [coverage amendment](../codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment)
+removes the native application fixture and bootstrap-dependent integration tests. The unchanged diagram describes
+intended runtime wiring, not current native journey proof. Controlled units do not prove route/alias conversion,
+short-circuit/controller order, required filters, downstream interception or bootstrap reset. Earlier independent
+native reports remain historical. Rendering uses local Python/Pillow with no network or
 application effects; source and PNG are maintained together.
