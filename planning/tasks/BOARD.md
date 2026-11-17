@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00181](00181-TASK.md) — Close composition gaps and reconcile guidance.
+Active Task: [TASK-00181](00181-TASK.md) — Close composition gaps and reconcile guidance.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 506 | [TASK-00181](00181-TASK.md) | Close composition gaps and reconcile guidance | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | in-progress | [TASK-00180](00180-TASK.md), [TASK-00172](00172-TASK.md), [TASK-00173](00173-TASK.md), [TASK-00174](00174-TASK.md), [TASK-00175](00175-TASK.md), [TASK-00176](00176-TASK.md), [TASK-00177](00177-TASK.md), [TASK-00178](00178-TASK.md), [TASK-00179](00179-TASK.md) | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 506 | [TASK-00181](00181-TASK.md) | Close composition gaps and reconcile guidance | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | ready-for-agent | [TASK-00180](00180-TASK.md), [TASK-00172](00172-TASK.md), [TASK-00173](00173-TASK.md), [TASK-00174](00174-TASK.md), [TASK-00175](00175-TASK.md), [TASK-00176](00176-TASK.md), [TASK-00177](00177-TASK.md), [TASK-00178](00178-TASK.md), [TASK-00179](00179-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

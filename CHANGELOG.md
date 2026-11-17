@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Current [portable admission reconciliation](docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
+  connects existing Feature-only, Permission-only and combined evidence across Slim, Yii 3, Symfony, Laravel and CI4.
+  No production behavior or new tests are added. Common remains `^1.5.1`; CI4's amended Feature/combined unit boundary
+  and separate Permission-native proof remain distinct. Consumer registration, authentication, storage, safe sinks
+  and native runtime qualification are not supplied by the package evidence.
+
 - Portable `RequiresPermission` integration through the optional CodeIgniter 4 Permission before-filter. Effective
   class/method/repeatable/inherited/overridden and trusted route requirements compose through the existing inward
   admission, without Feature services or redundant route declarations. Explicit mode conflicts fail before

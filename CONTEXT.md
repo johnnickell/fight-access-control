@@ -1,5 +1,20 @@
 # Fight AccessControl Context
 
+## Portable admission reconciliation — TASK-00181 Work checkpoint
+
+The [current evidence map](docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
+now connects accepted declarations and five-family Feature/Permission suppliers to the integrated candidate.
+Existing shared/native checks cover independent selection, conjunctive gates, trusted context and single authentication;
+no residual package composition risk justified another test or supplier repair. CI4's explicit TASK-00168 amendment
+retains controlled Feature/combined units and external native lifecycle qualification; TASK-00179's new Permission-native
+proof does not restore or certify removed Feature journeys. Common remains `^1.5.1`, with current guide floors aligned.
+
+This is documentation-only Work, not independent acceptance. The TASK and parents remain open for Review/nonvisual QA.
+Earlier integrated full-gate evidence is retained with complete input equivalence and current planning/documentation
+checks; no fresh full suite, dependency lane or task runtime is claimed. Canonical `.runs/handoffs/TASK-00181/work.md`
+owns exact supplier/candidate, receipt/log/exit and requirement/gap dispositions. Actual consumer registration/scanning,
+authentication/storage/crypto/cache/locks, bootstrap/sinks/proxies/runtime, adoption and deployment remain separate.
+
 ## Portable CodeIgniter 4 Permission admission — TASK-00179 accepted checkpoint
 
 The optional `SafeNativeLogger` now directs selected native diagnostics to the same Common `SafeHttpDiagnostics`
