@@ -911,8 +911,9 @@ PermissionDeclaration/admission semantics. Independent Review ACCEPT and nonvisu
 Earlier full gate retained: 7,080 tests / 78,397 assertions, exact 9,324/9,324 global and 19/19 added statements.
 Publication/final delivery verification remain pending at this closeout checkpoint; canonical
 `.runs/handoffs/TASK-00171/land.md` owns subsequent bridge/delivery/resource results. Original reports and minimum-lane
-warnings remain preserved. Native portable Permission integration and the remaining native Feature peers stay
-unfinished; the accepted shared/Slim/Yii Feature slice is described above. This is not whole-library or actual consumer qualification.
+warnings remain preserved. TASK-00176 now qualifies portable Permission admission for Slim/Yii as described below;
+the other native Permission integrations and final reconciliation remain unfinished. Feature admission is accepted
+across all five frameworks under TICKET-00050. This is not whole-library or actual consumer qualification.
 The earlier TASK-00149 acceptance below covers its original narrower contract, not this new behavior.
 TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT
 and nonvisual QA PASS cover candidate `713837ab11122cafc5a66d00c0c0e6174eedb333`, with no open findings;
@@ -1519,7 +1520,7 @@ use those accepted homes without resurrecting direct services/results or duplica
 verification and independent Review/QA are required; old-subject acceptance does not cover this candidate.
 TASK-00130/TASK-00162 typing/audit enhancements remain separately owned and are not implemented here.
 
-## TASK-00176 portable PSR-15 Permission admission — Work
+## TASK-00176 portable PSR-15 Permission admission — accepted checkpoint
 
 The PSR-15 `PermissionMiddleware` now consumes `PermissionRequirements` and a trusted native `SelectedAction`
 callback before existing inward admission. Attribute-only protection, inherited/overridden conjunction and explicit
@@ -1531,8 +1532,15 @@ R1 repair makes each supported Slim/Yii native entry clone the concrete Slim PSR
 SecurityContext before routing. Distinct attributed nested targets sharing one authentication object now select
 independently, including same-object reentry; adjacent gates inside that entry still share one selection/nonce.
 The recipes do not claim arbitrary non-cloneable PSR request support. Supplier authentication is unchanged.
-Work verification and candidate/runtime details belong to the canonical TASK handoff. Independent Review and
-nonvisual QA remain required; this checkpoint claims neither acceptance nor actual consumer qualification.
+Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`5b5e6b0b236fc03558c92144f9f0e123425edf32`, with R1 resolved and 13 passed QA scenarios. TASK-00176 is done;
+unfinished native Permission siblings keep TICKET-00051/EPIC-00018 open. Land's behavior-preserving integration
+of develop `e946c13622d31e33e98e634fb6dbec2141607ab1` passes a fresh full gate: 10,123 tests / 99,791 assertions,
+exact 11,878/11,878 statements and separate Unit-only executable lines across 554 files, without exclusions.
+Branch coverage was not collected. The earlier streaming socket-timeout root cause remains unproven;
+later passes do not establish general cold-load reliability. Publication/final-head checks are pending at this
+closeout checkpoint; canonical `.runs/handoffs/TASK-00176/land.md` owns the exact provenance and delivery/resource
+outcomes. Work owns original qualification/runtime evidence. No actual consumer qualification is claimed.
 
 ## Approved portable Feature and Permission admission destination
 
