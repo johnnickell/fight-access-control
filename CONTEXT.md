@@ -1,6 +1,6 @@
 # Fight AccessControl Context
 
-## Portable Laravel Permission admission — TASK-00178 Work
+## Portable Laravel Permission admission — TASK-00178 accepted checkpoint
 
 The existing native PermissionMiddleware now resolves the exact bound Route's normalized action through
 SelectedRouteAction and shared PermissionRequirements before authentication. Attribute-only protection,
@@ -9,8 +9,13 @@ Explicit PUBLIC/AUTHENTICATED conflicts and invalid metadata remain safe faults.
 ordering, legacy eager controller construction limits and request-owned User/Agent lifetimes remain unchanged.
 Cooperating Feature middleware shares RequestAuthentication without replaying Agent nonces or trusting copied context.
 Common remains the selected safe report/render owner. See [Laravel composition](docs/laravel-permission-admission.md).
-Canonical `.runs/handoffs/TASK-00178/work.md` owns candidate verification and limits; independent Review/nonvisual QA
-are pending. This is package fixture proof, not consumer qualification, acceptance, publication or release.
+Canonical `.runs/handoffs/TASK-00178/work.md` owns candidate verification and limits. Independent Review v3 ACCEPT
+and nonvisual QA PASS qualify candidate `1ecf09876d0046157c88d1720e3c53d6b8c5e38c` (20 independent native scenarios /
+253 checks plus 40 selected native tests / 470 assertions, no defects). TASK-00178 is done; unfinished TASK-00179
+keeps its parents open. Earlier full gate retained; current planning/documentation checks qualify administrative
+closeout. Publication/final verification and eligible retirement are pending at this checkpoint; canonical
+`.runs/handoffs/TASK-00178/land.md` owns subsequent outcomes. Package fixture proof does not qualify actual consumer
+composition or authorize merge, release or deployment.
 
 ## Portable Symfony Permission admission — TASK-00177 accepted checkpoint
 
