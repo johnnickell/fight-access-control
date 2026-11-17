@@ -127,8 +127,10 @@ instance across both subscribers in either order. Its private state is keyed by 
 not copyable attributes. Public Permission admission preserves context selected by the cooperating Feature gate and
 never bypasses its restrictions. With Permission-only registration a public route still clears incoming context.
 Each non-public request invokes the trusted factory anew; providers must
-not be captured as cached singletons. Admission removes any incoming SecurityContext and sets only the admitted
-snapshot. A standalone public route erases it without resolving authentication. A failed admission leaves no selected context.
+not be captured as cached singletons. Both subscribers initialize dispatch-owned state before resolving target metadata,
+without selecting authentication. In either order, a metadata failure therefore clears a completed or copied incoming
+SecurityContext before exception/response listeners run. Admission publishes only a trusted snapshot; a standalone public
+route erases incoming context without resolving authentication.
 Symfony pops its RequestStack on success and handled exception; repeated requests use fresh authority, including when
 the same completed Request object is reused. The retained attribute is a **short-request snapshot**, not future authority.
 

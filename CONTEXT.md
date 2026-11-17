@@ -7,8 +7,10 @@ and optional trusted route declaration through PermissionRequirements. Attribute
 conjunction and mode-conflict rejection require no Feature services. The early request gate remains before lazy
 construction; a resolved-controller checkpoint rejects substitution before validation. Independent native IsGranted,
 request-owned User/Agent authority and Common's selected safe-error boundary remain separate owners. See
-[Symfony composition](docs/symfony-permission-admission.md) for supported forms and limits. Work verification and
-candidate evidence belong to the canonical TASK handoff; independent Review/nonvisual QA remain required.
+[Symfony composition](docs/symfony-permission-admission.md) for supported forms and limits. Both cooperating subscribers
+initialize dispatch state before target resolution, so metadata refusal in either order clears completed/copied context
+without authenticating or clearing a distinct parent request. Work verification and candidate evidence belong to the
+canonical TASK handoff; independent Review/nonvisual QA remain required.
 
 ## Local Docker sharing workaround — TASK-00183
 

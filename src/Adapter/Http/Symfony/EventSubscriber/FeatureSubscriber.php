@@ -60,6 +60,8 @@ final readonly class FeatureSubscriber implements EventSubscriberInterface
      */
     public function onKernelRequest(RequestEvent $event): void
     {
+        // Start the dispatch lifetime even when target metadata fails before authentication.
+        $this->authentication->authority($event, false);
         try {
             [$action, $target] = $this->target($event->getRequest());
             $requirements = $target[FeatureRequirements::class] ?? new FeatureRequirements($action);

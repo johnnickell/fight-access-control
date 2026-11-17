@@ -106,7 +106,10 @@ request-owned provider; concrete providers cache their authenticated snapshot, s
 Agent nonce. Each gate retains its own requirements. Public Permission admission cannot bypass Feature restrictions or
 erase the trusted context selected by Feature admission; Feature ON cannot bypass Permission requirements.
 
-Sequential dispatches, including reuse of a completed Request object, create fresh dispatch state. Every nested subrequest
+Sequential dispatches, including reuse of a completed Request object, create fresh dispatch state. Both subscribers
+initialize that state before resolving target metadata, without invoking the provider. A metadata refusal in either gate
+order clears incoming/completed context before error and response listeners; a distinct child does not clear its parent.
+Every nested subrequest
 uses a **distinct Request object** and its own credentials. Copied parent routing/context is not delegation: clear copied
 routing attributes when changing targets; conflicting targets fail closed. Independently authenticated Agent children
 need their own valid signed request/nonce. Symfony restores RequestStack on success and handled faults. Reentrant use of
