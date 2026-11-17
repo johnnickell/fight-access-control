@@ -294,6 +294,16 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 
 ## Tests and delivery
 
+- **Explicit CI4 coverage amendment (TASK-00168):** John selected "Unit test what we can and remove those integration
+  tests" and directed updating the existing TASK-00168 PR. Remove only the affected CI4 bootstrap-dependent native
+  integration tests and now-unused fixtures; preserve practical package decisions, denial/fault handling and lifetime
+  checks through isolated units. This narrowly supersedes native-test retention for those tests, not general testing
+  policy. Keep all-src exact statements and separate Unit-only lines without exclusions. Native route conversion,
+  aliases/short-circuit, validator/controller/required-filter ordering, downstream interception and bootstrap/worker
+  reset are no longer current executable proof; consumers must qualify them separately. Earlier TASK-00175 acceptance
+  and merged history remain historical, not amendment acceptance. See the
+  [current CI4 verification boundary](../../docs/codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment).
+
 - **Explicit PHPStan scope decision (TASK-00152):** ordinary/default analysis covers production `src/` and shipped
   `openapi/` metadata only. Do not analyze `tests/` or `scripts/`, directly or through another pass. John rejected
   the prior split pass: "Yes. Running our tests should tell us if there are wrong argument types. We DONT TEST TESTS".

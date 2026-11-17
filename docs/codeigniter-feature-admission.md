@@ -6,6 +6,25 @@ It consumes the shared [effective requirements](feature-references.md) and [Feat
 not another Attribute merger, evaluator, scanner or provisioning path. Availability never authorizes the action.
 CI3, auto-routing, direct PHP/bus/worker interception and automatic consumer registration are not supplied.
 
+## Current verification boundary — TASK-00168 amendment
+
+John approved replacing practical CI4 behavior with units and removing the bootstrap-dependent integration tests
+from the existing TASK-00168 PR. `FeatureFilterTest`, `PermissionFilterTest`, `SafeErrorResponderTest` and their
+unused native application/filter/authority/diagnostic fixtures are removed because their shared-process framework
+bootstrap collides with Laravel's global helpers. TASK-00175's earlier native acceptance remains historical.
+
+Current isolated tests exercise package filters with controlled router/request/response ports, real effective
+requirements, in-memory Feature/Permission state and concrete authority providers. They cover status/grant decisions,
+invalid selection, denial/fault translation, cooperation, selection reuse and context clearing. They do **not** prove
+CI4 route conversion, alias registration, native before-filter short-circuit, validator/controller order, required
+filters, downstream exception interception or worker/bootstrap reset. Those real framework guarantees now require
+separate consumer qualification; the composition below describes intended wiring, not current native test proof.
+The controlled native response leaf tests are not an application journey or installed framework qualification.
+They still need the existing test launcher's pre-Composer framework symbol selection (as used by `bin/quality`).
+Plain Composer-first PHPUnit invocations can still resolve CI4's `config()` call to Laravel's helper; removing the
+native application journeys does not remove that limitation. No new bootstrap workaround, production behavior,
+global testing-policy change or coverage exclusion is introduced by this amendment.
+
 ## Explicit native composition
 
 Keep explicit PHP routes and `Config\Feature::$oldFilterOrder = false`. Register a zero-argument native filter shell
@@ -89,9 +108,9 @@ snapshot caching gives one Agent HMAC/nonce consumption, not authentication repl
 The consumer must call `$authentication->clear($incomingRequest)` at dispatch entry, **before native routing or
 required filters**, in addition to resetting CI4's service/router/filter/response registry and selecting fresh
 providers/nonces. A routing failure or early required-filter response may never enter either admission filter, so
-filter-local clearing alone is insufficient when reusing a request object. The native fixture proves a successful
-request followed by an unmatched-method failure on that same object leaves no previous context. This is explicit
-consumer bootstrap wiring, not an implicit global handler or automatic framework reset.
+filter-local clearing alone is insufficient when reusing a request object. The removed native fixture checked a
+successful request followed by an unmatched-method failure on that same object. Current units do not prove pre-routing
+reset. This is explicit consumer bootstrap wiring, not an implicit global handler or automatic framework reset.
 
 Within that dispatch a new native router or repeated gate begins fresh admission and clears that request's previous
 context; filter failures also clear context. The map is weak-keyed; distinct requests never inherit parent authority. Retaining an old request/snapshot does not make it current/live/background authority.
@@ -111,8 +130,9 @@ action/after-filter failures before CI4's raw global logger/formatter. The same 
 redaction-aware diagnostics, then uses Common's finite policy/projection/encoding and fresh native response.
 Handled Feature refusal is not reported again by the loop. Partial buffered output and prior action/challenge headers
 are not copied. Sink/projector/encoding/native-render/fallback failures retain fixed safe JSON/500 without recursive
-reporting or raw fallback. The original bridge tests qualify these unchanged mechanisms; Feature-only journeys prove
-actual downstream interception and one report without Permission activation.
+reporting or raw fallback. Current bridge units qualify direct package calls and controlled response ports. Removed
+Feature-only journeys checked downstream interception and one report without Permission activation; units do not replace
+that native lifecycle proof.
 
 This selection is **ordinary JSON-only regardless of Accept**, not automatic HTML negotiation/sanitization. Startup,
 pre-system/required-before, required-after/post-system, sending/streaming, shutdown and resource exhaustion remain
@@ -127,8 +147,9 @@ inward checks and native response short-circuit. It is a bounded view, not accep
 
 Sufficient selected minima are current package **Common v1.5.1** and **CI4 v4.7.6**; semver ranges do not certify every
 future resolver combination. CI4 remains development-only plus an optional Composer suggestion. The package's
-patched PHP 8.5 runtime includes intl and mbstring. Focused native journeys and isolated Unit coverage remain distinct:
-real routing/filter/native-response evidence cannot fill Unit-only line gaps. The canonical Work handoff owns exact
+patched PHP 8.5 runtime includes intl and mbstring. Historical native journeys and current isolated Unit coverage
+remain distinct: current units neither certify native routing/filter ordering nor replace removed framework proof.
+The canonical Work handoff owns exact
 ordinary/minimum/core-only locks, versions, counts, failed attempts, warnings and full-gate/coverage evidence.
 
 Controlled fixtures qualify package behavior, not actual consumer route/alias ordering, authentication/HMAC/nonce
