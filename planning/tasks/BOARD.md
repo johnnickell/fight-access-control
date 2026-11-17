@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00181](00181-TASK.md) — Close composition gaps and reconcile guidance.
+No non-terminal Task exists. Any future release decision requires separate human authorization.
 
 ## In Progress
 
@@ -13,9 +13,7 @@ No Tasks are currently in this state.
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 506 | [TASK-00181](00181-TASK.md) | Close composition gaps and reconcile guidance | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | ready-for-agent | [TASK-00180](00180-TASK.md), [TASK-00172](00172-TASK.md), [TASK-00173](00173-TASK.md), [TASK-00174](00174-TASK.md), [TASK-00175](00175-TASK.md), [TASK-00176](00176-TASK.md), [TASK-00177](00177-TASK.md), [TASK-00178](00178-TASK.md), [TASK-00179](00179-TASK.md) | — |
+No Tasks are currently in this state.
 
 ## Waiting
 
@@ -218,3 +216,4 @@ No Tasks are currently in this state.
 | 505 | [TASK-00177](00177-TASK.md) | Integrate portable Permissions in Symfony | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | done | [TASK-00171](00171-TASK.md), [TASK-00104](00104-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/252 |
 | 505 | [TASK-00178](00178-TASK.md) | Integrate portable Permissions in Laravel | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | done | [TASK-00171](00171-TASK.md), [TASK-00105](00105-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/254 |
 | 505 | [TASK-00179](00179-TASK.md) | Integrate portable Permissions in CodeIgniter 4 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | done | [TASK-00171](00171-TASK.md), [TASK-00106](00106-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/255 |
+| 506 | [TASK-00181](00181-TASK.md) | Close composition gaps and reconcile guidance | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | done | [TASK-00180](00180-TASK.md), [TASK-00172](00172-TASK.md), [TASK-00173](00173-TASK.md), [TASK-00174](00174-TASK.md), [TASK-00175](00175-TASK.md), [TASK-00176](00176-TASK.md), [TASK-00177](00177-TASK.md), [TASK-00178](00178-TASK.md), [TASK-00179](00179-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/256 |

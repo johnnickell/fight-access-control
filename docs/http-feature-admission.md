@@ -150,7 +150,10 @@ nonce use. Existing availability/conformance and safe-boundary tests remain auth
 identity/freshness and Common failure behavior. No checking business Command/Query/Event, transaction or audit is added;
 normal authentication's required effects remain separate.
 
-Composer requires Common `^1.4.2` and PSR contracts; native frameworks remain optional dev fixtures/suggestions.
+The current package requires Common `^1.5.1` and PSR contracts; TASK-00172's earlier sufficient Common 1.4.2
+lane is historical, not today's manifest floor. Native frameworks remain optional dev fixtures/suggestions.
+The [current five-family reconciliation](http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
+distinguishes accepted native proof from CI4's amended controlled-unit Feature/combined boundary.
 Selected sufficient tagged minimum and ordinary lanes are recorded in the TASK handoff, not inferred from class
 existence. Package/native fixtures do not qualify actual consumer routing coverage, scanner/code identity, persistence/
 cache/locks, authentication/crypto/nonce stores, record/tenant scope, diagnostics redaction, proxies, bootstrap,

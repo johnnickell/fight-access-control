@@ -163,7 +163,10 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   [CI4 composition](../../docs/codeigniter-permission-admission.md) has TASK-00106's accepted base integration and
   TASK-00179's independently reviewed and QA-accepted portable Permission/native diagnostic composition.
   [Laravel composition](../../docs/laravel-permission-admission.md) now has
-  TASK-00105's independently reviewed and QA-accepted implementation with Common `^1.4.1`. Other native adapters
+  TASK-00105's accepted base and TASK-00178's accepted portable integration. The current package floor is Common
+  `^1.5.1`; earlier base-adapter minimum lanes remain historical. The
+  [current five-family evidence map](../../docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
+  covers independent/combined selection while retaining CI4's amended Feature-native limits. Other native adapters
   retain their own TASK evidence. Do not implement adapters or change executable inputs through planning edits.
 - Reuse public Fight Common values and identities: context IDs extend UniqueId, email is the common EmailAddress,
   messages use the public Command, Query, Event, and handler contracts, and package exceptions stay under their

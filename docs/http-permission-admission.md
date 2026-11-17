@@ -10,9 +10,9 @@ validation privacy and all seven native contracts are reconciled in [ordinary HT
 The combined EPIC release is not yet complete.
 
 TASK-00168's explicit [CI4 coverage amendment](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment)
-removes its bootstrap-dependent native integration tests and retains isolated package behavior checks. CI4 native
-ordering, alias/route conversion, downstream interception and bootstrap/reset proof in the earlier inventory below
-is historical, not current executable coverage. Other frameworks' native protection is unchanged.
+removed the affected bootstrap-dependent journeys and retained isolated package behavior checks. TASK-00179 separately
+supplies new [Permission-native proof](codeigniter-permission-admission.md#current-verification-boundary), not restoration
+of those Feature journeys. Keep Feature-native/combined lifecycle qualification separate from Permission-native proof.
 
 ## Portable Permission admission (Unreleased)
 
@@ -59,6 +59,54 @@ The existing [native Laravel Permission middleware](laravel-permission-admission
 requirements under TASK-00178. Bind the actual serving Route with null for Attribute-only protection or an explicit
 PROTECTED declaration for additional conjunctive requirements. Its native lifecycle and Common safe handler remain
 the owners; this does not imply acceptance of sibling integrations or actual consumer composition.
+
+## Current portable admission reconciliation (Unreleased)
+
+TASK-00181 reconciles TASK-00180's early assessment with the accepted declaration and native suppliers. The existing
+checks below cover the current package contracts; no additional composition test was needed. Independent Review
+ACCEPT and nonvisual QA PASS qualify TASK-00181's reconciliation, not actual consumer composition. The historical
+assessment below retains the original gaps; it is not today's installation guidance.
+
+### Five families, independently selected capabilities
+
+Install only the selected gate, or both with the **same native RequestAuthentication instance**. Registration is explicit;
+an installed class or Attribute alone intercepts nothing. When both run, both restrictions must pass before protected
+validation/action work. Supported short-circuiting can stop at the first refusal; no universal refusal precedence or
+arbitrary middleware-order guarantee is supplied.
+
+| Family | Feature-only evidence | Permission-only evidence | Cooperation and native limit |
+| --- | --- | --- | --- |
+| Slim 4 | TASK-00172: [FeatureMiddlewareTest](../tests/Adapter/Middleware/Psr15/FeatureMiddlewareTest.php), selecting `slim`. | TASK-00176: [PermissionMiddlewareTest](../tests/Adapter/Middleware/Psr15/PermissionMiddlewareTest.php), selecting `slim`. | Both-order Agent, PUBLIC plus Feature and ON plus denied Permission cases use actual native dispatch. Adjacent gates share the exact forwarded request; every independent entry clones the qualified Slim PSR-7 request and strips copied context. Lazy forms only; see [PSR Feature wiring](http-feature-admission.md). |
+| Yii 3 | The same Feature tests separately select `yii`, with the actual Yii router/dispatcher. | The Permission tests separately select `yii`, not inferred from Slim. | Both-order and distinct-target nested/reused-container cases establish independent authority. Each entry clones/clears the request and creates a fresh Router/CurrentRoute; supported closure/class-method forms only. |
+| Symfony | TASK-00173: [FeatureSubscriberTest](../tests/Adapter/Http/Symfony/EventSubscriber/FeatureSubscriberTest.php). | TASK-00177: [PermissionSubscriberTest](../tests/Adapter/Http/Symfony/EventSubscriber/PermissionSubscriberTest.php). | Both-order nonce/public/denial cases plus metadata-failure cleanup and child/parent restoration. Early request admission precedes lazy construction; the resolved-controller checkpoint precedes validation. [Native IsGranted and later listener limits](symfony-permission-admission.md) remain independent. |
+| Laravel | TASK-00174: [FeatureMiddlewareTest](../tests/Adapter/Middleware/Laravel/FeatureMiddlewareTest.php). | TASK-00178: [PermissionMiddlewareTest](../tests/Adapter/Middleware/Laravel/PermissionMiddlewareTest.php). | Both-order Agent tests and [isolated public/empty-gate cooperation](../tests/Adapter/Middleware/Laravel/IsolatedFeatureMiddlewareTest.php). Bind exact serving Route/action; legacy controller discovery may construct early. Distinct children need consumer ambient-state restoration; same-request recursion is unsupported. See [native wiring](laravel-permission-admission.md). |
+| CodeIgniter 4 | TASK-00175 as amended by TASK-00168: [IsolatedFeatureFilterTest](../tests/Adapter/Http/CodeIgniter/IsolatedFeatureFilterTest.php). Current evidence is controlled units, not restored Feature-native journeys. | TASK-00179: [NativePermissionTest](../tests/Adapter/Http/CodeIgniter/NativePermissionTest.php) uses production-style subprocess routing/filter/controller/response execution. | Both-order package cooperation, ON/PUBLIC restrictions and distinct request keys are covered by isolated units. Permission-native proof does **not** qualify Feature-native/combined ordering, bootstrap/reset or downstream interception. Those remain explicit [consumer qualification duties under the amendment](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment), not passed journeys or a request to reinstate them. |
+
+### Requirement and earlier-gap dispositions
+
+| Obligation / earlier gap | Current sufficient evidence and remaining boundary |
+| --- | --- |
+| Effective class/method/interface/ancestor/override/route requirements; exact action; raw validation before deduplication | TASK-00170/00171's [FeatureRequirementsTest](../tests/Application/AccessControl/Feature/FeatureRequirementsTest.php), [PermissionRequirementsTest](../tests/Application/AccessControl/Authorization/Admission/PermissionRequirementsTest.php) and native target tests above. Attribute-only protection is current; malformed metadata and PUBLIC/AUTHENTICATED conflicts fault, absence is not PUBLIC. No second merger. |
+| Discovery/current callers | [EffectiveFeatureDiscoveryTest](../tests/Application/AccessControl/Feature/Conformance/EffectiveFeatureDiscoveryTest.php) composes preparation/provisioning/retirement with complete scoped ancestry references. Reuse complete-empty versus partial/unavailable and current-reference guards; no runtime scanner/provisioning is added. |
+| Feature status/identity/freshness versus action grants | [FeatureAvailabilityTest](../tests/Application/AccessControl/Feature/Service/FeatureAvailabilityTest.php), [availability conformance](../tests/Application/AccessControl/Feature/Conformance/FeatureAvailabilityConformance.php) and [FeatureAdmissionTest](../tests/Application/AccessControl/Feature/Admission/FeatureAdmissionTest.php) cover OFF/PREVIEW/ON, exact binding at every status, concrete User/Agent or deliberate anonymous and fresh reads. Fresh settings do not refresh captured grants or create a live/background lease. |
+| Combined bypass/context loss/duplicate authentication | Existing native tests above and CI4 controlled cooperation tests cover both orders, PUBLIC plus Feature, ON plus Permission refusal, retained trusted context and one actual provider/Agent nonce where exercised. The PSR independent-entry repair and Symfony pre-metadata state initialization are present. Incoming copied context never supplies authority. No residual package-logic gap requiring another unit was identified. |
+| Ordinary refusal versus configuration/operational fault | Only owned OFF/unmet PREVIEW becomes generic 404. Shared admission and native provider/metadata/storage cases preserve opaque faults; [PermissionAdmissionTest](../tests/Application/AccessControl/Authorization/Admission/PermissionAdmissionTest.php) retains known refusal and all-Permission semantics. Native challenge/header tests retain valid selected metadata, not a guessed auth scheme. |
+| Safe reporting/rendering and finite fallback | Existing PSR tests, Symfony Permission tests, Laravel [SafeLifecycleTest](../tests/Adapter/Middleware/Laravel/SafeLifecycleTest.php), CI4 isolated responder/logger tests and new Permission-native cases exercise the selected owners. CI4 requires explicit SafeNativeLogger and responder composition to the same diagnostics owner. Distinct native/package diagnostic events are not competing owners; swallowed native diagnostics do not cancel admitted work. Selected JSON is not global/non-JSON safety. |
+| Native forms/order/lifetime and short-circuit | Reuse each native supplier's actual supported forms and construction limits above. CI4's amended Feature-native limit remains unqualified, not silently filled by shared source or Permission journeys. No implicit parent handoff, stale provider singleton, arbitrary rerouting, concurrent/reentrant lifetime or universal pre-construction guarantee. |
+| Optional dependencies/minimum/ordinary compatibility | Current package floor is **Common ^1.5.1**. Native frameworks remain dev-only/suggested. Accepted suppliers retain actual tagged minimum, ordinary and core/peer-isolation lanes; current integrated full-gate evidence includes all current native tests. Exact source/lock/runtime/exit bridges stay in ignored TASK evidence, not an executable public matrix. Ranges do not certify every resolver or future release. |
+
+The four early gaps are therefore disposed as: effective declarations supplied by TASK-00170/00171; independent
+Feature paths supplied by TASK-00172–00175 with the CI4 amendment; cooperation supplied by existing shared/native
+checks and their accepted lifetime repairs; final compatibility established by current source/test and integrated-gate
+bridges. No substantive supplier defect was identified or repaired here. No new suite, minimum rerun, policy or quota
+is needed. Independent Review and nonvisual QA accepted this reconciliation; exact subjects and retained-gate
+provenance belong to [TASK-00181](../planning/tasks/00181-TASK.md).
+
+Consumer duties remain unchanged: qualify real authentication/signature canonicalization/nonce storage, complete
+route/filter registration and scanner/code identity, record/tenant scope and alternate entries, persistence/cache/locks,
+bootstrap/worker reset, diagnostics redaction/delivery, proxies, outer response handling and deployed runtime. Preserve
+ADR 0010 entry/target/scope/protected-tier membership rules and independent Symfony IsGranted; MCP/OAuth keep their own
+envelopes. No business checking message, mutation audit, grant, legacy reader/alias, consumer adoption or deployment is added.
 
 ## Historical portable admission evidence assessment (Unreleased)
 
@@ -356,7 +404,7 @@ behavior stays unchanged. Agent OS's custom mapper is not a drop-in migration ta
 
 ## Qualified minimums and limits
 
-Current package minimum is Common `^1.5.0` for the selected native safe-error composition. TASK-00146 requalifies
+Current package minimum is Common `^1.5.1`; the earlier safe-error qualification used `^1.5.0`. TASK-00146 requalifies
 ordinary typed categories, privacy, fallback and optional native lanes; see [current contracts](ordinary-http-failures.md).
 The full default suite rechecks shared/Slim/Yii behavior on that current installed dependency. The table and source/archive counts below preserve TASK-00103's original qualification lane,
 not the current installed lock or a claim that Laravel works with 1.4.0.

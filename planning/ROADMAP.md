@@ -4,7 +4,15 @@
 
 TASK-00182's integrated void Agent Command conversion has independent Review ACCEPT and nonvisual QA PASS; TICKET-00053 closes with its sole child. TASK-00110's independently accepted Common adoption now completes the remaining TICKET-00034 and EPIC-00015. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00182/land.md` and the actual PR. The planning handoffs below retain their historical checkpoints.
 
-## Completed TASK-planning handoff — portable Feature and Permission admission
+## Portable Feature and Permission admission — package scope complete
+
+All four [EPIC-00018](epics/00018-EPIC.md) TICKETs are complete for independently accepted package scope.
+The [current evidence map](../docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
+connects five families and three capability selections without another test programme. CI4's amended Feature/combined
+controlled proof remains distinct from Permission-native journeys; actual consumer lifecycle qualification, adoption
+and release remain separate. The Board owns execution routing, not the historical planning account below.
+
+### Historical completed TASK-planning handoff
 
 John approved [EPIC-00018 — Portable Feature and Permission Admission](epics/00018-EPIC.md): separate opt-in Feature
 and Permission admission capabilities across Slim, Yii 3, Symfony, Laravel and CodeIgniter 4. Extend FeatureFlag and
@@ -858,5 +866,5 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00015](epics/00015-EPIC.md) | unassigned | done | 5 | 9 |
 | [EPIC-00016](epics/00016-EPIC.md) | unassigned | done | 6 | 31 |
 | [EPIC-00017](epics/00017-EPIC.md) | unassigned | done | 6 | 24 |
-| [EPIC-00018](epics/00018-EPIC.md) | unassigned | ready-for-agent | 4 | 12 |
+| [EPIC-00018](epics/00018-EPIC.md) | unassigned | done | 4 | 12 |
 <!-- generated:epic-status:end -->

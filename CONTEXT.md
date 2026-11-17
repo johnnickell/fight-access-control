@@ -1,5 +1,23 @@
 # Fight AccessControl Context
 
+## Portable admission reconciliation — TASK-00181 accepted checkpoint
+
+The [current evidence map](docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
+now connects accepted declarations and five-family Feature/Permission suppliers to the integrated candidate.
+Existing shared/native checks cover independent selection, conjunctive gates, trusted context and single authentication;
+no residual package composition risk justified another test or supplier repair. CI4's explicit TASK-00168 amendment
+retains controlled Feature/combined units and external native lifecycle qualification; TASK-00179's new Permission-native
+proof does not restore or certify removed Feature journeys. Common remains `^1.5.1`, with current guide floors aligned.
+
+Independent Review v3 ACCEPT and nonvisual QA PASS cover `4cce0234b735f57789e8071aaa193c0a45450197`
+(nine QA scenarios, no findings). TASK-00181, TICKET-00052 and EPIC-00018 are done for accepted package scope.
+Earlier integrated full-gate evidence is retained with complete input equivalence and current planning/documentation
+checks; no fresh full suite, dependency lane or task runtime is claimed. Canonical `.runs/handoffs/TASK-00181/work.md`
+owns exact supplier/candidate, receipt/log/exit and requirement/gap dispositions. Publication/final verification and
+eligible retirement are pending at this closeout checkpoint; `.runs/handoffs/TASK-00181/land.md` owns actual outcomes.
+Actual consumer registration/scanning,
+authentication/storage/crypto/cache/locks, bootstrap/sinks/proxies/runtime, adoption and deployment remain separate.
+
 ## Portable CodeIgniter 4 Permission admission — TASK-00179 accepted checkpoint
 
 The optional `SafeNativeLogger` now directs selected native diagnostics to the same Common `SafeHttpDiagnostics`
@@ -1028,7 +1046,7 @@ Publication/final delivery verification remain pending at this closeout checkpoi
 `.runs/handoffs/TASK-00171/land.md` owns subsequent bridge/delivery/resource results. Original reports and minimum-lane
 warnings remain preserved. TASK-00176 and TASK-00177 now qualify portable Permission admission for Slim/Yii and
 Symfony as described in their checkpoints. TASK-00178 and TASK-00179 now qualify Laravel and CI4 portable integration
-with independent Review and nonvisual QA; final reconciliation remains unfinished.
+with independent Review and nonvisual QA; TASK-00181 now completes final package reconciliation above.
 Feature admission is accepted across all five frameworks under TICKET-00050. This is not whole-library or actual consumer qualification.
 The earlier TASK-00149 acceptance below covers its original narrower contract, not this new behavior.
 TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT

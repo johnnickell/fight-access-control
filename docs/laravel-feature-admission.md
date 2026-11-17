@@ -3,7 +3,9 @@
 `Adapter\Middleware\Laravel\FeatureMiddleware` restricts the exact routed action before protected binding,
 validation and action work. It works without Permission middleware. It consumes the shared
 [effective declarations and admission contract](http-feature-admission.md), not a second Attribute merger,
-authenticator or evaluator. Feature ON is not authorization for the action.
+authenticator or evaluator. Feature ON is not authorization for the action. The
+[current reconciliation](http-permission-admission.md#current-portable-admission-reconciliation-unreleased) connects
+Feature-only, portable Permission-only and both-gate evidence without another native testing programme.
 
 ## Explicit consumer composition
 

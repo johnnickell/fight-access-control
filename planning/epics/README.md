@@ -21,4 +21,4 @@ This generated index is a projection; individual records remain canonical.
 | [EPIC-00015](00015-EPIC.md) | Pre-v1 Architecture and Supported Common Integration | done |
 | [EPIC-00016](00016-EPIC.md) | Library-wide Typing and Handler Failure Contracts | done |
 | [EPIC-00017](00017-EPIC.md) | Explicit Optional Atomic Audit Recording | done |
-| [EPIC-00018](00018-EPIC.md) | Portable Feature and Permission Admission | ready-for-agent |
+| [EPIC-00018](00018-EPIC.md) | Portable Feature and Permission Admission | done |

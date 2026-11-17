@@ -5,6 +5,9 @@ controller construction and action work. Feature-only registration needs no `Per
 It consumes the shared [effective requirements](feature-references.md) and [Feature admission](http-feature-admission.md),
 not another Attribute merger, evaluator, scanner or provisioning path. Availability never authorizes the action.
 CI3, auto-routing, direct PHP/bus/worker interception and automatic consumer registration are not supplied.
+The [current five-family reconciliation](http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
+retains the amendment below: controlled Feature/combined package checks are sufficient for that amended boundary,
+not a claim that Permission-native journeys establish removed Feature-native lifecycle proof.
 
 ## Current verification boundary — TASK-00168 amendment
 

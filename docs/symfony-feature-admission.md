@@ -117,7 +117,8 @@ the same mutable Request object is unsupported. Retained request attributes are 
 
 ## Safe errors and native limits
 
-Select Common `^1.5.0`'s actual `SafeSymfonyExceptionSubscriber` and `SafeErrorController`, with SafeHttpErrorPolicy,
+With the current package Common `^1.5.1` floor, select its actual `SafeSymfonyExceptionSubscriber` and
+`SafeErrorController`, with SafeHttpErrorPolicy,
 a redaction-aware SafeHttpDiagnostics sink and optional SafeHttpProjector, explicitly at kernel.exception **64**, ahead
 of ErrorListener's raw logger at 0. Use `handleAllThrowables: true`. Do not add a Feature reporter/renderer, PSR wrapper or
 legacy/debug fallback. See the [native composition and validated metadata](symfony-permission-admission.md#one-common-native-safe-error-owner).
@@ -145,8 +146,9 @@ and actual response-listener proof; Feature tests additionally exercise ordinary
 same actual owner. These fixtures are not real consumer authentication/firewall, persistence, sink or deployment proof.
 
 Symfony remains require-dev plus optional suggestions, never core requirements. Selected sufficient component minimums:
-Common 1.5.0, EventDispatcher 8.1.5, HttpFoundation/HttpKernel/Routing/Security HTTP 8.1.11; ordinary resolution is checked
-separately. These are selected tagged sufficient minima, not the earliest theoretically compatible combination or proof
+Common 1.5.1, EventDispatcher 8.1.5, HttpFoundation/HttpKernel/Routing/Security HTTP 8.1.11. TASK-00173's earlier
+Common 1.5.0 lane retains its historical subject; TASK-00177 qualifies the current floor and cooperating portable gates.
+Ordinary resolution is checked separately. See the [current reconciliation](http-permission-admission.md#current-portable-admission-reconciliation-unreleased). These are selected tagged sufficient minima, not the earliest theoretically compatible combination or proof
 of future versions. Package runtime is patched PHP 8.5.12. Native Security HTTP/IsGranted is independently optional.
 Canonical TASK-owned handoff retains exact installed source refs, lanes, logs, warnings and complete gate/coverage proof;
 independent Review and nonvisual QA remain necessary for acceptance.
