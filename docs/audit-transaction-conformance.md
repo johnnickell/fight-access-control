@@ -123,10 +123,12 @@ free-text reasons. A future free-text field needs field-specific safety admissio
 sanitizer. Evidence and identifiers are not automatically public/log-safe: protect storage access, retention, test
 artifacts and publication independently. Re-thrown faults still need consumer response/log sanitation.
 
-Family proof remains with its owners: TASK-00123's lifecycle optionality has separate acceptance; pending
-TASK-00124–00127 and TASK-00153–00165 retain no-change, retained-key replay, changed-subject batches and external
-send/cleanup distinctions. [Actual Role create/rename/remove composition](role-audit-composition.md) now reuses this foundation's mapped
-storage and rollback/committed fault cases under TASK-00168; integrated reconciliation remains TASK-00169. No scenario is silently skipped or counted as family proof.
+Family proof remains with its original owners: TASK-00123–00127 and TASK-00153–00165 retain independently accepted
+no-change, retained-key resolution, changed-subject batch and external send/cleanup proof on their exact subjects.
+The [current inventory](audit-outcome-coverage.md) links every family's current executable assertions; TASK-00169
+bridges supplier inputs and original complete evidence to the integrated candidate rather than renaming old passes.
+[Ordinary Role composition](role-audit-composition.md) reuses this foundation's mapped storage and fault cases under
+TASK-00168; integrated reconciliation remains TASK-00169. No conformance case is counted as family-writer proof.
 Existing entry, target/scope, reference, cohort and restoration fences remain unchanged. Provenance grants nothing.
 
 Real SQL mapping/schema/uniqueness, isolation/locks and writer races, independent processes, storage loss/restoration,

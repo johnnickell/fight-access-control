@@ -17,6 +17,23 @@ closeout. Publication/final verification and eligible retirement are pending at 
 `.runs/handoffs/TASK-00178/land.md` owns subsequent outcomes. Package fixture proof does not qualify actual consumer
 composition or authorize merge, release or deployment.
 
+## Integrated optional audit — TASK-00169 accepted checkpoint
+
+The [current outcome matrix](docs/audit-outcome-coverage.md) now reconciles every current handler and related
+synchronous/worker entry against implemented family optionality, typed facts and transaction/disposition boundaries.
+All covered owning writers use optional final nullable audit storage; omitted/null promises no durability and never
+disables business actors, authorization or fences. Configured failure aborts staged work. Mixed Role/Feature proof
+covers independent opt-in/out and later opt-in without backfill. Original supplier acceptance, current package
+checks and unexecuted actual consumer qualification remain separate. Canonical Work evidence owns exact tested
+candidate/log/source/dependency/runtime bridges. Independent Review v3 ACCEPT and nonvisual QA PASS cover
+`50f1ab533299cd16625c1538956b0caa3703ac6c` (142 QA cases / 1,288 executable assertions). TASK-00169,
+TICKET-00048 and EPIC-00017 are done for package acceptance. Earlier full gate retained; current targeted checks
+qualify administrative closeout. Publication/final verification and eligible retirement are pending at this checkpoint;
+canonical `.runs/handoffs/TASK-00169/land.md` owns actual outcomes. Earlier sibling checkpoints below retain their
+historical parent-state observations. TASK-00182's
+void Commands/authorized Queries supersede historical issuance-warning wording. No consumer adoption, workaround
+removal, schema/data operation, release or deployment follows.
+
 ## Portable Symfony Permission admission — TASK-00177 accepted checkpoint
 
 The existing native PermissionSubscriber now composes the actual selected action's effective portable requirements
