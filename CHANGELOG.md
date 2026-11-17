@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Portable `RequiresPermission` enforcement through the existing optional Symfony Permission subscriber. Effective
+  class/method/repeatable/inherited and route requirements accumulate without redundant route declarations; explicit
+  PUBLIC/AUTHENTICATED conflicts reject before authentication. Trusted native controller association is checked before
+  validation. Permission-only needs no Feature services; combined gates share request-owned authentication without
+  replaying Agent nonces. Native IsGranted remains independent. See [Symfony composition](docs/symfony-permission-admission.md)
+  for supported forms, early-construction limits and consumer-owned safe-error/bootstrap obligations.
+
 - Optional portable Permission admission through PSR-15, qualified separately with Slim and Yii 3. Effective
   class/method/repeated/inherited Attributes and protected route additions use existing inward admission without
   Feature activation. **Pre-v1:** construct `PermissionMiddleware` with `PermissionRequirements`, a trusted native

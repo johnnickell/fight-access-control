@@ -284,7 +284,7 @@
       "diagnostics": [
         {"line": 45, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Psr\\Http\\Message\\ServerRequestInterface, Psr\\Http\\Server\\RequestHandlerInterface): Psr\\Http\\Message\\ResponseInterface"},
         {"line": 46, "identifier": "phpstan.dumpType", "message": "Dumped type: Psr\\Http\\Message\\ResponseInterface"},
-        {"line": 47, "identifier": "phpstan.dumpType", "message": "Dumped type: array{'kernel.request': array{'onKernelRequest', 16}}"},
+        {"line": 47, "identifier": "phpstan.dumpType", "message": "Dumped type: array{'kernel.request': array{'onKernelRequest', 16}, 'kernel.controller': array{'onKernelController', 256}}"},
         {"line": 48, "identifier": "phpstan.dumpType", "message": "Dumped type: Closure(Symfony\\Component\\HttpKernel\\Event\\RequestEvent): void"},
         {"line": 49, "identifier": "phpstan.dumpType", "message": "Dumped type: Symfony\\Component\\HttpFoundation\\Response"},
         {"line": 50, "identifier": "phpstan.dumpType", "message": "Dumped type: CodeIgniter\\HTTP\\ResponseInterface|null"},

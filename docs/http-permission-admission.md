@@ -145,8 +145,9 @@ operation, compatibility mode, release, deployment or new grant is authorized by
 The constructor rejects wrong types, associative arrays, duplicate names, empty protected requirements and
 requirements on other modes. Permission names retain their existing canonical validation. Pure optional
 [PermissionRequirements](permission-requirements.md) composes portable Attributes using the shared selected-action
-traversal. The PSR-15 middleware now consumes it explicitly; other native portable integrations retain their own
-TASKs. There is no production scanner, route-name allowlist, union/override rule or implicit public default.
+traversal. The PSR-15 middleware and optional [Symfony subscriber](symfony-permission-admission.md) now consume it
+for the trusted selected native action; remaining portable-native paths retain their own integration owners.
+There is no production scanner, route-name allowlist, weakening override rule or implicit public default.
 A missing declaration (`null`) fails as configuration error, before resolving authentication. Invalid declarations
 normally fail at composition/bootstrap; dynamic composition faults also remain server failures.
 

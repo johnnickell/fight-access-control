@@ -45,6 +45,8 @@ use stdClass;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Throwable;
@@ -234,22 +236,25 @@ final class FeatureSubscriberTest extends TestCase
                 self::assertNotNull($permission);
                 $this->seed($features, $permission->getId(), FeatureStatus::PREVIEW);
                 $calls = 0;
+                $controllerClass = NativeController::class;
+                if ($mode === AdmissionMode::PROTECTED) {
+                    $controllerClass = PermissionParentController::class;
+                }
+
                 $native = new NativeKernel(
                     static function (Request $request) use ($authority, &$calls): RequestAuthority {
                         ++$calls;
 
                         return $authority->create($request);
                     },
-                    new PermissionDeclaration(
-                        $mode,
-                        $mode === AdmissionMode::PROTECTED ? [PermissionName::fromString('AGENT_PROFILE_READ')] : []
-                    ),
+                    $mode === AdmissionMode::PUBLIC ? new PermissionDeclaration($mode) : null,
+                    controller: $controllerClass.'::handle',
                     features: new FeatureAdmission(new FeatureAvailability(
                         $features,
                         $environment->permissionRepository
                     )),
                     requirements: new FeatureRequirements(
-                        SelectedAction::method(NativeController::class, 'handle'),
+                        SelectedAction::method($controllerClass, 'handle'),
                         'rollout'
                     ),
                     featureFirst: $featureFirst
@@ -264,6 +269,90 @@ final class FeatureSubscriberTest extends TestCase
                 self::assertSame(2, $environment->nonces->consumptionCalls());
             }
         }
+    }
+
+    /** @return iterable<string, array{bool}> */
+    public static function gateOrders(): iterable
+    {
+        yield 'feature-first' => [true];
+        yield 'permission-first' => [false];
+    }
+
+    #[DataProvider('gateOrders')]
+    public function test_combined_metadata_failure_clears_completed_context_before_error_listeners(
+        bool $featureFirst
+    ): void {
+        [$features, $permissions] = $this->storage();
+        $environment = new AdmissionEnvironment();
+        $native = new NativeKernel(
+            static fn(): RequestAuthority => $environment->user(),
+            null,
+            PermissionParentController::class.'::handle',
+            features: new FeatureAdmission(new FeatureAvailability($features, $permissions)),
+            featureFirst: $featureFirst
+        );
+        $request = $this->request();
+        self::assertSame(204, $native->request($request)->getStatusCode());
+        self::assertInstanceOf(SecurityContext::class, $request->attributes->get(SecurityContext::class));
+        $observedContexts = [];
+        $native->eventDispatcher->addListener(KernelEvents::EXCEPTION, static function (
+            ExceptionEvent $event
+        ) use (&$observedContexts): void {
+            $observedContexts[] = $event->getRequest()->attributes->get(SecurityContext::class);
+        }, 128);
+        $native->eventDispatcher->addListener(KernelEvents::RESPONSE, static function (
+            ResponseEvent $event
+        ) use (&$observedContexts): void {
+            $observedContexts[] = $event->getRequest()->attributes->get(SecurityContext::class);
+        });
+        $request->attributes->set('_route', 'forged');
+        $native->trace->events = [];
+
+        self::assertSame(500, $native->request($request)->getStatusCode());
+        self::assertSame([null, null], $observedContexts);
+        self::assertFalse($request->attributes->has(SecurityContext::class));
+        self::assertSame(['report', 'response'], $native->trace->events);
+        self::assertSame(1, $environment->resolutions);
+        self::assertSame([], $features->lookups);
+        self::assertNull($native->stack->getCurrentRequest());
+    }
+
+    #[DataProvider('gateOrders')]
+    public function test_combined_child_metadata_failure_clears_only_child_context(bool $featureFirst): void
+    {
+        [$features, $permissions] = $this->storage();
+        $environment = new AdmissionEnvironment();
+        $native = new NativeKernel(
+            static fn(): RequestAuthority => $environment->user(),
+            null,
+            PermissionParentController::class.'::handle',
+            features: new FeatureAdmission(new FeatureAvailability($features, $permissions)),
+            featureFirst: $featureFirst
+        );
+        $parent = $this->request();
+        $child = $this->request();
+        NativeController::$work = static function () use ($native, $parent, $child, $environment): Response {
+            NativeController::$work = null;
+            $parentContext = $parent->attributes->get(SecurityContext::class);
+            $child->attributes->set(SecurityContext::class, $parentContext);
+            self::assertSame(204, $native->request($child, HttpKernel::SUB_REQUEST)->getStatusCode());
+            self::assertInstanceOf(SecurityContext::class, $child->attributes->get(SecurityContext::class));
+            self::assertNotSame($parentContext, $child->attributes->get(SecurityContext::class));
+            $child->attributes->set('_route', 'stale');
+            $native->trace->events = [];
+
+            self::assertSame(500, $native->request($child, HttpKernel::SUB_REQUEST)->getStatusCode());
+            self::assertSame(['report', 'response'], $native->trace->events);
+            self::assertSame(2, $environment->resolutions);
+            self::assertSame($parentContext, $parent->attributes->get(SecurityContext::class));
+            self::assertSame($parent, $native->stack->getCurrentRequest());
+
+            return new Response('', 204);
+        };
+        self::assertSame(204, $native->request($parent)->getStatusCode());
+        self::assertFalse($child->attributes->has(SecurityContext::class));
+        self::assertInstanceOf(SecurityContext::class, $parent->attributes->get(SecurityContext::class));
+        self::assertNull($native->stack->getCurrentRequest());
     }
 
     public function test_feature_on_never_bypasses_composed_permission_refusal(): void
@@ -283,11 +372,12 @@ final class FeatureSubscriberTest extends TestCase
 
                     return $environment->user(grant: false, permissionId: $id);
                 },
-                new PermissionDeclaration(AdmissionMode::PROTECTED, [PermissionName::fromString('AGENT_PROFILE_READ')]),
+                null,
+                controller: PermissionParentController::class.'::handle',
                 projector: $this->challenge(),
                 features: new FeatureAdmission(new FeatureAvailability($features, $permissions)),
                 requirements: new FeatureRequirements(
-                    SelectedAction::method(NativeController::class, 'handle'),
+                    SelectedAction::method(PermissionParentController::class, 'handle'),
                     'rollout'
                 ),
                 featureFirst: $featureFirst

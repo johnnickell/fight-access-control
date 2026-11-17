@@ -1,8 +1,10 @@
 # Effective portable Permission declarations (Unreleased)
 
-TASK-00171 adds pure package metadata. TASK-00176 now connects it to existing
-[PSR-15 admission through Slim and Yii 3](http-permission-admission.md#portable-permission-admission-unreleased).
-Other native portable integrations remain owned by TICKET-00051. No consumer Attribute,
+TASK-00171 adds pure package metadata. TASK-00176 connects it to existing
+[PSR-15 admission through Slim and Yii 3](http-permission-admission.md#portable-permission-admission-unreleased),
+and TASK-00177 connects it to the optional [Symfony native subscriber](symfony-permission-admission.md).
+Both support Attribute-only protection and explicit route additions. Remaining native portable integrations
+retain their TICKET-00051 owners. No consumer Attribute,
 framework bootstrap, discovery provider or Feature activation is required. `RequiresAgentPermission` and MCP remain separate.
 
 ## Declare and compose

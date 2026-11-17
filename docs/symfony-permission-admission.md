@@ -1,6 +1,6 @@
 # Optional Symfony Permission admission
 
-TASK-00104 adds explicit native `Adapter\Http\Symfony\EventSubscriber\PermissionSubscriber`, reusing the
+TASK-00177 connects portable Permission declarations to TASK-00104's explicit native `Adapter\Http\Symfony\EventSubscriber\PermissionSubscriber`, reusing the
 [inward HTTP admission contracts](http-permission-admission.md#inward-contract-and-trusted-composition).
 It installs no routes, firewall, token issuer, container services, grants, voter, logger or renderer. Symfony is
 optional: install the selected components explicitly. Slim and Yii application runtimes are not required.
@@ -9,18 +9,23 @@ security/bootstrap/deployment. The combined five-framework release remains unfin
 
 ## Trusted routes and explicit registration
 
-Use PHP `RouteCollection` definitions with a single `PermissionDeclaration` default keyed by its class name.
-Every route in this selected ordinary HTTP kernel needs a deliberate declaration, including public routes.
-`PUBLIC`, `AUTHENTICATED` and conjunctive `PROTECTED` retain the shared semantics. Null/missing, raw strings, arrays
-of declarations and foreign objects fail closed as configuration faults. An attribute alone is not a declaration.
-Invalid Permission lists fail when the shared declaration is constructed; there is no attribute override/union policy.
+Use PHP `RouteCollection` definitions and portable class/method `RequiresPermission` Attributes. The subscriber
+composes the actual selected action through shared `PermissionRequirements`: class, repeatable, inherited and
+overridden-parent requirements accumulate. Attribute-only requirements yield PROTECTED without repeating them in
+route defaults. Optional additional `PermissionDeclaration` defaults accumulate conjunctively; valid effective duplicates
+collapse only after validation. Raw duplicate/list/type/mode faults still reject at declaration construction.
+
+`PUBLIC`, `AUTHENTICATED` and conjunctive `PROTECTED` retain the shared semantics. Explicit PUBLIC or AUTHENTICATED
+conflicts with effective Attributes and fails before authentication. No Attributes and no route declaration remains
+a configuration fault, never implicit PUBLIC. Raw strings, arrays of declarations and foreign objects fail closed.
+See [portable declaration semantics](permission-requirements.md). Closures need explicit route bindings because
+RequiresPermission permits classes/methods, not PHP function targets.
 
 ```php
 use Fight\AccessControl\Adapter\Http\Symfony\EventSubscriber\PermissionSubscriber;
-use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
-use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
-use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\AccessControl\Application\AccessControl\Authorization\Attribute\RequiresPermission;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\EventListener\RouterListener;
 use Symfony\Component\HttpKernel\HttpKernel;
@@ -29,14 +34,19 @@ use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
+#[RequiresPermission('REPORT_READ')]
+final class ReportAction
+{
+    public function handle(): Response
+    {
+        return new Response('', 204); // Replace with the consumer's action/responder.
+    }
+}
+
 $routes = new RouteCollection();
 $routes->add('reports', new Route('/reports/{id}', [
     '_controller' => ReportAction::class.'::handle',
-    PermissionDeclaration::class => new PermissionDeclaration(
-        AdmissionMode::PROTECTED,
-        [PermissionName::fromString('REPORT_READ')]
-    ),
-], methods: ['GET'])); // REPORT_READ is an illustrative consumer-owned Permission, not an installed grant.
+], methods: ['GET'])); // REPORT_READ is illustrative, not an installed grant.
 $stack = new RequestStack();
 $matcher = new UrlMatcher($routes, new RequestContext());
 $eventDispatcher->addSubscriber(new RouterListener($matcher, $stack));
@@ -61,7 +71,7 @@ The subscriber independently calls the **same trusted request matcher** after na
 PermissionDeclaration attribute. This closes RouterListener's deliberate `_controller`-already-present shortcut:
 stale/forged target attributes cannot select different requirements or a public callback. Two routes sharing a
 callback keep distinct requirements. The matcher and routes must be immutable during service, deterministic and
-side-effect-free; matching runs twice. Reserve `_route`, `_controller` and the declaration key for trusted defaults,
+side-effect-free; matching runs after routing and again at the resolved-controller checkpoint. Reserve `_route`, `_controller` and the declaration key for trusted defaults,
 not client-controlled placeholders. No rerouting/controller replacement may occur after admission without its own
 qualified admission. Do not treat arbitrary deserialized request attributes or route-loader metadata as trusted.
 
@@ -76,6 +86,7 @@ The interface accepts a trusted `RequestMatcherInterface`; that is not a claim e
 | Native RouterListener | `kernel.request` priority 32 |
 | AccessControl PermissionSubscriber | `kernel.request` priority 16, main **and** subrequests |
 | ControllerResolver | After all request listeners; may instantiate a class here |
+| AccessControl controller association checkpoint | `kernel.controller` priority 256, before validation |
 | Common SymfonyValidationSubscriber | `kernel.controller`, priority 0 |
 | Native ArgumentResolver | After controller listeners |
 | Native IsGranted attributes | `kernel.controller_arguments`; Symfony 8.1 ControllerAttributesListener at -10000 dispatches the IsGranted-specific events |
@@ -90,8 +101,11 @@ is **not** implicitly an authentication supplier for this factory. No firewall o
 
 Qualified controller forms: `ClassName::method` string, `[ClassName::class, 'method']`, invokable class-string,
 `[$object, 'method']`, invokable object and closure. Native route arguments reach the action. Invalid/non-callable
-protected controllers produce safe 500, not public fallback. Function strings, static methods, magic callbacks,
-service aliases and controller-swapping listeners are outside the qualified forms. A public declaration is deliberate,
+protected controllers produce safe 500, not public fallback. The priority-256 checkpoint compares resolved code
+with freshly trusted matching and rejects substitution before validation/arguments/action. Higher-priority listeners
+can already have constructed code; later controller replacement is unsupported and must not bypass this checkpoint.
+Function strings, magic callbacks, service aliases and static native dispatch remain outside qualified forms.
+Inherited/invokable metadata is qualified; direct method calls inside an action are not intercepted. A public declaration is deliberate,
 not detection of absent attributes. Alternate direct calls/buses/workers retain independent authorization.
 
 Class and method `#[IsGranted]` string attributes compose conjunctively **in addition to** AccessControl admission;
@@ -113,8 +127,10 @@ instance across both subscribers in either order. Its private state is keyed by 
 not copyable attributes. Public Permission admission preserves context selected by the cooperating Feature gate and
 never bypasses its restrictions. With Permission-only registration a public route still clears incoming context.
 Each non-public request invokes the trusted factory anew; providers must
-not be captured as cached singletons. Admission removes any incoming SecurityContext and sets only the admitted
-snapshot. A standalone public route erases it without resolving authentication. A failed admission leaves no selected context.
+not be captured as cached singletons. Both subscribers initialize dispatch-owned state before resolving target metadata,
+without selecting authentication. In either order, a metadata failure therefore clears a completed or copied incoming
+SecurityContext before exception/response listeners run. Admission publishes only a trusted snapshot; a standalone public
+route erases incoming context without resolving authentication.
 Symfony pops its RequestStack on success and handled exception; repeated requests use fresh authority, including when
 the same completed Request object is reused. The retained attribute is a **short-request snapshot**, not future authority.
 
@@ -132,7 +148,7 @@ uses [current continuation authority](agent-continuation-authorization.md) at it
 
 ## One Common native safe error owner
 
-Select Common `^1.5.0`'s canonical `Adapter\Http\Symfony\EventSubscriber\SafeSymfonyExceptionSubscriber`, with its
+Select Common `^1.5.1`'s canonical `Adapter\Http\Symfony\EventSubscriber\SafeSymfonyExceptionSubscriber`, with its
 `Controller\SafeErrorController`, `Adapter\Http\Error\SafeHttpErrorPolicy`, required redaction-aware
 `SafeHttpDiagnostics` and optional `SafeHttpProjector`. Register `onKernelException` explicitly on
 `kernel.exception` at **64**, before Symfony ErrorListener's `logKernelException` at **0**. It is deliberately not an
@@ -169,9 +185,26 @@ entry points). Neither PUBLIC nor an OAuth scope is protocol exclusion or a Perm
 exact-class failure/concealment and OAuth's own challenges/empty rejections; do not send them through Common's ordinary
 JSend handler. This package installs no protocol or global allowlist and changes neither protocol contract.
 
+## Portable native qualification (Unreleased)
+
+TASK-00177's controlled real native matrix passes 105 tests / 885 assertions on both ordinary dependencies and a
+separate sufficient-minimum installation: Common v1.5.1, Event Dispatcher v8.1.5, HttpFoundation/HttpKernel/Routing/
+Security HTTP v8.1.11. The isolated minimum lane has no Slim/Yii/Laravel/CI4 application packages. A real core-native
+portable action also denies before lazy construction and admits a fresh authorized request with Security HTTP and
+all peer frameworks absent, loading no Feature services. Pure declarations pass 24 tests / 44 assertions with all
+native frameworks absent. These lanes report no security advisories; scratch-package version-detection notices are
+not product failures. Ordinary dependencies remain selected for the final canonical gate.
+
+The matrix extends earlier native proof with Attribute-only forms, repeated/inherited/overridden/route conjunction,
+mode conflicts, malformed Attributes, resolved-controller substitution, independent validation/arguments/IsGranted,
+actual User/Agent authority, nested/nonce lifetimes and both combined-gate orders. Existing native safe-error tests
+continue to exercise report/header/negotiation/fallback behavior. Full logs, exact package refs, locks, runtime and
+coverage identities belong to the canonical Work handoff. This is implementation evidence, not independent
+acceptance or a claim about installed FrameworkBundle/firewall/consumer composition.
+
 ## Qualified tags and remaining obligations
 
-Current package Common minimum is `^1.5.0`; current HttpFoundation/HttpKernel dev/suggestion floors are `^8.1.11`.
+Current package Common minimum is `^1.5.1`; current HttpFoundation/HttpKernel dev/suggestion floors are `^8.1.11`.
 TASK-00146 requalifies the selected Symfony safe-error contract and native minima, including the explicit Throwable
 kernel option. Routing and optional Security HTTP now also require `^8.1.11` after the older lower-bound audit
 reported advisories; supported-minimum and ordinary lanes report none. [Laravel qualification](laravel-permission-admission.md) previously established the 8.1.11 component

@@ -1,5 +1,21 @@
 # Fight AccessControl Context
 
+## Portable Symfony Permission admission — TASK-00177 accepted checkpoint
+
+The existing native PermissionSubscriber now composes the actual selected action's effective portable requirements
+and optional trusted route declaration through PermissionRequirements. Attribute-only protection, inherited/overridden
+conjunction and mode-conflict rejection require no Feature services. The early request gate remains before lazy
+construction; a resolved-controller checkpoint rejects substitution before validation. Independent native IsGranted,
+request-owned User/Agent authority and Common's selected safe-error boundary remain separate owners. See
+[Symfony composition](docs/symfony-permission-admission.md) for supported forms and limits. Both cooperating subscribers
+initialize dispatch state before target resolution, so metadata refusal in either order clears completed/copied context
+without authenticating or clearing a distinct parent request. Work verification and candidate evidence belong to the
+canonical Work handoff. Independent Review v3 ACCEPT and nonvisual QA PASS cover candidate
+`036a630d2159b2725770d648acaf56a3bf915be6` (50 QA scenarios, zero failed/incomplete). TASK-00177 is done;
+unfinished native siblings keep its parents open. Publication/final verification and eligible retirement are pending
+at this checkpoint; canonical `.runs/handoffs/TASK-00177/land.md` owns their outcomes. Actual consumer qualification,
+merge, release and deployment remain separate.
+
 ## TASK-00168 CI4 coverage amendment — accepted checkpoint
 
 John approved replacing practical CI4 behavior with isolated unit tests and removing the affected bootstrap-dependent
@@ -944,9 +960,9 @@ PermissionDeclaration/admission semantics. Independent Review ACCEPT and nonvisu
 Earlier full gate retained: 7,080 tests / 78,397 assertions, exact 9,324/9,324 global and 19/19 added statements.
 Publication/final delivery verification remain pending at this closeout checkpoint; canonical
 `.runs/handoffs/TASK-00171/land.md` owns subsequent bridge/delivery/resource results. Original reports and minimum-lane
-warnings remain preserved. TASK-00176 now qualifies portable Permission admission for Slim/Yii as described below;
-the other native Permission integrations and final reconciliation remain unfinished. Feature admission is accepted
-across all five frameworks under TICKET-00050. This is not whole-library or actual consumer qualification.
+warnings remain preserved. TASK-00176 and TASK-00177 now qualify portable Permission admission for Slim/Yii and
+Symfony as described in their checkpoints. Laravel/CI4 portable integration and final reconciliation remain unfinished.
+Feature admission is accepted across all five frameworks under TICKET-00050. This is not whole-library or actual consumer qualification.
 The earlier TASK-00149 acceptance below covers its original narrower contract, not this new behavior.
 TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT
 and nonvisual QA PASS cover candidate `713837ab11122cafc5a66d00c0c0e6174eedb333`, with no open findings;
