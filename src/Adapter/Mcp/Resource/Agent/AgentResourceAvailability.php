@@ -6,7 +6,6 @@ namespace Fight\AccessControl\Adapter\Mcp\Resource\Agent;
 
 use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAgentPrincipalProvider;
 use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentAuthenticationDiagnosticClassification;
 use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -59,12 +58,7 @@ final class AgentResourceAvailability implements McpResourceAvailability
         }
 
         if ($this->failure instanceof CurrentAgentPrincipalResolutionRejectedException) {
-            if (
-                in_array($this->failure->getDiagnostic()->getClassification(), [
-                AgentAuthenticationDiagnosticClassification::AUTHENTICATION_REJECTED,
-                AgentAuthenticationDiagnosticClassification::AGENT_AUTHORITY_NOT_CURRENT
-                ], true)
-            ) {
+            if ($this->failure->getDiagnostic()->getClassification()->isAuthenticationRefusal()) {
                 return false;
             }
         }

@@ -24,7 +24,7 @@ worker jobs?
 
 - WF-017 establishes OFF/PREVIEW/ON availability but explicitly does not promise instantaneous cancellation of
   in-flight work. WF-020 settles lightweight management revisions, not runtime evaluation freshness.
-- The [project context](../../../CONTEXT.md) describes request-scoped authenticated User/Agent authority. Inspected
+- The [historical project context](../../../CONTEXT.historical.md) describes request-scoped authenticated User/Agent authority. Inspected
   [CurrentPrincipalProvider](../../../src/Application/AccessControl/Authorization/Service/CurrentPrincipalProvider.php)
   resolves once per request; [SecurityContext](../../../src/Application/AccessControl/Authorization/Service/SecurityContext.php)
   delegates checks to the selected immutable authority. The

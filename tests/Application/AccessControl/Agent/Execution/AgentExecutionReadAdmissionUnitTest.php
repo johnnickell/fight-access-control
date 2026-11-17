@@ -7,12 +7,10 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Execution;
 use Fight\AccessControl\Application\AccessControl\Agent\Execution\AgentExecutionReadAdmission;
 use Fight\AccessControl\Application\AccessControl\Agent\Execution\AgentExecutionScope;
 use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
-use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
-use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\Common\Application\Mcp\Session\Service\ExecutionAccess;
 use Fight\Common\Domain\Mcp\Session\ExecutionSelection;
-use Fight\Test\AccessControl\Adapter\Mcp\Tool\Agent\Fixture\ProfileToolEnvironment;
+use Fight\Test\AccessControl\Application\AccessControl\Agent\Authentication\AuthenticatedAgentFixture;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -49,7 +47,7 @@ final class AgentExecutionReadAdmissionUnitTest extends TestCase
         $scope = $this->createMock(AgentExecutionScope::class);
         $scope->expects($read ? self::once() : self::never())->method('currentAccess')
             ->with(self::callback(static fn(AuthenticatedAgentPrincipal $principal): bool =>
-                $principal->getAgentId()->equals($env->original->getId())), $selection)->willReturn($access);
+                $principal->getAgentId()->equals($env->agent->getId())), $selection)->willReturn($access);
         $result = $this->admission($env, $scope)->currentAccess($selection);
 
         self::assertSame($read ? $access->projects() : [], $result->projects());
@@ -150,22 +148,12 @@ final class AgentExecutionReadAdmissionUnitTest extends TestCase
     }
 
     /** @param list<string> $names */
-    private function environment(array $names): ProfileToolEnvironment
+    private function environment(array $names): AuthenticatedAgentFixture
     {
-        $env = new ProfileToolEnvironment();
-        $agent = $env->storage->agentRepository->all()[0];
-        foreach ($names as $name) {
-            $id = PermissionId::generate();
-            $env->permissionRepository->add(Permission::define($id, PermissionName::fromString($name), $env->now()));
-            $agent = $agent->grantPermission($id, $env->now());
-        }
-
-        $env->storage->agentRepository->restoreSnapshot([$agent]);
-
-        return $env;
+        return new AuthenticatedAgentFixture($names);
     }
 
-    private function admission(ProfileToolEnvironment $env, AgentExecutionScope $scope): AgentExecutionReadAdmission
+    private function admission(AuthenticatedAgentFixture $env, AgentExecutionScope $scope): AgentExecutionReadAdmission
     {
         return new AgentExecutionReadAdmission(
             $env->provider,

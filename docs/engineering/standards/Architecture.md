@@ -2,7 +2,7 @@
 
 Use DDD and ports and adapters with the direction `Adapter → Application → Domain`. Domain owns business concepts and invariants. Application coordinates use cases through Domain/Application interfaces. Adapters implement infrastructure and presentation. Keep framework dependencies within the project's explicitly permitted boundaries; use its dependency checker rather than inventing a second layer map.
 
-Read and maintain CONTEXT.md for ubiquitous language, aggregate responsibility, important state transitions, and accepted decisions. A domain concept belongs with the object holding its knowledge even on its first use. Repeated logic appearing more than three times may suggest extraction; this is a design signal, not a numeric rule.
+Read and maintain the root [GLOSSARY.md](../../../GLOSSARY.md) for domain language only. Read the relevant composition guides and [project profile](../../../planning/agents/project-profile.md) for aggregate responsibilities and state transitions, and applicable [ADRs](../../../planning/adr/README.md) for accepted decisions. A domain concept belongs with the object holding its knowledge even on its first use. Repeated logic appearing more than three times may suggest extraction; this is a design signal, not a numeric rule.
 
 ```php
 if (!$user->canLogIn()) {

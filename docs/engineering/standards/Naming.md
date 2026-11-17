@@ -1,6 +1,6 @@
 # Naming
 
-Use short, readable names from CONTEXT.md. A name identifies intent, returned data, a past fact, or a capability; it should not explain the entire implementation.
+Use short, readable domain names from the root [GLOSSARY.md](../../../GLOSSARY.md). A name identifies intent, returned data, a past fact, or a capability; it should not explain the entire implementation.
 
 | Concept | Preferred examples | Rule |
 |---|---|---|

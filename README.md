@@ -112,7 +112,7 @@ This bounded acceptance does not qualify consumer persistence, cryptography or t
 | --- | --- |
 | User invitation, activation and credential delivery | [Delivery composition](docs/credential-delivery.md) · [Expired-work cleanup](docs/credential-expiry.md) |
 | Optional User registration and administrator recovery | [Registration](docs/user-registration.md) · [Recovery](docs/registration-recovery.md) |
-| Login, refresh, logout, passwords and current authority | [Direct synchronous composition](docs/user-authentication.md) · [Behavioral contract](planning/tickets/00001-TICKET.md) · [Vocabulary and boundaries](CONTEXT.md#vocabulary) |
+| Login, refresh, logout, passwords and current authority | [Direct synchronous composition](docs/user-authentication.md) · [Behavioral contract](planning/tickets/00001-TICKET.md) · [Domain glossary](GLOSSARY.md) · [Package boundaries](planning/agents/project-profile.md#package-boundary-and-contracts) |
 | Roles, Permission tiers and managed policy | [Permission tiers](docs/permission-tiers.md) · [Operation outcomes](docs/operation-outcomes.md) |
 | Recoverable Agent provisioning, rotation and delivery | [Agent integration](docs/agent-integration.md) · [Conformance and evidence](docs/agent-operation-evidence.md) |
 | Agent profiles and protected MCP capabilities | [Profile Tools](docs/agent-profile-tools.md) · [Tool authorization](docs/agent-mcp-authorization.md) · [Resource authorization](docs/agent-resource-authorization.md) · [Skill authorization](docs/agent-skill-authorization.md) · [Prompt authorization](docs/agent-prompt-authorization.md) · [Current continuation](docs/agent-continuation-authorization.md) · [Notice mutations](docs/agent-notice-authorization.md) |
@@ -142,10 +142,13 @@ cd fight-access-control
 ./bin/build
 ```
 
-`./bin/build` builds the isolated `fight-access-control` image, resolves latest-compatible dependencies into the
-ignored lockfile with `composer update`, then runs the canonical quality gate: syntax, planning, PHPCS, PHPStan,
-architecture, Rector, PHPUnit, exact statement coverage, separate [Unit-line enforcement and suite evidence](docs/unit-coverage.md),
-and documentation links. No application server or database
+`./bin/build` validates planning freshly, then either reuses qualifying application evidence or prepares and runs
+the full gate. On a cache miss, preparation refreshes the isolated PHP image, admits its actual runtime and resolves
+latest-compatible dependencies with `composer update` into the ignored lockfile. `./bin/build --force` requests fresh
+application execution. [Local tooling](docs/engineering/LOCAL_TOOLING.md#two-caches-with-different-lifetimes) owns the
+cache/evidence and fail-closed runtime rules, including focused-wrapper admission.
+The full gate covers syntax, PHPCS, PHPStan, architecture, Rector, PHPUnit, exact statement coverage, separate
+[Unit-line enforcement and suite evidence](docs/unit-coverage.md), and documentation links. No application server or database
 is required for package tests. PHPStan analyzes production `src/` and shipped `openapi/` metadata only, not tests
 or scripts; required [type-contract fixtures](docs/type-contracts.md) separately qualify the production API.
 After that initial setup, focused commands include:

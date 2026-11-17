@@ -15,4 +15,12 @@ enum AgentAuthenticationDiagnosticClassification: string
     case AUTHENTICATION_REJECTED = 'authentication_rejected';
     case PERMISSION_SNAPSHOT_INVALID = 'permission_snapshot_invalid';
     case RESOLUTION_FAILED = 'resolution_failed';
+
+    /**
+     * Returns whether the classification represents an ordinary authentication refusal
+     */
+    public function isAuthenticationRefusal(): bool
+    {
+        return $this === self::AUTHENTICATION_REJECTED || $this === self::AGENT_AUTHORITY_NOT_CURRENT;
+    }
 }

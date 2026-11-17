@@ -32,7 +32,7 @@ No implementation or release is authorized by this map.
 - The closed [protected-membership decision](tickets/WF-011-protected-permission-membership.md) assigns managed
   Permission naming and tier classification to the consuming project. The package enforces the declared tier,
   recognizes managed `ROLE_SUPER_ADMIN` by exact name, and treats `User` as the human principal type.
-- Use the local [planning conventions](../CONVENTIONS.md), project profile, `CONTEXT.md`, and relevant Fight standards.
+- Use the local [planning conventions](../CONVENTIONS.md), project profile, the [historical CONTEXT](../../CONTEXT.historical.md), and relevant Fight standards.
   Each decision is HITL grilling; do not create implementation records until the map is settled.
 
 ## Decisions so far

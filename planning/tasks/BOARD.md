@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-No non-terminal Task exists. Any future release decision requires separate human authorization.
+Active Task: [TASK-00184](00184-TASK.md) — Replace CONTEXT with a domain glossary and apply bounded simplifications.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 507 | [TASK-00184](00184-TASK.md) | Replace CONTEXT with a domain glossary and apply bounded simplifications | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 

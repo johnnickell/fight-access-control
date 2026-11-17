@@ -10,6 +10,10 @@ anchors:
 require __DIR__.'/vendor/johnnickell/fight-access-control/openapi/bootstrap.php';
 ```
 
+The component's stable `Fight.AccessControl.` name and validation shape are public package API even though scanning
+is opt-in. Component keys need not match PHP class names. The non-autoloaded `openapi/` metadata/bootstrap belongs
+to consumer generator composition, not Domain/Application or a package-owned document.
+
 For a disposable local proof, create a consumer anchor containing `#[OA\OpenApi]`
 and one consumer schema, require the bootstrap above, and scan both files:
 
