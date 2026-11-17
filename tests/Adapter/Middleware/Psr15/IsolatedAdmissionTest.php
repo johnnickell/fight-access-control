@@ -12,6 +12,7 @@ use Fight\AccessControl\Adapter\Middleware\Psr15\RequestAuthenticationState;
 use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionRequirements;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Fight\AccessControl\Application\AccessControl\Feature\Admission\FeatureAdmission;
@@ -27,6 +28,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Test\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionEnvironment;
 use LogicException;
@@ -56,9 +58,11 @@ final class IsolatedAdmissionTest extends TestCase
                 return $environment->user();
             }
         );
-        $gate = new PermissionMiddleware(new PermissionDeclaration(AdmissionMode::PROTECTED, [
-            PermissionName::fromString('AGENT_PROFILE_READ')
-        ]), $authentication);
+        $action = SelectedAction::method(NativeController::class, 'slim');
+        $gate = new PermissionMiddleware(new PermissionRequirements($action, new PermissionDeclaration(
+            AdmissionMode::PROTECTED,
+            [PermissionName::fromString('AGENT_PROFILE_READ')]
+        )), static fn(): SelectedAction => $action, $authentication);
         $request = $this->request(true);
         $response = $this->createStub(ResponseInterface::class);
         $handler = $this->createMock(RequestHandlerInterface::class);
@@ -76,8 +80,10 @@ final class IsolatedAdmissionTest extends TestCase
     public function test_public_declaration_never_selects_authority_and_removes_copied_context(): void
     {
         $calls = 0;
+        $action = SelectedAction::method(NativeController::class, 'slim');
         $gate = new PermissionMiddleware(
-            new PermissionDeclaration(AdmissionMode::PUBLIC),
+            new PermissionRequirements($action, new PermissionDeclaration(AdmissionMode::PUBLIC)),
+            static fn(): SelectedAction => $action,
             static function () use (&$calls): null {
                 ++$calls;
 
@@ -116,6 +122,41 @@ final class IsolatedAdmissionTest extends TestCase
         $this->expectException($expected);
 
         $state->authority();
+    }
+
+    public function test_permission_selected_action_fault_is_internal_and_never_authenticates(): void
+    {
+        $action = SelectedAction::method(PermissionNativeRead::class, 'slim');
+        $gate = new PermissionMiddleware(
+            new PermissionRequirements($action),
+            static function (): never {
+                throw new AuthenticationRequired('Not an authentication outcome: target lookup failed.');
+            },
+            static function (): never {
+                self::fail('Target resolution must precede authentication.');
+            }
+        );
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects(self::never())->method('handle');
+        $this->expectException(LogicException::class);
+
+        $gate->process($this->request(), $handler);
+    }
+
+    public function test_attribute_only_permission_uses_existing_admission_before_downstream_work(): void
+    {
+        $action = SelectedAction::method(PermissionNativeRead::class, 'slim');
+        $environment = new AdmissionEnvironment();
+        $gate = new PermissionMiddleware(
+            new PermissionRequirements($action),
+            static fn(): SelectedAction => $action,
+            static fn(): RequestAuthority => $environment->user(false)
+        );
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects(self::never())->method('handle');
+        $this->expectException(PermissionDenied::class);
+
+        $gate->process($this->request(), $handler);
     }
 
     public function test_selected_action_fault_remains_an_internal_fault(): void

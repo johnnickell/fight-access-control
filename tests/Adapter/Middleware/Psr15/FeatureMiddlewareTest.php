@@ -7,7 +7,6 @@ namespace Fight\Test\AccessControl\Adapter\Middleware\Psr15;
 use Closure;
 use DateTimeImmutable;
 use Fight\AccessControl\Adapter\Middleware\Psr15\FeatureMiddleware;
-use Fight\AccessControl\Adapter\Middleware\Psr15\PermissionMiddleware;
 use Fight\AccessControl\Adapter\Middleware\Psr15\RequestAuthentication;
 use Fight\AccessControl\Adapter\Middleware\Psr15\RequestAuthenticationState;
 use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
@@ -142,7 +141,7 @@ final class FeatureMiddlewareTest extends TestCase
     public function test_combined_gates_share_actual_agent_authentication_in_either_order(string $framework): void
     {
         foreach ([true, false] as $featureFirst) {
-            foreach ([null, AdmissionMode::PUBLIC, AdmissionMode::PROTECTED] as $mode) {
+            foreach ([null, AdmissionMode::PUBLIC, AdmissionMode::PROTECTED, 'attribute'] as $mode) {
                 $environment = new ProfileToolEnvironment();
                 $nativeAuthority = new NativeAgentAuthority($environment);
                 $calls = 0;
@@ -163,11 +162,11 @@ final class FeatureMiddlewareTest extends TestCase
                 $gate = $this->gate($features, $environment->permissionRepository, $authentication);
                 $permissionGate = null;
                 if ($mode !== null) {
-                    $declaration = new PermissionDeclaration(
+                    $declaration = $mode === 'attribute' ? null : new PermissionDeclaration(
                         $mode,
                         $mode === AdmissionMode::PROTECTED ? [PermissionName::fromString('AGENT_PROFILE_READ')] : []
                     );
-                    $permissionGate = new PermissionMiddleware($declaration, $authentication);
+                    $permissionGate = PermissionGate::bind($declaration, $authentication);
                 }
 
                 $native = new NativePipeline($framework, static function (
@@ -184,12 +183,13 @@ final class FeatureMiddlewareTest extends TestCase
                         return $feature;
                     }
 
+                    $permission = $permissionGate($action, $selected);
                     if ($featureFirst) {
-                        return new GateChain($feature, $permissionGate);
+                        return new GateChain($feature, $permission);
                     }
 
-                    return new GateChain($permissionGate, $feature);
-                });
+                    return new GateChain($permission, $feature);
+                }, controller: $mode === 'attribute' ? PermissionNativeRead::class : NativeController::class);
                 NativeController::$work = null;
                 self::assertSame(204, $native->request($this->request())->getStatusCode());
                 self::assertSame(1, $calls);
@@ -212,21 +212,21 @@ final class FeatureMiddlewareTest extends TestCase
         $this->seed($features, $id, FeatureStatus::ON);
         $authentication = new RequestAuthentication(static fn(): null => null);
         $gate = $this->gate($features, $permissions, $authentication);
-        $permission = new PermissionMiddleware(
+        $permission = PermissionGate::bind(
             new PermissionDeclaration(AdmissionMode::AUTHENTICATED),
             $authentication
         );
         $native = new NativePipeline($framework, static fn($action, $selected): MiddlewareInterface =>
-            new GateChain($gate($action, $selected), $permission));
+            new GateChain($gate($action, $selected), $permission($action, $selected)));
         self::assertSame(401, $native->request($this->request())->getStatusCode());
         self::assertSame(0, $native->validators);
         $never = new RequestAuthentication(static function (): never {
             throw new RuntimeException('No requirement must not select authentication.');
         });
         $emptyGate = $this->gate($features, $permissions, $never, []);
-        $public = new PermissionMiddleware(new PermissionDeclaration(AdmissionMode::PUBLIC), $never);
+        $public = PermissionGate::bind(new PermissionDeclaration(AdmissionMode::PUBLIC), $never);
         $empty = new NativePipeline($framework, static fn($action, $selected): MiddlewareInterface =>
-            new GateChain($public, $emptyGate($action, $selected)));
+            new GateChain($public($action, $selected), $emptyGate($action, $selected)));
         self::assertSame(204, $empty->request($this->request())->getStatusCode());
         self::assertCount(1, $features->lookups);
     }
