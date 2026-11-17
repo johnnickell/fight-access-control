@@ -59,9 +59,9 @@ native-peer priority. Direct suppliers are each TASK-00171 plus respectively com
 accepted TASK-00105 and accepted TASK-00106. Existing effective composition/pure traversal/inward admission need no new
 shared prefactor or native-peer/Feature wait. Laravel genuinely consumes its base Permission middleware, unlike the
 Feature-only path; CI4 consumes its actual filter/error bridge. No duplicate base implementation or changed earlier
-scope/orders/blockers. All five families are allocated as 2 + 1 + 1 + 1. TASK-00176 and TASK-00177 now supply
-independently accepted PSR-15 (Slim/Yii 3) and Symfony portable Permission integration with nonvisual QA;
-Laravel/CI4 portable integration and actual consumer qualification remain unfinished. Retain Attribute-only protection, cumulative requirements, raw validation/mode-conflict rejection, independent selection,
+scope/orders/blockers. All five families are allocated as 2 + 1 + 1 + 1. TASK-00176–00178 now supply
+independently accepted PSR-15 (Slim/Yii 3), Symfony and Laravel portable Permission integration with nonvisual QA;
+CI4 portable integration and actual consumer qualification remain unfinished. Retain Attribute-only protection, cumulative requirements, raw validation/mode-conflict rejection, independent selection,
 trusted context/single authentication and each path's actual native order/form/lifetime/safe error/docs/minimum/ordinary/
 isolation/gate/exact coverage/evidence/independent acceptance.
 
@@ -80,11 +80,20 @@ obligations with other EPICs are not inferred. At that planning checkpoint the f
 source/dependencies/Common/consumers remained unchanged.
 
 Next: `/skill:next` for Board-based selection, not automatic execution. This standalone destination has no
-earlier Wayfinder phase. All six EPIC-00017 audit TICKETs are now TASK-planned below, not implemented/qualified.
+earlier Wayfinder phase. All six EPIC-00017 audit TICKETs are complete for independently accepted package scope;
+actual consumer qualification remains separate.
 EPIC-00015's Agent conversion and existing-package Common adoption now have independent acceptance and applicable
 QA in their owning records. Completing audit planning neither supplied that acceptance nor starts a build/publication/release.
 
-## Completed TASK-planning handoff — explicit optional atomic audit
+## Explicit optional atomic audit — package scope complete
+
+All six [EPIC-00017](epics/00017-EPIC.md) TICKETs are complete for package scope. The
+[current matrix](../docs/audit-outcome-coverage.md) accounts for 39 handlers, seven synchronous User entries and six
+remaining Agent entries with candidate-compatible family evidence. Optional audit is implemented everywhere in
+scope; actual consumer mapping/connections/locks/processes/sinks/restoration/activation/use and workaround removal
+remain separate. The planning account below preserves its historical counts and allocation, not current open work.
+
+### Historical TASK-planning handoff
 
 John approved [EPIC-00017 — Explicit Optional Atomic Audit Recording](epics/00017-EPIC.md), covering all 37 current
 CommandHandlers and related synchronous outcomes. Handlers explicitly construct evidence and insert it within the
@@ -150,8 +159,8 @@ TICKET-00047's complete four-TASK plan is approved/written as [TASK-00162](tasks
 retained origin, [TASK-00163](tasks/00163-TASK.md) revocation, [TASK-00164](tasks/00164-TASK.md) delivery/scheduler
 recovery and [TASK-00165](tasks/00165-TASK.md) material maintenance. Orders 417–420 each directly consume TASK-00122;
 TASK-00164 consumes TASK-00162's implemented retained-origin output and is independently accepted with required
-nonvisual QA. All four Agent audit slices are done, completing TICKET-00047; unfinished TICKET-00048 keeps
-EPIC-00017 open.
+nonvisual QA. All four Agent audit slices are done, completing TICKET-00047; TICKET-00048 now also completes
+EPIC-00017's package scope.
 No mutual barrier or issuance wait on independent revocation/maintenance follows. Six service owners/eight outcome
 entries are allocated, not added CommandHandlers or source/product/consumer qualification; nextRunAt stays pure scheduling. Preserve canonical/public issuance identity,
 independent worker authorization, meaningful claim-path expiry/exhaustion, receipt-first restart, actual mutation/
@@ -164,7 +173,8 @@ design, [TASK-00167](tasks/00167-TASK.md) reusable audit transaction conformance
 qualification/current guidance. Orders 399/400 favor early foundations, 421/422 composition/final work. Inventory has
 no blocker; conformance consumes TASK-00122; Role composition consumes TASK-00167 and TASK-00153; final reconciliation
 has 21 direct output/evidence suppliers: all three plus the 18 family tasks (00123–00127 and 00153–00165). All six audit
-TICKETs are now TASK-planned as 24 chores, not implemented/qualified. Inventory covers 37 + 7 + 8 entry points, not
+TICKETs were TASK-planned as 24 chores at that checkpoint, not then implemented/qualified. Inventory covered
+37 + 7 + 8 entry points, not
 52 writers or source/runtime/consumer qualification. Reopened modeled state/negative controls must prove more than
 active flags; actual consumer mapping/connections/locks/process/sinks/restoration and workaround removal stay separate.
 Every slice retains its own checks/docs/gate/independent acceptance, without a late-testing or blanket supplier wait.
@@ -387,7 +397,7 @@ Known local callback @var with UoW mixed remains sufficient, without a generic s
 
 All six TICKET plans are now approved/written (31 TASKs), not implemented/audited/qualified. This standalone
 destination has no unfinished Wayfinder phase. TICKET-00045's five-TASK plan is now approved/written above.
-All six audit TICKETs are now TASK-planned above as 24 chores, not implemented/qualified.
+All six audit TICKETs are now complete for package scope; the 24-chore planning history remains above.
 TICKET-00049's declaration plan is now approved/written above, not implemented/qualified.
 TICKET-00050's four-TASK Feature admission plan is now written above, not implemented/qualified.
 TICKET-00051's subsequent portable Permission plan is written as TASK-00176–00179, not implemented/qualified.
@@ -846,6 +856,6 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00014](epics/00014-EPIC.md) | unassigned | done | 8 | 23 |
 | [EPIC-00015](epics/00015-EPIC.md) | unassigned | done | 5 | 9 |
 | [EPIC-00016](epics/00016-EPIC.md) | unassigned | done | 6 | 31 |
-| [EPIC-00017](epics/00017-EPIC.md) | unassigned | ready-for-agent | 6 | 24 |
+| [EPIC-00017](epics/00017-EPIC.md) | unassigned | done | 6 | 24 |
 | [EPIC-00018](epics/00018-EPIC.md) | unassigned | ready-for-agent | 4 | 12 |
 <!-- generated:epic-status:end -->

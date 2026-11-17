@@ -5,24 +5,39 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Role\CommandHandler;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\SetFeatureStatusHandler;
 use Fight\AccessControl\Application\AccessControl\Role\CommandHandler\CreateCustomRoleHandler;
 use Fight\AccessControl\Application\AccessControl\Role\CommandHandler\RemoveCustomRoleHandler;
 use Fight\AccessControl\Application\AccessControl\Role\CommandHandler\RenameCustomRoleHandler;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditRoleRevisions;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
+use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeatureStatus;
+use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
+use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
+use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
+use Fight\AccessControl\Domain\AccessControl\Feature\FeatureStatus;
+use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\AccessControl\Domain\AccessControl\Role\Command\RenameCustomRole;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRevision;
+use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
+use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Conformance\AuditTransactionConformance;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
@@ -31,6 +46,7 @@ use RuntimeException;
 use Throwable;
 
 /** Ordinary real-handler binding; completion snapshots are modeled bytes, not SQL or process durability */
+#[CoversClass(SetFeatureStatusHandler::class)]
 #[CoversClass(CreateCustomRoleHandler::class)]
 #[CoversClass(RenameCustomRoleHandler::class)]
 #[CoversClass(RemoveCustomRoleHandler::class)]
@@ -197,6 +213,91 @@ final class RoleAuditCompositionTest extends TestCase
         self::assertEquals($before, $this->reopenRole($fixture));
         self::assertSame([], $fixture->audit->all());
         self::assertSame([], $fixture->eventDispatcher->events());
+    }
+
+    public function test_mixed_owners_can_opt_in_later_without_backfilling_an_unaudited_change(): void
+    {
+        $fixture = new RoleLifecycleAuditFixture('create', mappedAudit: true);
+        $featureRepository = new InMemoryFeatureRepository($fixture->unitOfWork);
+        $permissionRepository = new InMemoryPermissionRepository($fixture->unitOfWork);
+        $permission = Permission::define(
+            PermissionId::generate(),
+            PermissionName::fromString('TEST_MIXED_AUDIT'),
+            $fixture->outcomeTime
+        );
+        $permissionRepository->add($permission);
+        $feature = Feature::define(FeatureId::generate(), FeatureName::fromString('mixed-audit'), $permission->getId());
+        $featureRepository->seed($feature);
+        $clock = new FixedClock($fixture->outcomeTime);
+        $disabled = new SetFeatureStatusHandler(
+            $featureRepository,
+            $clock,
+            $fixture->unitOfWork,
+            $fixture->eventDispatcher
+        );
+        $router = new InMemoryCommandRouter();
+        $router->registerHandler($disabled::commandRegistration(), $disabled);
+
+        $commandBus = new RoutingCommandBus($router);
+
+        $fixture->bus->execute($fixture->command);
+        $commandBus->execute(new SetFeatureStatus($feature->getId(), FeatureStatus::ON, 1));
+        self::assertCount(1, $fixture->audit->all());
+        self::assertSame(AuditAction::ROLE_CREATED, $fixture->audit->all()[0]->action());
+        self::assertSame(2, $featureRepository->getById($feature->getId())->getRevision());
+
+        $enabled = new SetFeatureStatusHandler(
+            $featureRepository,
+            $clock,
+            $fixture->unitOfWork,
+            $fixture->eventDispatcher,
+            $fixture->audit
+        );
+        $router->registerHandler($enabled::commandRegistration(), $enabled);
+        // A validated no-change after opt-in needs no new actor and cannot reconstruct the earlier OFF -> ON.
+        $commandBus->execute(new SetFeatureStatus($feature->getId(), FeatureStatus::ON, 2));
+        self::assertCount(1, $fixture->audit->all());
+        $message = CommandMessage::create(new SetFeatureStatus(
+            $feature->getId(),
+            FeatureStatus::PREVIEW,
+            2,
+            SystemId::generate()
+        ));
+        $commandBus->dispatch($message);
+
+        $records = $fixture->audit->all();
+        self::assertCount(2, $records);
+        self::assertSame('user', $records[0]->toArray()['actor']['kind']);
+        self::assertSame('system', $records[1]->toArray()['actor']['kind']);
+        self::assertSame(AuditAction::FEATURE_STATUS_CHANGED, $records[1]->action());
+        self::assertSame(2, $records[1]->getFacts()->getBefore()->getRevision());
+        self::assertSame(3, $records[1]->getFacts()->getAfter()->getRevision());
+        self::assertEquals($message->id(), $records[1]->getCorrelation()->getMessageId());
+        self::assertNotEquals($records[0]->getId(), $records[1]->getId());
+
+        // Disabling one owner later cannot disable an independently configured Role writer.
+        $router->registerHandler($disabled::commandRegistration(), $disabled);
+        $commandBus->execute(new SetFeatureStatus($feature->getId(), FeatureStatus::OFF, 3));
+        $role = $this->reopenRole($fixture);
+        $rename = new RenameCustomRoleHandler(
+            $fixture->roleRepository,
+            $clock,
+            $fixture->unitOfWork,
+            $fixture->eventDispatcher,
+            $fixture->audit
+        );
+        $router->registerHandler($rename::commandRegistration(), $rename);
+        $commandBus->execute(new RenameCustomRole(
+            $fixture->command->getActorId(),
+            $role->getId(),
+            RoleName::fromString('ROLE_MIXED_AUDIT'),
+            $role->getRevision()
+        ));
+        self::assertSame(
+            [AuditAction::ROLE_CREATED, AuditAction::FEATURE_STATUS_CHANGED, AuditAction::ROLE_RENAMED],
+            array_map(static fn ($record) => $record->action(), $fixture->audit->all())
+        );
+        self::assertSame(6, $fixture->unitOfWork->transactions);
     }
 
     private function faultFixture(string $operation, string $fault): RoleLifecycleAuditFixture

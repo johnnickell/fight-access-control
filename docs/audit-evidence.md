@@ -111,13 +111,19 @@ correlation; record identity/correlation is neither authority nor universal dedu
   with explicit absent creation/removal state. Reconciliation retains managed ownership in both states; it cannot
   claim a custom Permission or demote managed ownership. Permissions have no package revision: none is fabricated.
 
-The custom Role Permission grant/revoke handlers explicitly insert `AuditRolePermissionOutcome`, and the two User
-membership handlers insert `AuditUserRoleOutcome`, inside their existing transactions when storage is supplied. The shared construction/hydration contracts alone do not insert
-audit into other currently unaudited Role, Feature or Permission handlers; their family wiring remains separate.
+`AuditAgentPermissionOutcome` retains actual before/after assignment revisions and disjoint typed granted/revoked
+Permission lists. `AuditManagedRoleOutcome` retains complete Role incarnation/revisions and nullable before/after
+Permission memberships. `AuditAgentMaintenanceOutcome` retains original credential/delivery relationships, actual
+operation revisions, bounded wrapping labels and closed failure classification. These shapes do not capture
+credential envelopes, policy snapshots, authority epochs or diagnostics.
+
+All current family owners explicitly insert their supported facts inside their actual mutation transactions when
+storage is supplied. Helpers, planners and schedulers do not independently record those outcomes. The
+[complete outcome matrix](audit-outcome-coverage.md) identifies each owner and conditional disposition.
 
 `AuditSubject` admits only the supported User, Agent, Role, Permission and Feature identities. Action/facts must
 also support that subject; accepting an identity alone does not add a new outcome or audit-writing path.
-Further family outcomes and their action-specific facts remain separately owned implementation work.
+Family-owned admission and executable writer proof remain distinct from shared value construction/hydration.
 
 No facts type accepts credentials, tokens, hashes, ciphertext, raw messages/entities, exceptions or arbitrary
 text/context. Evidence and its identifiers are nevertheless not automatically authorized public response/log data.
@@ -145,7 +151,7 @@ port contract; no actual adapter or shared-connection qualification follows from
 null when no origin has been admitted; this coarse failure notification is not committed mutation evidence and
 cannot fabricate an actor. The synchronous revocation owner preserves its supplied typed actor even on failure.
 
-## Atomicity and staged optionality
+## Atomicity and explicit optionality
 
 Keep `AuditEvidenceRepository::add()` inside the existing owning mutation transaction on the same connection.
 Configured audit failure aborts staged work; it never means auditing is disabled. Concurrent losers roll back their
@@ -169,7 +175,9 @@ nullable dependency to all four synchronous owners and RevokeSessionHandler, inc
 password/email paths. Meaningful activation/login/rotation/logout/password/email and self/admin revocation outcomes
 are covered. Benign refresh conflicts, rejected work and concurrent helper no-change have no new mutation record;
 terminal replay's actually committed revocation is recorded before outward refusal. Helpers never add evidence.
-Other family constructors remain unchanged until their owning TASKs implement optionality.
+All remaining covered Role, membership, Agent administration/credential/delivery/maintenance and Feature/policy
+owners now implement the same final nullable injection. See the complete matrix for their actual signatures,
+provenance, typed facts and executable proof; binding one writer never enables another owner implicitly.
 TASK-00167 adds reusable [transaction/storage conformance](audit-transaction-conformance.md) around the enabled
 writer, reopened modeled representation and wrong-connection controls. It does not qualify family optionality,
 SQL storage or physical restart. TICKET-00048 retains complete cross-family reconciliation and real consumer qualification.

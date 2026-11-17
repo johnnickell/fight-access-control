@@ -2,7 +2,8 @@
 
 `Adapter\Middleware\Laravel\PermissionMiddleware` is an explicitly selected native route middleware. It delegates to
 shared inward `PermissionDeclaration`, `RequestAuthority` and `PermissionAdmission`; it is not a PSR-15 wrapper,
-a guard, a grant issuer, a Feature gate or a portable Permission Attribute implementation. See the
+a guard, a grant issuer or a Feature gate. TASK-00178 connects it to shared portable
+[RequiresPermission requirements](permission-requirements.md), without a second policy engine. See the
 [shared admission contract](http-permission-admission.md) for deliberate PUBLIC/AUTHENTICATED/PROTECTED modes,
 User Role-derived versus Agent direct Permissions and separate target-scope authorization.
 
@@ -27,9 +28,15 @@ TASK-00146 requalifies current categories/privacy/fallback on Common 1.4.2; see
 
 Build bindings **after** the actual serving routes have been registered/loaded, before serving requests. Bind the
 same native Route objects used by the Router, not copies, route names, callback names or request attributes. A
-private definition-only WeakMap associates each Route with its original `uses` action and explicit declaration.
-Unknown/unbound routes, a missing/changed action, duplicate bindings and malformed/missing declarations fail closed
-as configuration faults. Two routes using the same callback do not share a declaration automatically.
+private definition-only WeakMap associates each Route with its original `uses` action and optional explicit declaration.
+On each entry, `SelectedRouteAction` reads the actual normalized action without constructing its controller;
+`PermissionRequirements` composes its complete class/interface/method ancestry with that route declaration.
+Use null for Attribute-only protection; repeated, inherited and overridden-parent requirements accumulate.
+PROTECTED route additions also accumulate. Every native Attribute is validated before effective deduplication;
+raw PermissionDeclaration list/type/mode/duplicate validation is unchanged. PUBLIC/AUTHENTICATED conflicts with
+Attributes reject before authentication. Missing Attributes do not imply PUBLIC.
+Unknown/unbound routes, a missing/changed/unsupported action, duplicate bindings and malformed/missing effective
+policy fail closed as configuration faults. Two routes using the same callback do not share a declaration automatically.
 
 The following is consumer composition, not a package service provider. `$app` is the actual Laravel Application,
 `$router` its Router, `$kernel` its HTTP Kernel, and `$authorityForRequest` a trusted request factory described below.
@@ -45,6 +52,8 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 $protected = $router->get('/profile', $profileController)
     ->middleware([PermissionMiddleware::class, SubstituteBindings::class]);
 $public = $router->get('/public', $publicController)->middleware(PermissionMiddleware::class);
+// $attributedController has class/method RequiresPermission declarations.
+$attributed = $router->get('/attributed', $attributedController)->middleware(PermissionMiddleware::class);
 
 $app->instance(PermissionMiddleware::class, new PermissionMiddleware(
     $router,
@@ -52,7 +61,8 @@ $app->instance(PermissionMiddleware::class, new PermissionMiddleware(
         [$protected, new PermissionDeclaration(AdmissionMode::PROTECTED, [
             PermissionName::fromString('AGENT_PROFILE_READ')
         ])],
-        [$public, new PermissionDeclaration(AdmissionMode::PUBLIC)]
+        [$public, new PermissionDeclaration(AdmissionMode::PUBLIC)],
+        [$attributed, null]
     ],
     $authorityForRequest
 ));
@@ -114,7 +124,12 @@ object or treat an already admitted object as an authority lease. Subsequent pag
 Actual Kernel/Router fixtures exercise closure actions, `Class@method`, `[Class, method]`, invokable classes,
 static `Illuminate\Routing\Controllers\HasMiddleware` and legacy `Illuminate\Routing\Controller` middleware.
 Controller middleware alone is also exercised for the latter two forms; requirements still come from explicit
-trusted Route/action bindings, not inferred controller attributes or unvalidated middleware string arguments.
+trusted Route/action bindings plus portable controller attributes, never unvalidated middleware string arguments.
+Laravel normalizes method arrays and invokable classes to Class@method; inherited actions use the selected concrete
+class, preserving parent requirements. Closures use an explicit trusted route declaration and exact closure identity;
+a RequiresPermission on a closure is an invalid PHP function target. Container aliases, magic methods and arbitrary
+handler forms without supported class/action metadata are rejected, not resolved through a guard or constructed merely
+for inspection.
 
 | Form / stage | Qualified ordering |
 | --- | --- |
@@ -124,8 +139,7 @@ trusted Route/action bindings, not inferred controller attributes or unvalidated
 | Admitted FormRequest journey | Admission → binding → validator → construction → form authorization/rules → method provider → action/bus → final response |
 
 Static metadata code, native attribute constructors, earlier listeners/global middleware and arbitrary eager container
-resolution are not authorization proof. This slice does not implement portable class/method RequiresPermission or
-Feature metadata. Keep constructors/discovery free of protected side effects. Consumers qualify their exact native
+resolution are not authorization proof. Portable Permission metadata does not activate Feature evaluation. Keep constructors/discovery free of protected side effects. Consumers qualify their exact native
 forms, middleware groups/priority, parameter binding, caches and alternative/direct/worker entry points.
 
 ## One Common-owned safe reporting and rendering boundary
@@ -200,8 +214,9 @@ AccessControl v1.4.0 persistent-fault regression red is preserved, and the uncha
 the owning native regression now runs in default coverage. Exact locks, archive/source equivalence and executed
 runtime/reflection evidence live in TASK-00105's Work handoff.
 
-The ordinary installed lane and isolated exact-minimum native lane both exercise real User/Agent admission and the
-native suite. The isolated lane has no Slim/Yii/CI4 application runtime or Symfony Security HTTP. Symfony HTTP
+The original ordinary and isolated exact-minimum native lanes exercise real User/Agent admission and the native
+suite. TASK-00178's current candidate verification and sufficient-minimum lane are recorded in its canonical Work
+handoff; the table above remains historical supplier evidence, not acceptance of this new portable integration. The isolated lane has no Slim/Yii/CI4 application runtime or Symfony Security HTTP. Symfony HTTP
 primitives are Laravel dependencies, not absent-framework claims. A production-only core lane exercises inward
 admission/optional adapter autoload with Laravel absent. Other transitive dependencies are lock-recorded, not an
 exhaustive all-lowest matrix. Preliminary HttpFoundation/HttpKernel 8.1.9 passed behavior but reported five newly

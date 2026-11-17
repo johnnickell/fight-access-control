@@ -55,6 +55,11 @@ restrictions still apply and copied attributes never establish authority. PUBLIC
 skip authentication, but preserves a context already selected by the cooperating Feature gate. Standalone PUBLIC
 admission still erases an incoming copied context. See the Feature guide for exact lifetime and adjacency limits.
 
+The existing [native Laravel Permission middleware](laravel-permission-admission.md) now also consumes portable
+requirements under TASK-00178. Bind the actual serving Route with null for Attribute-only protection or an explicit
+PROTECTED declaration for additional conjunctive requirements. Its native lifecycle and Common safe handler remain
+the owners; this does not imply acceptance of sibling integrations or actual consumer composition.
+
 ## Historical portable admission evidence assessment (Unreleased)
 
 [TASK-00180](../planning/tasks/00180-TASK.md) assesses the current source against

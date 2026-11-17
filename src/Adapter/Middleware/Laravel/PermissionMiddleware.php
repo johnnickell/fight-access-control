@@ -8,6 +8,7 @@ use Closure;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionAdmission;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionRequirements;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use LogicException;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 use WeakMap;
 
 /**
@@ -40,7 +42,8 @@ final readonly class PermissionMiddleware
         private Router $router,
         array $targets,
         Closure|RequestAuthentication $authority,
-        private PermissionAdmission $admission = new PermissionAdmission()
+        private PermissionAdmission $admission = new PermissionAdmission(),
+        private SelectedRouteAction $selectedRouteAction = new SelectedRouteAction()
     ) {
         if ($authority instanceof Closure) {
             $authority = new RequestAuthentication($authority);
@@ -65,21 +68,28 @@ final readonly class PermissionMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         $request->attributes->remove(SecurityContext::class);
-        $route = $request->route();
-        if (
-            !$route instanceof Route || $route !== $this->router->getCurrentRoute() ||
-            !isset($this->targets[$route])
-        ) {
-            throw new LogicException('The selected permission target does not match native routing.');
-        }
+        try {
+            $route = $request->route();
+            if (
+                !$route instanceof Route || $route !== $this->router->getCurrentRoute() ||
+                !isset($this->targets[$route])
+            ) {
+                throw new LogicException('The selected permission target does not match native routing.');
+            }
 
-        [$action, $declaration] = $this->targets[$route];
-        if ($action === null || $action !== $route->getAction('uses')) {
-            throw new LogicException('The selected permission action has changed.');
-        }
+            [$action, $declaration] = $this->targets[$route];
+            if ($action === null || $action !== $route->getAction('uses')) {
+                throw new LogicException('The selected permission action has changed.');
+            }
 
-        if ($declaration !== null && !$declaration instanceof PermissionDeclaration) {
-            throw new LogicException('Invalid target permission declaration.');
+            if ($declaration !== null && !$declaration instanceof PermissionDeclaration) {
+                throw new LogicException('Invalid target permission declaration.');
+            }
+
+            $selected = $this->selectedRouteAction->action($action);
+            $declaration = new PermissionRequirements($selected, $declaration)->getDeclaration($selected);
+        } catch (Throwable $throwable) {
+            throw new LogicException('Permission selected action resolution failed.', previous: $throwable);
         }
 
         return $this->authentication->admit(

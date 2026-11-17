@@ -2,10 +2,10 @@
 
 TASK-00171 adds pure package metadata. TASK-00176 connects it to existing
 [PSR-15 admission through Slim and Yii 3](http-permission-admission.md#portable-permission-admission-unreleased),
-and TASK-00177 connects it to the optional [Symfony native subscriber](symfony-permission-admission.md).
-TASK-00179 also connects the optional [CodeIgniter 4 before-filter](codeigniter-permission-admission.md).
-All three support Attribute-only protection and explicit route additions. Remaining native portable integrations
-retain their TICKET-00051 owners. No consumer Attribute,
+TASK-00177 connects it to the optional [Symfony native subscriber](symfony-permission-admission.md),
+TASK-00178 connects it to [native Laravel middleware](laravel-permission-admission.md),
+and TASK-00179 connects the optional [CodeIgniter 4 before-filter](codeigniter-permission-admission.md).
+All four paths support Attribute-only protection and explicit route additions across five frameworks. No consumer Attribute,
 framework bootstrap, discovery provider or Feature activation is required. `RequiresAgentPermission` and MCP remain separate.
 
 ## Declare and compose

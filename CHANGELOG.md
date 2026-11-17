@@ -20,6 +20,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   including swallowed Attribute constructor faults; selected-loop sink failures get finite unreported fallback.
   Production-style Permission subprocesses qualify this path, not CI4 testing-mode logger bypass or global/non-JSON safety.
 
+- Portable `RequiresPermission` enforcement through the existing optional Laravel Permission middleware.
+  Attribute-only protection, inherited/overridden requirements and protected route additions use the shared pure
+  resolver; explicit PUBLIC/AUTHENTICATED conflicts reject before authentication. Native route identity, early
+  validation denial and request-owned User/Agent authority remain intact. Cooperating Feature gates share one
+  authentication/nonce without accepting copied context. Common remains the sole selected safe-error owner.
+  See [Laravel composition](docs/laravel-permission-admission.md) for supported forms and construction/runtime limits.
+
+- Integrated [audit outcome inventory](docs/audit-outcome-coverage.md) for every current handler and related
+  synchronous/worker outcome, with current family proof and ordinary Role/shared-transaction examples. All covered
+  owners now support optional final nullable audit storage, including formerly mandatory writers. Mixed per-owner
+  composition and later opt-in without backfill are explicit. **Pre-v1:** update current constructor/provenance and
+  typed persisted mappings directly; enabled adapters must reject unsupported evidence. Void Agent issuance and
+  authorized outcome Queries preserve committed issuance despite publisher failure without returned/reconstructed
+  warnings. Package models do not qualify actual consumer connections/locks/processes, sinks/keys, restoration or
+  activation/use and do not authorize consumer workaround removal, schema operations or deployment.
+
 - Portable `RequiresPermission` enforcement through the existing optional Symfony Permission subscriber. Effective
   class/method/repeatable/inherited and route requirements accumulate without redundant route declarations; explicit
   PUBLIC/AUTHENTICATED conflicts reject before authentication. Trusted native controller association is checked before
