@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00169](00169-TASK.md) — Qualify integrated audit coverage and reconcile guidance.
+Active Task: [TASK-00179](00179-TASK.md) — Integrate portable Permissions in CodeIgniter 4.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 505 | [TASK-00179](00179-TASK.md) | Integrate portable Permissions in CodeIgniter 4 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | in-progress | [TASK-00171](00171-TASK.md), [TASK-00106](00106-TASK.md) | — |
 
 ## Ready Frontier
 
@@ -17,7 +19,6 @@ No Tasks are currently in this state.
 | --- | --- | --- | --- | --- | --- | --- |
 | 422 | [TASK-00169](00169-TASK.md) | Qualify integrated audit coverage and reconcile guidance | [TICKET-00048](../tickets/00048-TICKET.md) — Qualify audit composition and document consumer adoption | ready-for-agent | [TASK-00166](00166-TASK.md), [TASK-00167](00167-TASK.md), [TASK-00168](00168-TASK.md), [TASK-00123](00123-TASK.md), [TASK-00124](00124-TASK.md), [TASK-00125](00125-TASK.md), [TASK-00126](00126-TASK.md), [TASK-00127](00127-TASK.md), [TASK-00153](00153-TASK.md), [TASK-00154](00154-TASK.md), [TASK-00155](00155-TASK.md), [TASK-00156](00156-TASK.md), [TASK-00157](00157-TASK.md), [TASK-00158](00158-TASK.md), [TASK-00159](00159-TASK.md), [TASK-00160](00160-TASK.md), [TASK-00161](00161-TASK.md), [TASK-00162](00162-TASK.md), [TASK-00163](00163-TASK.md), [TASK-00164](00164-TASK.md), [TASK-00165](00165-TASK.md) | — |
 | 505 | [TASK-00178](00178-TASK.md) | Integrate portable Permissions in Laravel | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00105](00105-TASK.md) | — |
-| 505 | [TASK-00179](00179-TASK.md) | Integrate portable Permissions in CodeIgniter 4 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00106](00106-TASK.md) | — |
 
 ## Waiting
 

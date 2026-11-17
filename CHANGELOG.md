@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Portable `RequiresPermission` integration through the optional CodeIgniter 4 Permission before-filter. Effective
+  class/method/repeatable/inherited/overridden and trusted route requirements compose through the existing inward
+  admission, without Feature services or redundant route declarations. Explicit mode conflicts fail before
+  authentication. Both CI4 gates reuse one native matched-action resolver and the existing safe JSON error owner.
+  New Permission-native fixtures qualify selected routing/aliases/short-circuit, User/Agent authority and safe
+  downstream errors; the removed Feature journeys remain removed. See [CI4 composition](docs/codeigniter-permission-admission.md)
+  for supported forms, construction/lifetime/error limits and separate consumer duties. Explicit `SafeNativeLogger`
+  service selection now sends native diagnostics to that same redaction owner before raw native formatting/cache,
+  including swallowed Attribute constructor faults; selected-loop sink failures get finite unreported fallback.
+  Production-style Permission subprocesses qualify this path, not CI4 testing-mode logger bypass or global/non-JSON safety.
+
 - Portable `RequiresPermission` enforcement through the existing optional Symfony Permission subscriber. Effective
   class/method/repeatable/inherited and route requirements accumulate without redundant route declarations; explicit
   PUBLIC/AUTHENTICATED conflicts reject before authentication. Trusted native controller association is checked before

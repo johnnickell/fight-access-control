@@ -19,6 +19,10 @@ deptrac:
           collectors:
               - type: classLike
                 value: ^Psr\\Http\\.*
+        - name: PsrLog
+          collectors:
+              - type: classLike
+                value: ^Psr\\Log\\(AbstractLogger|LoggerInterface)$
         - name: LaravelHttp
           collectors:
               - type: classLike
@@ -71,6 +75,7 @@ deptrac:
             - CommonDomain
             - CommonApplication
             - PsrHttp
+            - PsrLog
             - LaravelHttp
             - SymfonyHttp
             - CodeIgniterHttp
@@ -78,6 +83,7 @@ deptrac:
             - CommonTaskRouting
             - PhpInternal
         PsrHttp: []
+        PsrLog: []
         LaravelHttp: []
         SymfonyHttp: []
         CodeIgniterHttp: []

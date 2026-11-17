@@ -10,14 +10,12 @@ use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\Router\Router;
-use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
 use Fight\AccessControl\Application\AccessControl\Feature\Admission\FeatureAdmission;
 use Fight\AccessControl\Application\AccessControl\Feature\Admission\FeatureUnavailable;
 use Fight\AccessControl\Application\AccessControl\Feature\FeatureRequirements;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use LogicException;
-use ReflectionMethod;
 use Throwable;
 
 /**
@@ -53,7 +51,7 @@ final readonly class FeatureFilter implements FilterInterface
 
                 $router = ($this->router)();
                 $this->authentication->begin($request, $router, self::class);
-                $action = $this->selectedAction($router);
+                $action = MatchedAction::fromRouter($router);
                 // CI4 accepts object-valued custom options despite its scalar-only PHPDoc.
                 /** @var array<string, mixed>|null $options */
                 $options = $router->getMatchedRouteOptions();
@@ -102,31 +100,5 @@ final readonly class FeatureFilter implements FilterInterface
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null): null
     {
         return null;
-    }
-
-    /**
-     * Returns the selected code without constructing a controller or duplicating declaration traversal
-     */
-    private function selectedAction(Router $router): SelectedAction
-    {
-        if ($router->getMatchedRoute() === null) {
-            throw new LogicException('An explicit native route is required.');
-        }
-
-        $controller = $router->controllerName();
-        if ($controller instanceof Closure) {
-            return SelectedAction::closure($controller);
-        }
-
-        if (!class_exists($controller) || method_exists($controller, '_remap')) {
-            throw new LogicException('Unsupported native Feature controller.');
-        }
-
-        $method = $router->methodName();
-        if (new ReflectionMethod($controller, $method)->isStatic()) {
-            throw new LogicException('Static native Feature actions are not supported.');
-        }
-
-        return SelectedAction::method($controller, $method);
     }
 }

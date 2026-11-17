@@ -21,8 +21,11 @@ final class SafeCodeIgniter extends CodeIgniter
     /**
      * Constructs SafeCodeIgniter
      */
-    public function __construct(App $config, private readonly SafeErrorResponder $errors)
-    {
+    public function __construct(
+        App $config,
+        private readonly SafeErrorResponder $errors,
+        private readonly ?SafeNativeLogger $nativeLogger = null
+    ) {
         parent::__construct($config);
     }
 
@@ -34,12 +37,17 @@ final class SafeCodeIgniter extends CodeIgniter
         Cache $cacheConfig,
         bool $returnResponse = false
     ): ResponseInterface {
+        $this->nativeLogger?->reset();
         try {
-            return parent::handleRequest($routes, $cacheConfig, $returnResponse);
+            $response = parent::handleRequest($routes, $cacheConfig, $returnResponse);
+
+            return $this->nativeLogger?->failed() ? $this->errors->fallback() : $response;
         } catch (Throwable $throwable) {
             $this->outputBufferingEnd();
 
-            return $this->errors->respond($throwable);
+            return $this->nativeLogger?->failed() ? $this->errors->fallback() : $this->errors->respond($throwable);
+        } finally {
+            $this->nativeLogger?->reset();
         }
     }
 }

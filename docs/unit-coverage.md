@@ -21,7 +21,9 @@ files, open a cache or invoke a real router. Consumer-owned test service configu
 keep those boundaries controlled. PHPUnit subprocess isolation protects global framework configuration; it is not
 worker-process behavioral proof. TASK-00168's explicit [CI4 amendment](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment)
 removes only its bootstrap-dependent native integration tests and unused fixtures; current CI4 units do not prove
-native dispatch, ordering or bootstrap/reset. Other frameworks' native pipelines, SQLite, security and process tests
+native Feature dispatch, ordering or bootstrap/reset. TASK-00179's separate `NativePermissionTest` is Integration:
+it boots CI4 and exercises real Permission routing/filter/controller/response boundaries. It contributes no Unit hits
+and does not restore the removed Feature tests. Other frameworks' native pipelines, SQLite, security and process tests
 remain separate. Exact all-src statements and independently attributed Unit-only lines remain required.
 
 ## Evidence and enforcement

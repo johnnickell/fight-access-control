@@ -303,6 +303,8 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   reset are no longer current executable proof; consumers must qualify them separately. Earlier TASK-00175 acceptance
   and merged history remain historical, not amendment acceptance. See the
   [current CI4 verification boundary](../../docs/codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment).
+  TASK-00179 separately requires and adds new Permission-native routing/filter/controller/response proof, not
+  restoration or acceptance of those removed Feature journeys. See its [Permission evidence boundary](../../docs/codeigniter-permission-admission.md#current-verification-boundary).
 
 - **Explicit PHPStan scope decision (TASK-00152):** ordinary/default analysis covers production `src/` and shipped
   `openapi/` metadata only. Do not analyze `tests/` or `scripts/`, directly or through another pass. John rejected
