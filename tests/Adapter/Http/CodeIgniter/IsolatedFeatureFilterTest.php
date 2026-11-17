@@ -12,6 +12,7 @@ use Composer\Autoload\ClassLoader;
 use Config\App;
 use DateTimeImmutable;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\FeatureFilter;
+use Fight\AccessControl\Adapter\Http\CodeIgniter\MatchedAction;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\PermissionFilter;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\RequestAuthentication;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\RequestContexts;
@@ -45,6 +46,7 @@ use PHPUnit\Framework\TestCase;
 use Throwable;
 
 #[CoversClass(FeatureFilter::class)]
+#[CoversClass(MatchedAction::class)]
 #[CoversClass(RequestAuthentication::class)]
 #[CoversClass(PermissionFilter::class)]
 #[RunTestsInSeparateProcesses]

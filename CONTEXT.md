@@ -1,5 +1,37 @@
 # Fight AccessControl Context
 
+## Portable CodeIgniter 4 Permission admission — TASK-00179 accepted checkpoint
+
+The optional `SafeNativeLogger` now directs selected native diagnostics to the same Common `SafeHttpDiagnostics`
+owner as `SafeErrorResponder`, before native interpolation/cache/handlers. Correction to the earlier Work hold:
+explicit supported logger service selection supplies a thin ingress, not a competing reporter. Native records without
+an original Throwable remain bounded, uninterpolated `NativeDiagnostic` inputs to that redaction owner, not recovered
+routing exceptions. The selected loop gives finite unreported fallback on sink failure; no text/status guessing,
+recursive reporting, vendor/Common edits or disabled Attribute safeguards are involved.
+
+Production-style Permission fixtures use separate PHP processes, actual supported service override and native hooks/
+required filters. Testing-mode `log_message` bypasses that selection and is not covered by this guarantee. Native
+output remains under owned ignored `var/tests/task-00179/native-permission/`, not vendor. Earlier failed and passing
+receipts remain historical; canonical Work evidence owns the checks and committed subject. Independent Review v3
+ACCEPT and nonvisual QA PASS cover `89ebb405d30af078535a6ce9e0c6d44dfe7f59b1` (45 selected cases /
+46 executions, no findings). TASK-00179 and TICKET-00051 are done; final reconciliation keeps EPIC-00018 open.
+
+The optional PermissionFilter now composes the actually matched action through existing PermissionRequirements,
+including Attribute-only protection, inherited/overridden requirements and trusted route conjunction. Both CI4 gates
+share MatchedAction without another merger, admission policy or error framework. Permission-only activates no Feature
+services. The existing safe JSON loop/responder now cooperates with the selected native ingress; request-owned
+User/Agent authority remains unchanged.
+
+New Permission-native fixtures exercise real CI4 routing, default required filters, aliases, short-circuit before
+validation/construction, selected forms, actual authority and downstream fault responses. The TASK-00168 Feature
+journeys remain removed; their native qualification limits are unchanged. See [CI4 Permission composition](docs/codeigniter-permission-admission.md)
+for explicit registration and construction/lifetime/JSON/outer-loop limits. Exact checks, dependency/runtime identities,
+first failures and candidate mapping belong to canonical `.runs/handoffs/TASK-00179/work.md`. Land's behavior-preserving
+integration with develop passes a fresh full gate: 10,186 tests / 100,207 assertions, exact statements and separate
+Unit-only lines 11,920/11,920 across 557 files, no exclusions. Publication/final verification and eligible retirement
+are pending at this closeout checkpoint; canonical `.runs/handoffs/TASK-00179/land.md` owns the bridge/outcomes.
+This is not consumer/bootstrap/storage/crypto/sink/deployment qualification.
+
 ## Portable Laravel Permission admission — TASK-00178 accepted checkpoint
 
 The existing native PermissionMiddleware now resolves the exact bound Route's normalized action through
@@ -995,7 +1027,8 @@ Earlier full gate retained: 7,080 tests / 78,397 assertions, exact 9,324/9,324 g
 Publication/final delivery verification remain pending at this closeout checkpoint; canonical
 `.runs/handoffs/TASK-00171/land.md` owns subsequent bridge/delivery/resource results. Original reports and minimum-lane
 warnings remain preserved. TASK-00176 and TASK-00177 now qualify portable Permission admission for Slim/Yii and
-Symfony as described in their checkpoints. Laravel/CI4 portable integration and final reconciliation remain unfinished.
+Symfony as described in their checkpoints. TASK-00178 and TASK-00179 now qualify Laravel and CI4 portable integration
+with independent Review and nonvisual QA; final reconciliation remains unfinished.
 Feature admission is accepted across all five frameworks under TICKET-00050. This is not whole-library or actual consumer qualification.
 The earlier TASK-00149 acceptance below covers its original narrower contract, not this new behavior.
 TASK-00149's canonical Work handoff owns implementation verification and limits. Independent Review v3 ACCEPT

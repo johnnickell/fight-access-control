@@ -53,6 +53,14 @@ final readonly class SafeErrorResponder
             // No recursive report and no raw native exception handler fallback.
         }
 
+        return $this->fallback();
+    }
+
+    /**
+     * Returns finite safe output without recursively reporting a failed diagnostic sink
+     */
+    public function fallback(): ResponseInterface
+    {
         try {
             [$status, $envelope, $headers] = $this->policy->fallback();
 

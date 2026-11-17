@@ -24,6 +24,24 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\SafeNativeLoggerTest": {
+      "file": "tests/Adapter/Http/CodeIgniter/SafeNativeLoggerTest.php",
+      "category": "Unit",
+      "reason": "Direct PSR ingress and bounded diagnostic decisions with a controlled trusted reporting owner, without native bootstrap or external sinks.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\NativePermissionTest": {
+      "file": "tests/Adapter/Http/CodeIgniter/NativePermissionTest.php",
+      "category": "Integration",
+      "reason": "Actual CI4 bootstrap, matched routing, required and aliased filters, controller dispatch and native responses with controlled authentication/storage/sinks.",
+      "methods": {}
+    },
+    "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\PortablePermissionFilterTest": {
+      "file": "tests/Adapter/Http/CodeIgniter/PortablePermissionFilterTest.php",
+      "category": "Unit",
+      "reason": "Direct portable Permission filter decisions with controlled native ports and in-memory authority, without application bootstrap or dispatch.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Adapter\\Http\\CodeIgniter\\IsolatedFeatureFilterTest": {
       "file": "tests/Adapter/Http/CodeIgniter/IsolatedFeatureFilterTest.php",
       "category": "Unit",

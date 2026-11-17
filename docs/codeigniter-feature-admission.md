@@ -25,6 +25,11 @@ Plain Composer-first PHPUnit invocations can still resolve CI4's `config()` call
 native application journeys does not remove that limitation. No new bootstrap workaround, production behavior,
 global testing-policy change or coverage exclusion is introduced by this amendment.
 
+TASK-00179 separately adds the required [native portable Permission proof](codeigniter-permission-admission.md#current-verification-boundary).
+It reuses the same matched-action resolver and error owner, but neither restores the removed Feature journeys nor
+qualifies Feature-native bootstrap/ordering. The distinction is deliberate: Permission-native evidence is not
+Feature-native acceptance.
+
 ## Explicit native composition
 
 Keep explicit PHP routes and `Config\Feature::$oldFilterOrder = false`. Register a zero-argument native filter shell
@@ -127,7 +132,10 @@ Reuse the [selected Common-backed native JSON boundary](codeigniter-permission-a
 unchanged. A before-filter catch alone does not intercept downstream failures; a native JSend helper alone is not
 an exception owner. The explicit `SafeCodeIgniter` loop catches routing through downstream ordinary filter/controller/
 action/after-filter failures before CI4's raw global logger/formatter. The same `SafeErrorResponder` reports once to
-redaction-aware diagnostics, then uses Common's finite policy/projection/encoding and fresh native response.
+redaction-aware diagnostics per handled failure, then uses Common's finite policy/projection/encoding and fresh
+native response. The linked current recipe also explicitly selects `SafeNativeLogger` to direct native diagnostic
+records to that same owner before native interpolation/cache. Distinct native/package events are not text-deduplicated.
+TASK-00179 qualifies that production selection on its Permission path; it does not restore removed Feature journeys.
 Handled Feature refusal is not reported again by the loop. Partial buffered output and prior action/challenge headers
 are not copied. Sink/projector/encoding/native-render/fallback failures retain fixed safe JSON/500 without recursive
 reporting or raw fallback. Current bridge units qualify direct package calls and controlled response ports. Removed

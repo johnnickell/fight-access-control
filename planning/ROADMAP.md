@@ -59,9 +59,10 @@ native-peer priority. Direct suppliers are each TASK-00171 plus respectively com
 accepted TASK-00105 and accepted TASK-00106. Existing effective composition/pure traversal/inward admission need no new
 shared prefactor or native-peer/Feature wait. Laravel genuinely consumes its base Permission middleware, unlike the
 Feature-only path; CI4 consumes its actual filter/error bridge. No duplicate base implementation or changed earlier
-scope/orders/blockers. All five families are allocated as 2 + 1 + 1 + 1. TASK-00176–00178 now supply
-independently accepted PSR-15 (Slim/Yii 3), Symfony and Laravel portable Permission integration with nonvisual QA;
-CI4 portable integration and actual consumer qualification remain unfinished. Retain Attribute-only protection, cumulative requirements, raw validation/mode-conflict rejection, independent selection,
+scope/orders/blockers. All five families are allocated as 2 + 1 + 1 + 1. TASK-00176–00179 now supply
+independently accepted PSR-15 (Slim/Yii 3), Symfony, Laravel and CI4 portable Permission integration with nonvisual QA,
+completing TICKET-00051. Final reconciliation keeps EPIC-00018 open; actual consumer qualification remains separate.
+Retain Attribute-only protection, cumulative requirements, raw validation/mode-conflict rejection, independent selection,
 trusted context/single authentication and each path's actual native order/form/lifetime/safe error/docs/minimum/ordinary/
 isolation/gate/exact coverage/evidence/independent acceptance.
 

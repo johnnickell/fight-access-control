@@ -23,6 +23,7 @@ use Fight\AccessControl\Adapter\Http\CodeIgniter\RequestAuthentication;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\RequestContexts;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\SafeCodeIgniter;
 use Fight\AccessControl\Adapter\Http\CodeIgniter\SafeErrorResponder;
+use Fight\AccessControl\Adapter\Http\CodeIgniter\SafeNativeLogger;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
@@ -47,6 +48,7 @@ use RuntimeException;
 #[CoversClass(RequestContexts::class)]
 #[CoversClass(SafeErrorResponder::class)]
 #[CoversClass(SafeCodeIgniter::class)]
+#[CoversClass(SafeNativeLogger::class)]
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
 final class IsolatedAdapterTest extends TestCase
@@ -79,6 +81,8 @@ final class IsolatedAdapterTest extends TestCase
         $contexts = new RequestContexts();
         $request = $this->createStub(IncomingRequest::class);
         $router = $this->createStub(Router::class);
+        $router->method('controllerName')->willReturn(NativeController::class);
+        $router->method('methodName')->willReturn('handle');
         $router->method('getMatchedRoute')->willReturn(['target', 'controller']);
         $declaration = new PermissionDeclaration(AdmissionMode::AUTHENTICATED);
         $router->method('getMatchedRouteOptions')->willReturnCallback(static function () use (&$declaration): array {
@@ -116,6 +120,8 @@ final class IsolatedAdapterTest extends TestCase
     {
         $request = $this->createStub(IncomingRequest::class);
         $router = $this->createStub(Router::class);
+        $router->method('controllerName')->willReturn(NativeController::class);
+        $router->method('methodName')->willReturn('handle');
         $router->method('getMatchedRoute')->willReturn($fault === 'missing' ? null : ['target', 'controller']);
         $router->method('getMatchedRouteOptions')->willReturn([PermissionDeclaration::class => 'forged']);
         $response = $this->response();
@@ -228,6 +234,36 @@ final class IsolatedAdapterTest extends TestCase
         self::assertSame($level, ob_get_level());
     }
 
+    #[DataProvider('loopOutcomes')]
+    public function test_selected_loop_returns_fallback_after_native_sink_failure_and_resets(bool $failed): void
+    {
+        $response = $this->response();
+        $diagnostics = $this->createMock(SafeHttpDiagnostics::class);
+        $diagnostics->expects(self::once())->method('report')->willThrowException(new RuntimeException('private sink'));
+        $logger = new SafeNativeLogger($diagnostics);
+        $errors = new SafeErrorResponder(
+            $this->config(),
+            $diagnostics,
+            responses: static fn(): ResponseInterface => $response
+        );
+        $app = new SafeCodeIgniter($this->config(), $errors, $logger);
+        $request = $this->createStub(IncomingRequest::class);
+        $request->method('getMethod')->willReturnCallback(static function () use ($logger, $failed): string {
+            $logger->error('private native record');
+            if ($failed) {
+                throw new RuntimeException('private downstream');
+            }
+
+            return 'CLI';
+        });
+        new ReflectionProperty($app, 'request')->setValue($app, $request);
+        new ReflectionProperty($app, 'response')->setValue($app, $response);
+        new ReflectionProperty($app, 'bufferLevel')->setValue($app, ob_get_level());
+        $cache = $this->createStub(Cache::class);
+        self::assertSame($response, new ReflectionMethod($app, 'handleRequest')->invoke($app, null, $cache));
+        self::assertFalse($logger->failed());
+    }
+
     /** @return iterable<string, array{string, int}> */
     public static function permissionOutcomes(): iterable
     {
@@ -256,6 +292,8 @@ final class IsolatedAdapterTest extends TestCase
         }
 
         $router = $this->createStub(Router::class);
+        $router->method('controllerName')->willReturn(NativeController::class);
+        $router->method('methodName')->willReturn('handle');
         $router->method('getMatchedRoute')->willReturn(['target', 'controller']);
         $router->method('getMatchedRouteOptions')->willReturn([
             PermissionDeclaration::class => $outcome === 'missing' ? null : new PermissionDeclaration(

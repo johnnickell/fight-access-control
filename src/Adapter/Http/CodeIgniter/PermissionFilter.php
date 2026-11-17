@@ -13,6 +13,7 @@ use CodeIgniter\Router\Router;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionAdmission;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
+use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionRequirements;
 use LogicException;
 use Throwable;
 
@@ -48,16 +49,19 @@ final readonly class PermissionFilter implements FilterInterface
 
             $router = ($this->router)();
             $this->authentication->begin($request, $router, self::class);
-            if ($router->getMatchedRoute() === null) {
-                throw new LogicException('An explicit native route is required.');
-            }
+            try {
+                $action = MatchedAction::fromRouter($router);
+                // Native custom route options can contain objects despite CI4's scalar-only PHPDoc.
+                /** @var array<string, mixed>|null $options */
+                $options = $router->getMatchedRouteOptions();
+                $declaration = $options[PermissionDeclaration::class] ?? null;
+                if ($declaration !== null && !$declaration instanceof PermissionDeclaration) {
+                    throw new LogicException('Invalid target permission declaration.');
+                }
 
-            // Native custom route options can contain objects despite CI4's scalar-only PHPDoc.
-            /** @var array<string, mixed>|null $options */
-            $options = $router->getMatchedRouteOptions();
-            $declaration = $options[PermissionDeclaration::class] ?? null;
-            if ($declaration !== null && !$declaration instanceof PermissionDeclaration) {
-                throw new LogicException('Invalid target permission declaration.');
+                $declaration = new PermissionRequirements($action, $declaration)->getDeclaration($action);
+            } catch (Throwable $failure) {
+                throw new LogicException('Permission selected action resolution failed.', previous: $failure);
             }
 
             $authority = null;
