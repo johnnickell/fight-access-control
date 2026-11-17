@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00178](00178-TASK.md) — Integrate portable Permissions in Laravel.
+First ready Task: [TASK-00179](00179-TASK.md) — Integrate portable Permissions in CodeIgniter 4.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 505 | [TASK-00178](00178-TASK.md) | Integrate portable Permissions in Laravel | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00105](00105-TASK.md) | — |
 | 505 | [TASK-00179](00179-TASK.md) | Integrate portable Permissions in CodeIgniter 4 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | ready-for-agent | [TASK-00171](00171-TASK.md), [TASK-00106](00106-TASK.md) | — |
 
 ## Waiting
@@ -219,3 +218,4 @@ No Tasks are currently in this state.
 | 504 | [TASK-00175](00175-TASK.md) | Enforce CodeIgniter 4 Feature admission | [TICKET-00050](../tickets/00050-TICKET.md) — Enforce Feature admission across five frameworks | done | [TASK-00172](00172-TASK.md), [TASK-00106](00106-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/249 |
 | 505 | [TASK-00176](00176-TASK.md) | Integrate portable Permissions through PSR-15 | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | done | [TASK-00171](00171-TASK.md), [TASK-00103](00103-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/251 |
 | 505 | [TASK-00177](00177-TASK.md) | Integrate portable Permissions in Symfony | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | done | [TASK-00171](00171-TASK.md), [TASK-00104](00104-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/252 |
+| 505 | [TASK-00178](00178-TASK.md) | Integrate portable Permissions in Laravel | [TICKET-00051](../tickets/00051-TICKET.md) — Enforce portable Permission declarations across five frameworks | done | [TASK-00171](00171-TASK.md), [TASK-00105](00105-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/254 |

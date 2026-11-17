@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Portable `RequiresPermission` enforcement through the existing optional Laravel Permission middleware.
+  Attribute-only protection, inherited/overridden requirements and protected route additions use the shared pure
+  resolver; explicit PUBLIC/AUTHENTICATED conflicts reject before authentication. Native route identity, early
+  validation denial and request-owned User/Agent authority remain intact. Cooperating Feature gates share one
+  authentication/nonce without accepting copied context. Common remains the sole selected safe-error owner.
+  See [Laravel composition](docs/laravel-permission-admission.md) for supported forms and construction/runtime limits.
+
 - Integrated [audit outcome inventory](docs/audit-outcome-coverage.md) for every current handler and related
   synchronous/worker outcome, with current family proof and ordinary Role/shared-transaction examples. All covered
   owners now support optional final nullable audit storage, including formerly mandatory writers. Mixed per-owner
