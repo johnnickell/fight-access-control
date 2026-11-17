@@ -3,7 +3,8 @@
 TASK-00106 supplies `Adapter\Http\CodeIgniter\PermissionFilter`, `RequestContexts`, `SafeErrorResponder` and
 an explicitly selected `SafeCodeIgniter` loop. They reuse the [shared inward admission contract](http-permission-admission.md)
 and Common's safe HTTP policy. CI4 is optional; nothing registers services, routes, filters, authentication, grants or
-a global exception handler. CI3, arbitrary PHP interception, Feature gates and portable Permission attributes are not supplied.
+a global exception handler. CI3, arbitrary PHP interception and portable Permission attribute enforcement are not supplied by this adapter.
+The separately enabled [Feature filter](codeigniter-feature-admission.md) consumes the same generic bridge.
 The combined five-framework release remains unfinished and unversioned.
 
 ## Trusted declaration and native filter wiring
@@ -37,12 +38,14 @@ Construct one injected `PermissionFilter` with:
 - A trusted `Closure(): Router` returning **the current native router used by this dispatch**, not a retained router
   from an earlier request. Options are read only after native matching. Auto-routing has no explicit matched route
   and is not supported by this integration. Do not load route options from untrusted/deserialized input.
-- A trusted `Closure(IncomingRequest): ?RequestAuthority`, returning null only for genuinely absent selected auth.
-  Create fresh actual User or Agent providers on each call using the shared guide's composition. Choose exactly one;
+- One `RequestAuthentication($authorityFactory, $contexts)` shared by cooperating Feature/Permission filters.
+  Its trusted `Closure(IncomingRequest): ?RequestAuthority` returns null only for genuinely absent selected auth.
+  Create fresh actual User or Agent providers per dispatch using the shared guide's composition. Choose exactly one;
   never try an alternate identity after failure. Bind signed Agent context to the actual method, authority, path,
   normalized query and body under consumer-owned proxy/canonicalization rules. Opaque factory/storage/configuration
   faults remain server faults. There is no issuer, default credential or role-to-Permission conversion.
-- One explicitly shared `RequestContexts` and the selected `SafeErrorResponder`. Downstream code reads
+- The same `RequestContexts` supplied to `RequestAuthentication`, and the selected `SafeErrorResponder`.
+  Construct `PermissionFilter($currentRouter, $authentication, $safeErrorResponder)`; downstream code reads
   `$contexts->get($request)` using the exact current Request object. This is an admitted short-request snapshot, not
   an ambient principal, propagation API, target-scope grant or authority for later live/background work.
 
@@ -92,14 +95,17 @@ constructors or earlier bootstrap/required/global filters. Controller constructi
 these selected forms. Native validation and `Restrict` remain additional independent rejection boundaries.
 Direct methods, buses, workers and use cases still enforce their own authorization and record/relationship scope.
 
-The filter/responder/context map may be reused. Each incoming attempt clears that exact request's previous context
-before selection; failed/public admission leaves none. Providers must be request-owned, never cached across requests.
+The filter/responder/context map may be reused. A new router or repeated gate clears that exact request's previous context
+before selection; failed admission leaves none. PUBLIC admission selects no authentication and preserves only a
+cooperating gate's admitted context in the same dispatch, never an incoming copied context. Providers must be request-owned, never cached across requests.
 One selected provider supplies the immutable snapshot for all requirements/cooperating downstream work: no per-filter
 Agent HMAC/nonce replay. Fresh independent requests need fresh authentication/nonces. The weak-key context map does not
 keep requests alive and never selects a parent context for another object. Retaining a completed request does not turn
 its snapshot into future authority; re-enter admission before reuse.
 
-CI4's service registry, router, filters and native response are request-scoped. The fixture resets their native
+CI4's service registry, router, filters and native response are request-scoped. The consumer must call
+`$authentication->clear($incomingRequest)` at dispatch entry before routing/required filters, including when reusing
+a request object: a routing failure may never reach this filter. The fixture performs that reset and resets native
 registries between requests while reusing the package filter/responder/map. Actual worker bootstrap/reset is the
 consumer's duty; this is not certification of a long-running server. **Reentrant/nested CI4 dispatch sharing the
 process-global service registry or the same mutable request is not supported.** No native subrequest API or implicit

@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   isolating nested same-object reentry while adjacent gates still share one authentication/nonce. Consumer routes,
   authentication, storage, sinks and target scope still require qualification. See
   [HTTP composition](docs/http-permission-admission.md#portable-permission-admission-unreleased).
+- Optional native CodeIgniter 4 Feature before-filter admission with cumulative trusted action/route requirements,
+  fresh shared Feature evaluation and generic 404 only for ordinary unavailability. Feature-only registration needs
+  no Permission filter. Both gates share request-owned provider selection and preserve each other's restrictions,
+  using the existing Common-backed safe JSON loop/responder without another reporter or evaluator.
+  **Pre-v1:** construct CI4 PermissionFilter with the shared RequestAuthentication instead of a separate authority
+  closure/context map. Consumer aliases, bootstrap, authentication and JSON/outer-lifecycle qualification remain
+  explicit; no auto-registration, grant, scanner or production consumer qualification is added.
+  See [native Feature composition](docs/codeigniter-feature-admission.md).
 
 - Optional final nullable audit storage and direct typed originating User/Agent/System provenance for all three Agent
   material maintenance paths. Real rewrap, permanent material failure, expiry and cleanup acknowledgement record

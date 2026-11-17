@@ -10,6 +10,8 @@ The optional [native Symfony Feature subscriber](symfony-feature-admission.md) c
 without requiring PSR middleware or PermissionSubscriber activation; its native lifecycle and limits are distinct.
 [Native Laravel Feature middleware](laravel-feature-admission.md) also consumes the shared contract, with exact
 serving Route/action bindings, shared request authentication and Common's selected native safe handler.
+The optional [native CodeIgniter 4 before-filter](codeigniter-feature-admission.md) likewise works without
+PermissionFilter activation and reuses the existing selected JSON error owner.
 
 ## Ownership and runtime flow
 

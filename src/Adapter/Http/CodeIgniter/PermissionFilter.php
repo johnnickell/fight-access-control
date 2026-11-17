@@ -13,7 +13,6 @@ use CodeIgniter\Router\Router;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\AdmissionMode;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionAdmission;
 use Fight\AccessControl\Application\AccessControl\Authorization\Admission\PermissionDeclaration;
-use Fight\AccessControl\Application\AccessControl\Authorization\Admission\RequestAuthority;
 use LogicException;
 use Throwable;
 
@@ -28,12 +27,10 @@ final readonly class PermissionFilter implements FilterInterface
      * Constructs PermissionFilter
      *
      * @phpstan-param Closure(): Router $router
-     * @phpstan-param Closure(IncomingRequest): ?RequestAuthority $authority
      */
     public function __construct(
         private Closure $router,
-        private Closure $authority,
-        private RequestContexts $contexts,
+        private RequestAuthentication $authentication,
         private SafeErrorResponder $errors,
         private PermissionAdmission $admission = new PermissionAdmission()
     ) {
@@ -44,13 +41,13 @@ final readonly class PermissionFilter implements FilterInterface
      */
     public function before(RequestInterface $request, $arguments = null): ?ResponseInterface
     {
-        $this->contexts->clear($request);
         try {
             if (!$request instanceof IncomingRequest || $arguments !== null && $arguments !== []) {
                 throw new LogicException('Permission filter arguments are not supported.');
             }
 
             $router = ($this->router)();
+            $this->authentication->begin($request, $router, self::class);
             if ($router->getMatchedRoute() === null) {
                 throw new LogicException('An explicit native route is required.');
             }
@@ -65,14 +62,16 @@ final readonly class PermissionFilter implements FilterInterface
 
             $authority = null;
             if ($declaration !== null && $declaration->mode !== AdmissionMode::PUBLIC) {
-                $authority = ($this->authority)($request);
+                $authority = $this->authentication->authority($request);
             }
 
             $context = $this->admission->admit($declaration, $authority);
-            if ($context !== null) {
-                $this->contexts->set($request, $context);
-            }
+            $this->authentication->publish($request, $context);
         } catch (Throwable $throwable) {
+            if ($request instanceof IncomingRequest) {
+                $this->authentication->clear($request);
+            }
+
             return $this->errors->respond($throwable);
         }
 
