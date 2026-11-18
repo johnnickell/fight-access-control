@@ -89,12 +89,28 @@ final class PublicPayloadContractTest extends TestCase
         }
 
         self::assertEqualsCanonicalizing($required, $schema->required ?? [], $name.' required');
-        self::assertEqualsCanonicalizing(array_keys($payload), $properties, $name);
+        $payloadFields = array_keys($payload);
+        if ($name === 'AssignRoleToUser') {
+            $payloadFields[] = 'actor_kind';
+        }
+
+        self::assertEqualsCanonicalizing($payloadFields, $properties, $name);
         foreach ($required as $field) {
             $invalid = $payload;
             unset($invalid[$field]);
             self::assertFalse(self::valid($name, (object) $invalid), $name.' missing '.$field);
         }
+    }
+
+    public function test_assignment_actor_marker_requires_canonical_nil(): void
+    {
+        $name = 'AssignRoleToUser';
+        $base = ['target_user_id' => PublicMessageSamples::ID, 'role_id' => PublicMessageSamples::ID];
+        $nil = '00000000-0000-0000-0000-000000000000';
+        self::assertTrue(self::valid($name, ['actor_id' => $nil] + $base));
+        self::assertTrue(self::valid($name, ['actor_id' => $nil, 'actor_kind' => 'system'] + $base));
+        self::assertFalse(self::valid($name, ['actor_id' => PublicMessageSamples::ID, 'actor_kind' => 'system'] + $base));
+        self::assertFalse(self::valid($name, ['actor_id' => $nil, 'actor_kind' => 'agent'] + $base));
     }
 
     public function test_policy_provenance_is_optional_but_paired_and_typed(): void

@@ -8,14 +8,18 @@ use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\AssignRoleToUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RemoveRoleFromUserHandler;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditActorKind;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRoleOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\AssignRoleToUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RemoveRoleFromUser;
+use Fight\AccessControl\Domain\AccessControl\User\Event\RoleAssignedToUser;
 use Fight\AccessControl\Domain\AccessControl\User\User;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
@@ -31,12 +35,15 @@ use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryU
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
 
 #[CoversClass(AssignRoleToUserHandler::class)]
 #[CoversClass(RemoveRoleFromUserHandler::class)]
+#[UsesClass(AssignRoleToUser::class)]
+#[UsesClass(RoleAssignedToUser::class)]
 final class UserRoleAuditTest extends TestCase
 {
     /** @return iterable<string, array{bool}> */
@@ -114,6 +121,40 @@ final class UserRoleAuditTest extends TestCase
         self::assertSame($record->toArray(), AuditEvidence::fromArray($record->toArray())->toArray());
     }
 
+    public function test_system_assignment_to_pending_user_keeps_attribution_through_audit_and_post_commit_event(): void
+    {
+        $fixture = new UserRoleAuditFixture(true, state: UserState::PENDING_ACTIVATION, superAdmin: true);
+        $system = SystemId::generate();
+        $command = new AssignRoleToUser($system, $fixture->user->getId(), $fixture->role->getId());
+        $command = AssignRoleToUser::fromArray($command->toArray());
+        self::assertEquals($system, $command->getActorId());
+        $audit = new MappedAuditEvidenceRepository($fixture->unitOfWork);
+        $dispatcher = new InMemoryEventDispatcher(static function () use ($fixture, $audit): void {
+            self::assertTrue($fixture->unitOfWork->transactionCompleted);
+            self::assertFalse($fixture->unitOfWork->transactionActive);
+            self::assertCount(1, $audit->all());
+        });
+        $fixture->unitOfWork->beforeCommit = static function () use ($dispatcher, $audit): void {
+            self::assertSame([], $dispatcher->events());
+            self::assertCount(1, $audit->all());
+        };
+
+        $fixture->handler($audit, $dispatcher)->handle(CommandMessage::create($command));
+
+        $this->assertChanged($fixture);
+        $record = $audit->all()[0];
+        self::assertSame(AuditActorKind::SYSTEM->value, $record->toArray()['actor']['kind']);
+        self::assertEquals($system, $record->actorId());
+        self::assertEquals($fixture->user->getId(), $record->getSubject()->getId());
+        self::assertSame(AuditAction::USER_ROLE_ASSIGNED, $record->action());
+        self::assertCount(1, $dispatcher->events());
+        $event = $dispatcher->events()[0];
+        self::assertInstanceOf(RoleAssignedToUser::class, $event);
+        self::assertEquals($system, $event->getActorId());
+        self::assertEquals($fixture->user->getId(), $event->getTargetUserId());
+        self::assertEquals($system, RoleAssignedToUser::fromArray($event->toArray())->getActorId());
+    }
+
     #[DataProvider('operations')]
     public function test_explicit_null_changes_membership_without_a_durability_promise(bool $assigning): void
     {
@@ -160,8 +201,10 @@ final class UserRoleAuditTest extends TestCase
         ];
         if ($assigning) {
             $opposite = new RemoveRoleFromUserHandler(...$arguments);
+            $actor = $fixture->command->getActorId();
+            self::assertInstanceOf(UserId::class, $actor);
             $command = new RemoveRoleFromUser(
-                $fixture->command->getActorId(),
+                $actor,
                 $fixture->user->getId(),
                 $fixture->role->getId()
             );
@@ -216,11 +259,24 @@ final class UserRoleAuditTest extends TestCase
         self::assertSame([], $fixture->eventDispatcher->events());
     }
 
-    #[DataProvider('operations')]
-    public function test_audit_failure_rolls_back_and_preserves_primary_fault(bool $assigning): void
+    /** @return iterable<string, array{bool, bool}> */
+    public static function auditFailureActors(): iterable
+    {
+        yield 'user assignment' => [true, false];
+        yield 'system assignment' => [true, true];
+        yield 'user removal' => [false, false];
+    }
+
+    #[DataProvider('auditFailureActors')]
+    public function test_audit_failure_rolls_back_and_preserves_primary_fault(bool $assigning, bool $system): void
     {
         foreach ([false, true] as $afterSave) {
             $fixture = new UserRoleAuditFixture($assigning);
+            $command = $fixture->command;
+            if ($system) {
+                $command = new AssignRoleToUser(SystemId::generate(), $fixture->user->getId(), $fixture->role->getId());
+            }
+
             $audit = new MappedAuditEvidenceRepository(
                 $fixture->unitOfWork,
                 failAfterSave: $afterSave,
@@ -233,13 +289,13 @@ final class UserRoleAuditTest extends TestCase
                 throw new RuntimeException('Synthetic notifier fault.');
             });
             $failure = $this->failure(fn() => $fixture->handler($audit, $dispatcher)
-                ->handle(CommandMessage::create($fixture->command)));
+                ->handle(CommandMessage::create($command)));
             self::assertSame($audit->failure(), $failure);
             self::assertSame($fixture->user, $fixture->userRepository->getById($fixture->user->getId()));
             self::assertSame([], $audit->all());
             self::assertFalse($fixture->unitOfWork->transactionCompleted);
             self::assertSame([new CommandFailedEvent(
-                $fixture->command,
+                $command,
                 $assigning ? 'User role assignment failed.' : 'User role removal failed.'
             )->toArray()], $attempts);
         }

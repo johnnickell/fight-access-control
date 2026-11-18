@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Domain\AccessControl\User\Command;
 
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\User\RoleAssignmentActor;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
@@ -22,7 +24,7 @@ final readonly class AssignRoleToUser implements Command
      * Creates the User role-assignment command.
      */
     public function __construct(
-        private UserId $actorId,
+        private UserId|SystemId $actorId,
         private UserId $targetUserId,
         private RoleId $roleId
     ) {
@@ -38,7 +40,7 @@ final readonly class AssignRoleToUser implements Command
         }
 
         return new static(
-            UserId::fromString($data['actor_id']),
+            RoleAssignmentActor::fromArray($data['actor_id'], $data),
             UserId::fromString($data['target_user_id']),
             RoleId::fromString($data['role_id'])
         );
@@ -47,12 +49,11 @@ final readonly class AssignRoleToUser implements Command
     /**
      * Returns the canonical role-assignment payload
      *
-     * @phpstan-return array{actor_id: string, target_user_id: string, role_id: string}
+     * @phpstan-return array{actor_id: string, actor_kind?: 'system', target_user_id: string, role_id: string}
      */
     public function toArray(): array
     {
-        return [
-            'actor_id'       => $this->actorId->toString(),
+        return RoleAssignmentActor::toArray($this->actorId) + [
             'target_user_id' => $this->targetUserId->toString(),
             'role_id'        => $this->roleId->toString()
         ];
@@ -61,7 +62,7 @@ final readonly class AssignRoleToUser implements Command
     /**
      * Returns the administrative actor
      */
-    public function getActorId(): UserId
+    public function getActorId(): UserId|SystemId
     {
         return $this->actorId;
     }

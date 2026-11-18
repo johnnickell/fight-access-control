@@ -257,6 +257,10 @@ final class HandlerFailureContractTest extends TestCase
             'default_permission_name'                 => null,
             'initiator'                               => ['type' => 'user', 'id' => $id]
         ];
+        if ($handlerClass === User\AssignRoleToUserHandler::class) {
+            $data = ['actor_id' => $id, 'target_user_id' => $id, 'role_id' => $id];
+        }
+
         if ($handlerClass === User\RegisterUserHandler::class) {
             $data = ['user_id' => $id, 'email' => 'person@example.test'];
         }

@@ -19,23 +19,21 @@ publication checkpoints remain evidence; planning stays offline and releases sta
 ## Release and installation
 
 <!-- release:start -->
-**Release: [v0.9.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.9.0)**
+**Release: [v0.10.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.10.0)**
 
 **Status: prepared (not yet published).**
 
 Requires **PHP 8.5+** and **Fight Common ^1.5.1** (resolved by Composer).
-Use this command once the version is available on Packagist:
-
 ```bash
-composer require johnnickell/fight-access-control:"~0.9.0"
+composer require johnnickell/fight-access-control:"~0.10.0"
 ```
 
-[Release overview](docs/release-0.9.0.md) ·
-[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.9.0/docs)
+[Release overview](docs/release-0.10.0.md) ·
+[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.10.0/docs)
 <!-- release:end -->
 
-[v0.8.0](docs/release-0.8.0.md) was the latest published release at this preparation checkpoint.
-Registry availability is not proof of installation or qualification in your application.
+The install command and tag links require publication. [v0.9.0](docs/release-0.9.0.md) remains the latest
+published release at this preparation checkpoint.
 
 The constraint stays on this minor line. Pre-v1 minors can break API and persistence contracts: read the
 [Changelog](CHANGELOG.md) and the target release overview before upgrading. Only the current contract is supported;
@@ -124,7 +122,7 @@ This bounded acceptance does not qualify consumer persistence, cryptography or t
 Feature availability is not authorization for the underlying action. Registration exposure and enablement are
 consumer choices. MCP support supplies neutral authorization and profile Tools, not a hosted server or endpoint.
 
-### Prepared for v0.9.0
+### Released in v0.9.0
 
 This breaking minor adds optional atomic audit composition and portable HTTP Feature and Permission admission.
 It changes synchronous User services, Agent issuance and credential status contracts, and requires exact-request

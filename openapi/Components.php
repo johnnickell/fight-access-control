@@ -87,7 +87,18 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(schema: 'Fight.AccessControl.RevokePermissionFromCustomRole', required: ['actor_id', 'role_id', 'permission_id'], properties: [new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'), new OA\Property(property: 'role_id', type: 'string', format: 'uuid'), new OA\Property(property: 'permission_id', type: 'string', format: 'uuid')])]
 #[OA\Schema(schema: 'Fight.AccessControl.GetRoleById', required: ['role_id'], properties: [new OA\Property(property: 'role_id', type: 'string', format: 'uuid')])]
 #[OA\Schema(schema: 'Fight.AccessControl.ListRoles', ref: '#/components/schemas/Fight.AccessControl.PaginationRequest')]
-#[OA\Schema(schema: 'Fight.AccessControl.AssignRoleToUser', required: ['actor_id', 'target_user_id', 'role_id'], properties: [new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'), new OA\Property(property: 'target_user_id', type: 'string', format: 'uuid'), new OA\Property(property: 'role_id', type: 'string', format: 'uuid')])]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.AssignRoleToUser',
+    required: ['actor_id', 'target_user_id', 'role_id'],
+    properties: [
+        new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'actor_kind', description: 'Omit for a User actor. Records attribution only.', type: 'string', enum: ['system']),
+        new OA\Property(property: 'target_user_id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'role_id', type: 'string', format: 'uuid')
+    ],
+    if: ['required' => ['actor_kind']],
+    then: ['properties' => ['actor_id' => ['const' => '00000000-0000-0000-0000-000000000000']]]
+)]
 #[OA\Schema(schema: 'Fight.AccessControl.CorrectPendingInvitation', required: ['actor_id', 'user_id', 'email'], properties: [new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'), new OA\Property(property: 'user_id', type: 'string', format: 'uuid'), new OA\Property(property: 'email', type: 'string', format: 'email')])]
 #[OA\Schema(schema: 'Fight.AccessControl.DeleteUser', required: ['actor_id', 'user_id'], properties: [new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'), new OA\Property(property: 'user_id', type: 'string', format: 'uuid')])]
 #[OA\Schema(schema: 'Fight.AccessControl.DisableUser', required: ['actor_id', 'user_id'], properties: [new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'), new OA\Property(property: 'user_id', type: 'string', format: 'uuid')])]
