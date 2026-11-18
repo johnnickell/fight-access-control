@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-18
+
+Prepared on this date; see the [release overview](docs/release-0.10.0.md).
+
+### Breaking changes
+
+- `AssignRoleToUser::getActorId()` and `RoleAssignedToUser::getActorId()` now return `UserId|SystemId`.
+  Callers that require `UserId` must check the returned type. Existing `UserId` construction and canonical
+  payloads are unchanged. System assignments preserve `SystemId` in configured atomic audit and post-commit
+  events without granting authority. See [User membership actors](docs/role-membership-contracts.md#user-membership-actors).
+
 ## [0.9.0] - 2026-11-18
 
 Prepared on this date; see the [release overview](docs/release-0.9.0.md) for scope and publication status.
@@ -741,7 +752,8 @@ This dated section prepares release notes; it is not evidence of signing, public
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/johnnickell/fight-access-control/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/johnnickell/fight-access-control/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/johnnickell/fight-access-control/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/johnnickell/fight-access-control/compare/v0.6.0...v0.7.0

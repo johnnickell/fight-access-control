@@ -19,21 +19,21 @@ publication checkpoints remain evidence; planning stays offline and releases sta
 ## Release and installation
 
 <!-- release:start -->
-**Release: [v0.9.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.9.0)**
+**Release: [v0.10.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.10.0)**
 
-**Status: published.**
+**Status: prepared (not yet published).**
 
 Requires **PHP 8.5+** and **Fight Common ^1.5.1** (resolved by Composer).
 ```bash
-composer require johnnickell/fight-access-control:"~0.9.0"
+composer require johnnickell/fight-access-control:"~0.10.0"
 ```
 
-[Release overview](docs/release-0.9.0.md) ·
-[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.9.0/docs)
+[Release overview](docs/release-0.10.0.md) ·
+[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.10.0/docs)
 <!-- release:end -->
 
-GitHub publication and Packagist projection have been verified. The immutable tag preserves the preparation
-snapshot. Registry availability is not proof of installation or qualification in your application.
+The install command and tag links require publication. [v0.9.0](docs/release-0.9.0.md) remains the latest
+published release at this preparation checkpoint.
 
 The constraint stays on this minor line. Pre-v1 minors can break API and persistence contracts: read the
 [Changelog](CHANGELOG.md) and the target release overview before upgrading. Only the current contract is supported;

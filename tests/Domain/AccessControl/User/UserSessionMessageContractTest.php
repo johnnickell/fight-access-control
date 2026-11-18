@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Domain\AccessControl\User;
 
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Command\RevokeSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\CurrentSessionLoggedOut;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\Event\RefreshSessionRevoked;
@@ -36,10 +37,13 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRestored;
 use Fight\AccessControl\Domain\AccessControl\User\Query\GetUserById;
 use Fight\AccessControl\Domain\AccessControl\User\Query\ListUsers;
+use Fight\AccessControl\Domain\AccessControl\User\RoleAssignmentActor;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Messaging\Query\Query;
+use Fight\Common\Domain\Value\Identifier\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -66,6 +70,7 @@ use Stringable;
 #[CoversClass(PendingRegistrationRecovered::class)]
 #[CoversClass(RedactedCommandFailed::class)]
 #[CoversClass(RoleAssignedToUser::class)]
+#[CoversClass(RoleAssignmentActor::class)]
 #[CoversClass(RoleRemovedFromUser::class)]
 #[CoversClass(UserActivated::class)]
 #[CoversClass(UserDeleted::class)]
@@ -161,6 +166,58 @@ final class UserSessionMessageContractTest extends TestCase
 
         self::assertSame($payload, $message->toArray());
         self::assertEquals($message, $class::fromArray($message->toArray()));
+    }
+
+    /** @return iterable<string, array{class-string<AssignRoleToUser|RoleAssignedToUser>, array<string, mixed>}> */
+    public static function assignmentMessages(): iterable
+    {
+        foreach (self::messages() as $name => [$class, $payload]) {
+            if ($class === AssignRoleToUser::class || $class === RoleAssignedToUser::class) {
+                yield $name => [$class, $payload];
+            }
+        }
+    }
+
+    /**
+     * @param class-string<AssignRoleToUser|RoleAssignedToUser> $class
+     * @param array<string, mixed> $payload
+     */
+    #[DataProvider('assignmentMessages')]
+    public function test_assignment_actor_kind_is_not_inferred_from_uuid(string $class, array $payload): void
+    {
+        self::assertInstanceOf(UserId::class, $class::fromArray($payload)->getActorId());
+        $payload['actor_id'] = Uuid::NIL;
+        $user = $class::fromArray($payload);
+        self::assertInstanceOf(UserId::class, $user->getActorId());
+        self::assertSame($payload, $user->toArray());
+
+        $systemPayload = ['actor_id' => Uuid::NIL, 'actor_kind' => 'system'] + $payload;
+        $system = $class::fromArray($systemPayload);
+        self::assertEquals(SystemId::generate(), $system->getActorId());
+        self::assertSame($systemPayload, $system->toArray());
+    }
+
+    /** @return iterable<string, array{class-string<AssignRoleToUser|RoleAssignedToUser>, array<string, mixed>}> */
+    public static function invalidAssignmentActors(): iterable
+    {
+        foreach (self::assignmentMessages() as $name => [$class, $payload]) {
+            foreach ([null, false, 'user', 'agent', 'anonymous', 'unknown'] as $index => $kind) {
+                yield $name.' kind '.$index => [$class, ['actor_id' => Uuid::NIL, 'actor_kind' => $kind] + $payload];
+            }
+
+            yield $name.' non-nil system' => [$class, ['actor_kind' => 'system'] + $payload];
+        }
+    }
+
+    /**
+     * @param class-string<AssignRoleToUser|RoleAssignedToUser> $class
+     * @param array<string, mixed> $payload
+     */
+    #[DataProvider('invalidAssignmentActors')]
+    public function test_assignment_rejects_unsupported_actor_data(string $class, array $payload): void
+    {
+        $this->expectException(DomainException::class);
+        $class::fromArray($payload);
     }
 
     /**

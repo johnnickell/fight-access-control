@@ -568,7 +568,13 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.9.0 published
+## Current release handoff — v0.10.0 preparation
+
+The [v0.10.0 candidate](../docs/release-0.10.0.md) preserves system attribution for trusted User Role
+assignments. Independent review and QA, integration, exact-merge certification, signing and publication remain
+separate. No consumer CLI adoption or production qualification is part of package preparation.
+
+## v0.9.0 published release checkpoint
 
 [v0.9.0](../docs/release-0.9.0.md) was published on 2026-11-18 from the certified `main` merge in
 [PR #261](https://github.com/johnnickell/fight-access-control/pull/261). The signed tag, immutable GitHub release

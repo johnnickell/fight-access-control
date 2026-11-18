@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\User\Event;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
+use Fight\AccessControl\Domain\AccessControl\User\RoleAssignmentActor;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
@@ -24,7 +26,7 @@ final readonly class RoleAssignedToUser implements Event
      * Creates the role-assigned event.
      */
     public function __construct(
-        private UserId $actorId,
+        private UserId|SystemId $actorId,
         private UserId $targetUserId,
         private RoleId $roleId,
         private DateTimeImmutable $assignedAt
@@ -41,7 +43,7 @@ final readonly class RoleAssignedToUser implements Event
         }
 
         return new static(
-            UserId::fromString($data['actor_id']),
+            RoleAssignmentActor::fromArray($data['actor_id'], $data),
             UserId::fromString($data['target_user_id']),
             RoleId::fromString($data['role_id']),
             CredentialDeliveryTimestamp::fromString($data['assigned_at'])->toDateTimeImmutable()
@@ -51,12 +53,13 @@ final readonly class RoleAssignedToUser implements Event
     /**
      * Returns the canonical role-assignment fact
      *
-     * @phpstan-return array{actor_id: string, target_user_id: string, role_id: string, assigned_at: string}
+     * @phpstan-return array{
+     *     actor_id: string, actor_kind?: 'system', target_user_id: string, role_id: string, assigned_at: string
+     * }
      */
     public function toArray(): array
     {
-        return [
-            'actor_id'       => $this->actorId->toString(),
+        return RoleAssignmentActor::toArray($this->actorId) + [
             'target_user_id' => $this->targetUserId->toString(),
             'role_id'        => $this->roleId->toString(),
             'assigned_at'    => $this->assignedAt->format(DATE_ATOM)
@@ -66,7 +69,7 @@ final readonly class RoleAssignedToUser implements Event
     /**
      * Returns the administrative actor
      */
-    public function getActorId(): UserId
+    public function getActorId(): UserId|SystemId
     {
         return $this->actorId;
     }
