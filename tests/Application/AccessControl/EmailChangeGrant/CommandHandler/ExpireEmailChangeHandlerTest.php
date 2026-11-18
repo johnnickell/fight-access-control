@@ -11,6 +11,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmai
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeExpired;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -55,7 +56,8 @@ final class ExpireEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
             'ciphertext:change-once',
-            $reserved->getEmailChangeReservationRevision()
+            $reserved->getEmailChangeReservationRevision(),
+            new EmailChangeRequestOrigin($user->getId(), $user->getEmail())
         );
         self::assertTrue($emailChangeGrantRepository->add($grant));
         $eventDispatcher = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
@@ -252,7 +254,8 @@ final class ExpireEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString($grantEmail),
             'ciphertext:change-once',
-            $reserved->getEmailChangeReservationRevision()
+            $reserved->getEmailChangeReservationRevision(),
+            new EmailChangeRequestOrigin($user->getId(), $user->getEmail())
         );
         self::assertTrue($emailChangeGrantRepository->add($grant));
         $eventDispatcher = new InMemoryEventDispatcher();

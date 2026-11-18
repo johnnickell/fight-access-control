@@ -67,9 +67,10 @@ ownership, attempts and previous outcome/failure history. Direct expiry of a rec
 failure: compare the complete expected expiry state before considering a retry-failure terminalization. Persist material
 removal and claim token/time/lease clearing in the same commit as terminal state; rollback restores the original state.
 
-`EmailChangeGrant::issue()` now requires its seventh argument, the positive User reservation revision produced by the
-request. Persist/hydrate this immutable binding on every grant revision, include it in complete-state comparisons and
-preserve it across delivery, consumption, revocation and expiry. The package request handler supplies it. Matching the
+`EmailChangeGrant::issue()` requires the positive User reservation revision and
+[typed request origin](credential-delivery.md#atomic-email-change-notification-intent-unreleased) produced by the request.
+Persist/hydrate these immutable bindings on every grant revision, include them in complete-state comparisons and
+preserve them across delivery, consumption, revocation and expiry. The package request handler supplies both. Matching the
 same email string alone cannot authorize clearing a newer reservation (same-email ABA). This is a current-contract
 integration change, not a compatibility default or a historical backfill requirement.
 

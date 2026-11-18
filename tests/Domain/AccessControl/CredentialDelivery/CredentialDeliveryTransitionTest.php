@@ -15,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Exception\CredentialDeliveryTransitionException;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
@@ -128,7 +129,8 @@ final class CredentialDeliveryTransitionTest extends TestCase
                 $expiry,
                 $email,
                 'encrypted-material',
-                1
+                1,
+                new EmailChangeRequestOrigin($user, EmailAddress::fromString('old@example.test'))
             ),
             default => throw new LogicException('Unknown grant purpose.')
         };

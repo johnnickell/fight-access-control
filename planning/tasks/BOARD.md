@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00185](00185-TASK.md) — Support atomic consumer participation in email-change transitions.
+Active Task: [TASK-00185](00185-TASK.md) — Support atomic consumer participation in email-change transitions.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 508 | [TASK-00185](00185-TASK.md) | Support atomic consumer participation in email-change transitions | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 508 | [TASK-00185](00185-TASK.md) | Support atomic consumer participation in email-change transitions | — (standalone chore) | ready-for-agent | — | — |
 | 509 | [TASK-00186](00186-TASK.md) | Cancel only the identified email-change request | — (standalone bug) | ready-for-agent | — | — |
 
 ## Waiting

@@ -13,6 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\DeliverPasswordReset;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -375,7 +376,8 @@ final class HumanCredentialContractTest extends TestCase
             $fixture->state->expiresAt,
             EmailAddress::fromString('next@example.test'),
             'fixture:encrypted',
-            $fixture->state->user->getEmailChangeReservationRevision() + 2
+            $fixture->state->user->getEmailChangeReservationRevision() + 2,
+            new EmailChangeRequestOrigin($fixture->state->user->getId(), $fixture->state->user->getEmail())
         );
         $email = $this->createStub(EmailChangeGrantRepository::class);
         $email->method('getLatestByUserId')->willReturn($grant);

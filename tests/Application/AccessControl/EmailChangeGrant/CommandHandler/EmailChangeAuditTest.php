@@ -22,6 +22,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmai
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\RequestEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -241,7 +242,8 @@ final class EmailChangeAuditTest extends TestCase
                 $operation === 'expiry' ? $at : $at->modify('+1 hour'),
                 EmailAddress::fromString('new@example.test'),
                 'ciphertext:audit-secret',
-                $reserved->getEmailChangeReservationRevision()
+                $reserved->getEmailChangeReservationRevision(),
+                new EmailChangeRequestOrigin($user->getId(), $user->getEmail())
             );
             self::assertTrue($emailChangeGrantRepository->add($grant));
         }

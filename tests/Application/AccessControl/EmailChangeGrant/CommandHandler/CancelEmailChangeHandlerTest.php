@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeCancelled;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -63,7 +64,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
             'ciphertext:change-once',
-            $reserved->getEmailChangeReservationRevision()
+            $reserved->getEmailChangeReservationRevision(),
+            new EmailChangeRequestOrigin($user->getId(), $user->getEmail())
         )));
         $authorization = new EmailChangeService\FixedEmailChangeAdministrationAuthorization(true);
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
@@ -477,7 +479,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString($email),
             'ciphertext:change-once',
-            1
+            1,
+            new EmailChangeRequestOrigin($userId, EmailAddress::fromString('old@example.test'))
         );
     }
 

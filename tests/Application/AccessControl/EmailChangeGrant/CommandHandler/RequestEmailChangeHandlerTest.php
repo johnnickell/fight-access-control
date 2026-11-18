@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\RequestEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeRequested;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -64,7 +65,8 @@ final class RequestEmailChangeHandlerTest extends TestCase
                 new DateTimeImmutable('2026-08-22T11:00:00+00:00'),
                 EmailAddress::fromString('first@example.test'),
                 'ciphertext:predecessor-'.$outcome,
-                $reservedUser->getEmailChangeReservationRevision()
+                $reservedUser->getEmailChangeReservationRevision(),
+                new EmailChangeRequestOrigin($user->getId(), $user->getEmail())
             );
             self::assertTrue($emailChangeGrantRepository->add($predecessor));
             if ($outcome === 'confirmed') {
@@ -210,7 +212,8 @@ final class RequestEmailChangeHandlerTest extends TestCase
             new DateTimeImmutable('2026-08-22T11:00:00+00:00'),
             EmailAddress::fromString('previous@example.test'),
             'ciphertext:predecessor',
-            1
+            1,
+            new EmailChangeRequestOrigin($user->getId(), $user->getEmail())
         );
         self::assertTrue($emailChangeGrantRepository->add($issued));
         $terminal = $issued->revoke(new DateTimeImmutable('2026-08-22T10:30:00+00:00'));

@@ -25,6 +25,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmai
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\ExpirePasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
@@ -293,7 +294,8 @@ final class ExpiredCredentialOrderingTest extends TestCase
                 $expiresAt,
                 $email,
                 'fixture:encrypted',
-                1
+                1,
+                new EmailChangeRequestOrigin($user->getId(), $user->getEmail())
             );
             if ($id !== null) {
                 return FabricatedEmailChangeGrant::withIdentifiers(

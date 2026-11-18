@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
+- `EmailChangeGrant::issue()` now requires `EmailChangeRequestOrigin`. Persist, hydrate and preserve the original
+  requester and protected canonical old mailbox with the exact grant/reservation generation, even if participation
+  is off. No compatibility defaults or backfill. See [email-change composition](docs/credential-delivery.md#atomic-email-change-notification-intent-unreleased).
+
 - `CorrectPendingInvitationHandler` and `RecoverPendingRegistrationHandler` no longer take their former
   authorization ports. Remove the constructor arguments, port bindings and obsolete denial catches. Before
   trusted dispatch, every consumer entry must authenticate the real caller and check operation permission
@@ -17,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [caller contracts](docs/user-lifecycle-contracts.md) and [recovery guide](docs/registration-recovery.md).
 
 ### Added
+
+- Optional typed consumer participation stages required request and confirmation notification intent on the actual
+  package transaction, alongside enabled audit. No new provider calls or Command/Event fields. Consumer storage,
+  delivery, recovery and operational qualification remain consumer-owned.
 
 - Current [portable admission reconciliation](docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
   connects existing Feature-only, Permission-only and combined evidence across Slim, Yii 3, Symfony, Laravel and CI4.

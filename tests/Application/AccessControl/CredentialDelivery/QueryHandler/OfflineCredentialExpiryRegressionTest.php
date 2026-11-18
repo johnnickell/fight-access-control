@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
@@ -55,7 +56,8 @@ final class OfflineCredentialExpiryRegressionTest extends TestCase
             ), new InMemoryPasswordResetGrants()],
             'email_change' => [EmailChangeGrant::issue(
                 $userId,
-                EmailChangeCredential::fromString('fixture'), $issuedAt, $expiresAt, $email, 'fixture:encrypted', 1
+                EmailChangeCredential::fromString('fixture'), $issuedAt, $expiresAt, $email, 'fixture:encrypted', 1,
+                new EmailChangeRequestOrigin($userId, EmailAddress::fromString('old@example.test'))
             ), new InMemoryEmailChangeGrantRepository()],
             default => throw new LogicException('Unknown fixture family.'),
         };

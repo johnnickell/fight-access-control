@@ -19,6 +19,7 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUse
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\EnableUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RestoreUserHandler;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeTransitionParticipant;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\SessionLifecycle;
 use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
 use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
@@ -159,7 +160,7 @@ final class RecoveryFixture
         return $grant;
     }
 
-    public function request(string $credential = 'recovery-fixture'): void
+    public function request(string $credential = 'recovery-fixture', bool $audit = true): void
     {
         new RequestPasswordResetHandler(
             $this->userRepository,
@@ -169,7 +170,7 @@ final class RecoveryFixture
             new PrefixPasswordResetDeliveryCipher(),
             new FixedClock($this->now),
             $this->eventDispatcher,
-            $this->auditEvidenceRepository
+            $audit ? $this->auditEvidenceRepository : null
         )->handle(CommandMessage::create(new RequestPasswordReset($this->user()->getEmail())));
     }
 
@@ -210,8 +211,10 @@ final class RecoveryFixture
         );
     }
 
-    public function emailChangeConfirmation(): EmailChangeConfirmation
-    {
+    public function emailChangeConfirmation(
+        ?EmailChangeTransitionParticipant $participant = null,
+        bool $audit = true
+    ): EmailChangeConfirmation {
         return new EmailChangeConfirmation(
             $this->userRepository,
             $this->emailChangeGrantRepository,
@@ -220,7 +223,8 @@ final class RecoveryFixture
             $this->unitOfWork,
             new FixedClock($this->now),
             $this->eventDispatcher,
-            $this->auditEvidenceRepository
+            $audit ? $this->auditEvidenceRepository : null,
+            $participant
         );
     }
 
@@ -333,20 +337,25 @@ final class RecoveryFixture
 
     public function requestEmail(
         string $email = 'destination@example.test',
-        string $credential = 'email-fixture'
+        string $credential = 'email-fixture',
+        ?EmailChangeTransitionParticipant $participant = null,
+        ?UserId $requesterId = null,
+        bool $audit = true,
+        bool $authorize = true
     ): void {
         new RequestEmailChangeHandler(
             $this->userRepository,
             $this->emailChangeGrantRepository,
-            new EmailServices\FixedEmailChangeAdministrationAuthorization(true),
+            new EmailServices\FixedEmailChangeAdministrationAuthorization($authorize),
             $this->unitOfWork,
             new FixedEmailChangeCredentialGenerator($credential),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock($this->now),
             $this->eventDispatcher,
-            $this->auditEvidenceRepository
+            $audit ? $this->auditEvidenceRepository : null,
+            $participant
         )->handle(CommandMessage::create(new RequestEmailChange(
-            $this->userId,
+            $requesterId ?? $this->userId,
             $this->userId,
             EmailAddress::fromString($email)
         )));

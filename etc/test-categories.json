@@ -897,6 +897,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\EmailChangeGrant\\EmailChangeParticipationTest": {
+      "file": "tests/Application/AccessControl/EmailChangeGrant/EmailChangeParticipationTest.php",
+      "category": "Unit",
+      "reason": "Public transition behavior with modeled state, audit and participant on an in-memory Unit of Work; no real storage, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Application\\AccessControl\\EmailChangeGrant\\Repository\\InMemoryEmailChangeGrantRepositoryTest": {
       "file": "tests/Application/AccessControl/EmailChangeGrant/Repository/InMemoryEmailChangeGrantRepositoryTest.php",
       "category": "Unit",
