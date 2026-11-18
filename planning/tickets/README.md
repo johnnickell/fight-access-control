@@ -43,7 +43,7 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00037](00037-TICKET.md) | Make Domain and repository contracts precise | done |
 | [TICKET-00038](00038-TICKET.md) | Preserve message and result types through dispatch | done |
 | [TICKET-00039](00039-TICKET.md) | Guarantee exact query results and explicit absence | done |
-| [TICKET-00040](00040-TICKET.md) | Make command and synchronous Application contracts explicit | done |
+| [TICKET-00040](00040-TICKET.md) | Make command and synchronous Application contracts explicit | ready-for-agent |
 | [TICKET-00041](00041-TICKET.md) | Align presentation and integration contracts | done |
 | [TICKET-00042](00042-TICKET.md) | Enforce and demonstrate whole-library type correctness | done |
 | [TICKET-00043](00043-TICKET.md) | Define typed audit evidence and explicit attribution | done |

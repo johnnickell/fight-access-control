@@ -2,7 +2,7 @@
 id: TICKET-00040
 epic: EPIC-00016
 title: Make command and synchronous Application contracts explicit
-status: done
+status: ready-for-agent
 ---
 
 # Make command and synchronous Application contracts explicit
@@ -174,7 +174,7 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 315 | [TASK-00136](../tasks/00136-TASK.md) | Preserve Event-driven delivery contracts | done |
-| 316 | [TASK-00137](../tasks/00137-TASK.md) | Correct User account lifecycle contracts | done |
+| 316 | [TASK-00137](../tasks/00137-TASK.md) | Correct User account lifecycle contracts | ready-for-agent |
 | 317 | [TASK-00138](../tasks/00138-TASK.md) | Correct human credential request and worker contracts | done |
 | 318 | [TASK-00139](../tasks/00139-TASK.md) | Correct synchronous User and session contracts | done |
 | 319 | [TASK-00140](../tasks/00140-TASK.md) | Correct Role and User membership contracts | done |
@@ -185,10 +185,17 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | 324 | [TASK-00145](../tasks/00145-TASK.md) | Correct authority and continuation contracts | done |
 ## Decisions and Progress
 
-All ten children are terminal following TASK-00136's independent Review ACCEPT and nonvisual QA PASS.
-Automatic parent completion closes this TICKET; EPIC-00016 remains open for its unfinished TICKETs. The owning
-TASKs retain bounded acceptance and warnings; their canonical Land handoffs own subsequent delivery/resource
-outcomes. This rollup does not claim whole-library, generic bus or actual consumer qualification.
+John approved reopening TASK-00137 for its existing request-time authorization amendment after the pre-v0.9.0
+contract audit. This TICKET and EPIC-00016 reopen only for that unfinished follow-up: remove redundant invitation/
+registration-recovery permission ports while preserving business consistency, enabled atomic audit and current
+failure/recovery behavior. The owning TASK's current section supplies scope and new acceptance criteria; other
+children remain done. No new implementation or independent acceptance follows from this planning update.
+
+The original ten-child completion remains historical: TASK-00136's independent Review ACCEPT and nonvisual QA PASS
+made all ten children terminal at that checkpoint and automatic parent completion closed this TICKET. The owning
+TASKs retain their bounded acceptance, warnings and canonical delivery/resource handoffs. Reopening does not
+invalidate those original subjects or claim acceptance of the new amendment, whole-library recertification,
+generic bus or actual consumer qualification.
 
 ### Historical sibling acceptance checkpoints
 
