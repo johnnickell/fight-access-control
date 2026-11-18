@@ -1,9 +1,12 @@
 # v0.9.0 release and integration overview
 
-**Prepared on 2026-11-18; not yet published.** [v0.8.0](release-0.8.0.md) was the latest published version at
-this checkpoint. See the [Changelog](../CHANGELOG.md#090---2026-11-18) for the full change inventory.
+**Published on 2026-11-18.** The [immutable GitHub release](https://github.com/johnnickell/fight-access-control/releases/tag/v0.9.0)
+identifies signed tag `v0.9.0` at certified merge `b2d2c8a0fe041a0d950df4d12daa0b9e44892808` from
+[PR #261](https://github.com/johnnickell/fight-access-control/pull/261). Packagist source and distribution references
+match that commit. Consumer installation was not tested. The immutable tag preserves the pre-publication snapshot.
+See the [Changelog](../CHANGELOG.md#090---2026-11-18) for the full change inventory.
 Some capability guides retain their original “Unreleased” section names so existing links still work. The
-v0.9.0 changelog, not those earlier labels, identifies the changes included in this candidate.
+v0.9.0 changelog, not those earlier labels, identifies the changes included in this release.
 
 ## Before updating a consumer
 
