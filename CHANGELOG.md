@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-18
+
+Prepared on this date; see the [release overview](docs/release-0.9.0.md) for scope and publication status.
+
 ### Breaking changes
 
 - `CancelEmailChange` now requires the exact `EmailChangeGrantId` (`email_change_grant_id`) for self-service and
@@ -290,12 +294,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Agent authorization returns typed originating attribution separately from real-invoker policy. Update current
   callers, hydration and consumer persistence mapping directly; no old-shape reader or backfill is supplied.
   Existing transaction, recovery and publication policies remain. The account lifecycle optional wiring is
-  described above; other family wiring and expanded outcomes remain separate work, not enabled by this replacement. See [typed evidence](docs/audit-evidence.md).
-- Adopt published Common `^1.5.0` canonical MCP foundation and HTTP adapter spellings and Skill getters, with
-  exact-minimum and ordinary composition proof. Upstream runtime identity, profile/Resource/Skill output,
+  described above. The release also includes the separate family wiring listed under Added. See
+  [typed evidence](docs/audit-evidence.md).
+- Adopt the canonical MCP contracts first qualified on published Common `^1.5.0` foundation and HTTP adapter spellings and Skill getters, with
+  exact-minimum and ordinary composition proof at that checkpoint. The v0.9.0 floor is `^1.5.1`. Upstream runtime identity, profile/Resource/Skill output,
   validation, independent authority, nonce/request lifetimes and transaction/publication behavior remain.
   No future MCP family or consumer deployment is qualified. See the [contract inventory](docs/common-contracts.md).
-- **Current ordinary HTTP composition:** require Common `^1.5.0` and optional Symfony Routing/Security HTTP
+- **Ordinary HTTP composition:** use the release's Common `^1.5.1` floor and, when selected, Symfony Routing/Security HTTP
   `^8.1.11`; qualify typed 404/409/412/422 versus internal
   500, private structured validation, required metadata and one safe reporting/fallback owner. Symfony composition
   must explicitly select `handleAllThrowables: true` for PHP Errors to enter safe dispatch. Its event-map static
@@ -307,8 +312,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   constrain browser output to its safe fields, and align optional relationships, canonical names/session reasons and
   native empty payload/ordering shapes. Default generated OpenAPI 3.1 tests validate real values and invalid
   samples; FeatureFlag now permits repeated class/method declarations and remains declaration-only. Recompose consumer documents
-  and regenerate clients as appropriate; no endpoint, generic failure policy, compatibility mode or release
-  number is selected. See the [current payload map](docs/public-payload-catalog.md).
+  and regenerate clients as appropriate; no endpoint, generic failure policy or compatibility mode is supplied. See the [current payload map](docs/public-payload-catalog.md).
 - **Breaking pre-v1 human credential worker failures:** eleven void request/worker handlers now distinguish known
   Common Application conflict/not-found/permission intent from internal lookup and claim faults. Preserve generic
   reset no-work, distinct family authority/expiry, outside-transaction provider retry classification and ordinary
@@ -320,8 +324,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   categories. Wrong identities/correlations, broken registration configuration and unknown faults remain internal.
   Update affected catches and named generator/cipher/recovery-authorization arguments directly; repository
   nullability, Domain transitions, success wire shapes, atomic audit/fences and commit/publication outcomes remain.
-  See [current lifecycle contracts](docs/user-lifecycle-contracts.md). No version, release or consumer qualification
-  is selected.
+  See [current lifecycle contracts](docs/user-lifecycle-contracts.md). Consumer qualification remains separate.
 - **Breaking pre-v1 credential status contract:** optional invitation/exact delivery status Queries now return a safe
   View or explicit `CredentialDeliveryAbsent`, not null. Invitation Views require/expose recorded activation origin.
   Discovery validates each bounded purpose-family batch before legitimate deterministic global top-N selection.
@@ -342,7 +345,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   redelivery rechecks actual invoker/delegation and current transactional authority. Lost commit acknowledgement
   surfaces safe execution uncertainty; confirmed issuance remains queryable even if both publishers fail, without
   returned or reconstructed warnings. Canonical marker/bytes, atomic retirement/audit, bounded recovery and
-  cohort/restoration fences remain. No facade, transport/broker requirement, consumer qualification or release.
+  cohort/restoration fences remain. No facade, transport/broker requirement or consumer qualification is supplied.
   See [composition and outcomes](docs/agent-integration.md).
 - **Breaking pre-v1 operation ownership:** moved `AgentCredentialOperation`, its owned Domain values, delivery,
   maintenance, Queries/View and failures into `Domain\AccessControl\AgentCredentialOperation`; Application workers,
@@ -388,8 +391,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [profile composition](docs/agent-profile-tools.md) and the linked family guides. No Common dependency adoption,
   consumer bootstrap, grants, release or deployment is supplied.
 - Narrowed the Common minimum from `^1.3` to `^1.4` for tagged safe-error contracts. Native Slim/Yii dependencies
-  remain optional production integrations and isolated dev fixtures. The combined integration release is unfinished;
-  no new version or consumer adoption is selected.
+  remain optional production integrations and isolated dev fixtures. The final v0.9.0 Common floor is `^1.5.1`;
+  see the [release overview](docs/release-0.9.0.md) for the current framework and consumer boundaries.
 
 ## [0.8.0] - 2026-10-21
 
@@ -738,7 +741,8 @@ This dated section prepares release notes; it is not evidence of signing, public
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/johnnickell/fight-access-control/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/johnnickell/fight-access-control/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/johnnickell/fight-access-control/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/johnnickell/fight-access-control/compare/v0.5.0...v0.6.0

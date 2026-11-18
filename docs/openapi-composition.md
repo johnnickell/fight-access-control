@@ -97,7 +97,7 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 | `DeliverPasswordReset` | required `actor_kind` (`user`, `agent`, `system`, `anonymous`), UUID `actor_id`, `user_id` and `password_reset_delivery_id`; system/anonymous use fixed nil, never missing-origin fallback |
 | `FindCredentialDeliveryStatus` | `purpose` (`activation`, `password_reset`, `email_change`) and nonempty UUID `delivery_id` |
 | `FindDueCredentialDeliveries` | `at` (`date-time`, including fractional seconds) and positive integer `limit`; no default or upper bound is imposed |
-| `CredentialDeliveryStatus` | Found `CredentialDeliveryStatusView`: purpose, delivery/User IDs, revision, status, due/expiry times, attempt count and nullable attempt/outcome/failure history |
+| `CredentialDeliveryStatus` | Found `CredentialDeliveryStatusView`: purpose, delivery/User IDs, revision, status, due/expiry times, attempt count and nullable attempt/outcome/failure history. Required `email_change_grant_id` is the exact request UUID for `email_change` and `null` for `activation` or `password_reset`. It is distinct from `delivery_id`. |
 | `CredentialDeliveryAbsent` (Unreleased) | Explicit optional absence object: required `state: absent`, not a rollback or authority claim |
 | `CredentialDeliveryStatusResult` / `InvitationDeliveryStatusResult` (Unreleased) | Exactly one of the corresponding found status object or `CredentialDeliveryAbsent`; no nullable result |
 | `InvitationDeliveryStatus` (Unreleased) | Found invitation state with User, status, expiry, exact activation delivery ID and required recorded `origin` |
@@ -108,7 +108,7 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 | `ExpiredCredentialDeliveries` | Unpaginated array of exact expired work, maximum 100 items; empty is valid |
 | `ExpireInvitationDelivery` / `InvitationDeliveryExpired` | Required typed actor kind/UUID provenance, User/activation delivery UUIDs and fractional occurrence time |
 | `ExpirePasswordResetDelivery` / `PasswordResetDeliveryExpired` | Typed `actor_kind` plus actor UUID, User/password-reset delivery UUIDs and fractional occurrence time |
-| `ExpireEmailChange` / `EmailChangeExpired` | String actor provenance, User/email grant UUIDs and fractional occurrence time |
+| `ExpireEmailChange` / `EmailChangeExpired` | Required typed `actor_kind` plus UUID `actor_id`, User/email-change grant UUIDs and fractional occurrence time; both shapes use the same expiry contract |
 
 The v0.7.0 `ActivationOrigin` component is a standalone scalar contract. It does not add an origin input to
 Commands or fields to due Views. The Unreleased invitation status View now separately exposes recorded `origin`. `CredentialDeliveryInvocation` remains sensitive and non-serializable, with

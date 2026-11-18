@@ -19,23 +19,21 @@ publication checkpoints remain evidence; planning stays offline and releases sta
 ## Release and installation
 
 <!-- release:start -->
-**Release: [v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0)**
+**Release: [v0.9.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.9.0)**
 
 **Status: published.**
 
-Requires **PHP 8.5+** and **Fight Common ^1.3** (resolved by Composer).
-
+Requires **PHP 8.5+** and **Fight Common ^1.5.1** (resolved by Composer).
 ```bash
-composer require johnnickell/fight-access-control:"~0.8.0"
+composer require johnnickell/fight-access-control:"~0.9.0"
 ```
 
-[Release overview](docs/release-0.8.0.md) ·
-[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.8.0/docs)
+[Release overview](docs/release-0.9.0.md) ·
+[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.9.0/docs)
 <!-- release:end -->
 
-GitHub publication and Packagist source/dist references are verified for **v0.8.0**. The immutable tagged
-README retains its original preparation status; the release overview here records the verified publication.
-Registry availability is not proof of installation or qualification in your application.
+GitHub publication and Packagist projection have been verified. The immutable tag preserves the preparation
+snapshot. Registry availability is not proof of installation or qualification in your application.
 
 The constraint stays on this minor line. Pre-v1 minors can break API and persistence contracts: read the
 [Changelog](CHANGELOG.md) and the target release overview before upgrading. Only the current contract is supported;
@@ -66,7 +64,7 @@ homes, alongside Feature Discovery and authorization Admission; see the
 without the retired broad service. Recoverable Agent issuance now uses registered void `ProvisionAgent` and
 `RotateAgentCredential` Commands plus independent authorized outcome Queries, including delayed/restarted execution;
 see [current composition](docs/agent-integration.md). No direct issuance service/result facade or publication warning
-remains. These unreleased changes supply no blanket persistence/framework support or consumer qualification.
+remains. These v0.9.0 changes supply no blanket persistence/framework support or consumer qualification.
 
 The independently persisted `AgentCredentialOperation` now has its own Domain/Application aggregate home.
 Status, scheduler and maintenance readers inject `AgentCredentialOperationReadRepository`; material-bearing writers
@@ -79,7 +77,7 @@ TASK-00182 Command conversion has independent Review ACCEPT and nonvisual QA PAS
 verification were pending at closeout. Current results are in its canonical Land handoff and actual PR; no consumer
 qualification is claimed.
 
-The unreleased [Agent identity/administration type corrections](docs/agent-current-contract.md#precise-identity-and-administration-types-unreleased)
+The [Agent identity/administration type corrections](docs/agent-current-contract.md#precise-identity-and-administration-types-unreleased)
 have independent Review ACCEPT and nonvisual QA PASS for TASK-00118, including R-01's iterable-member repair.
 The TASK records its accepted candidate; publication/final checks are pending at that closeout checkpoint.
 Current delivery/resource results belong to canonical `.runs/handoffs/TASK-00118/land.md` and the actual PR.
@@ -116,13 +114,20 @@ This bounded acceptance does not qualify consumer persistence, cryptography or t
 | Roles, Permission tiers and managed policy | [Permission tiers](docs/permission-tiers.md) · [Operation outcomes](docs/operation-outcomes.md) |
 | Recoverable Agent provisioning, rotation and delivery | [Agent integration](docs/agent-integration.md) · [Conformance and evidence](docs/agent-operation-evidence.md) |
 | Agent profiles and protected MCP capabilities | [Profile Tools](docs/agent-profile-tools.md) · [Tool authorization](docs/agent-mcp-authorization.md) · [Resource authorization](docs/agent-resource-authorization.md) · [Skill authorization](docs/agent-skill-authorization.md) · [Prompt authorization](docs/agent-prompt-authorization.md) · [Current continuation](docs/agent-continuation-authorization.md) · [Notice mutations](docs/agent-notice-authorization.md) |
-| Optional HTTP Permission admission (Unreleased) | [Shared/Slim/Yii 3 composition](docs/http-permission-admission.md) · [Native Symfony composition](docs/symfony-permission-admission.md) · [Native CI4 composition](docs/codeigniter-permission-admission.md) · [Native Laravel composition](docs/laravel-permission-admission.md) |
-| Optional Feature HTTP admission (Unreleased) | [Shared/Slim/Yii 3 composition and runtime flow](docs/http-feature-admission.md) · [Native Symfony composition and runtime flow](docs/symfony-feature-admission.md) · [Native Laravel composition and runtime flow](docs/laravel-feature-admission.md) · [Native CodeIgniter 4 composition and runtime flow](docs/codeigniter-feature-admission.md) |
+| Optional HTTP Permission admission | [Shared/Slim/Yii 3 composition](docs/http-permission-admission.md) · [Native Symfony composition](docs/symfony-permission-admission.md) · [Native CI4 composition](docs/codeigniter-permission-admission.md) · [Native Laravel composition](docs/laravel-permission-admission.md) |
+| Optional Feature HTTP admission | [Shared/Slim/Yii 3 composition and runtime flow](docs/http-feature-admission.md) · [Native Symfony composition and runtime flow](docs/symfony-feature-admission.md) · [Native Laravel composition and runtime flow](docs/laravel-feature-admission.md) · [Native CodeIgniter 4 composition and runtime flow](docs/codeigniter-feature-admission.md) |
 | Permission-based Feature flags | [Declarations](docs/feature-references.md) · [Provisioning](docs/feature-provisioning.md) · [Preparation](docs/feature-preparation.md) · [Availability](docs/feature-availability.md) · [Management](docs/feature-management.md) · [Retirement](docs/feature-retirement.md) |
 | Consumer-owned OpenAPI documents | [Opt-in schema components](docs/openapi-composition.md) |
 
 Feature availability is not authorization for the underlying action. Registration exposure and enablement are
 consumer choices. MCP support supplies neutral authorization and profile Tools, not a hosted server or endpoint.
+
+### Released in v0.9.0
+
+This breaking minor adds optional atomic audit composition and portable HTTP Feature and Permission admission.
+It changes synchronous User services, Agent issuance and credential status contracts, and requires exact-request
+email-change cancellation. Start with the [v0.9.0 integration overview](docs/release-0.9.0.md) and the
+[Changelog](CHANGELOG.md) before updating consumers.
 
 ### Released in v0.8.0
 

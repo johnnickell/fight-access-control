@@ -568,7 +568,21 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.8.0 published
+## Current release handoff — v0.9.0 published
+
+[v0.9.0](../docs/release-0.9.0.md) was published on 2026-11-18 from the certified `main` merge in
+[PR #261](https://github.com/johnnickell/fight-access-control/pull/261). The signed tag, immutable GitHub release
+and Packagist source and distribution references were verified. Consumer installation remains separate.
+
+### Historical v0.9.0 preparation checkpoint
+
+John approved preparing v0.9.0 in the current checkout. The [release overview](../docs/release-0.9.0.md) and
+[Changelog](../CHANGELOG.md) describe the candidate scope and consumer changes. The Board has no active
+implementation tasks at preparation. Release review, QA, integration, exact-merge certification, signing and
+publication remain release stages, not consequences of planning completion. v0.8.0 was the latest published
+release at this checkpoint.
+
+## v0.8.0 published release closeout
 
 [v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0) is published on 2026-10-21 from
 certified main merge `319738255e682d587642b67856039f882b9588d6` through
@@ -835,6 +849,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.9.0` | 2026-11-18 | Published breaking User and Agent contracts, optional atomic audit, portable HTTP admission and current OpenAPI components. See the [release overview](../docs/release-0.9.0.md) for consumer obligations. |
 | `v0.8.0` | 2026-10-21 | Published breaking Role caller revisions and recovery composition, operation-outcome and managed-policy consistency, plus contributor/release-documentation improvements. Main-to-develop merge-back completed through PR #135; release-owned cleanup is satisfied. Consumer qualification remains separate. |
 | `v0.7.0` | 2026-10-20 | Published optional User registration, activation origin and administrator recovery; merged back through PR #125. Consumer enablement and qualification remain separate. |
 | `v0.6.0` | 2026-10-19 | Published expiry-aware invitation retry and the required Clock composition change; merged back through PR #120. |
