@@ -28,7 +28,7 @@ final readonly class RoleName extends ValueObject
      */
     public static function fromString(string $value): self
     {
-        if (preg_match('/^ROLE_[A-Z_]+$/', $value) !== 1) {
+        if (preg_match('/\AROLE_[A-Z_]+\z/', $value) !== 1) {
             throw new RoleNameException(
                 'A role name must start with ROLE_ and contain only uppercase letters and underscores.'
             );

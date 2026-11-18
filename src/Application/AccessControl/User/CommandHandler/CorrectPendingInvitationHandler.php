@@ -6,19 +6,25 @@ namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\ActivationCredentialGenerator;
-use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingInvitationCorrected;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
-use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -42,13 +48,12 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
     public function __construct(
         private UserRepository $userRepository,
         private ActivationGrantRepository $activationGrantRepository,
-        private InvitationAdministrationAuthorization $invitationAdministrationAuthorization,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -69,30 +74,50 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): PendingInvitationCorrected {
-                $this->invitationAdministrationAuthorization->assertCanCorrectInvitation(
-                    $command->getActorId(),
-                    $command->getUserId()
-                );
-
+            /** @var PendingInvitationCorrected $event */
+            $event = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                $commandMessage
+            ): PendingInvitationCorrected {
                 $user = $this->userRepository->getById($command->getUserId());
+                if ($user === null) {
+                    throw new ResourceNotFound('The pending invitation cannot be corrected.');
+                }
+
+                if (!$user->getId()->equals($command->getUserId())) {
+                    throw new LogicException('The User repository returned an unrelated identity.');
+                }
+
                 $predecessor = $this->activationGrantRepository->getLatestByUserId($command->getUserId());
+                if ($predecessor === null) {
+                    throw new StateConflict('The pending invitation has no activation authority.');
+                }
+
+                if (!$predecessor->ownsDelivery($predecessor->getDelivery()->getId(), $command->getUserId())) {
+                    throw new LogicException('The activation repository returned inconsistent ownership.');
+                }
+
                 if (
-                    !$user instanceof User
-                    || !$predecessor instanceof ActivationGrant
-                    || !$predecessor->isIssued()
+                    !$predecessor->isIssued()
                     || $predecessor->getOrigin() !== ActivationOrigin::PRIVATE_INVITATION
                     || $predecessor->getDelivery()->getEmail()->canonical() !== $user->getEmail()->canonical()
                 ) {
-                    throw new PendingInvitationCorrectionException(
-                        'The pending invitation cannot be corrected.'
-                    );
+                    throw new StateConflict('The pending invitation cannot be corrected.');
                 }
 
                 $replacementUser = clone $user;
-                $replacementUser->correctPendingInvitationEmail($command->getEmail(), $this->clock->now());
+                $now = $this->clock->now();
+                try {
+                    $replacementUser->correctPendingInvitationEmail($command->getEmail(), $now);
+                } catch (PendingInvitationCorrectionException $pendingInvitationCorrectionException) {
+                    throw new StateConflict(
+                        'The pending invitation cannot be corrected.',
+                        previous: $pendingInvitationCorrectionException
+                    );
+                }
+
                 if (!$this->userRepository->replacePendingInvitationEmail($user, $replacementUser)) {
-                    throw new LogicException('The pending invitation email changed concurrently or is reserved.');
+                    throw new StateConflict('The pending invitation email changed concurrently or is reserved.');
                 }
 
                 $issuedAt = $this->clock->now();
@@ -114,13 +139,22 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
                         $successor
                     )
                 ) {
-                    throw new LogicException('The activation grant changed concurrently.');
+                    throw new StateConflict('The activation grant changed concurrently.');
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $command->getActorId()->toString(),
-                    'user.pending_invitation_corrected',
-                    $command->getUserId()
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                    $command->getActorId(),
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::USER_PENDING_INVITATION_CORRECTED,
+                    $issuedAt,
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($replacementUser),
+                        AuditGrantState::fromGrant($predecessor),
+                        AuditGrantState::fromGrant($successor),
+                        AuditGrantState::fromGrant($revokedPredecessor)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return new PendingInvitationCorrected(

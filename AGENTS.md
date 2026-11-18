@@ -10,19 +10,31 @@ active work; otherwise select the first executable ready TASK in Board order. Us
 and planning handoffs. Recommend and stop; never launch a workflow from navigation. Default unimplemented
 approved work and confirmed implementation defects to `/skill:build TASK-NNNNN`; use `/skill:work TASK-NNNNN` for an explicit implementation-only
 request. Follow the [stage routes](planning/CONVENTIONS.md#workflow-continuations) for review, QA, delivery and evidence gaps.
-Load execution guidance when work is invoked.
+Historical publication checkpoints do not create current merge actions. Land verifies the exact live subject
+when publishing or explicitly resumed; no persistent delivery queue or post-merge planning chore. Load execution guidance when work is invoked.
 This routing path does not require reading README, architecture, full project context, task history or receiving skills.
 
 ## Project guidance
 
+Keep verification proportional to the changed behavior. Each added check must cover a concrete risk that
+existing checks do not already cover. Do not duplicate dependency installation, validation, test suites or
+release lanes for unchanged inputs. Reuse qualifying build evidence; run dependency preparation only on a
+cache miss. Validate tooling with its owning commands, without adding tests of wrappers, checks or release
+machinery. Investigate flaky failures; do not hide them with retries or accept a warm rerun as proof that a
+clean build works. Expand release certification only for an explicitly approved compatibility requirement.
+
 For execution or substantive planning changes, load the applicable guidance below. The read-only routing
 path above takes precedence over broad orientation reads; it does not waive engineering or delivery rules.
 
-**Scope:** these are shared engineering conventions. Read the local [AccessControl project profile](planning/agents/project-profile.md), [CONTEXT.md](CONTEXT.md), and the selected work record alongside them. All required project guidance is available in this checkout; no private skill installation is required.
+For Docker preparation/teardown, isolated worktrees, guarded source removal and build-cache evidence, follow
+[local tooling](docs/engineering/LOCAL_TOOLING.md). Use normal `./bin/build` for fresh planning and qualified
+application reuse; use `--force` for deliberate fresh application execution.
+
+**Scope:** these are shared engineering conventions. Read the local [AccessControl project profile](planning/agents/project-profile.md), [domain glossary](GLOSSARY.md), relevant composition guides and applicable [ADRs](planning/adr/README.md), and the selected work record alongside them. All required project guidance is available in this checkout; no private skill installation is required.
 Optional Fight Agent OS workflows use the [local workflow binding](planning/agents/project-profile.md#agent-os-workflow-binding),
 not copied skills or provider-application assumptions.
 
-**Orient:** read the project's AGENTS.md, `planning/agents/project-profile.md` when present, CONTEXT.md, and the selected work record. Inspect current source, Git state, and project-owned commands before relying on recorded examples. Preserve unrelated work.
+**Orient:** read the project's AGENTS.md, `planning/agents/project-profile.md` when present, GLOSSARY.md, applicable ADRs and composition guides, and the selected work record. Inspect current source, Git state, and project-owned commands before relying on recorded examples. Preserve unrelated work.
 
 **Load:** read only standards relevant to the work; builders, reviewers, and auditors use the same rules.
 
@@ -38,9 +50,14 @@ not copied skills or provider-application assumptions.
 | Worktrees, runtime, PRs, merge, release, deploy | [Delivery](docs/engineering/standards/Delivery.md) and the actual project profile/runbooks |
 | Change these standards or adopt them elsewhere | [Governance](docs/engineering/standards/Governance.md) |
 
+For class placement, dependency selection or collaborator naming, start with the local
+[architecture target](docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules)
+and [naming rule](docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections).
+The profile distinguishes implemented source from approved follow-ups; approval is not source conformance.
+
 **Build:** one TASK normally owns one PR. Use dependency-ordered SUBTASKs for layer assignments. Features are code-first; bugs start with one failing regression test. Keep domain knowledge with its owner and runtime dependencies behind Domain/Application contracts.
 
-**Verify:** use focused checks while iterating, then the complete project gate for implementation/build-input changes. Documentation-only follow-ups may retain prior full-gate evidence with verified input equivalence and targeted checks under the Testing standard. Cover production behavior; keep release/tooling tests separate from default builds and CI. Private repositories use a local build receipt as proof; a hosted CI pass is not required. Surface warnings and incomplete evidence. Keep CONTEXT.md and affected documentation aligned with the code.
+**Verify:** use focused checks while iterating, then the complete project gate for implementation/build-input changes. Documentation-only follow-ups may retain prior full-gate evidence with verified input equivalence and targeted checks under the Testing standard. Cover production behavior; keep release/tooling tests separate from default builds and CI. Private repositories use a local build receipt as proof; a hosted CI pass is not required. Surface warnings and incomplete evidence. Keep domain definitions in GLOSSARY.md and affected owning guides aligned with the code; preserve decisions in their ADRs, not in the glossary.
 
 **Authorize:** follow the current request's delivery scope. Implementation, publication, independent review, landing,
 signed library release and production deployment remain distinct effects. An explicit Build invocation delegates its
@@ -52,5 +69,22 @@ merge, release, deployment, unrelated work and restricted disclosure remain outs
 
 **Resolve:** explicit user decisions govern the work. Apply documented project exceptions within their stated scope; otherwise use these standards. If configuration conflicts with an approved preference, explain and reconcile the conflict rather than weakening the gate or silently inventing an exception.
 
+Land closes independently accepted TASKs and applicable current documentation during delivery, validates its
+exact live PR/default/base/head/remote, and retires eligible owned local Git/Docker/storage resources under the
+[project binding](planning/agents/project-profile.md#integrated-delivery-and-resource-retirement). Human merge
+and open-PR remote-head preservation remain separate. Planning checks and view refresh stay offline; retain
+historical acceptance/publication and independent reports without recurring post-merge bookkeeping.
+
 When completing a TASK, apply [Automatic parent completion](planning/CONVENTIONS.md#automatic-parent-completion)
 in the same operation; do not leave a separate parent assessment or closeout action for the user.
+
+## Clear communication
+
+Lead human-facing replies, plans, reports, handoffs, PR descriptions and documentation with the result or
+needed action. Use familiar words, short sentences and enough context to explain why. Explain necessary
+technical terms; remove repetition and detail that does not help the reader. Preserve facts, uncertainty,
+decisions, requirement strength, domain names, code and quoted evidence. Make factual corrections explicit.
+Check clarity before sending; no separate rewriting pipeline or rigid word limit is required. Agent-facing
+instructions still need precise conditions and boundaries.
+
+Follow the local [testing guidance](docs/engineering/standards/Testing.md#test-quality-and-suite-balance) for coverage, useful tests and suite balance.

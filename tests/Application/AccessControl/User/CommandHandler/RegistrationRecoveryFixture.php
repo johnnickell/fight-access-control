@@ -8,17 +8,16 @@ use Closure;
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler\DeliverUserInvitationHandler;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler\ResendInvitationDeliveryHandler;
-use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RecoverPendingRegistrationHandler;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
-use Fight\AccessControl\Application\AccessControl\User\Service\RegistrationRecoveryAuthorization;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -30,9 +29,7 @@ use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\F
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\CredentialDelivery\Service\RecordingCredentialDeliveryProvider;
-use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Repository\InMemoryEmailChangeGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
-use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Repository\InMemoryPasswordResetGrants;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Service\FixedRefreshCredentialGenerator;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -49,13 +46,13 @@ final class RegistrationRecoveryFixture
 
     public InMemoryUnitOfWork $unitOfWork;
 
-    public InMemoryUserRepository $users;
+    public InMemoryUserRepository $userRepository;
 
-    public InMemoryActivationGrantRepository $grants;
+    public InMemoryActivationGrantRepository $activationGrantRepository;
 
-    public InMemoryAuditEvidenceRepository $audit;
+    public InMemoryAuditEvidenceRepository $auditEvidenceRepository;
 
-    public InMemoryEventDispatcher $events;
+    public InMemoryEventDispatcher $eventDispatcher;
 
     public readonly User $initialUser;
 
@@ -68,18 +65,18 @@ final class RegistrationRecoveryFixture
         $this->registration = new RegistrationFixture();
         $this->registration->handler()->handle(CommandMessage::create($this->registration->command()));
         $this->unitOfWork = $this->registration->unitOfWork;
-        $this->initialUser = $this->registration->users->all()[0];
-        $this->initial = $this->registration->grants->all()[0];
+        $this->initialUser = $this->registration->userRepository->all()[0];
+        $this->initial = $this->registration->activationGrantRepository->all()[0];
         $this->actorId = UserId::generate();
-        $this->users = new InMemoryUserRepository(
+        $this->userRepository = new InMemoryUserRepository(
             $this->unitOfWork,
             state: $this->registration->userState,
             authorizationReferences: $this->unitOfWork->authorizationReferenceState(),
             beforeReplacePendingRegistration: $beforeReplace
         );
-        $this->grants = $this->registration->grants;
-        $this->audit = new InMemoryAuditEvidenceRepository($this->unitOfWork);
-        $this->events = new InMemoryEventDispatcher();
+        $this->activationGrantRepository = $this->registration->activationGrantRepository;
+        $this->auditEvidenceRepository = new InMemoryAuditEvidenceRepository($this->unitOfWork);
+        $this->eventDispatcher = new InMemoryEventDispatcher();
     }
 
     public function command(
@@ -97,44 +94,19 @@ final class RegistrationRecoveryFixture
 
     public function handler(
         string $at = '2030-01-02T00:00:00Z',
-        ?InMemoryEventDispatcher $events = null,
-        ?TransactionalUnitOfWork $unitOfWork = null,
-        ?RegistrationRecoveryAuthorization $authorization = null
+        ?InMemoryEventDispatcher $eventDispatcher = null,
+        ?TransactionalUnitOfWork $unitOfWork = null
     ): RecoverPendingRegistrationHandler {
         return new RecoverPendingRegistrationHandler(
-            $this->users,
-            $this->grants,
-            $authorization ?? $this->authorization(),
-            $this->audit,
+            $this->userRepository,
+            $this->activationGrantRepository,
             $unitOfWork ?? $this->unitOfWork,
             new FixedCredentialGenerator('recovered-registration-credential'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock($at),
-            $events ?? $this->events
+            $eventDispatcher ?? $this->eventDispatcher,
+            $this->auditEvidenceRepository
         );
-    }
-
-    public function authorization(): RegistrationRecoveryAuthorization
-    {
-        return new readonly class ($this) implements RegistrationRecoveryAuthorization {
-            public function __construct(private RegistrationRecoveryFixture $fixture)
-            {
-            }
-
-            public function assertCanRecoverRegistration(UserId $actorId, UserId $userId): void
-            {
-                if (!$this->fixture->unitOfWork->transactionActive) {
-                    throw new LogicException('Authorization must be transactional.');
-                }
-
-                if (
-                    !$actorId->equals($this->fixture->actorId)
-                    || !$userId->equals($this->fixture->initialUser->getId())
-                ) {
-                    throw new RegistrationRecoveryAuthorizationException('Registration recovery is not authorized.');
-                }
-            }
-        };
     }
 
     public function connection(
@@ -144,27 +116,27 @@ final class RegistrationRecoveryFixture
     ): self {
         $connection = clone $this;
         $connection->unitOfWork = new InMemoryUnitOfWork();
-        $connection->users = new InMemoryUserRepository(
+        $connection->userRepository = new InMemoryUserRepository(
             $connection->unitOfWork,
             state: $this->registration->userState,
             authorizationReferences: $this->unitOfWork->authorizationReferenceState(),
             beforeReplacePendingRegistration: $beforeRecovery
         );
-        $connection->grants = new InMemoryActivationGrantRepository(
+        $connection->activationGrantRepository = new InMemoryActivationGrantRepository(
             $connection->unitOfWork,
             beforeReplace: $beforeGrantReplace,
-            state: $this->grants,
+            activationGrantRepository: $this->activationGrantRepository,
             beforeSuccessor: $beforeSuccessor
         );
-        $connection->audit = new InMemoryAuditEvidenceRepository($connection->unitOfWork);
-        $connection->events = new InMemoryEventDispatcher();
+        $connection->auditEvidenceRepository = new InMemoryAuditEvidenceRepository($connection->unitOfWork);
+        $connection->eventDispatcher = new InMemoryEventDispatcher();
 
         return $connection;
     }
 
     public function current(): ActivationGrant
     {
-        $grant = $this->grants->getLatestByUserId($this->initialUser->getId());
+        $grant = $this->activationGrantRepository->getLatestByUserId($this->initialUser->getId());
         if (!$grant instanceof ActivationGrant) {
             throw new LogicException('Missing fixture grant.');
         }
@@ -177,22 +149,28 @@ final class RegistrationRecoveryFixture
         string $at = '2030-01-02T00:00:00Z'
     ): DeliverUserInvitationHandler {
         return new DeliverUserInvitationHandler(
-            $this->grants,
-            $this->audit,
+            $this->activationGrantRepository,
             $this->unitOfWork,
             new PrefixInvitationDeliveryCipher(),
             $provider,
             new FixedClock($at),
-            new InMemoryEventDispatcher()
+            new InMemoryEventDispatcher(),
+            $this->auditEvidenceRepository
         );
     }
 
     public function delivery(?ActivationGrant $grant = null): DeliverUserInvitation
     {
+        $grant ??= $this->current();
+        $actorId = $this->actorId;
+        if ($grant->getId()->equals($this->initial->getId())) {
+            $actorId = AnonymousId::generate();
+        }
+
         return new DeliverUserInvitation(
-            'worker',
+            $actorId,
             $this->initialUser->getId(),
-            ($grant ?? $this->current())->getDelivery()->getId()
+            $grant->getDelivery()->getId()
         );
     }
 
@@ -201,40 +179,40 @@ final class RegistrationRecoveryFixture
         $uow = $unitOfWork ?? $this->unitOfWork;
 
         return new ResendInvitationDeliveryHandler(
-            $unitOfWork === null ? $this->grants : new InMemoryActivationGrantRepository($uow, state: $this->grants),
-            $unitOfWork === null ? $this->audit : new InMemoryAuditEvidenceRepository($uow),
+            $unitOfWork === null ? $this->activationGrantRepository : new InMemoryActivationGrantRepository(
+                $uow,
+                activationGrantRepository: $this->activationGrantRepository
+            ),
             $uow,
             new FixedCredentialGenerator('resent-registration-credential'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2030-01-02T00:00:00Z'),
-            new InMemoryEventDispatcher()
+            new InMemoryEventDispatcher(),
+            $unitOfWork === null ? $this->auditEvidenceRepository : new InMemoryAuditEvidenceRepository($uow)
         );
     }
 
-    public function authentication(string $at = '2030-01-02T00:00:01Z'): AuthenticationService
+    public function authentication(string $at = '2030-01-02T00:00:01Z'): UserAuthentication
     {
-        $sessions = new InMemoryRefreshSessionRepository($this->unitOfWork);
-        $this->users->bindRefreshSessionRepository($sessions);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository($this->unitOfWork);
+        $this->userRepository->bindRefreshSessionRepository($refreshSessionRepository);
         $passwords = new TestPasswordSecurity();
 
-        return new AuthenticationService(
-            $this->users,
-            $this->grants,
-            $sessions,
-            new SessionRevocationService($sessions),
+        return new UserAuthentication(
+            $this->userRepository,
+            $this->activationGrantRepository,
             $this->unitOfWork,
             new FixedClock($at),
             new FixedLoginThrottle(true),
             new FixedRefreshCredentialGenerator(RefreshCredential::fromString(str_repeat('a', 64))),
             $passwords,
             $passwords,
-            new RecordingTokenEncoder(),
-            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
+            new TokenIssuer(
+                new RecordingTokenEncoder(),
+                AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
+            ),
             PasswordHash::fromString($passwords->hash('unused-dummy-password')),
-            new InMemoryEventDispatcher(),
-            new InMemoryPasswordResetGrants($this->unitOfWork),
-            $this->audit,
-            new InMemoryEmailChangeGrantRepository($this->unitOfWork)
+            new InMemoryEventDispatcher()
         );
     }
 }

@@ -6,10 +6,11 @@ namespace Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Se
 
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeDeliveryCipher;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
+use SensitiveParameter;
 
 final class PrefixEmailChangeDeliveryCipher implements EmailChangeDeliveryCipher
 {
-    public function encrypt(string $plaintext): string
+    public function encrypt(#[SensitiveParameter] string $plaintext): string
     {
         return 'ciphertext:'.$plaintext;
     }

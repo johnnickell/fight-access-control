@@ -1,7 +1,11 @@
 # Integrating the current Agent credential contract
 
-This describes the **v0.5.0 contract**, not a release receipt, consumer qualification or deployment permission.
-Use its public contracts together; previously released versions are unchanged. See the
+This describes the **checked-out current contract**, including the unreleased operation ownership changes and
+TASK-00182's breaking void-Command/outcome-Query conversion over v0.5.0, not a release receipt, consumer qualification
+or deployment permission.
+Use its public contracts together; previously released versions are unchanged. TASK-00119's
+[precise Domain type contracts](agent-operation-type-contracts.md) describe current safe payloads, hydration,
+retained-request correlation and directly affected consumer obligations. See the
 [release overview](release-0.5.0.md) for scope and delivery gates. The
 [scenario/evidence inventory](agent-operation-evidence.md) separates package results, superseded requirements and
 missing consumer proof. [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md) permits only the current
@@ -12,8 +16,8 @@ Do not interpret this guide as permission to reset data.
 
 1. **Qualify one current composition before enablement.** Consumers own persistence/schema, authenticated context,
    authorization policy, keys, protected sinks, scheduling, storage admission and deployment tools. Package Domain
-   owns transitions; Application services own transactions and recovery coordination. There is no production Adapter
-   layer, consumer Permission catalog, enrollment service or broker here. Bind the exact candidate and its test suites
+   owns transitions; Application services own transactions and recovery coordination. There is no production persistence Adapter,
+   consumer Permission catalog, enrollment service or broker here. Bind the exact candidate and its test suites
    as described in [issuance conformance](agent-issuance-conformance.md#run-and-bind) and
    [delivery conformance](agent-delivery-conformance.md#run-and-bind), not an older installed package.
 2. **Inventory and fence every writer.** Repositories, audit and transactional authorization share the package-owned
@@ -59,23 +63,125 @@ Initial readiness requires affirmative external-effect inventory, not assuming e
 
 ## Public composition map
 
-Types below are the current PHP contracts, not suggested wrappers. Agent services live under
-`Application\AccessControl\Agent\Security`; consumer ports under `Application\AccessControl\Agent\Service`;
-Agent repositories, requests and policies under the matching Domain aggregate. `Clock` belongs to Application Timing,
+Types below are the current PHP contracts, not suggested wrappers. Under `Application\AccessControl\Agent`,
+`CommandHandler` owns provision/rotation coordination; `Credential` retains secret-generation/authentication-cipher
+ports and direct revocation. `Authentication` owns signed requests, principal resolution, nonce consumption and verification;
+`Continuation` owns synchronized repeated-work admission and its scope/fence/handoff contracts. The internal
+assignment coordinator lives in `PermissionAssignment`, not `CommandHandler`.
+Under `Application\AccessControl\AgentCredentialOperation`, `Delivery` groups workers, recovery, cipher/decipher
+and sink/receipt contracts; `Maintenance` owns rewrapping/cleanup and its separate authority. Operation query
+handlers and `AgentOperationAuthorization` share that aggregate's Application home. No forwarding facade or alias
+is supplied. Agent and operation repositories, requests and policies stay with their actual Domain aggregate.
+`Clock` belongs to Application Timing,
 `TransactionalUnitOfWork` and `EventDispatcher` to Fight Common. Use the linked guides for full signatures and message
 round trips. Serializable Queries use their handlers' Common registrations; secret-bearing work is synchronous.
 
 | Use case / public entry | Injected composition and outcome |
 | --- | --- |
-| [Provision](agent-provisioning-operations.md): `AgentProvisioningService::provision(AgentOperationKey, AgentProvisioningRequest)` | Agent/operation/audit repositories, `AgentOperationAuthorization`, `HmacSharedSecretGenerator`, `HmacSharedSecretCipher`, `AgentDeliveryCipher`, Clock, UoW, EventDispatcher, optional `AgentOperationLimits`. Safe `AgentProvisioningResult`. |
-| [Rotate](agent-rotation-operations.md): `AgentCredentialRotationService::rotate(AgentOperationKey, AgentRotationRequest)` | Same capabilities; mandatory `authorizeRotation()` fences current scope, original target and destination. Safe `AgentCredentialRotationResult`; predecessor cancellation, successor operation and audit commit together. |
+| [Provision](agent-provisioning-operations.md): `ProvisionAgent` / `ProvisionAgentHandler` | Registered void Common Command dispatch; Agent/operation repositories, optional last nullable audit repository, `AgentOperationAuthorization`, generator, authentication/delivery ciphers, Clock, UoW, EventDispatcher, optional limits. Independent authorized `GetAgentOperation` Query supplies original issuance/dispositions. |
+| [Rotate](agent-rotation-operations.md): `RotateAgentCredential` / `RotateAgentCredentialHandler` | Same capabilities and void dispatch; mandatory `authorizeRotation()` fences current scope, original target and destination. Atomic predecessor cancellation/successor/enabled audit; original outcomes come only from independent authorized Query dispatch. |
 | [Rename](agent-name-updates.md): `UpdateAgentHandler` / `UpdateAgent` | Agent repository with mandatory name-only `rename(id, name, now)`, Clock, UoW, EventDispatcher. The clock callback is sampled after writer admission; the repository returns exact persisted time or null for a validated no-op. Typed User/Agent initiator is provenance, not authorization. Current ACTIVE/operation/cohort fences include no-ops; no issuance/cancellation. Void synchronous dispatch; input-derived `{agent_id, name}` acknowledgement only on success. |
-| [Revoke](agent-credential-retirement.md): `AgentCredentialLifecycleService::revoke(actorId, agentId)` | Agent repository, audit, Clock, UoW, EventDispatcher. Consumers protect every entry point; actor ID is audit provenance only. Repository replacement atomically retires original delivery without key/sink access. |
-| [Status](agent-operation-status.md): `GetAgentOperationHandler` | Operation repository and `AgentOperationAuthorization::authorizeRead()`, before lookup and again with original target before disclosure. No UoW, material access, audit, event or new-work capacity. Safe `AgentOperationView`. |
-| [Deliver](agent-credential-delivery.md): `AgentCredentialDeliveryService::deliver(key, destination, deliveryId)` | Agent/operation repositories, scope and `AgentDeliveryAuthorization`, `AgentDeliveryDecipher`, `AgentCredentialSink`, Clock, UoW, optional `AgentDeliveryPolicy`. Safe `AgentDeliveryResult`; claim, admission and outcome are separate transactions. Optional `AgentCredentialReceiptLookup` avoids unnecessary materialization. |
-| [Discover/recover](agent-delivery-recovery.md): `ListDueAgentDeliveriesHandler`, `AgentDeliveryRecoveryService` | Query: operation repository, delivery authorization and Clock. Scheduler: that handler, actual delivery service, Clock, optional `AgentDeliverySchedule`. Selection is read-only and never grants admission. |
-| [Maintain](agent-delivery-maintenance.md): `AgentDeliveryMaintenanceService::rewrap/expire/cleanup` | Operation repository, `AgentMaintenanceAuthorization`, `AgentDeliveryRewrapper`, `AgentCredentialCleanup`, Clock, UoW, optional `AgentMaintenancePolicy`. Original key/destination/delivery ID, plus target key version for rewrap. Safe `AgentMaintenanceResult`. Rewrap is inside a bounded fenced transaction; cleanup invocation is outside transactions between admission and acknowledgement. |
-| [Maintenance reads](agent-delivery-maintenance.md): `ListAgentDeliveryMaintenanceHandler`, `CountAgentDeliveryKeyReferencesHandler` | Operation repository, maintenance authorization and Clock. Secret-free keyset pages and global diagnostic reference counts; no material/claim/commit/events. Zero is not permission to destroy keys. |
+| [Revoke](agent-credential-retirement.md): `AgentCredentialLifecycleService::revoke(actorId, agentId)` | Agent repository, Clock, UoW, EventDispatcher, optional last nullable audit repository. Omitted/null disables durable audit only. Consumers protect every entry point; the required typed actor ID is provenance only. Repository replacement atomically retires original delivery without key/sink access. |
+| [Status](agent-operation-status.md): `GetAgentOperationHandler` | `AgentCredentialOperationReadRepository` and `AgentOperationAuthorization::authorizeRead()`, before lookup and again with original target before disclosure. No UoW, material access, audit, event or new-work capacity. Safe `AgentOperationView`. |
+| [Deliver](agent-credential-delivery.md): `AgentCredentialDeliveryService::deliver(key, destination, deliveryId)` | Agent/operation repositories, scope and `AgentDeliveryAuthorization`, `AgentDeliveryDecipher`, `AgentCredentialSink`, Clock, UoW, optional `AgentDeliveryPolicy`, optional last nullable `AuditEvidenceRepository`. Enabled meaningful outcomes share their actual transaction and retained originating provenance. Safe `AgentDeliveryResult`; claim, admission and outcome are separate transactions. Optional `AgentCredentialReceiptLookup` avoids unnecessary materialization. |
+| [Discover/recover](agent-delivery-recovery.md): `ListDueAgentDeliveriesHandler`, `AgentDeliveryRecoveryService` | Query: `AgentCredentialOperationReadRepository`, delivery authorization and Clock. Scheduler: configured Common QueryBus with that handler, actual delivery service, Clock, optional `AgentDeliverySchedule`. No duplicate audit writer/transaction. Selection is read-only and never grants admission. |
+| [Maintain](agent-delivery-maintenance.md): `AgentDeliveryMaintenanceService::rewrap/expire/cleanup` | Operation repository, `AgentMaintenanceAuthorization`, `AgentDeliveryRewrapper`, `AgentCredentialCleanup`, Clock, UoW, optional `AgentMaintenancePolicy`, optional last nullable audit repository. Original key/destination/delivery ID, target key version for rewrap, and optional direct typed User/Agent/System provenance (required for enabled meaningful mutation/effect admission). Safe `AgentMaintenanceResult`. Rewrap is inside a bounded fenced transaction; cleanup invocation is outside transactions between admission and acknowledgement. |
+| [Maintenance reads](agent-delivery-maintenance.md): `ListAgentDeliveryMaintenanceHandler`, `CountAgentDeliveryKeyReferencesHandler` | `AgentCredentialOperationReadRepository`, maintenance authorization and Clock. Secret-free keyset pages and global diagnostic reference counts; no material/claim/commit/events. Zero is not permission to destroy keys. |
+
+### Typed audit provenance (Unreleased, in progress)
+
+The [shared replacement](audit-evidence.md) changes `AgentOperationAuthorization::authorize()` and
+`authorizeRotation()` to return explicitly established nullable `UserId|AgentId|SystemId|AnonymousId` originating
+provenance. Keep actual invoker/delegation/scope/target/destination authorization independently fenced; do not parse
+its caller labels into UUIDs or grant authority from an audit ID. New audited issuance refuses null before mutation.
+Original-key resolution has no new audit-only actor requirement and creates no duplicate evidence. Revocation
+requires a direct typed actor. Both issuers now use optional last nullable audit storage and retain nullable typed
+origin on the operation independently of evidence. Persist and hydrate its kind/UUID through every copy, retirement,
+expected-state comparison and tombstone; never replace it with a retrying worker. New issuance evidence includes
+its actual operation revision and existing issuedAt. See [current optional composition](agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased).
+Delivery now consumes retained origin in its optional actual outcome transaction, including claim-path expiry and
+exhaustion; scheduler polling/no-change does not add evidence. See
+[delivery composition](agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased).
+Maintenance evidence insertion remains separately owned. Update current consumer mappings/constructors
+directly and qualify the actual shared connection; no compatibility reader, backfill or consumer qualification is supplied.
+
+## Operation ownership and read/write composition (Unreleased)
+
+`Domain\AccessControl\AgentCredentialOperation` is a distinct aggregate inside AccessControl, not a new bounded
+context. The root, `AgentCredentialOperationRepository`, keys/identities, canonical requests, original `AgentIssuance`,
+destination/material/disposition values and cohort evidence live there. `Delivery` owns attempts, authority epochs,
+claims, receipts and finite delivery/scheduling policy; `Maintenance` owns key-version and maintenance policy/work.
+These are Domain invariants and values, not Application services merely because some values are immutable.
+`Query` contains the secret-free messages and `AgentOperationView`; `Exception` contains operation/delivery failures.
+The View owns `fromOperation()` mapping of already-loaded snapshots. The aggregate exposes recorded dispositions,
+not `getStatus()` or public projection construction. Real read adapters project metadata directly without loading
+material-bearing roots. Wire fields and OpenAPI component names/registration shapes are unchanged.
+
+Application `Delivery`/`Maintenance` own transaction/external-effect coordination, their inward mechanism ports and
+safe invocation/results; QueryHandlers own authorization/disclosure coordination. `AgentOperationAuthorization`
+is an Application current-invoker policy contract, not authority carried by a Domain request. Agent identity,
+credential identity, name, authentication and lifecycle facts stay under Agent; provision/rotation Commands and
+handlers plus direct revocation stay with that owner because they create/replace Agent authority atomically with
+operation state.
+
+Before this change every status/scheduler/maintenance reader required the material-bearing `AgentCredentialOperationRepository`.
+Now the independent `AgentCredentialOperationReadRepository` exposes only `getStatusByKey`, `listDueDeliveries`,
+`listMaintenance`, `countDeliveryKeyReferences` and the read-only cohort observation `getOperationContract`.
+It does not extend the write repository. TASK-00134's unreleased [exact Query contracts](agent-query-contracts.md)
+require both work reads to return `AgentDeliveryWorkView` selection evidence internally while handlers still return
+safe status Views. Unexpected/result faults are safe internal failures; existing deliberate operation classifications
+and destination concealment remain distinct. `AgentCredentialOperationRepository` separately retains `getByKey`, `add`,
+`reserveDestinationWrite`, `replaceDelivery`, `replaceMaintenance`, `retireCredential` and mandatory cohort fencing;
+it does not inherit read obligations. Neither is a UoW. One consumer adapter may implement both without forwarding
+adapters or a second connection. For example, inject that adapter as follows (existing authorization/clock omitted
+only from this comparison):
+
+```php
+$status = new GetAgentOperationHandler(
+    operationReadRepository: $persistence,
+    operationAuthorization: $operationAuthorization
+);
+$due = new ListDueAgentDeliveriesHandler(
+    operationReadRepository: $persistence,
+    deliveryAuthorization: $deliveryAuthorization,
+    clock: $clock
+);
+```
+
+Neither caller must implement/load a root, reserve a destination, replace a claim or commit. Provisioning/rotation,
+delivery and maintenance writers instead receive `operationRepository: $persistence` plus their separate existing
+UoW and authorization ports. The consumer-bindable `IssuanceRecoveryPorts` likewise has separate write and read
+arguments; a single adapter can satisfy both. See `OperationReadBoundaryTest` for all four handlers using an
+implementation with no write/material API, alongside the existing denial, bounded-selection and recovery tests.
+
+`AgentOperationContract` remains Domain generation/authority evidence. Actual participant qualification, trusted
+storage-incarnation verification and connection/lock mechanisms remain consumer composition/repository concerns,
+not a new entity readiness flag, optional preflight or qualification facade. Every direct writer still enforces the
+cohort independently through commit/rollback; safe status remains readable without admitting unsafe restored writes.
+Agent replacement still invokes operation retirement on the same transaction before persisting its successor/audit.
+No coupled capability is reduced to generic get/mutate/save, and no eventual consistency is introduced.
+
+For the supported Common v1.4.0 synchronous composition, register actual handler instances (constructed from the
+capabilities above). Other transports retain the same message/void handler contract and consumer-owned execution
+authentication; this example does not mandate synchronous execution:
+
+```php
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\ProvisionAgentHandler;
+use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler\RotateAgentCredentialHandler;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\QueryHandler\GetAgentOperationHandler;
+use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
+use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
+use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
+
+$commandRouter = new InMemoryCommandRouter();
+$commandRouter->registerHandler(ProvisionAgentHandler::commandRegistration(), $provisionAgentHandler);
+$commandRouter->registerHandler(RotateAgentCredentialHandler::commandRegistration(), $rotateAgentCredentialHandler);
+$commandBus = new RoutingCommandBus($commandRouter);
+$queryRouter = new InMemoryQueryRouter();
+$queryRouter->registerHandler(GetAgentOperationHandler::queryRegistration(), $getAgentOperationHandler);
+$queryBus = new RoutingQueryBus($queryRouter);
+```
 
 Repositories persist the complete current operation: canonical request/marker, original issuance and dispositions,
 state revision, protected copy/key version, pinned policy, attempt token/fence/lease/admission, retry/failure history,
@@ -98,28 +204,35 @@ throwables, ciphertext, invocation bytes, key paths or claim tokens. PHP does no
 
 ## Retained keys and outcome handling
 
-Persist the original key **and request before calling** provision/rotation. Derive scope from trusted authenticated
+Persist the original key **and request before dispatching** provision/rotation Commands. Derive scope from trusted authenticated
 context and destination from server registration, never a caller URL/path. Same-key resolution requires fresh
 current authority, retains the original rotation predecessor and does not repeat generation, mutation, audit or
 issuance publication. A genuinely new rotation is a separately authorized operation, not an automatic retry fallback.
 
 The [single canonical contract](agent-canonical-upgrades.md) uses no-argument request `canonicalize()`, exact ordered
-JSON and marker **2**. Provision names trim the fixed Unicode edge set, preserve case/internal whitespace and do not
-normalize NFC. Rotation binds the original target/predecessor/destination. Retain exact request and issuance through
-completion, supersession, revocation, expiry and cleanup. Unsupported markers (including 1) reject without a reader,
+JSON and marker **2**. `AgentName::fromString()` owns the fixed Unicode-edge name rule for both provisioning and
+rename, preserving case/internal whitespace without NFC conversion. Rename intentionally replaces PHP `trim`;
+existing valid provisioning canonical bytes remain unchanged. Rotation binds the original target/predecessor/destination.
+Retain exact request and issuance through completion, supersession, revocation, expiry and cleanup. Unsupported markers (including 1) reject without a reader,
 rewrite, conversion or new key. Material expiry never expires deduplication: permanent operation/sink tombstones and
 slot order survive. Safe status absence is indeterminate, not proof of rollback or permission to issue another key.
 
 | Observation | Required response |
 | --- | --- |
 | Pre-commit issuance failure | Sanitized rejection; atomic rollback. Keep original key/request for an authorized retry, not guessed committed success. |
-| Callback completed but commit did not confirm | Safe indeterminate issuance/delivery/maintenance result. Recompose if UoW closed, then resolve authoritative original state; never infer rollback from an exception or missing event. |
-| Confirmed new provision/rotation; publisher throws (even both publishers) | Confirmed safe metadata with typed `AgentPublicationWarning::PUBLICATION_FAILED`. Durable pending delivery survives; scheduler recovery needs neither event nor caller retry. Warning is transient, not stored delivery status. |
+| Issuance callback completed but commit did not confirm | Safe `AgentOperationUncertainException` on the execution channel. Recompose if UoW closed and retry the original key/request; status confirms stored issuance or remains indeterminate. Delivery/maintenance retain their own result policy. |
+| Confirmed new provision/rotation; publisher throws (even both publishers) | Complete void handling after best-effort sanitized failure evidence. Queryable issuance and durable pending delivery survive; scheduler recovery needs neither event nor caller retry. No returned, stored or reconstructed warning. |
 | Confirmed issuance only | Not delivery, enrollment activation or launch/use. No raw-secret result or general secret-read capability exists. |
 | Receipt-confirmed delivery | Delivery copy removed; verify original exact receipt on recovery. Lost delivered material returns `RECONCILIATION_REQUIRED`, never envelope fallback or automatic rotation. |
-| Revocation publication throws | Durable retirement remains; original publication fault still rethrows after attempted redacted failure publication. The D3 warning exception applies **only** to replacement provision/rotation, not revocation, AuthenticationService or other handlers. |
+| Revocation publication throws | Durable retirement remains; original publication fault still rethrows after attempted redacted failure publication. The amended D3 publication-containment exception applies **only** to replacement provision/rotation, not revocation, synchronous User capabilities or other handlers. |
 
-There is no outbox or automatic notification retry. Same-key service retries publish no second success fact. Consumer
+Commands may run synchronously or asynchronously at any time, including serialized delay/restart/redelivery.
+Dispatch acceptance is not execution/commit proof. Consumers independently authenticate the real invoker or delegated
+worker and supply current authority at execution, without a live submitting transport or payload impersonation.
+A pre-execution/absent status is indeterminate, not queue progress/rejection/rollback. Consumers own brokers, worker
+exceptions and retries; an asynchronous submitter is not promised synchronous access to execution exceptions.
+
+There is no outbox or automatic notification retry. Same-key Command retries publish no second success fact. Consumer
 notification retry, if added, must retain the original fact identity and document duplicates. Receipt-aware recovery
 can avoid repeat staging; without lookup it repeats original bytes/ID only after a fresh confirmed admission. Both
 are at-least-once, not exactly-once disclosure. Recovered admission alone permits receipt reconciliation only.

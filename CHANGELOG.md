@@ -7,6 +7,393 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-18
+
+Prepared on this date; see the [release overview](docs/release-0.9.0.md) for scope and publication status.
+
+### Breaking changes
+
+- `CancelEmailChange` now requires the exact `EmailChangeGrantId` (`email_change_grant_id`) for self-service and
+  administrative cancellation. Delayed intent cannot cancel a newer request, even for the same address.
+  `FindCredentialDeliveryStatus` exposes that request ID for the exact email-change delivery, and `null` for
+  other purposes. See [caller and read admission](docs/credential-delivery.md#cancel-the-exact-email-change-request-unreleased).
+
+- `EmailChangeGrant::issue()` now requires `EmailChangeRequestOrigin`. Persist, hydrate and preserve the original
+  requester and protected canonical old mailbox with the exact grant/reservation generation, even if participation
+  is off. No compatibility defaults or backfill. See [email-change composition](docs/credential-delivery.md#atomic-email-change-notification-intent-unreleased).
+
+- `CorrectPendingInvitationHandler` and `RecoverPendingRegistrationHandler` no longer take their former
+  authorization ports. Remove the constructor arguments, port bindings and obsolete denial catches. Before
+  trusted dispatch, every consumer entry must authenticate the real caller and check operation permission
+  for the exact target. An admitted ordinary request may finish after permission is removed; new requests check
+  again. Business fences, atomic configured audit and command/event payloads are unchanged. See the
+  [caller contracts](docs/user-lifecycle-contracts.md) and [recovery guide](docs/registration-recovery.md).
+
+### Added
+
+- Optional typed consumer participation stages required request and confirmation notification intent on the actual
+  package transaction, alongside enabled audit. No new provider calls or Command/Event fields. Consumer storage,
+  delivery, recovery and operational qualification remain consumer-owned.
+
+- Current [portable admission reconciliation](docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
+  connects existing Feature-only, Permission-only and combined evidence across Slim, Yii 3, Symfony, Laravel and CI4.
+  No production behavior or new tests are added. Common remains `^1.5.1`; CI4's amended Feature/combined unit boundary
+  and separate Permission-native proof remain distinct. Consumer registration, authentication, storage, safe sinks
+  and native runtime qualification are not supplied by the package evidence.
+
+- Portable `RequiresPermission` integration through the optional CodeIgniter 4 Permission before-filter. Effective
+  class/method/repeatable/inherited/overridden and trusted route requirements compose through the existing inward
+  admission, without Feature services or redundant route declarations. Explicit mode conflicts fail before
+  authentication. Both CI4 gates reuse one native matched-action resolver and the existing safe JSON error owner.
+  New Permission-native fixtures qualify selected routing/aliases/short-circuit, User/Agent authority and safe
+  downstream errors; the removed Feature journeys remain removed. See [CI4 composition](docs/codeigniter-permission-admission.md)
+  for supported forms, construction/lifetime/error limits and separate consumer duties. Explicit `SafeNativeLogger`
+  service selection now sends native diagnostics to that same redaction owner before raw native formatting/cache,
+  including swallowed Attribute constructor faults; selected-loop sink failures get finite unreported fallback.
+  Production-style Permission subprocesses qualify this path, not CI4 testing-mode logger bypass or global/non-JSON safety.
+
+- Portable `RequiresPermission` enforcement through the existing optional Laravel Permission middleware.
+  Attribute-only protection, inherited/overridden requirements and protected route additions use the shared pure
+  resolver; explicit PUBLIC/AUTHENTICATED conflicts reject before authentication. Native route identity, early
+  validation denial and request-owned User/Agent authority remain intact. Cooperating Feature gates share one
+  authentication/nonce without accepting copied context. Common remains the sole selected safe-error owner.
+  See [Laravel composition](docs/laravel-permission-admission.md) for supported forms and construction/runtime limits.
+
+- Integrated [audit outcome inventory](docs/audit-outcome-coverage.md) for every current handler and related
+  synchronous/worker outcome, with current family proof and ordinary Role/shared-transaction examples. All covered
+  owners now support optional nullable audit storage, including formerly mandatory writers. Mixed per-owner
+  composition and later opt-in without backfill are explicit. **Pre-v1:** update current constructor/provenance and
+  typed persisted mappings directly; enabled adapters must reject unsupported evidence. Void Agent issuance and
+  authorized outcome Queries preserve committed issuance despite publisher failure without returned/reconstructed
+  warnings. Package models do not qualify actual consumer connections/locks/processes, sinks/keys, restoration or
+  activation/use and do not authorize consumer workaround removal, schema operations or deployment.
+
+- Portable `RequiresPermission` enforcement through the existing optional Symfony Permission subscriber. Effective
+  class/method/repeatable/inherited and route requirements accumulate without redundant route declarations; explicit
+  PUBLIC/AUTHENTICATED conflicts reject before authentication. Trusted native controller association is checked before
+  validation. Permission-only needs no Feature services; combined gates share request-owned authentication without
+  replaying Agent nonces. Native IsGranted remains independent. See [Symfony composition](docs/symfony-permission-admission.md)
+  for supported forms, early-construction limits and consumer-owned safe-error/bootstrap obligations.
+
+- Optional portable Permission admission through PSR-15, qualified separately with Slim and Yii 3. Effective
+  class/method/repeated/inherited Attributes and protected route additions use existing inward admission without
+  Feature activation. **Pre-v1:** construct `PermissionMiddleware` with `PermissionRequirements`, a trusted native
+  selected-action callback and the existing authority factory/shared request authentication; the declaration-only
+  constructor is removed. Missing/conflicting metadata fails closed before protected work. Supported Slim/Yii
+  entry recipes clone the concrete Slim PSR-7 request and strip copied context before every independent dispatch,
+  isolating nested same-object reentry while adjacent gates still share one authentication/nonce. Consumer routes,
+  authentication, storage, sinks and target scope still require qualification. See
+  [HTTP composition](docs/http-permission-admission.md#portable-permission-admission-unreleased).
+- Optional native CodeIgniter 4 Feature before-filter admission with cumulative trusted action/route requirements,
+  fresh shared Feature evaluation and generic 404 only for ordinary unavailability. Feature-only registration needs
+  no Permission filter. Both gates share request-owned provider selection and preserve each other's restrictions,
+  using the existing Common-backed safe JSON loop/responder without another reporter or evaluator.
+  **Pre-v1:** construct CI4 PermissionFilter with the shared RequestAuthentication instead of a separate authority
+  closure/context map. Consumer aliases, bootstrap, authentication and JSON/outer-lifecycle qualification remain
+  explicit; no auto-registration, grant, scanner or production consumer qualification is added.
+  See [native Feature composition](docs/codeigniter-feature-admission.md).
+
+- Optional final nullable audit storage and direct typed originating User/Agent/System provenance for all three Agent
+  material maintenance paths. Real rewrap, permanent material failure, expiry and cleanup acknowledgement record
+  bounded original relationships, operation revisions, scoped key and trusted outcome time in their actual write
+  transaction. No-change adds none; audit failure cannot undo external cleanup and retains exact-tuple recovery.
+  Expiry reached through rewrap needs no target-key admission. **Pre-v1:** consumers opting in must map new
+  maintenance actions/facts and qualify the real shared audit connection and sink recovery. Null disables durable
+  audit, not existing authority/fences. No backfill, Event, physical-key operation or consumer qualification is added.
+  See [maintenance composition](docs/agent-delivery-maintenance.md#optional-atomic-maintenance-audit-unreleased).
+
+- Optional last nullable audit storage for Agent delivery outcomes and delegating scheduler recovery. Enabled
+  evidence joins the actual delivery/claim-terminalization transaction with retained typed origin, credential/delivery
+  relationships, scoped original operation key, actual revisions and trusted outcome time. Claims/admissions/polls
+  and unchanged receipt reconciliation add none. Audit failure rolls back staged state/evidence, never an external
+  send; receipt-first recovery and both uncertain outcomes remain. **Pre-v1:** map four delivery actions and complete
+  `AuditAgentDeliveryOutcome` facts and qualify the shared connection/fences and sink before opt-in. Omitted/null
+  disables durability, not current worker authorization; no fallback actor, Event, backfill or schema operation.
+  See [delivery audit composition](docs/agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased).
+
+- Optional last nullable audit repository for Agent credential revocation. Enabled typed evidence commits with
+  authority retirement and original-delivery cancellation; omitted/null disables durable audit, not required actor,
+  caller policy or writer fences. Exact credential state/revision and trusted revocation time remain; unavailable
+  operation correlation is not fabricated. Audit failure rolls back staged state; uncertain acknowledgement and
+  ordinary post-commit publication faults still throw, preserving committed evidence and the primary fault.
+  **Pre-v1:** move audit storage to the final constructor position and qualify the actual shared connection before
+  opt-in. No backfill, grants or consumer data operation is supplied. See
+  [revocation composition](docs/agent-credential-retirement.md#optional-atomic-revocation-audit-unreleased).
+
+- Optional last nullable audit repository for recoverable Agent provision/rotation Commands. Enabled evidence joins
+  issuance/reservation and rotation retirement in the same transaction, with original typed provenance and actual
+  operation revision. Origin is retained independently of audit through current hydration/copies/tombstones; retries
+  and later opt-in never backfill evidence or overwrite attribution. **Pre-v1:** update handler argument order,
+  operation origin kind/UUID persistence and `AuditAgentOutcome`'s required nullable `operation_revision` mapping.
+  Omitted/null disables durable audit, not authorization, fences or recovery. Void Commands/authorized outcome Queries
+  and uncertainty remain; publication failure cannot hide committed issuance. Consumers qualify real connections and
+  storage; no migration, schema/data operation or deployment is supplied. See
+  [issuance audit composition](docs/agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased).
+
+- Optional last nullable audit storage for complete managed-policy reconciliation, with explicit typed originating
+  actor, one record per meaningfully changed Role/Permission, actual Role incarnation/revisions and memberships,
+  trusted reconciliation time and message correlation. State/evidence commit or roll back as one batch; unchanged
+  items remain unaudited and the existing summary Event still publishes. **Pre-v1:** map nullable Command actor-kind/ID
+  fields and new managed Role evidence actions/facts, and qualify the actual shared transaction before opt-in.
+  Disabled audit makes no durability promise. No Feature mutation, new authority, compatibility reader or backfill
+  is added. See [reconciliation composition](docs/operation-outcomes.md#optional-atomic-reconciliation-audit-unreleased).
+
+- Optional last nullable audit repository for code-defined Feature provisioning. Enabled creation explicitly records
+  one typed initial Feature/Permission outcome inside the whole batch transaction, with trusted Clock time and shared
+  incoming message correlation. Empty/all-existing passes need no audit-only actor; disabled auditing makes no durable
+  evidence promise. Preserve authoritative retries, atomic reference/uniqueness guards and ordinary publication faults.
+  **Pre-v1 consumer obligation:** supply the new required Clock dependency, update the canonical Command/schema's
+  paired nullable `actor_kind`/`actor_id` fields, and qualify the real shared audit connection/mapping. Autonomous
+  callers supply fixed-nil SystemId once per Command without replacing User/Agent origins. No aliases, backfill,
+  migration, grants or reliable event delivery are added. See [provisioning composition](docs/feature-provisioning.md#optional-atomic-audit-unreleased).
+
+- Optional last nullable audit storage for Feature status and Permission-binding changes, with explicit typed
+  originating provenance, actual revisions/relationships, trusted outcome time and message correlation in the
+  owning transaction. Validated no-change adds no evidence; configured failure rolls back, and committed evidence
+  survives ordinary publication failure. **Pre-v1:** both setting handlers now require Clock before the Unit of
+  Work; update current callers and nullable actor-kind/ID payload mappings, and qualify the actual shared connection
+  before opt-in. Disabled audit makes no durable-evidence promise; no authorization, backfill or schema operation
+  is supplied. See [Feature setting audit](docs/feature-management.md#optional-atomic-setting-audit-unreleased).
+
+- Optional final nullable audit repository for manual Feature creation and guarded retirement. Enabled evidence joins
+  the mutation/reference transaction with typed origin/Feature/Permission, trusted outcome time, actual initial/prior
+  revisions and incoming message correlation. **Pre-v1 caller change:** inject Application Clock before the UoW and
+  update canonical CreateFeature/RemoveFeature payloads with nullable actor kind/UUID. Enabled work requires explicit
+  provenance before mutation; disabled composition needs no audit-only input. Existing uniqueness, complete CURRENT
+  discovery, full-state CAS, reference guards and ordinary failure behavior remain. Consumers qualify current mapping
+  and the actual shared connection; no backfill, schema operation or authority is added. See
+  [Feature lifecycle composition](docs/feature-management.md#optional-manual-lifecycle-audit-unreleased).
+
+- Optional last nullable audit repository for direct Agent Permission grant, revocation and complete replacement.
+  Handlers own the single assignment/evidence transaction; the internal coordinator no longer commits. Enabled
+  evidence records actual assignment revisions, changed typed relationships, transition time and message correlation.
+  No-ops add none; configured audit failure rolls back, and ordinary publication failure leaves committed evidence.
+  Consumers must qualify current mappings and shared connections; omitted/null makes no durable-audit promise.
+  No legacy reader, backfill, schema operation or implicit authorization is supplied. See
+  [Agent Permission audit composition](docs/agent-administration-contracts.md#optional-direct-permission-audit-composition-unreleased).
+
+- Optional final audit repository for Agent name updates. Enabled `agent.name_changed` evidence joins the rename
+  transaction with the existing typed User/Agent initiator, Agent subject, exact persisted changedAt and message ID.
+  Bounded facts omit names and fabricated revisions. No-op adds none; audit failure rolls back and committed evidence
+  survives publication failure without a success acknowledgement. Omitted/null disables durable audit intentionally.
+  **Pre-v1 consumer obligation:** support the new action/facts mapping and qualify the actual shared connection before
+  opt-in; no backfill or new authority is supplied. See [name-update composition](docs/agent-name-updates.md#optional-atomic-name-change-audit-unreleased).
+
+- Optional final audit storage for User Role assignment/removal. Enabled evidence joins the membership transaction
+  with the required originating User actor, actual assignment-counter transition, typed Role/reference revision,
+  trusted outcome time and message correlation. Validated retries add none; User-state, reserved identity, reference/
+  CAS and ordinary failure behavior remain. **Pre-v1 consumer obligation:** opt in per handler, map the current typed
+  evidence on the actual shared connection and qualify storage/fences; no compatibility reader, backfill or schema
+  change is supplied. Command/Event payloads remain unchanged. See
+  [User membership composition](docs/role-membership-contracts.md#optional-user-membership-audit-composition).
+
+- Optional final audit storage for custom Role Permission grants and revocations. Enabled evidence joins the Role
+  mutation transaction and records the related Permission, exact Role incarnation/revisions, outcome time and actual
+  message ID. Validated no-change creates no evidence; existing required typed actors, eligibility and fences remain.
+  **Pre-v1 consumer obligation:** opt in explicitly and support the current typed evidence mapping on the same
+  transaction connection; no legacy mapping, backfill or automatic consumer adoption is provided. Command/Event
+  payloads remain unchanged. See [Role Permission composition](docs/role-membership-contracts.md#optional-role-permission-audit-composition).
+
+- Optional final audit repository for custom Role creation, rename and removal. Enabled evidence joins ordinary
+  mutation transactions with the existing typed User actor, actual incarnation/revisions, outcome time and message
+  correlation. Validated same-name rename adds none; audit failure rolls back, uncertain outcomes remain uncertain,
+  and committed evidence survives ordinary publication failure. Omitted/null makes no durable-audit promise.
+  Consumers must qualify current evidence mappings and the actual shared connection before adoption; see
+  [Role composition](docs/role-revisions.md#optional-lifecycle-audit-unreleased).
+
+- Optional audit storage for email-change request, cancellation, delivery and expiry. Audit is last for cancellation,
+  delivery and expiry; the request handler takes it before the final optional participant. Self-service and
+  administrative outcomes share current request/cancel action values; expiry records atomic User/grant release.
+  Breaking pre-v1 changes require updated constructor wiring, replace administrative-only action spellings and require
+  typed actor-kind/UUID expiry Command/Event payloads. Update callers and mappings directly. Claims, external
+  sends, recovery and ordinary failure propagation remain unchanged; synchronous
+  confirmation is separately owned. See [email-change composition](docs/credential-delivery.md#optional-email-change-audit-composition-unreleased).
+
+- Optional final audit storage for password-reset request, delivery and expiry. Enabled expiry records atomic typed
+  material-expiry evidence; public ineligible requests remain concealed no-work. **Breaking pre-v1 composition:** move
+  request/delivery audit arguments to the end, and replace string expiry actors with typed kind/UUID Command/Event
+  provenance. Claims, external sends, recovery authority, uncertainty and ordinary notification failures retain their
+  existing boundaries. Synchronous password change/reset is separate. See
+  [reset composition](docs/credential-delivery.md#optional-password-reset-audit-composition-unreleased).
+
+- Scoped Agent execution/timeline admission through Common's real summary/list/get/phase/activity handlers.
+  Direct read Permissions intersect trusted consumer relationships; independent reference Permissions cannot
+  grant bodies or widen scope. Require Common **^1.5.1** for activity-scoped aggregate/derived-inspection correction;
+  v1.5.0 supplied the APIs but was insufficient for this guarantee. Consumers retain invocation-stability and
+  real persistence/authority-writer race qualification. See [execution reads](docs/agent-execution-reads.md).
+
+- Optional final audit repository composition for invitation delivery, resend, retry and expiry. Enabled outcome
+  evidence joins the actual mutation transaction; disabled composition makes no durable-audit promise. Expiry now
+  records committed material expiry with typed actor kind/UUID Command/Event payloads. This breaks the formerly
+  second audit constructor argument and string expiry actor contract; update callers directly. Separate claims,
+  external sends, recovery and ordinary post-commit failure behavior remain unchanged. See
+  [invitation composition](docs/credential-delivery.md#optional-invitation-audit-composition-unreleased).
+
+- Optional Agent-protected Common Prompt list/get composition with exact immutable definition associations,
+  nonempty conjunctive direct Permissions and trusted request-local authority. Common retains lazy content,
+  validation, safe bounded failures and private zero-TTL responses; Query data and linked Resource/Skill targets
+  need independent admission. See [Prompt authorization](docs/agent-prompt-authorization.md).
+
+- Optional native Laravel Feature middleware consumes effective inherited/class/method/route restrictions before
+  protected validation/action work, independently of Permission activation. Cooperating gates share trusted
+  request authentication and one Agent nonce; ordinary OFF/unmet PREVIEW becomes generic 404 while faults retain
+  Common's safe native owner. See [Laravel Feature composition](docs/laravel-feature-admission.md) for supported
+  forms, real construction/lifetime limits and consumer-owned qualification.
+
+- Optional native Symfony Feature admission before lazy controller resolution, independently selectable from
+  PermissionSubscriber. Shared effective declarations and dispatch-owned authentication preserve inherited gates,
+  trusted controller association and one Agent nonce across cooperating checks. Ordinary OFF/unmet PREVIEW is generic
+  404; faults retain Common's safe native owner. See [Symfony Feature composition](docs/symfony-feature-admission.md)
+  for actual lifecycle, optional component and consumer limits.
+
+- Optional Feature-only PSR-15 admission with shared inward restrictions, separately exercised real Slim/Yii 3
+  bindings, effective inherited requirements and trusted request-owned User/Agent/anonymous context. Cooperating
+  Permission gates share one authentication selection without trusting copied attributes or replaying Agent nonces.
+  Only ordinary OFF/unmet PREVIEW yields generic 404; binding/configuration/provider faults remain safe errors under
+  Common's existing reporting owner. See [Feature HTTP composition](docs/http-feature-admission.md).
+
+- Portable repeatable class/method `RequiresPermission` and effective `PermissionRequirements`, reusing shared
+  selected-action ancestry. Attribute-only protection and trusted route conjunction preserve parent gates, validate
+  before deduplication and reject conflicting explicit modes without changing raw declaration or admission rules.
+  Pure metadata only: no automatic native enforcement, Feature dependency or new grant. See
+  [Permission declarations](docs/permission-requirements.md).
+- Effective Feature requirements bound to trusted selected class/method, inherited/overridden/invokable or closure
+  actions, with one reusable pure ancestry mechanism. Class, method, parent and explicit route gates accumulate;
+  validation precedes deduplication. Scoped fixture discovery and actual preparation/provisioning/retirement callers
+  account for all declarations. No production scanner or Permission grant is supplied; optional native enforcement is separately described above. See
+  [Feature declarations](docs/feature-references.md).
+- Optional route-bound PSR-15 Permission admission with shared inward declarations and trusted User/Agent authority
+  selection, separately qualified Slim/Yii 3 composition, request isolation and Common-owned safe HTTP errors.
+  No routes, credentials, grants or framework bootstrap are installed. See [HTTP admission](docs/http-permission-admission.md).
+- Explicit trusted Agent continuation bindings and synchronized bounded-action admission, with original credential,
+  current direct Permission and consumer-scope revalidation. Request snapshots and nonce behavior are unchanged;
+  worker handoff and composite fences require qualified consumer implementations. See
+  [continuation composition](docs/agent-continuation-authorization.md). No live/Task runtime or release is supplied.
+
+### Changed
+
+- **Breaking pre-v1 synchronous audit composition:** UserAuthentication, SessionLifecycle, PasswordManagement
+  and RevokeSessionHandler take optional nullable audit storage last. EmailChangeConfirmation takes it before the
+  final optional participant. Omission/null disables durable evidence; configured failure aborts the coupled
+  outcome. Activation/login/rotation/logout and self-service revocation now join the existing password/email/admin
+  paths. Explicit typed provenance is required for enabled
+  activation, logout, reset, confirmation and terminal replay revocation, never inferred from a target or old
+  credential. Committed replay revocation is evidenced before outward refusal; benign conflicts and helper no-change
+  create no duplicate evidence. Consumer mappings must admit the new actions/authentication facts; no backfill or
+  compatibility reader is supplied. See [synchronous composition](docs/user-authentication.md#optional-atomic-audit).
+- **Breaking pre-v1 User lifecycle constructor order:** InvitePendingUser, RegisterUser, CorrectPendingInvitation,
+  RecoverPendingRegistration, EnableUser, DisableUser, DeleteUser and RestoreUser handlers now take optional nullable
+  audit storage last. Omitted/null disables durable evidence; configured write failure still aborts the atomic
+  outcome. Existing typed actors, public-registration AnonymousId, target/default-Role/CAS checks, coupled effects
+  and ordinary post-commit failure behavior remain. Other audit families are unchanged. See
+  [lifecycle composition](docs/user-lifecycle-contracts.md#optional-account-audit-composition).
+- **Breaking pre-v1 audit evidence contract:** replace actor/action strings and arbitrary context with direct typed
+  originating identities, finite subjects/actions, unique evidence identity, trusted outcome time, actual revisions,
+  relationships/correlation and admitted facts across existing writers. Current invitation/reset messages persist
+  actor kind plus ID; synchronous reset/confirmation require explicit origin for enabled audited mutations.
+  Agent authorization returns typed originating attribution separately from real-invoker policy. Update current
+  callers, hydration and consumer persistence mapping directly; no old-shape reader or backfill is supplied.
+  Existing transaction, recovery and publication policies remain. The account lifecycle optional wiring is
+  described above. The release also includes the separate family wiring listed under Added. See
+  [typed evidence](docs/audit-evidence.md).
+- Adopt the canonical MCP contracts first qualified on published Common `^1.5.0` foundation and HTTP adapter spellings and Skill getters, with
+  exact-minimum and ordinary composition proof at that checkpoint. The v0.9.0 floor is `^1.5.1`. Upstream runtime identity, profile/Resource/Skill output,
+  validation, independent authority, nonce/request lifetimes and transaction/publication behavior remain.
+  No future MCP family or consumer deployment is qualified. See the [contract inventory](docs/common-contracts.md).
+- **Ordinary HTTP composition:** use the release's Common `^1.5.1` floor and, when selected, Symfony Routing/Security HTTP
+  `^8.1.11`; qualify typed 404/409/412/422 versus internal
+  500, private structured validation, required metadata and one safe reporting/fallback owner. Symfony composition
+  must explicitly select `handleAllThrowables: true` for PHP Errors to enter safe dispatch. Its event-map static
+  contract is precise; public constructors/named arguments, permission/nonce/scope and protocol boundaries remain.
+  Update current nullable-result/catch and safe-handler composition directly, without compatibility mode. See
+  [ordinary HTTP contracts](docs/ordinary-http-failures.md). No consumer readiness or release is implied.
+- **Breaking pre-v1 payload metadata alignment:** complete current Agent issuance/status/profile and Feature
+  payload components, retain explicit credential-status absence and confirmed/indeterminate operation states,
+  constrain browser output to its safe fields, and align optional relationships, canonical names/session reasons and
+  native empty payload/ordering shapes. Default generated OpenAPI 3.1 tests validate real values and invalid
+  samples; FeatureFlag now permits repeated class/method declarations and remains declaration-only. Recompose consumer documents
+  and regenerate clients as appropriate; no endpoint, generic failure policy or compatibility mode is supplied. See the [current payload map](docs/public-payload-catalog.md).
+- **Breaking pre-v1 human credential worker failures:** eleven void request/worker handlers now distinguish known
+  Common Application conflict/not-found/permission intent from internal lookup and claim faults. Preserve generic
+  reset no-work, distinct family authority/expiry, outside-transaction provider retry classification and ordinary
+  post-commit publication behavior. Invocation purposes and internal result contracts are precise; concrete ciphers
+  must mark sensitive plaintext parameters. Update catches/composition directly. See
+  [request and worker contracts](docs/credential-delivery.md#request-and-worker-contracts-unreleased).
+- **Breaking pre-v1 User lifecycle Application contracts:** eight void handlers distinguish deliberate missing User,
+  target denial, state conflict and explicit recovery-generation precondition failure using Common Application
+  categories. Wrong identities/correlations, broken registration configuration and unknown faults remain internal.
+  Update affected catches and named generator/cipher/recovery-authorization arguments directly; repository
+  nullability, Domain transitions, success wire shapes, atomic audit/fences and commit/publication outcomes remain.
+  See [current lifecycle contracts](docs/user-lifecycle-contracts.md). Consumer qualification remains separate.
+- **Breaking pre-v1 credential status contract:** optional invitation/exact delivery status Queries now return a safe
+  View or explicit `CredentialDeliveryAbsent`, not null. Invitation Views require/expose recorded activation origin.
+  Discovery validates each bounded purpose-family batch before legitimate deterministic global top-N selection.
+  Update callers, View constructors and composed schemas directly; repository lookups remain nullable and all four
+  Queries remain advisory/read-only, with unchanged authority, recovery and expiry policy. See
+  [current contracts](docs/credential-delivery.md#explicit-status-and-bounded-discovery-unreleased).
+- **Breaking pre-v1 required-resource Query contract:** `GetUserById`, `GetRoleById`, `GetPermissionById`,
+  `GetAgentById` and `GetAgentProfile` return non-null safe Views or Common Application `ResourceNotFound`;
+  `GetFeatureById` uses that same deliberate absence category instead of Domain `FeatureNotFoundException`.
+  All six reject wrong returned identities as internal faults. Nullable repositories, absent/revoked profile
+  concealment, authorization, exact Agent Permissions, Role revisions and Feature missing-binding data remain.
+  Update nullable callers/catches and explicit profile Tool failure bindings directly, without compatibility mode.
+  See [required-resource Queries](docs/required-resource-queries.md).
+- **Breaking pre-v1 Agent issuance caller contract:** replace direct provision/rotation services and their
+  result/publication-warning types with immutable secret-free `ProvisionAgent` / `RotateAgentCredential` Commands
+  and registered void handlers. Retain original key/request before dispatch; use authorized `GetAgentOperation`
+  Query dispatch for original issuance/dispositions independently of execution timing. Serialized delay/restart/
+  redelivery rechecks actual invoker/delegation and current transactional authority. Lost commit acknowledgement
+  surfaces safe execution uncertainty; confirmed issuance remains queryable even if both publishers fail, without
+  returned or reconstructed warnings. Canonical marker/bytes, atomic retirement/audit, bounded recovery and
+  cohort/restoration fences remain. No facade, transport/broker requirement or consumer qualification is supplied.
+  See [composition and outcomes](docs/agent-integration.md).
+- **Breaking pre-v1 operation ownership:** moved `AgentCredentialOperation`, its owned Domain values, delivery,
+  maintenance, Queries/View and failures into `Domain\AccessControl\AgentCredentialOperation`; Application workers,
+  policy ports and query handlers mirror that aggregate. Material-bearing persistence is now
+  `AgentCredentialOperationRepository`; the independent `AgentCredentialOperationReadRepository` exposes only safe
+  status, due/maintenance selection, key inventory and cohort observation. Update imports and named arguments
+  (`operationRepository` for writers, `operationReadRepository` for readers) directly; no aliases remain.
+  Query-owned `AgentOperationView::fromOperation()` replaces aggregate `getStatus()` construction. Wire/schema
+  shapes, original issuance, retained-key safety, atomic cancellation/audit, current authorization and
+  cohort/restoration/claim/receipt fences remain unchanged. Actual consumer persistence qualification is not
+  supplied. See [composition](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
+- **Breaking pre-v1 synchronous User API:** replace `AuthenticationService` directly with
+  `User\Authentication\UserAuthentication`, `RefreshSession\SessionLifecycle`, `User\PasswordManagement` and
+  `EmailChangeGrant\EmailChangeConfirmation`. Each owns its actual transaction and only relevant dependencies;
+  authentication/refresh share `User\Authentication\TokenIssuer`. No facade, alias or legacy mode remains.
+  Sensitive inputs, safe token/conflict/void results, atomicity, recovery, audit, concurrent-writer defenses and
+  post-commit failure behavior are unchanged. Failure notifications identify their current owner class/method.
+  See [direct composition and before/after callers](docs/user-authentication.md). No consumer qualification or release.
+- **Breaking pre-v1 User transitions:** activation, password change/reset and email confirmation now own their
+  authentication-authority revision changes. Successful login uses `User::recordSuccessfulLogin()` with an optional
+  verified rehash, advancing the persistence revision once without changing authenticationVersion or recovery
+  authority. Standalone revision increment and password-rehash APIs are removed; update callers directly. Repository
+  CAS, coupled session insertion, grant/session/audit atomicity and publication outcomes remain unchanged. See
+  [User transition composition](docs/operation-outcomes.md#user-authentication-transitions-unreleased).
+- **Breaking pre-v1 Agent rename semantics:** `AgentName::fromString()` now owns the existing provisioning name
+  rule for both provisioning and rename: fixed Unicode White_Space edge trimming plus NUL, nonempty UTF-8 and at
+  most 120 code points, case/internal whitespace preserved, no NFC conversion, U+200B/U+FEFF untrimmed. Rename
+  intentionally replaces PHP `trim`; Unicode-space-only names now reject. The duplicate
+  `AgentOperationCanonicalization::name()` API is removed without an alias or mode. Provisioning canonical marker
+  **2**, valid request bytes, retained issuance/recovery and rename's authority/no-op/commit/publication fences
+  remain unchanged. See [name updates](docs/agent-name-updates.md); no consumer migration or deployment is supplied.
+- **Breaking pre-v1 PHP organization:** Agent Application collaborators now live in cohesive `Authentication`,
+  `Credential`, `Delivery`, `Maintenance`, `Continuation` and `PermissionAssignment` homes; Feature discovery and
+  authorization admission have matching capability homes. Repository/bus/dispatcher parameter and property names
+  identify their capability, including named calls and maintained examples. Update imports and named arguments
+  directly; no old-name aliases are supplied. Behavior, wire schemas, grants, nonce/transaction/failure/outcome
+  contracts and Common dependencies are unchanged by this refactor.
+- **Breaking pre-v1 MCP PHP homes:** moved Agent profile Tools/failure mappings, Tool Permission catalog/attribute
+  and Tool/Resource/Skill bindings/catalogs/availability from Application to `Adapter/Mcp/{Tool,Resource,Skill}/Agent`.
+  Update imports, registrations and attributes directly; no old-name aliases remain. Profile Tool named bus arguments
+  are now `queryBus` and `synchronousCommandBus`. Wire IDs/schemas/results, actual Common invocation/buses,
+  request-local authentication, inward Permission policy and synchronized continuation are unchanged. See
+  [profile composition](docs/agent-profile-tools.md) and the linked family guides. No Common dependency adoption,
+  consumer bootstrap, grants, release or deployment is supplied.
+- Narrowed the Common minimum from `^1.3` to `^1.4` for tagged safe-error contracts. Native Slim/Yii dependencies
+  remain optional production integrations and isolated dev fixtures. The final v0.9.0 Common floor is `^1.5.1`;
+  see the [release overview](docs/release-0.9.0.md) for the current framework and consumer boundaries.
+
 ## [0.8.0] - 2026-10-21
 
 Pre-v1 breaking Role and recovery contract release. See the [release and integration overview](docs/release-0.8.0.md).
@@ -354,7 +741,8 @@ This dated section prepares release notes; it is not evidence of signing, public
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/johnnickell/fight-access-control/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/johnnickell/fight-access-control/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/johnnickell/fight-access-control/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/johnnickell/fight-access-control/compare/v0.5.0...v0.6.0

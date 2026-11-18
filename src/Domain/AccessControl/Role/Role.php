@@ -186,7 +186,7 @@ class Role
         return new static(
             $this->id,
             $name,
-            $this->permissionIds->toArray(),
+            iterator_to_array($this->permissionIds, false),
             false,
             $this->createdAt,
             $updatedAt,
@@ -205,7 +205,7 @@ class Role
             return $this;
         }
 
-        $permissionIds = $this->permissionIds->toArray();
+        $permissionIds = iterator_to_array($this->permissionIds, false);
         $permissionIds[] = $permissionId;
 
         return new static(
@@ -285,7 +285,7 @@ class Role
      */
     public function getPermissionIds(): array
     {
-        return $this->permissionIds->toArray();
+        return iterator_to_array($this->permissionIds, false);
     }
 
     /**

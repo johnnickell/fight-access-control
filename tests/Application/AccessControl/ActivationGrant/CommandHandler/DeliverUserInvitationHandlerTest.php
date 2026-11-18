@@ -15,10 +15,10 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\UserInvitationDelivered;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
@@ -45,13 +45,13 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $grant = $this->grant();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        self::assertTrue($repository->add($grant));
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        self::assertTrue($activationGrantRepository->add($grant));
         $provider = new RecordingCredentialDeliveryProvider(onDeliver: static function (
             CredentialDeliveryInvocation $invocation
         ) use (
             $unitOfWork,
-            $repository,
+            $activationGrantRepository,
             $grant
 ): void {
             self::assertFalse($unitOfWork->transactionActive);
@@ -61,25 +61,31 @@ final class DeliverUserInvitationHandlerTest extends TestCase
             self::assertSame('activate-once', $invocation->getCredential());
             self::assertSame(
                 CredentialDeliveryStatus::CLAIMED,
-                $repository->getLatestByUserId($grant->getUserId())?->getDelivery()->getStatus()
+                $activationGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery()->getStatus()
             );
         });
-        $events = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
+        $eventDispatcher = new InMemoryEventDispatcher(static function () use ($unitOfWork): void {
             self::assertFalse($unitOfWork->transactionActive);
         });
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
 
-        $this->handler($repository, $audit, $unitOfWork, $provider, $events)->handle(
+        $this->handler(
+            $activationGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $provider,
+            $eventDispatcher
+        )->handle(
             CommandMessage::create($this->command($grant))
         );
 
-        $stored = $repository->getLatestByUserId($grant->getUserId());
+        $stored = $activationGrantRepository->getLatestByUserId($grant->getUserId());
         self::assertSame(2, $unitOfWork->transactions);
         self::assertSame(CredentialDeliveryStatus::DELIVERED, $stored->getDelivery()->getStatus());
         self::assertNull($stored->getDelivery()->getEncryptedMaterial());
-        self::assertSame('user.invitation_delivery.confirmed', $audit->all()[0]->action());
+        self::assertSame('user.invitation_delivery.confirmed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertCount(1, $provider->invocations());
-        self::assertInstanceOf(UserInvitationDelivered::class, $events->events()[0]);
+        self::assertInstanceOf(UserInvitationDelivered::class, $eventDispatcher->events()[0]);
         self::assertSame(DeliverUserInvitation::class, DeliverUserInvitationHandler::commandRegistration());
     }
 
@@ -93,23 +99,23 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         ) {
             $unitOfWork = new InMemoryUnitOfWork();
             $grant = $this->grant();
-            $repository = new InMemoryActivationGrantRepository($unitOfWork);
-            self::assertTrue($repository->add($grant));
-            $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-            $events = new InMemoryEventDispatcher();
+            $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+            self::assertTrue($activationGrantRepository->add($grant));
+            $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             $this->handler(
-                $repository,
-                $audit,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
                 new RecordingCredentialDeliveryProvider([$outcome]),
-                $events
+                $eventDispatcher
             )->handle(CommandMessage::create($this->command($grant)));
 
-            $delivery = $repository->getLatestByUserId($grant->getUserId())?->getDelivery();
+            $delivery = $activationGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery();
             self::assertSame($expectedStatus, $delivery->getStatus());
-            self::assertSame('user.invitation_delivery.failed', $audit->all()[0]->action());
-            self::assertSame([], $events->events());
+            self::assertSame('user.invitation_delivery.failed', $auditEvidenceRepository->all()[0]->action()->value);
+            self::assertSame([], $eventDispatcher->events());
             if ($outcome === CredentialDeliveryOutcome::RETRYABLE_FAILURE) {
                 self::assertSame(CredentialDeliveryFailure::RETRYABLE_PROVIDER, $delivery->getLastFailure());
                 self::assertNotNull($delivery->getEncryptedMaterial());
@@ -124,21 +130,21 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $grant = $this->grant();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        self::assertTrue($repository->add($grant));
-        $events = new InMemoryEventDispatcher();
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        self::assertTrue($activationGrantRepository->add($grant));
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         $this->handler(
-            $repository,
+            $activationGrantRepository,
             new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             new RecordingCredentialDeliveryProvider([new RuntimeException('secret vendor diagnostic')]),
-            $events
+            $eventDispatcher
         )->handle(CommandMessage::create($this->command($grant)));
 
-        $delivery = $repository->getLatestByUserId($grant->getUserId())?->getDelivery();
+        $delivery = $activationGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery();
         self::assertSame(CredentialDeliveryFailure::UNEXPECTED_PROVIDER, $delivery?->getLastFailure());
-        self::assertSame([], $events->events());
+        self::assertSame([], $eventDispatcher->events());
         self::assertStringNotContainsString(
             'secret vendor diagnostic',
             print_r($delivery, true).var_export($delivery, true)
@@ -149,16 +155,16 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork(failOnTransaction: 2);
         $grant = $this->grant();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        self::assertTrue($repository->add($grant));
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        self::assertTrue($activationGrantRepository->add($grant));
         $provider = new RecordingCredentialDeliveryProvider();
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->handler(
-            $repository,
+            $activationGrantRepository,
             new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             $provider,
-            $events,
+            $eventDispatcher,
             new FixedClock(
                 '2026-08-23T11:00:00+00:00',
                 '2026-08-23T11:00:01+00:00',
@@ -178,7 +184,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
 
         self::assertSame(
             CredentialDeliveryStatus::CLAIMED,
-            $repository->getLatestByUserId($grant->getUserId())?->getDelivery()->getStatus()
+            $activationGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery()->getStatus()
         );
         $handler->handle(CommandMessage::create($this->command($grant)));
 
@@ -187,71 +193,81 @@ final class DeliverUserInvitationHandlerTest extends TestCase
             $provider->invocations()[0]->getIdempotencyId(),
             $provider->invocations()[1]->getIdempotencyId()
         );
-        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-        self::assertInstanceOf(UserInvitationDelivered::class, $events->events()[1]);
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
+        self::assertInstanceOf(UserInvitationDelivered::class, $eventDispatcher->events()[1]);
     }
 
     public function test_missing_stale_and_competing_claims_never_invoke_the_provider(): void
     {
         $provider = new RecordingCredentialDeliveryProvider();
-        $events = new InMemoryEventDispatcher();
+        $eventDispatcher = new InMemoryEventDispatcher();
         $handler = $this->handler(
             new InMemoryActivationGrantRepository(),
             new InMemoryAuditEvidenceRepository(),
             new InMemoryUnitOfWork(),
             $provider,
-            $events
+            $eventDispatcher
         );
 
         try {
             $handler->handle(CommandMessage::create(new DeliverUserInvitation(
-                'Admin-42',
+                UserId::generate(),
                 UserId::generate(),
                 ActivationDeliveryId::generate()
             )));
             self::fail('Missing work was accepted.');
-        } catch (ActivationDeliveryNotRetryableException) {
+        } catch (StateConflict) {
         }
 
         $unitOfWork = new InMemoryUnitOfWork();
         $grant = $this->grant();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork, replaceFailureOnCall: 1);
-        self::assertTrue($repository->add($grant));
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork, replaceFailureOnCall: 1);
+        self::assertTrue($activationGrantRepository->add($grant));
         try {
-            $this->handler($repository, new InMemoryAuditEvidenceRepository(), $unitOfWork, $provider)->handle(
+            $this->handler(
+                $activationGrantRepository,
+                new InMemoryAuditEvidenceRepository(),
+                $unitOfWork,
+                $provider
+            )->handle(
                 CommandMessage::create($this->command($grant))
             );
             self::fail('A competing claim loss was accepted.');
-        } catch (ActivationDeliveryNotRetryableException) {
+        } catch (StateConflict) {
         }
 
         self::assertSame([], $provider->invocations());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
     }
 
     public function test_concurrent_outcome_makes_the_provider_result_stale(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $grant = $this->grant();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        self::assertTrue($repository->add($grant));
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        self::assertTrue($activationGrantRepository->add($grant));
         $provider = new RecordingCredentialDeliveryProvider(onDeliver: static function () use (
-            $repository,
+            $activationGrantRepository,
             $grant
         ): void {
-            $claimed = $repository->getLatestByUserId($grant->getUserId());
+            $claimed = $activationGrantRepository->getLatestByUserId($grant->getUserId());
             $claimToken = $claimed?->getDelivery()->getClaimToken();
             self::assertNotNull($claimed);
             self::assertNotNull($claimToken);
-            self::assertTrue($repository->replace(
+            self::assertTrue($activationGrantRepository->replace(
                 $claimed,
                 $claimed->confirmDelivery($claimToken, new DateTimeImmutable('2026-08-23T11:00:30+00:00'))
             ));
         });
 
-        $this->expectException(ActivationDeliveryNotRetryableException::class);
-        $this->handler($repository, new InMemoryAuditEvidenceRepository(), $unitOfWork, $provider)->handle(
+        $this->expectException(StateConflict::class);
+        $this->handler(
+            $activationGrantRepository,
+            new InMemoryAuditEvidenceRepository(),
+            $unitOfWork,
+            $provider
+        )->handle(
             CommandMessage::create($this->command($grant))
         );
     }
@@ -260,22 +276,22 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $grant = $this->grant();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork, replaceFailureOnCall: 2);
-        self::assertTrue($repository->add($grant));
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork, replaceFailureOnCall: 2);
+        self::assertTrue($activationGrantRepository->add($grant));
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $provider = new RecordingCredentialDeliveryProvider();
 
-        $this->expectException(ActivationDeliveryNotRetryableException::class);
+        $this->expectException(StateConflict::class);
         try {
-            $this->handler($repository, $audit, $unitOfWork, $provider)->handle(
+            $this->handler($activationGrantRepository, $auditEvidenceRepository, $unitOfWork, $provider)->handle(
                 CommandMessage::create($this->command($grant))
             );
         } finally {
             self::assertCount(1, $provider->invocations());
-            self::assertSame([], $audit->all());
+            self::assertSame([], $auditEvidenceRepository->all());
             self::assertSame(
                 CredentialDeliveryStatus::CLAIMED,
-                $repository->getLatestByUserId($grant->getUserId())?->getDelivery()->getStatus()
+                $activationGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery()->getStatus()
             );
         }
     }
@@ -284,19 +300,24 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     {
         $unitOfWork = new InMemoryUnitOfWork();
         $grant = $this->grant(expiresAt: '2026-08-23T11:01:00+00:00');
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
-        self::assertTrue($repository->add($grant));
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        self::assertTrue($activationGrantRepository->add($grant));
         $provider = new RecordingCredentialDeliveryProvider(onDeliver: static function () use (
-            $repository,
+            $activationGrantRepository,
             $grant,
             $unitOfWork
         ): void {
-            $claimed = $repository->getLatestByUserId($grant->getUserId());
+            $claimed = $activationGrantRepository->getLatestByUserId($grant->getUserId());
             self::assertFalse($unitOfWork->transactionActive);
             self::assertEquals($grant->getExpiresAt(), $claimed?->getDelivery()->getLeaseUntil());
         });
 
-        $this->handler($repository, new InMemoryAuditEvidenceRepository(), $unitOfWork, $provider)->handle(
+        $this->handler(
+            $activationGrantRepository,
+            new InMemoryAuditEvidenceRepository(),
+            $unitOfWork,
+            $provider
+        )->handle(
             CommandMessage::create($this->command($grant))
         );
     }
@@ -305,7 +326,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     {
         $command = $this->command($this->grant());
         self::assertEquals($command, DeliverUserInvitation::fromArray($command->toArray()));
-        self::assertSame('Admin-42', $command->getActorId());
+        self::assertInstanceOf(UserId::class, $command->getActorId());
         $event = new UserInvitationDelivered(
             $command->getActorId(),
             $command->getUserId(),
@@ -353,28 +374,28 @@ final class DeliverUserInvitationHandlerTest extends TestCase
     private function command(ActivationGrant $grant): DeliverUserInvitation
     {
         return new DeliverUserInvitation(
-            'Admin-42',
+            UserId::generate(),
             $grant->getUserId(),
             $grant->getDelivery()->getId()
         );
     }
 
     private function handler(
-        InMemoryActivationGrantRepository $repository,
-        InMemoryAuditEvidenceRepository $audit,
+        InMemoryActivationGrantRepository $activationGrantRepository,
+        InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
         ?RecordingCredentialDeliveryProvider $provider = null,
-        ?InMemoryEventDispatcher $events = null,
+        ?InMemoryEventDispatcher $eventDispatcher = null,
         ?FixedClock $clock = null
     ): DeliverUserInvitationHandler {
         return new DeliverUserInvitationHandler(
-            $repository,
-            $audit,
+            $activationGrantRepository,
             $unitOfWork,
             new PrefixInvitationDeliveryCipher(),
             $provider ?? new RecordingCredentialDeliveryProvider(),
             $clock ?? new FixedClock('2026-08-23T11:00:00+00:00'),
-            $events ?? new InMemoryEventDispatcher()
+            $eventDispatcher ?? new InMemoryEventDispatcher(),
+            $auditEvidenceRepository
         );
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\User\Event;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
@@ -35,21 +36,23 @@ final readonly class UserLoggedIn implements Event
     public static function fromArray(array $data): static
     {
         foreach (['user_id', 'refresh_session_id', 'logged_in_at'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                $message = sprintf('Missing required key "%s" in data array', $key);
+            if (!array_key_exists($key, $data) || !is_string($data[$key])) {
+                $message = sprintf('Missing or invalid string "%s" in data array', $key);
                 throw new DomainException($message);
             }
         }
 
         return new static(
-            UserId::fromString((string) $data['user_id']),
-            RefreshSessionId::fromString((string) $data['refresh_session_id']),
-            new DateTimeImmutable((string) $data['logged_in_at'])
+            UserId::fromString($data['user_id']),
+            RefreshSessionId::fromString($data['refresh_session_id']),
+            CredentialDeliveryTimestamp::fromString($data['logged_in_at'])->toDateTimeImmutable()
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical login fact
+     *
+     * @phpstan-return array{user_id: string, refresh_session_id: string, logged_in_at: string}
      */
     public function toArray(): array
     {

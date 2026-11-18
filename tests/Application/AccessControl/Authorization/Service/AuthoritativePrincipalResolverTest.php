@@ -8,6 +8,7 @@ use DateInterval;
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\AuthenticationContext;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\AuthoritativePrincipalResolver;
+use Fight\AccessControl\Application\AccessControl\Authorization\Service\ExactPermissionResolutionException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\PrincipalResolutionException;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
@@ -16,6 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
+use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleException;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
@@ -36,6 +38,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use UnexpectedValueException;
 
 #[CoversClass(AuthenticationContext::class)]
 #[CoversClass(AuthoritativePrincipalResolver::class)]
@@ -136,12 +139,12 @@ final class AuthoritativePrincipalResolverTest extends TestCase
             $user = $this->activeUser(7);
             $user->replaceRoleAssignments([$assignedRole->getId()], $now);
             $session = $this->session($user->getId(), 7, $now);
-            $roles = $this->createStub(RoleRepository::class);
-            $roles->method('getByIds')->willReturn([$assignedRole]);
-            $roles->method('getByName')->willReturn($resolvedName);
+            $roleRepository = $this->createStub(RoleRepository::class);
+            $roleRepository->method('getByIds')->willReturn([$assignedRole]);
+            $roleRepository->method('getByName')->willReturn($resolvedName);
 
             $this->expectPrincipalDenied(
-                $this->resolver($now, $user, $session, roleRepository: $roles),
+                $this->resolver($now, $user, $session, roleRepository: $roleRepository),
                 $user,
                 $session
             );
@@ -155,11 +158,15 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $role = ImpersonatingRole::define(RoleId::generate(), RoleName::fromString('ROLE_EDITOR'), [], $now);
         $user->replaceRoleAssignments([$role->getId()], $now);
         $session = $this->session($user->getId(), 7, $now);
-        $roles = $this->createStub(RoleRepository::class);
-        $roles->method('getByIds')->willReturn([$role]);
-        $roles->method('getByName')->willReturn($role);
+        $roleRepository = $this->createStub(RoleRepository::class);
+        $roleRepository->method('getByIds')->willReturn([$role]);
+        $roleRepository->method('getByName')->willReturn($role);
 
-        $this->expectPrincipalDenied($this->resolver($now, $user, $session, roleRepository: $roles), $user, $session);
+        $this->expectPrincipalDenied(
+            $this->resolver($now, $user, $session, roleRepository: $roleRepository),
+            $user,
+            $session
+        );
     }
 
     private function expectPrincipalDenied(
@@ -170,11 +177,8 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         try {
             $resolver->resolve(new AuthenticationContext($user->getId(), $session->getId(), 7));
             self::fail('Inconsistent Role identity reached the authenticated principal.');
-        } catch (PrincipalResolutionException $principalResolutionException) {
-            self::assertSame(
-                'The current principal authority is not valid.',
-                $principalResolutionException->getMessage()
-            );
+        } catch (ManagedRoleException $managedRoleException) {
+            self::assertSame('The Super Admin role identity is inconsistent.', $managedRoleException->getMessage());
         }
     }
 
@@ -261,7 +265,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
 
         $session = $this->session($user->getId(), 7, $now);
 
-        $this->expectException(PrincipalResolutionException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->resolver($now, $user, $session)->resolve(
             new AuthenticationContext($user->getId(), $session->getId(), 7)
         );
@@ -283,7 +287,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $roleRepository = $this->createStub(RoleRepository::class);
         $roleRepository->method('getByIds')->willReturn([$unexpectedRole]);
 
-        $this->expectException(PrincipalResolutionException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->resolver($now, $user, $session, roleRepository: $roleRepository)->resolve(
             new AuthenticationContext($user->getId(), $session->getId(), 7)
         );
@@ -304,7 +308,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $roleRepository = $this->createStub(RoleRepository::class);
         $roleRepository->method('getByIds')->willReturn([$role]);
 
-        $this->expectException(PrincipalResolutionException::class);
+        $this->expectException(ExactPermissionResolutionException::class);
         $this->resolver($now, $user, $session, roleRepository: $roleRepository)->resolve(
             new AuthenticationContext($user->getId(), $session->getId(), 7)
         );
@@ -332,7 +336,7 @@ final class AuthoritativePrincipalResolverTest extends TestCase
         $roleRepository = $this->createStub(RoleRepository::class);
         $roleRepository->method('getByIds')->willReturn([$role]);
 
-        $this->expectException(PrincipalResolutionException::class);
+        $this->expectException(ExactPermissionResolutionException::class);
         $this->resolver(
             $now,
             $user,

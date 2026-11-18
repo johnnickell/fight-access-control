@@ -36,22 +36,24 @@ final readonly class PendingInvitationCorrected implements Event
     public static function fromArray(array $data): static
     {
         foreach (['actor_id', 'user_id', 'email', 'activation_delivery_id'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                $message = sprintf('Missing required key "%s" in data array', $key);
+            if (!array_key_exists($key, $data) || !is_string($data[$key])) {
+                $message = sprintf('Missing or invalid string "%s" in data array', $key);
                 throw new DomainException($message);
             }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id']),
-            EmailAddress::fromString((string) $data['email']),
-            ActivationDeliveryId::fromString((string) $data['activation_delivery_id'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id']),
+            EmailAddress::fromString($data['email']),
+            ActivationDeliveryId::fromString($data['activation_delivery_id'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical invitation-correction fact
+     *
+     * @phpstan-return array{actor_id: string, user_id: string, email: string, activation_delivery_id: string}
      */
     public function toArray(): array
     {

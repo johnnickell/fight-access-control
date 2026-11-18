@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\User\Event;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
@@ -34,20 +35,24 @@ final readonly class RoleAssignedToUser implements Event
     public static function fromArray(array $data): static
     {
         foreach (['actor_id', 'target_user_id', 'role_id', 'assigned_at'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
+            if (!array_key_exists($key, $data) || !is_string($data[$key])) {
+                throw new DomainException(sprintf('Missing or invalid string "%s" in data array', $key));
             }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['target_user_id']),
-            RoleId::fromString((string) $data['role_id']),
-            new DateTimeImmutable((string) $data['assigned_at'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['target_user_id']),
+            RoleId::fromString($data['role_id']),
+            CredentialDeliveryTimestamp::fromString($data['assigned_at'])->toDateTimeImmutable()
         );
     }
 
-    /** @inheritDoc */
+    /**
+     * Returns the canonical role-assignment fact
+     *
+     * @phpstan-return array{actor_id: string, target_user_id: string, role_id: string, assigned_at: string}
+     */
     public function toArray(): array
     {
         return [

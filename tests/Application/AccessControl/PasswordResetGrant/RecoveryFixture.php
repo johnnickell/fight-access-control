@@ -18,8 +18,15 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DeleteUser
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\EnableUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RestoreUserHandler;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeTransitionParticipant;
+use Fight\AccessControl\Application\AccessControl\RefreshSession\SessionLifecycle;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
+use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\RequestEmailChange;
@@ -68,17 +75,17 @@ final class RecoveryFixture
 {
     public readonly InMemoryUnitOfWork $unitOfWork;
 
-    public readonly InMemoryUserRepository $users;
+    public readonly InMemoryUserRepository $userRepository;
 
-    public readonly InMemoryPasswordResetGrants $grants;
+    public readonly InMemoryPasswordResetGrants $passwordResetGrantRepository;
 
-    public readonly InMemoryRefreshSessionRepository $sessions;
+    public readonly InMemoryRefreshSessionRepository $refreshSessionRepository;
 
-    public readonly InMemoryEmailChangeGrantRepository $emailGrants;
+    public readonly InMemoryEmailChangeGrantRepository $emailChangeGrantRepository;
 
-    public readonly InMemoryAuditEvidenceRepository $audit;
+    public readonly InMemoryAuditEvidenceRepository $auditEvidenceRepository;
 
-    public InMemoryEventDispatcher $events;
+    public InMemoryEventDispatcher $eventDispatcher;
 
     public DateTimeImmutable $now;
 
@@ -94,28 +101,31 @@ final class RecoveryFixture
         bool $grantReplaceSucceeds = true
     ) {
         $this->unitOfWork = new InMemoryUnitOfWork();
-        $this->users = new InMemoryUserRepository(
+        $this->userRepository = new InMemoryUserRepository(
             $this->unitOfWork,
             state: $userState,
             beforeValidateRecoveryAuthority: $beforeAdmission
         );
-        $this->grants = new InMemoryPasswordResetGrants(
+        $this->passwordResetGrantRepository = new InMemoryPasswordResetGrants(
             $this->unitOfWork,
             replaceSucceeds: $grantReplaceSucceeds,
             state: $grantState,
             authorityState: $userState
         );
-        $this->sessions = new InMemoryRefreshSessionRepository($this->unitOfWork, state: $sessionState);
-        $this->users->bindRefreshSessionRepository($this->sessions);
-        $this->emailGrants = new InMemoryEmailChangeGrantRepository($this->unitOfWork);
-        $this->audit = new InMemoryAuditEvidenceRepository($this->unitOfWork, failAfterSave: $auditFails);
-        $this->events = new InMemoryEventDispatcher();
+        $this->refreshSessionRepository = new InMemoryRefreshSessionRepository($this->unitOfWork, state: $sessionState);
+        $this->userRepository->bindRefreshSessionRepository($this->refreshSessionRepository);
+        $this->emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($this->unitOfWork);
+        $this->auditEvidenceRepository = new InMemoryAuditEvidenceRepository(
+            $this->unitOfWork,
+            failAfterSave: $auditFails
+        );
+        $this->eventDispatcher = new InMemoryEventDispatcher();
         $this->now = new DateTimeImmutable('2030-01-01T12:00:00Z');
         $this->userId = $userId ?? UserId::generate();
         if ($userId === null) {
             $user = User::invite($this->userId, EmailAddress::fromString('recovery@example.test'), $this->now);
             $user->activate(PasswordHash::fromString(password_hash('correct-secret', PASSWORD_DEFAULT)), $this->now);
-            $this->users->add($user);
+            $this->userRepository->add($user);
         }
     }
 
@@ -136,7 +146,7 @@ final class RecoveryFixture
 
     public function user(): User
     {
-        $user = $this->users->getById($this->userId);
+        $user = $this->userRepository->getById($this->userId);
         assert($user instanceof User);
 
         return $user;
@@ -144,48 +154,92 @@ final class RecoveryFixture
 
     public function grant(): PasswordResetGrant
     {
-        $grant = $this->grants->getLatestByUserId($this->userId);
+        $grant = $this->passwordResetGrantRepository->getLatestByUserId($this->userId);
         assert($grant instanceof PasswordResetGrant);
 
         return $grant;
     }
 
-    public function request(string $credential = 'recovery-fixture'): void
+    public function request(string $credential = 'recovery-fixture', bool $audit = true): void
     {
         new RequestPasswordResetHandler(
-            $this->users,
-            $this->grants,
-            $this->audit,
+            $this->userRepository,
+            $this->passwordResetGrantRepository,
             $this->unitOfWork,
             new FixedPasswordResetCredentialGenerator($credential),
             new PrefixPasswordResetDeliveryCipher(),
             new FixedClock($this->now),
-            $this->events
+            $this->eventDispatcher,
+            $audit ? $this->auditEvidenceRepository : null
         )->handle(CommandMessage::create(new RequestPasswordReset($this->user()->getEmail())));
     }
 
-    public function service(bool $rehash = false): AuthenticationService
+    public function authentication(bool $rehash = false): UserAuthentication
     {
         $passwords = new TestPasswordSecurity($rehash);
 
-        return new AuthenticationService(
-            $this->users,
+        return new UserAuthentication(
+            $this->userRepository,
             new InMemoryActivationGrantRepository($this->unitOfWork),
-            $this->sessions,
-            new SessionRevocationService($this->sessions),
             $this->unitOfWork,
             new FixedClock($this->now),
             new FixedLoginThrottle(true),
             new FixedRefreshCredentialGenerator(RefreshCredential::fromString(str_repeat('a', 64))),
             $passwords,
             $passwords,
-            new RecordingTokenEncoder(),
-            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
+            $this->tokenIssuer(),
             PasswordHash::fromString(password_hash('dummy', PASSWORD_DEFAULT)),
-            $this->events,
-            $this->grants,
-            $this->audit,
-            $this->emailGrants
+            $this->eventDispatcher
+        );
+    }
+
+    public function passwordManagement(): PasswordManagement
+    {
+        $passwords = new TestPasswordSecurity();
+
+        return new PasswordManagement(
+            $this->userRepository,
+            $this->passwordResetGrantRepository,
+            new SessionRevocationService($this->refreshSessionRepository),
+            $this->unitOfWork,
+            new FixedClock($this->now),
+            $passwords,
+            $passwords,
+            PasswordHash::fromString(password_hash('dummy', PASSWORD_DEFAULT)),
+            $this->eventDispatcher,
+            $this->auditEvidenceRepository
+        );
+    }
+
+    public function emailChangeConfirmation(
+        ?EmailChangeTransitionParticipant $participant = null,
+        bool $audit = true
+    ): EmailChangeConfirmation {
+        return new EmailChangeConfirmation(
+            $this->userRepository,
+            $this->emailChangeGrantRepository,
+            $this->passwordResetGrantRepository,
+            new SessionRevocationService($this->refreshSessionRepository),
+            $this->unitOfWork,
+            new FixedClock($this->now),
+            $this->eventDispatcher,
+            $audit ? $this->auditEvidenceRepository : null,
+            $participant
+        );
+    }
+
+    public function sessionLifecycle(): SessionLifecycle
+    {
+        return new SessionLifecycle(
+            $this->userRepository,
+            $this->refreshSessionRepository,
+            new SessionRevocationService($this->refreshSessionRepository),
+            $this->unitOfWork,
+            new FixedClock($this->now),
+            new FixedRefreshCredentialGenerator(RefreshCredential::fromString(str_repeat('b', 64))),
+            $this->tokenIssuer(),
+            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
+            $this->eventDispatcher
         );
     }
 
@@ -195,16 +249,16 @@ final class RecoveryFixture
     ): RecordingCredentialDeliveryProvider {
         $provider = new RecordingCredentialDeliveryProvider(results: [$outcome], onDeliver: $onDeliver);
         new DeliverPasswordResetHandler(
-            $this->grants,
-            $this->audit,
+            $this->passwordResetGrantRepository,
             $this->unitOfWork,
             new PrefixPasswordResetDeliveryCipher(),
             $provider,
             new FixedClock($this->now),
-            $this->events,
-            $this->users
+            $this->eventDispatcher,
+            $this->userRepository,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new DeliverPasswordReset(
-            'worker',
+            AnonymousId::generate(),
             $this->userId,
             $this->grant()->getDelivery()->getId()
         )));
@@ -215,55 +269,66 @@ final class RecoveryFixture
     public function disable(): void
     {
         new DisableUserHandler(
-            $this->users,
-            new SessionRevocationService($this->sessions),
+            $this->userRepository,
+            new SessionRevocationService($this->refreshSessionRepository),
             new FixedClock($this->now),
-            $this->audit,
             $this->unitOfWork,
-            $this->events,
-            $this->grants
+            $this->eventDispatcher,
+            $this->passwordResetGrantRepository,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new DisableUser(UserId::generate(), $this->userId)));
     }
 
     public function delete(): void
     {
         new DeleteUserHandler(
-            $this->users,
-            new SessionRevocationService($this->sessions),
+            $this->userRepository,
+            new SessionRevocationService($this->refreshSessionRepository),
             new FixedClock($this->now),
-            $this->audit,
             $this->unitOfWork,
-            $this->events,
-            $this->grants
+            $this->eventDispatcher,
+            $this->passwordResetGrantRepository,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new DeleteUser(UserId::generate(), $this->userId)));
     }
 
     public function enable(): void
     {
-        new EnableUserHandler($this->users, $this->audit, $this->unitOfWork, $this->events, new FixedClock($this->now))
+        new EnableUserHandler(
+            $this->userRepository,
+            $this->unitOfWork,
+            $this->eventDispatcher,
+            new FixedClock($this->now),
+            $this->auditEvidenceRepository
+        )
             ->handle(CommandMessage::create(new EnableUser(UserId::generate(), $this->userId)));
     }
 
     public function restore(UserState $state = UserState::ACTIVE): void
     {
         new RestoreUserHandler(
-            $this->users,
+            $this->userRepository,
             new InMemoryActivationGrantRepository($this->unitOfWork),
             new FixedCredentialGenerator('activation-fixture'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock($this->now),
-            $this->audit,
             $this->unitOfWork,
-            $this->events
+            $this->eventDispatcher,
+            $this->auditEvidenceRepository
         )->handle(CommandMessage::create(new RestoreUser(UserId::generate(), $this->userId, $state)));
     }
 
     public function expireEmail(): void
     {
-        $grant = $this->emailGrants->getLatestByUserId($this->userId);
-        new ExpireEmailChangeHandler($this->users, $this->emailGrants, $this->unitOfWork, $this->events)
+        $grant = $this->emailChangeGrantRepository->getLatestByUserId($this->userId);
+        new ExpireEmailChangeHandler(
+            $this->userRepository,
+            $this->emailChangeGrantRepository,
+            $this->unitOfWork,
+            $this->eventDispatcher
+        )
             ->handle(CommandMessage::create(new ExpireEmailChange(
-                'worker',
+                SystemId::generate(),
                 $this->userId,
                 $grant->getId(),
                 $grant->getExpiresAt()
@@ -272,35 +337,48 @@ final class RecoveryFixture
 
     public function requestEmail(
         string $email = 'destination@example.test',
-        string $credential = 'email-fixture'
+        string $credential = 'email-fixture',
+        ?EmailChangeTransitionParticipant $participant = null,
+        ?UserId $requesterId = null,
+        bool $audit = true,
+        bool $authorize = true
     ): void {
         new RequestEmailChangeHandler(
-            $this->users,
-            $this->emailGrants,
-            new EmailServices\FixedEmailChangeAdministrationAuthorization(true),
-            $this->audit,
+            $this->userRepository,
+            $this->emailChangeGrantRepository,
+            new EmailServices\FixedEmailChangeAdministrationAuthorization($authorize),
             $this->unitOfWork,
             new FixedEmailChangeCredentialGenerator($credential),
             new PrefixEmailChangeDeliveryCipher(),
             new FixedClock($this->now),
-            $this->events
+            $this->eventDispatcher,
+            $audit ? $this->auditEvidenceRepository : null,
+            $participant
         )->handle(CommandMessage::create(new RequestEmailChange(
-            $this->userId,
+            $requesterId ?? $this->userId,
             $this->userId,
             EmailAddress::fromString($email)
         )));
     }
 
-    public function cancelEmail(): void
+    public function cancelEmail(CancelEmailChange $command): void
     {
         new CancelEmailChangeHandler(
-            $this->users,
-            $this->emailGrants,
+            $this->userRepository,
+            $this->emailChangeGrantRepository,
             new EmailServices\FixedEmailChangeAdministrationAuthorization(true),
-            $this->audit,
             $this->unitOfWork,
             new FixedClock($this->now),
-            $this->events
-        )->handle(CommandMessage::create(new CancelEmailChange($this->userId, $this->userId)));
+            $this->eventDispatcher,
+            $this->auditEvidenceRepository
+        )->handle(CommandMessage::create($command));
+    }
+
+    private function tokenIssuer(): TokenIssuer
+    {
+        return new TokenIssuer(
+            new RecordingTokenEncoder(),
+            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
+        );
     }
 }

@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
@@ -42,7 +43,7 @@ final class OfflineCredentialExpiryRegressionTest extends TestCase
         $expiresAt = new DateTimeImmutable('2030-01-01T01:00:00Z');
         $userId = UserId::generate();
         $email = EmailAddress::fromString('expiry@example.test');
-        [$grant, $repository] = match ($family) {
+        [$grant, $credentialGrantRepository] = match ($family) {
             'activation' => [ActivationGrant::issue(
                 ActivationOrigin::PRIVATE_INVITATION,
                 $userId,
@@ -55,34 +56,35 @@ final class OfflineCredentialExpiryRegressionTest extends TestCase
             ), new InMemoryPasswordResetGrants()],
             'email_change' => [EmailChangeGrant::issue(
                 $userId,
-                EmailChangeCredential::fromString('fixture'), $issuedAt, $expiresAt, $email, 'fixture:encrypted', 1
+                EmailChangeCredential::fromString('fixture'), $issuedAt, $expiresAt, $email, 'fixture:encrypted', 1,
+                new EmailChangeRequestOrigin($userId, EmailAddress::fromString('old@example.test'))
             ), new InMemoryEmailChangeGrantRepository()],
             default => throw new LogicException('Unknown fixture family.'),
         };
-        self::assertTrue($repository->add($grant));
+        self::assertTrue($credentialGrantRepository->add($grant));
         $token = CredentialDeliveryClaimToken::generate();
         $claimed = $grant->claimDelivery($token, $issuedAt, $issuedAt->modify('+30 seconds'));
-        self::assertTrue($repository->replace($grant, $claimed));
+        self::assertTrue($credentialGrantRepository->replace($grant, $claimed));
         $failed = $claimed->failDelivery(
             $token,
             $issuedAt->modify('+1 second'),
             CredentialDeliveryFailure::RETRYABLE_PROVIDER
         );
-        self::assertTrue($repository->replace($claimed, $failed));
+        self::assertTrue($credentialGrantRepository->replace($claimed, $failed));
         $reclaimed = $failed->claimDelivery(
             CredentialDeliveryClaimToken::generate(),
             $issuedAt->modify('+2 minutes'),
             $issuedAt->modify('+3 minutes')
         );
-        self::assertTrue($repository->replace($failed, $reclaimed));
-        self::assertSame([], $repository->findDue($expiresAt, 50));
+        self::assertTrue($credentialGrantRepository->replace($failed, $reclaimed));
+        self::assertSame([], $credentialGrantRepository->findDue($expiresAt, 50));
         $expired = $reclaimed->expireDeliveryAt($expiresAt);
 
         self::assertTrue(
-            $repository->replace($reclaimed, $expired),
+            $credentialGrantRepository->replace($reclaimed, $expired),
             'Expiry must not replay the previous failed attempt.'
         );
-        self::assertSame($expired, $repository->getLatestByUserId($userId));
+        self::assertSame($expired, $credentialGrantRepository->getLatestByUserId($userId));
         self::assertFalse($expired->getDelivery()->hasRecoverableMaterial());
         self::assertNull($expired->getDelivery()->getClaimToken());
         self::assertNull($expired->getDelivery()->getClaimedAt());

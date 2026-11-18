@@ -14,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\Role\Query\RoleView;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Type\Arrayable;
@@ -37,14 +38,14 @@ final class GetRoleByIdHandlerTest extends TestCase
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         ));
 
-        $roles = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
-        $roles->add(Role::defineManaged(
+        $roleRepository = new InMemoryRoleRepository(authorizationReferences: $authorizationReferences);
+        $roleRepository->add(Role::defineManaged(
             $roleId,
             RoleName::fromString('ROLE_ADMINISTRATOR'),
             [$permissionId],
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         ));
-        $handler = new GetRoleByIdHandler($roles);
+        $handler = new GetRoleByIdHandler($roleRepository);
 
         self::assertSame(GetRoleById::class, GetRoleByIdHandler::queryRegistration());
         $view = $handler->handle(QueryMessage::create(new GetRoleById($roleId)));
@@ -53,7 +54,7 @@ final class GetRoleByIdHandlerTest extends TestCase
         self::assertInstanceOf(Arrayable::class, $view);
         self::assertSame(
             [
-                'revision'       => $roles->getById($roleId)->getRevision()->toString(),
+                'revision'       => $roleRepository->getById($roleId)->getRevision()->toString(),
                 'role_id'        => '018f0000-0000-7000-8000-000000000002',
                 'name'           => 'ROLE_ADMINISTRATOR',
                 'managed'        => true,
@@ -74,14 +75,13 @@ final class GetRoleByIdHandlerTest extends TestCase
         GetRoleById::fromArray([]);
     }
 
-    public function test_that_it_returns_null_for_an_unknown_stable_identifier(): void
+    public function test_that_it_rejects_an_unknown_stable_identifier(): void
     {
         $handler = new GetRoleByIdHandler(new InMemoryRoleRepository());
 
-        $view = $handler->handle(QueryMessage::create(new GetRoleById(
+        $this->expectException(ResourceNotFound::class);
+        $handler->handle(QueryMessage::create(new GetRoleById(
             RoleId::fromString('018f0000-0000-7000-8000-000000000004')
         )));
-
-        self::assertNull($view);
     }
 }

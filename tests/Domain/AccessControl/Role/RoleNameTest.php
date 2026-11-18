@@ -32,7 +32,8 @@ final class RoleNameTest extends TestCase
                 'role_admin',
                 'ROLE-ADMIN',
                 'ROLE ADMIN',
-                'ROLE_ADMIN_1'
+                'ROLE_ADMIN_1',
+                "ROLE_ADMIN\n"
             ] as $invalidName
         ) {
             try {

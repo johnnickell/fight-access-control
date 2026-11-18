@@ -4,21 +4,31 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Feature\CommandHandler;
 
-use Fight\AccessControl\Application\AccessControl\Feature\FeatureReferenceScope;
-use Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\RemoveFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureRemoved;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
+use Fight\Common\Application\Error\Exception\InvalidInput;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\RuleViolation;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
+use UnexpectedValueException;
 
 /**
  * Class RemoveFeatureHandler
@@ -32,9 +42,11 @@ final readonly class RemoveFeatureHandler implements CommandHandler
      */
     public function __construct(
         private FeatureReferenceDiscovery $discovery,
-        private FeatureRepository $features,
+        private FeatureRepository $featureRepository,
+        private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $events
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -53,35 +65,57 @@ final readonly class RemoveFeatureHandler implements CommandHandler
     {
         /** @var RemoveFeature $command */
         $command = $commandMessage->payload();
+        $messageId = $commandMessage->id();
         try {
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): FeatureRemoved {
-                $feature = $this->features->getById($command->getFeatureId());
-                if (!$feature instanceof Feature) {
-                    throw new FeatureNotFoundException('The Feature does not exist.');
+            /** @var FeatureRemoved $event */
+            $event = $this->unitOfWork->commitTransactional(function () use ($command, $messageId): FeatureRemoved {
+                $feature = $this->featureRepository->getById($command->getFeatureId());
+                if ($feature === null) {
+                    throw new ResourceNotFound('The Feature does not exist.');
+                }
+
+                if (!$feature->getId()->equals($command->getFeatureId())) {
+                    throw new UnexpectedValueException('Feature lookup returned a different identity.');
                 }
 
                 if ($feature->getRevision() !== $command->getExpectedRevision()) {
-                    throw new FeatureRevisionException('The Feature changed concurrently.');
+                    throw new PreconditionFailed('The expected Feature revision does not match.');
                 }
 
                 $references = $this->discovery->discover(FeatureReferenceScope::CURRENT)
                     ->getReferences(FeatureReferenceScope::CURRENT);
                 foreach ($references->getNames() as $name) {
                     if ($name->equals($feature->getName())) {
-                        throw new FeatureReferenceException('The Feature is still referenced by current code.');
+                        throw new RuleViolation('The Feature is still referenced by current code.');
                     }
                 }
 
-                if (!$this->features->remove($feature)) {
-                    throw new FeatureRevisionException('The Feature changed concurrently.');
+                $actorId = $command->getActorId();
+                if ($this->auditEvidenceRepository !== null && $actorId === null) {
+                    throw new InvalidInput('Enabled Feature audit requires originating actor provenance.');
+                }
+
+                if (!$this->featureRepository->remove($feature)) {
+                    throw new StateConflict('The Feature changed concurrently.');
+                }
+
+                if ($this->auditEvidenceRepository !== null) {
+                    $this->auditEvidenceRepository->add(AuditEvidence::record(
+                        $actorId,
+                        new AuditSubject($feature->getId()),
+                        AuditAction::FEATURE_REMOVED,
+                        $this->clock->now(),
+                        new AuditFeatureOutcome(AuditFeatureState::fromFeature($feature), null),
+                        new AuditCorrelation($messageId, null)
+                    ));
                 }
 
                 return new FeatureRemoved($feature->getId(), $feature->getName());
             });
-            $this->events->trigger($event);
+            $this->eventDispatcher->trigger($event);
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, 'Feature removal failed.'));
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Feature removal failed.'));
             } finally {
                 throw $throwable;
             }

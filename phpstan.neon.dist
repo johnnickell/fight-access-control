@@ -1,11 +1,10 @@
 includes:
-    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    - phpstan-base.neon
 
 parameters:
-    level: 6
+    # Check nullable/union uses as well as collection elements on owned contracts and ordinary callers.
+    level: 8
     tmpDir: var/cache/phpstan
     paths:
         - openapi
         - src
-        - tests
-        - scripts

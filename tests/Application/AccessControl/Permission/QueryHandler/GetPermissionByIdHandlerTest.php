@@ -12,6 +12,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\Permission\Query\GetPermissionById;
 use Fight\AccessControl\Domain\AccessControl\Permission\Query\PermissionView;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Type\Arrayable;
@@ -32,10 +33,10 @@ final class GetPermissionByIdHandlerTest extends TestCase
             PermissionTier::SUPER_ADMIN_ONLY,
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $permissions = new InMemoryPermissionRepository();
-        $permissions->add($permission);
+        $permissionRepository = new InMemoryPermissionRepository();
+        $permissionRepository->add($permission);
 
-        $handler = new GetPermissionByIdHandler($permissions);
+        $handler = new GetPermissionByIdHandler($permissionRepository);
 
         self::assertSame(GetPermissionById::class, GetPermissionByIdHandler::queryRegistration());
         $view = $handler->handle(QueryMessage::create(new GetPermissionById($permissionId)));
@@ -59,14 +60,14 @@ final class GetPermissionByIdHandlerTest extends TestCase
     public function test_that_it_returns_a_non_null_custom_permission_tier(): void
     {
         $permissionId = PermissionId::fromString('018f0000-0000-7000-8000-000000000004');
-        $permissions = new InMemoryPermissionRepository();
-        $permissions->add(Permission::define(
+        $permissionRepository = new InMemoryPermissionRepository();
+        $permissionRepository->add(Permission::define(
             $permissionId,
             PermissionName::fromString('VIEW_USERS'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         ));
 
-        $handler = new GetPermissionByIdHandler($permissions);
+        $handler = new GetPermissionByIdHandler($permissionRepository);
         $view = $handler->handle(QueryMessage::create(new GetPermissionById($permissionId)));
 
         self::assertSame(PermissionTier::ADMIN_SAFE, $view->getTier());
@@ -92,14 +93,13 @@ final class GetPermissionByIdHandlerTest extends TestCase
         GetPermissionById::fromArray([]);
     }
 
-    public function test_that_it_returns_null_for_an_unknown_stable_identifier(): void
+    public function test_that_it_rejects_an_unknown_stable_identifier(): void
     {
         $handler = new GetPermissionByIdHandler(new InMemoryPermissionRepository());
 
-        $view = $handler->handle(QueryMessage::create(new GetPermissionById(
+        $this->expectException(ResourceNotFound::class);
+        $handler->handle(QueryMessage::create(new GetPermissionById(
             PermissionId::fromString('018f0000-0000-7000-8000-000000000003')
         )));
-
-        self::assertNull($view);
     }
 }

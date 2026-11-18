@@ -15,6 +15,9 @@ final readonly class CredentialDeliveryAttemptResult
 {
     /**
      * Constructs CredentialDeliveryAttemptResult
+     *
+     * @param CredentialDeliveryFailure::RETRYABLE_PROVIDER|CredentialDeliveryFailure::PERMANENT_PROVIDER
+     *     |CredentialDeliveryFailure::UNEXPECTED_PROVIDER|null $failure
      */
     private function __construct(
         private CredentialDeliveryOutcome $outcome,
@@ -57,6 +60,12 @@ final readonly class CredentialDeliveryAttemptResult
 
     /**
      * Returns the package-owned safe failure classification
+     *
+     * Delivered has no failure; retry has RETRYABLE_PROVIDER or UNEXPECTED_PROVIDER, permanent has PERMANENT_PROVIDER.
+     * Only the private factories construct these combinations; this is not a provider-supplied diagnostic.
+     *
+     * @return CredentialDeliveryFailure::RETRYABLE_PROVIDER|CredentialDeliveryFailure::PERMANENT_PROVIDER
+     *     |CredentialDeliveryFailure::UNEXPECTED_PROVIDER|null
      */
     public function getFailure(): ?CredentialDeliveryFailure
     {

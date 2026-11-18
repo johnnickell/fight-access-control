@@ -38,7 +38,9 @@ final readonly class FeatureRemoved implements Event
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical event payload
+     *
+     * @return array{feature_id: string, name: string}
      */
     public function toArray(): array
     {

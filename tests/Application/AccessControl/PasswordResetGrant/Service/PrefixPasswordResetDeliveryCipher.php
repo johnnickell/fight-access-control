@@ -6,10 +6,11 @@ namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\
 
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetDeliveryCipher;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\EncryptedCredentialMaterial;
+use SensitiveParameter;
 
 final class PrefixPasswordResetDeliveryCipher implements PasswordResetDeliveryCipher
 {
-    public function encrypt(string $plaintext): string
+    public function encrypt(#[SensitiveParameter] string $plaintext): string
     {
         return 'ciphertext:'.$plaintext;
     }

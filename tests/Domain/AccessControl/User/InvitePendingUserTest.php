@@ -21,9 +21,10 @@ final class InvitePendingUserTest extends TestCase
     public function test_that_the_invitation_command_round_trips_its_canonical_payload(): void
     {
         $userId = UserId::generate();
-        $command = new InvitePendingUser('Admin-42', $userId, EmailAddress::fromString('Alice@example.test'));
+        $actorId = UserId::generate();
+        $command = new InvitePendingUser($actorId, $userId, EmailAddress::fromString('Alice@example.test'));
 
-        self::assertSame('Admin-42', $command->getActorId());
+        self::assertSame($actorId, $command->getActorId());
         self::assertSame($userId, $command->getUserId());
         self::assertSame('Alice@example.test', $command->getEmail()->toString());
         self::assertSame(
@@ -41,15 +42,16 @@ final class InvitePendingUserTest extends TestCase
 
     public function test_that_the_user_invited_event_round_trips_its_payload(): void
     {
+        $actorId = UserId::generate();
         $event = new UserInvited(
-            'Admin-42',
+            $actorId,
             UserId::generate(),
             ActivationDeliveryId::generate(),
             EmailAddress::fromString('Alice@example.test'),
             new DateTimeImmutable('2026-08-18T12:00:00+00:00')
         );
 
-        self::assertSame('Admin-42', $event->getActorId());
+        self::assertSame($actorId, $event->getActorId());
         self::assertInstanceOf(UserId::class, $event->getUserId());
         self::assertInstanceOf(ActivationDeliveryId::class, $event->getActivationDeliveryId());
         self::assertSame('Alice@example.test', $event->getEmail()->toString());

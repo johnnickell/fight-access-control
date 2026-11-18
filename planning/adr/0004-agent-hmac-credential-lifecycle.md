@@ -52,6 +52,25 @@ Use the [current integration guide](../../docs/agent-integration.md) and
 Package behavior is implemented; TASK-00059's documentation awaits independent review. Actual consumer composition,
 writer/sink/key/activation/use and restore qualification remain unexecuted. No release or deployment is authorized.
 
+## Approved Command caller-contract amendment — EPIC-00015
+
+John explicitly chose void provisioning/rotation Commands and independent outcome Queries, with no assumed transport
+and with sync or async invocation at any time. [TICKET-00053](../tickets/00053-TICKET.md)/
+[TASK-00182](../tasks/00182-TASK.md) own this future conversion; existing service implementations/acceptance stay baseline
+history until replaced. This supersedes D3's returned-result/warning shape for the converted callers and the later
+proposed result-capable Common bus hold, not the safety of retained keys, atomicity or committed issuance.
+
+Use the original retained key/request across serialization, delayed execution and retries. Recheck real current
+invoker/delegation and target/destination/expected-state authority at execution, plus authorized read-only status
+through GetAgentOperation. A void acknowledgement is not commit proof; absent status is indeterminate, not rejection,
+rollback or queue progress. Confirmed issuance survives both publishers failing without a returned warning, durable
+warning/outbox promise or permission for delivery/activation/use. Preserve sanitized pre-commit/uncertain-commit
+execution failures and same-key recovery. Queries do not reconstruct transient errors or mutate operations.
+
+TASK-00130 separately qualifies void Command payload/metadata and Query-result typing using the actual conversion.
+No Common result-return API, transport endpoint or package-owned broker is required by this approved contract.
+Revocation/other publication policies and the prohibition on serializable raw secrets remain unchanged.
+
 ## Decision
 
 An Agent has an explicit credential lifecycle: `PROVISIONED` to `ACTIVE` through provision, `ACTIVE` to `ACTIVE`

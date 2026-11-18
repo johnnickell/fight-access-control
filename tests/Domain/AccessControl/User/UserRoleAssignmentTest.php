@@ -87,6 +87,20 @@ final class UserRoleAssignmentTest extends TestCase
         self::assertSame(1, $user->getAuthorizationAssignmentRevision());
     }
 
+    public function test_removing_assignments_keeps_a_dense_role_list(): void
+    {
+        $user = $this->pendingUser();
+        $first = RoleId::generate();
+        $second = RoleId::generate();
+        $now = new DateTimeImmutable('2026-01-01T00:00:00+00:00');
+        $user->replaceRoleAssignments([$first, $second], $now);
+        $user->removeRole($first, $now);
+
+        self::assertSame([$second], $user->getRoleIds());
+        $user->removeRole($second, $now);
+        self::assertSame([], $user->getRoleIds());
+    }
+
     public function test_replacing_the_final_set_advances_only_the_authorization_assignment_revision_once(): void
     {
         $user = $this->pendingUser();
@@ -152,16 +166,15 @@ final class UserRoleAssignmentTest extends TestCase
         $authorizationAssignmentRevision = $user->getAuthorizationAssignmentRevision();
 
         $user->activate($this->passwordHash('initial-password'), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-        $user->rehashPassword(
-            $this->passwordHash('rehash-password'),
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
+        $user->recordSuccessfulLogin(
+            new DateTimeImmutable('2026-01-01T00:00:00+00:00'),
+            $this->passwordHash('rehash-password')
         );
         $user->changePassword(
             $this->passwordHash('changed-password'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
         $user->resetPassword($this->passwordHash('reset-password'), new DateTimeImmutable('2026-01-01T00:00:00+00:00'));
-        $user->advanceAuthenticationAuthorityRevision();
 
         self::assertSame([$roleId], $user->getRoleIds());
         self::assertSame($authorizationAssignmentRevision, $user->getAuthorizationAssignmentRevision());

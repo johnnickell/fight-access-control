@@ -8,18 +8,14 @@ use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\Authorization\AuthenticatedUserPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\PrincipalResolutionException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\PrincipalRole;
-use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
-use Fight\AccessControl\Domain\AccessControl\Role\Exception\ManagedRoleException;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRepository;
-use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
-use Fight\Common\Domain\Collection\HashSet;
+use UnexpectedValueException;
 
 /**
  * Class AuthoritativePrincipalResolver
@@ -47,7 +43,11 @@ final readonly class AuthoritativePrincipalResolver
     /**
      * Returns a principal only when every authentication and authorization reference remains valid
      *
-     * @throws PrincipalResolutionException When current principal authority is not valid
+     * Missing or stale User/session authority is a refusal. Wrong lookup identities, malformed/incomplete Role or
+     * Permission snapshots and reserved-identity contradictions remain internal contract faults. Repository and
+     * clock faults propagate unchanged; this resolver never turns them into an expected authentication outcome.
+     *
+     * @throws PrincipalResolutionException When current User or session authority is absent or stale
      */
     public function resolve(AuthenticationContext $authenticationContext): AuthenticatedUserPrincipal
     {
@@ -56,10 +56,16 @@ final readonly class AuthoritativePrincipalResolver
             $authenticationContext->getRefreshSessionId()
         );
         if (
-            !$user instanceof User
-            || !$refreshSession instanceof RefreshSession
-            || !$user->getId()->equals($authenticationContext->getUserId())
-            || !$refreshSession->getId()->equals($authenticationContext->getRefreshSessionId())
+            ($user !== null && !$user->getId()->equals($authenticationContext->getUserId()))
+            || ($refreshSession !== null
+                && !$refreshSession->getId()->equals($authenticationContext->getRefreshSessionId()))
+        ) {
+            throw new UnexpectedValueException('The authoritative authentication identities are inconsistent.');
+        }
+
+        if (
+            $user === null
+            || $refreshSession === null
             || !$refreshSession->getUserId()->equals($user->getId())
             || $user->getState() !== UserState::ACTIVE
             || $user->getAuthenticationVersion() !== $authenticationContext->getAuthenticationVersion()
@@ -75,40 +81,36 @@ final readonly class AuthoritativePrincipalResolver
             $expectedRoleIds[$roleId->toString()] = true;
         }
 
-        $roles = $this->roleRepository->getByIds($roleIds);
+        $roles = $this->validateRoleList($this->roleRepository->getByIds($roleIds));
         $designated = $this->roleRepository->getByName(RoleName::fromString(Role::SUPER_ADMIN_NAME));
+        $designated?->assertConsistentWithSuperAdmin($designated);
         $principalRoles = [];
-        $permissionIds = HashSet::of(PermissionId::class);
+        $roleNames = [];
+        $permissionIds = [];
         foreach ($roles as $role) {
             $roleKey = $role->getId()->toString();
-            if (!isset($expectedRoleIds[$roleKey])) {
-                $this->deny();
+            $roleName = $role->getName()->toString();
+            if (!isset($expectedRoleIds[$roleKey]) || isset($roleNames[$roleName])) {
+                throw new UnexpectedValueException('The authoritative Role identities are inconsistent.');
             }
 
             unset($expectedRoleIds[$roleKey]);
-            try {
-                $role->assertConsistentWithSuperAdmin($designated);
-            } catch (ManagedRoleException) {
-                $this->deny();
-            }
+            $roleNames[$roleName] = true;
+            $role->assertConsistentWithSuperAdmin($designated);
 
             $principalRoles[] = new PrincipalRole($role->getId(), $role->getName());
             foreach ($role->getPermissionIds() as $permissionId) {
-                $permissionIds->add($permissionId);
+                $permissionIds[$permissionId->toString()] = $permissionId;
             }
         }
 
         if ($expectedRoleIds !== []) {
-            $this->deny();
+            throw new UnexpectedValueException('The authoritative Role snapshot is incomplete.');
         }
 
-        try {
-            $principalPermissions = new ExactPermissionResolver($this->permissionRepository)->resolve(
-                $permissionIds->toArray()
-            );
-        } catch (ExactPermissionResolutionException) {
-            $this->deny();
-        }
+        $principalPermissions = new ExactPermissionResolver($this->permissionRepository)->resolve(
+            array_values($permissionIds)
+        );
 
         return new AuthenticatedUserPrincipal(
             $user->getId(),
@@ -120,7 +122,28 @@ final readonly class AuthoritativePrincipalResolver
     }
 
     /**
-     * Rejects invalid or incomplete principal authority without disclosing which reference failed
+     * Validates the erased repository collection contract at its owning boundary
+     *
+     * @phpstan-param array<array-key, mixed> $roles
+     * @return list<Role>
+     */
+    private function validateRoleList(array $roles): array
+    {
+        if (!array_is_list($roles)) {
+            throw new UnexpectedValueException('The authoritative Role snapshot must be a list.');
+        }
+
+        foreach ($roles as $role) {
+            if (!$role instanceof Role) {
+                throw new UnexpectedValueException('The authoritative Role snapshot contains an invalid member.');
+            }
+        }
+
+        return $roles;
+    }
+
+    /**
+     * Rejects invalid authentication authority without disclosing which reference failed
      *
      * @throws PrincipalResolutionException Always
      */

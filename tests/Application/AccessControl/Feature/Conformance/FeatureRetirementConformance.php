@@ -11,9 +11,6 @@ use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\SetFeat
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\CreateFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\RemoveFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeatureStatus;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
@@ -21,7 +18,11 @@ use Fight\AccessControl\Domain\AccessControl\Feature\FeatureStatus;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\RuleViolation;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -35,40 +36,43 @@ abstract class FeatureRetirementConformance extends TestCase
         $permission = $this->permission('FIRST');
         $environment->storePermission($permission);
         $name = FeatureName::fromString('dashboard');
-        $features = $environment->features();
+        $featureRepository = $environment->features();
         new CreateFeatureHandler(
-            $features,
+            $featureRepository,
             $environment->permissions(),
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         )
             ->handle(CommandMessage::create(new CreateFeature($name, $permission->getId())));
-        $stored = $features->getByName($name);
+        $stored = $featureRepository->getByName($name);
         self::assertInstanceOf(Feature::class, $stored);
         self::assertFalse($environment->removePermission($permission));
         $command = CommandMessage::create(new RemoveFeature($stored->getId(), 1));
         try {
             new RemoveFeatureHandler(
                 $environment->discovery(['dashboard']),
-                $features,
+                $featureRepository,
+                new FixedClock('2026-01-01'),
                 $environment->unitOfWork(),
                 $environment->events()
             )
                 ->handle($command);
             self::fail('Current registration must block retirement.');
-        } catch (FeatureReferenceException) {
-            self::assertSame($stored->getId()->toString(), $features->getByName($name)?->getId()->toString());
+        } catch (RuleViolation) {
+            self::assertSame($stored->getId()->toString(), $featureRepository->getByName($name)?->getId()->toString());
             self::assertFalse($environment->removePermission($permission));
         }
 
         new RemoveFeatureHandler(
             $environment->discovery([]),
-            $features,
+            $featureRepository,
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         )
             ->handle($command);
-        self::assertNull($features->getByName($name));
+        self::assertNull($featureRepository->getByName($name));
         self::assertTrue($environment->removePermission($permission));
         self::assertNull($environment->permissions()->getById($permission->getId()));
     }
@@ -78,36 +82,43 @@ abstract class FeatureRetirementConformance extends TestCase
         $environment = $this->environment();
         $permission = $this->permission('FIRST');
         $environment->storePermission($permission);
-        $features = $environment->features();
+        $featureRepository = $environment->features();
         $name = FeatureName::fromString('dashboard');
         $create = new CreateFeatureHandler(
-            $features,
+            $featureRepository,
             $environment->permissions(),
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         );
         $create->handle(CommandMessage::create(new CreateFeature($name, $permission->getId())));
 
-        $first = $features->getByName($name);
+        $first = $featureRepository->getByName($name);
         self::assertInstanceOf(Feature::class, $first);
-        new SetFeatureStatusHandler($features, $environment->unitOfWork(), $environment->events())
+        new SetFeatureStatusHandler(
+            $featureRepository,
+            new FixedClock(new DateTimeImmutable('2026-01-01')),
+            $environment->unitOfWork(),
+            $environment->events()
+        )
             ->handle(CommandMessage::create(new SetFeatureStatus($first->getId(), FeatureStatus::ON, 1)));
         $delete = new RemoveFeatureHandler(
             $environment->discovery([]),
-            $features,
+            $featureRepository,
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         );
         try {
             $delete->handle(CommandMessage::create(new RemoveFeature($first->getId(), 1)));
             self::fail('Stale revision must reject.');
-        } catch (FeatureRevisionException) {
-            self::assertSame(FeatureStatus::ON, $features->getByName($name)?->getStatus());
+        } catch (PreconditionFailed) {
+            self::assertSame(FeatureStatus::ON, $featureRepository->getByName($name)?->getStatus());
         }
 
         $delete->handle(CommandMessage::create(new RemoveFeature($first->getId(), 2)));
         $create->handle(CommandMessage::create(new CreateFeature($name, $permission->getId())));
-        $second = $features->getByName($name);
+        $second = $featureRepository->getByName($name);
         self::assertInstanceOf(Feature::class, $second);
         self::assertNotSame($second->getId()->toString(), $first->getId()->toString());
         self::assertSame(FeatureStatus::OFF, $second->getStatus());
@@ -115,8 +126,8 @@ abstract class FeatureRetirementConformance extends TestCase
         try {
             $delete->handle(CommandMessage::create(new RemoveFeature($first->getId(), 2)));
             self::fail('An old identity must not delete its successor.');
-        } catch (FeatureNotFoundException) {
-            self::assertSame($second->getId()->toString(), $features->getByName($name)->getId()->toString());
+        } catch (ResourceNotFound) {
+            self::assertSame($second->getId()->toString(), $featureRepository->getByName($name)->getId()->toString());
         }
     }
 
@@ -130,9 +141,9 @@ abstract class FeatureRetirementConformance extends TestCase
 
         $stored = Feature::define(FeatureId::generate(), FeatureName::fromString('dashboard'), $permission->getId());
         $unit = $environment->unitOfWork();
-        $features = $environment->features();
-        $unit->commitTransactional(static function () use ($features, $stored): void {
-            $features->add($stored);
+        $featureRepository = $environment->features();
+        $unit->commitTransactional(static function () use ($featureRepository, $stored): void {
+            $featureRepository->add($stored);
         });
         $mismatches = [
             Feature::define(FeatureId::generate(), $stored->getName(), $permission->getId()),
@@ -142,8 +153,8 @@ abstract class FeatureRetirementConformance extends TestCase
             Feature::reconstitute($stored->getId(), $stored->getName(), $permission->getId(), FeatureStatus::OFF, 2)
         ];
         foreach ($mismatches as $expected) {
-            self::assertFalse($unit->commitTransactional(static fn(): bool => $features->remove($expected)));
-            $current = $features->getById($stored->getId());
+            self::assertFalse($unit->commitTransactional(static fn(): bool => $featureRepository->remove($expected)));
+            $current = $featureRepository->getById($stored->getId());
             self::assertInstanceOf(Feature::class, $current);
             self::assertSame(1, $current->getRevision());
             self::assertSame(FeatureStatus::OFF, $current->getStatus());
@@ -152,8 +163,8 @@ abstract class FeatureRetirementConformance extends TestCase
             self::assertFalse($environment->removePermission($permission));
         }
 
-        self::assertTrue($unit->commitTransactional(static fn(): bool => $features->remove($stored)));
-        self::assertNull($features->getById($stored->getId()));
+        self::assertTrue($unit->commitTransactional(static fn(): bool => $featureRepository->remove($stored)));
+        self::assertNull($featureRepository->getById($stored->getId()));
         self::assertTrue($environment->removePermission($permission));
     }
 

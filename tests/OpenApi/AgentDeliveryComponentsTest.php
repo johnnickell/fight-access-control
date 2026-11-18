@@ -5,24 +5,24 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\OpenApi;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentMaintenanceResult;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentDeliveryKeyVersion;
-use Fight\AccessControl\Domain\AccessControl\Agent\Maintenance\AgentMaintenanceWork;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDestination;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialDisposition;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryDisposition;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDeliveryId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentDestinationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentIssuance;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationId;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationKey;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationScope;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentOperationView;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\CountAgentDeliveryKeyReferences;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListAgentDeliveryMaintenance;
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListDueAgentDeliveries;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDisposition;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryDisposition;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDestinationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceWork;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\CountAgentDeliveryKeyReferences;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\ListAgentDeliveryMaintenance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\ListDueAgentDeliveries;
 use OpenApi\Generator;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
@@ -42,7 +42,10 @@ final class AgentDeliveryComponentsTest extends TestCase
         self::assertNotNull($document);
         $schemas = json_decode($document->toJson(), true, 512, JSON_THROW_ON_ERROR)['components']['schemas'];
         self::assertArrayHasKey('Consumer.AgentRecovery', $schemas);
-        $key = new AgentOperationKey(new AgentOperationScope('consumer', 'user', 'owner'), AgentOperationId::generate());
+        $key = new AgentOperationKey(
+            new AgentOperationScope('consumer', 'user', 'owner'),
+            AgentOperationId::generate()
+        );
         $destination = new AgentCredentialDestination(AgentDestinationId::generate(), 1);
         $query = new ListDueAgentDeliveries($key->getScope(), $destination);
         $maintenance = new ListAgentDeliveryMaintenance($key->getScope(), $destination);
@@ -106,8 +109,14 @@ final class AgentDeliveryComponentsTest extends TestCase
         self::assertSame(100, $limit['maximum']);
         self::assertSame($query->getLimit(), $limit['default']);
         $confirmed = $schemas['Fight.AccessControl.AgentOperation.Confirmed']['properties'];
-        self::assertSame(array_column(AgentDeliveryDisposition::cases(), 'value'), $confirmed['delivery_disposition']['enum']);
-        self::assertSame(array_column(AgentCredentialDisposition::cases(), 'value'), $confirmed['credential_disposition']['enum']);
+        self::assertSame(
+            array_column(AgentDeliveryDisposition::cases(), 'value'),
+            $confirmed['delivery_disposition']['enum']
+        );
+        self::assertSame(
+            array_column(AgentCredentialDisposition::cases(), 'value'),
+            $confirmed['credential_disposition']['enum']
+        );
         self::assertSame([2], $confirmed['canonical_version']['enum']);
         $retained = AgentOperationView::confirmed(
             2,

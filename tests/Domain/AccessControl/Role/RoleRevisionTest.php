@@ -28,6 +28,9 @@ final class RoleRevisionTest extends TestCase
         $initial = $role->getRevision();
         $restored = RoleRevision::fromString($initial->toString());
         self::assertTrue($initial->equals($restored));
+        self::assertTrue($initial->isInitial());
+        self::assertTrue($restored->isInitial());
+        self::assertFalse($initial->next()->isInitial());
         self::assertStringEndsWith(':1', $initial->toString());
         self::assertFalse($initial->equals(RoleRevision::initial()));
         $renamed = $role->renameCustom(RoleName::fromString('ROLE_B'), $now);
@@ -92,6 +95,7 @@ final class RoleRevisionTest extends TestCase
                 $revision
             );
             self::assertSame($revision, $role->getRevision());
+            self::assertFalse($revision->isInitial());
             self::assertTrue($managed === $role->isManaged());
             $operations = [fn(): Role => $role->reconcileManaged(RoleName::fromString('ROLE_B'), [], $now)];
             if (!$managed) {

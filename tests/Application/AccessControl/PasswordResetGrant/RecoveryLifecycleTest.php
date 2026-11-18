@@ -5,17 +5,21 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant;
 
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryOutcome;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\DeliverPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\RequestPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetRevocationService;
+use Fight\AccessControl\Application\AccessControl\RefreshSession\SessionLifecycle;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\AssignRoleToUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DeleteUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RemoveRoleFromUserHandler;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
+use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetDeliveryException;
-use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Exception\PasswordResetRejectedException;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
@@ -25,6 +29,8 @@ use Fight\AccessControl\Domain\AccessControl\User\Command\RemoveRoleFromUser;
 use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired as PasswordResetRejectedException;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Test\AccessControl\Application\AccessControl\Role\Repository\InMemoryRoleRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
@@ -34,7 +40,11 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
 
-#[CoversClass(AuthenticationService::class)]
+#[CoversClass(UserAuthentication::class)]
+#[CoversClass(TokenIssuer::class)]
+#[CoversClass(PasswordManagement::class)]
+#[CoversClass(SessionLifecycle::class)]
+#[CoversClass(EmailChangeConfirmation::class)]
 #[CoversClass(DeleteUserHandler::class)]
 #[CoversClass(DisableUserHandler::class)]
 #[CoversClass(DeliverPasswordResetHandler::class)]
@@ -67,7 +77,7 @@ final class RecoveryLifecycleTest extends TestCase
         self::assertFalse($before->equals($fixture->user()->getRecoveryAuthority()));
         self::assertTrue($fixture->grant()->isRevoked());
         self::assertNull($fixture->grant()->getDelivery()->getEncryptedMaterial());
-        self::assertSame([], $fixture->grants->findDue($fixture->now, 10));
+        self::assertSame([], $fixture->passwordResetGrantRepository->findDue($fixture->now, 10));
         self::assertSame($issued->getId(), $fixture->grant()->getId());
         self::assertFalse($issued->isAuthorizedBy($fixture->user()));
         if ($transition === 'disable') {
@@ -79,13 +89,14 @@ final class RecoveryLifecycleTest extends TestCase
         self::assertSame(UserState::ACTIVE, $fixture->user()->getState());
         $this->assertResetRejected($fixture);
         self::assertTrue($fixture->grant()->isRevoked());
-        self::assertCount(1, $fixture->grants->all());
+        self::assertCount(1, $fixture->passwordResetGrantRepository->all());
         $fixture->request('fresh-recovery-fixture');
         self::assertTrue($fixture->grant()->isAuthorizedBy($fixture->user()));
-        $fixture->service()->resetPassword(
+        $fixture->passwordManagement()->resetPassword(
             $fixture->userId,
             'fresh-recovery-fixture',
-            'a sufficiently long recovered password'
+            'a sufficiently long recovered password',
+            AnonymousId::generate()
         );
         self::assertTrue($fixture->grant()->isConsumed());
     }
@@ -96,31 +107,32 @@ final class RecoveryLifecycleTest extends TestCase
         $fixture->request();
 
         $grant = $fixture->grant();
-        $roles = new InMemoryRoleRepository($fixture->unitOfWork);
+        $roleRepository = new InMemoryRoleRepository($fixture->unitOfWork);
         $role = Role::define(RoleId::generate(), RoleName::fromString('ROLE_MEMBER'), [], $fixture->now);
-        $roles->add($role);
+        $roleRepository->add($role);
         new AssignRoleToUserHandler(
-            $fixture->users,
-            $roles,
+            $fixture->userRepository,
+            $roleRepository,
             new FixedClock($fixture->now),
             $fixture->unitOfWork,
-            $fixture->events
+            $fixture->eventDispatcher
         )->handle(CommandMessage::create(new AssignRoleToUser($fixture->userId, $fixture->userId, $role->getId())));
         self::assertTrue($fixture->user()->hasRole($role->getId()));
         self::assertTrue($grant->isAuthorizedBy($fixture->user()));
         new RemoveRoleFromUserHandler(
-            $fixture->users,
-            $roles,
+            $fixture->userRepository,
+            $roleRepository,
             new FixedClock($fixture->now),
             $fixture->unitOfWork,
-            $fixture->events
+            $fixture->eventDispatcher
         )->handle(CommandMessage::create(new RemoveRoleFromUser($fixture->userId, $fixture->userId, $role->getId())));
         self::assertFalse($fixture->user()->hasRole($role->getId()));
         self::assertEquals($grant, $fixture->grant());
-        $fixture->service()->resetPassword(
+        $fixture->passwordManagement()->resetPassword(
             $fixture->userId,
             'recovery-fixture',
-            'a sufficiently long recovered password'
+            'a sufficiently long recovered password',
+            AnonymousId::generate()
         );
         self::assertTrue($fixture->grant()->isConsumed());
     }
@@ -131,14 +143,18 @@ final class RecoveryLifecycleTest extends TestCase
         $fixture->request();
 
         $initial = $fixture->grant()->getAuthority();
-        $fixture->service()->changePassword($fixture->userId, 'correct-secret', 'correct-secret');
+        $fixture->passwordManagement()->changePassword($fixture->userId, 'correct-secret', 'correct-secret');
         self::assertFalse($initial->equals($fixture->user()->getRecoveryAuthority()));
         $fixture->request('next-fixture');
         $next = $fixture->grant()->getAuthority();
         $fixture->requestEmail();
-        $fixture->service()->confirmEmail($fixture->userId, 'email-fixture');
+        $fixture->emailChangeConfirmation()->confirmEmail($fixture->userId, 'email-fixture', AnonymousId::generate());
         $fixture->requestEmail('recovery@example.test', 'next-email-fixture');
-        $fixture->service()->confirmEmail($fixture->userId, 'next-email-fixture');
+        $fixture->emailChangeConfirmation()->confirmEmail(
+            $fixture->userId,
+            'next-email-fixture',
+            AnonymousId::generate()
+        );
         self::assertSame('recovery@example.test', $fixture->user()->getEmail()->canonical());
         self::assertFalse($next->equals($fixture->user()->getRecoveryAuthority()));
         self::assertSame(2, $fixture->user()->getCanonicalEmailRevision());
@@ -153,17 +169,22 @@ final class RecoveryLifecycleTest extends TestCase
             $fixture->request();
             $grant = $fixture->grant();
             if (in_array($activity, ['login', 'rehash', 'refresh', 'logout'], true)) {
-                $service = $fixture->service($activity === 'rehash');
-                $tokens = $service->login($fixture->user()->getEmail()->toString(), 'correct-secret');
+                $authentication = $fixture->authentication($activity === 'rehash');
+                $tokens = $authentication->login($fixture->user()->getEmail()->toString(), 'correct-secret');
                 if ($activity === 'refresh') {
-                    $service->refresh($tokens->getRefreshCredential()->toString());
+                    $fixture->sessionLifecycle()->refresh($tokens->getRefreshCredential()->toString());
                 } elseif ($activity === 'logout') {
-                    $service->logout($tokens->getRefreshCredential()->toString());
+                    $fixture->sessionLifecycle()->logout($tokens->getRefreshCredential()->toString());
                 }
             } else {
                 $fixture->requestEmail();
                 if ($activity === 'email cancel') {
-                    $fixture->cancelEmail();
+                    $emailGrant = $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId);
+                    $fixture->cancelEmail(new CancelEmailChange(
+                        $fixture->userId,
+                        $fixture->userId,
+                        $emailGrant->getId()
+                    ));
                 } elseif ($activity === 'email expiry') {
                     $fixture->expireEmail();
                 }
@@ -171,10 +192,11 @@ final class RecoveryLifecycleTest extends TestCase
 
             self::assertEquals($grant, $fixture->grant());
             self::assertTrue($grant->isAuthorizedBy($fixture->user()));
-            $fixture->service()->resetPassword(
+            $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
-                'a sufficiently long recovery password'
+                'a sufficiently long recovery password',
+                AnonymousId::generate()
             );
             self::assertTrue($fixture->grant()->isConsumed());
             self::assertNull($fixture->grant()->getDelivery()->getEncryptedMaterial());
@@ -192,10 +214,11 @@ final class RecoveryLifecycleTest extends TestCase
                 self::assertFalse($fixture->unitOfWork->transactionActive);
             }, $outcome);
             self::assertTrue($fixture->grant()->isIssued());
-            $fixture->service()->resetPassword(
+            $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
-                'a sufficiently long recovery password'
+                'a sufficiently long recovery password',
+                AnonymousId::generate()
             );
             self::assertTrue($fixture->grant()->isConsumed());
             self::assertSame(2, $fixture->user()->getAuthenticationVersion());
@@ -203,10 +226,11 @@ final class RecoveryLifecycleTest extends TestCase
 
         $fixture = new RecoveryFixture();
         $fixture->request();
-        $fixture->service()->resetPassword(
+        $fixture->passwordManagement()->resetPassword(
             $fixture->userId,
             'recovery-fixture',
-            'a sufficiently long recovery password'
+            'a sufficiently long recovery password',
+            AnonymousId::generate()
         );
         self::assertTrue($fixture->grant()->isConsumed());
     }
@@ -218,7 +242,7 @@ final class RecoveryLifecycleTest extends TestCase
             $fixture->request();
             $issued = $fixture->grant();
             $this->transition($fixture, $transition);
-            $auditCount = count($fixture->audit->all());
+            $auditCount = count($fixture->auditEvidenceRepository->all());
             foreach ([false, true] as $issuedSnapshot) {
                 if ($issuedSnapshot) {
                     // Model an independently hydrated generation against current User state.
@@ -231,14 +255,14 @@ final class RecoveryLifecycleTest extends TestCase
                     $fixture->deliver(static function () use (&$called): void {
                         $called = true;
                     });
-                } catch (PasswordResetDeliveryException $exception) {
+                } catch (StateConflict $exception) {
                     $caught = $exception;
                 }
 
                 self::assertNotNull($caught);
                 self::assertFalse($called);
-                self::assertSame($auditCount, count($fixture->audit->all()));
-                self::assertSame([], $fixture->grants->findDue($fixture->now, 10));
+                self::assertSame($auditCount, count($fixture->auditEvidenceRepository->all()));
+                self::assertSame([], $fixture->passwordResetGrantRepository->findDue($fixture->now, 10));
                 $this->assertResetRejected($fixture);
             }
         }
@@ -254,7 +278,7 @@ final class RecoveryLifecycleTest extends TestCase
         $this->assertResetRejected($fixture);
         self::assertEquals($before, $fixture->user());
         self::assertTrue($fixture->grant()->isIssued());
-        self::assertCount(1, $fixture->audit->all());
+        self::assertCount(1, $fixture->auditEvidenceRepository->all());
     }
 
     #[DataProvider('securityTransitions')]
@@ -270,7 +294,11 @@ final class RecoveryLifecycleTest extends TestCase
         $beforeGrant = $fixture->grant();
         $failing = $fixture->connection(auditFails: true);
         if ($transition === 'email') {
-            self::assertTrue($failing->emailGrants->add($fixture->emailGrants->getLatestByUserId($fixture->userId)));
+            self::assertTrue(
+                $failing->emailChangeGrantRepository->add(
+                    $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId)
+                )
+            );
         }
 
         $caught = null;
@@ -283,8 +311,8 @@ final class RecoveryLifecycleTest extends TestCase
         self::assertNotNull($caught);
         self::assertEquals($beforeUser, $fixture->user());
         self::assertEquals($beforeGrant, $fixture->grant());
-        self::assertSame([], $failing->audit->all());
-        self::assertCount(1, $failing->events->events());
+        self::assertSame([], $failing->auditEvidenceRepository->all());
+        self::assertCount(1, $failing->eventDispatcher->events());
     }
 
     public function test_failed_cancellation_cannot_commit_lifecycle_or_password_change(): void
@@ -310,7 +338,7 @@ final class RecoveryLifecycleTest extends TestCase
             self::assertNotNull($caught);
             self::assertEquals($before, $fixture->user());
             self::assertTrue($fixture->grant()->isIssued());
-            self::assertSame([], $failing->audit->all());
+            self::assertSame([], $failing->auditEvidenceRepository->all());
         }
     }
 
@@ -328,22 +356,23 @@ final class RecoveryLifecycleTest extends TestCase
                         if ($transition === 'replacement') {
                             $fixture->request('successor-fixture');
                         } elseif ($transition === 'redemption') {
-                            $fixture->service()->resetPassword(
+                            $fixture->passwordManagement()->resetPassword(
                                 $fixture->userId,
                                 'recovery-fixture',
-                                'a sufficiently long recovery password'
+                                'a sufficiently long recovery password',
+                                AnonymousId::generate()
                             );
                         } else {
                             $this->transition($fixture, $transition);
                         }
                     }, $outcome);
-                } catch (PasswordResetDeliveryException $exception) {
+                } catch (StateConflict $exception) {
                     $caught = $exception;
                 }
 
                 self::assertNotNull($caught);
                 self::assertNotSame(CredentialDeliveryStatus::DELIVERED, $fixture->grant()->getDelivery()->getStatus());
-                $old = $fixture->grants->getById($first->getId());
+                $old = $fixture->passwordResetGrantRepository->getById($first->getId());
                 self::assertFalse($old->isIssued());
                 self::assertNull($old->getDelivery()->getEncryptedMaterial());
                 if ($transition === 'replacement') {
@@ -357,7 +386,7 @@ final class RecoveryLifecycleTest extends TestCase
     private function transition(RecoveryFixture $fixture, string $transition): void
     {
         if ($transition === 'password') {
-            $fixture->service()->changePassword(
+            $fixture->passwordManagement()->changePassword(
                 $fixture->userId,
                 'correct-secret',
                 'a sufficiently long changed password'
@@ -367,7 +396,11 @@ final class RecoveryLifecycleTest extends TestCase
                 $fixture->requestEmail();
             }
 
-            $fixture->service()->confirmEmail($fixture->userId, 'email-fixture');
+            $fixture->emailChangeConfirmation()->confirmEmail(
+                $fixture->userId,
+                'email-fixture',
+                AnonymousId::generate()
+            );
         } elseif ($transition === 'disable') {
             $fixture->disable();
         } elseif ($transition === 'delete') {
@@ -377,14 +410,57 @@ final class RecoveryLifecycleTest extends TestCase
         }
     }
 
+    public function test_enabled_audit_requires_explicit_origin_after_valid_credential_admission(): void
+    {
+        foreach (['reset', 'confirm'] as $operation) {
+            $fixture = new RecoveryFixture();
+            $fixture->authentication()->login('recovery@example.test', 'correct-secret');
+            $fixture->request();
+            $fixture->requestEmail();
+            $user = clone $fixture->user();
+            $resetGrant = $fixture->grant();
+            $emailGrants = $fixture->emailChangeGrantRepository->all();
+            $sessions = $fixture->refreshSessionRepository->all();
+            $evidence = $fixture->auditEvidenceRepository->all();
+            $events = count($fixture->eventDispatcher->events());
+            try {
+                if ($operation === 'reset') {
+                    $fixture->passwordManagement()->resetPassword(
+                        $fixture->userId,
+                        'recovery-fixture',
+                        'a sufficiently long recovered password'
+                    );
+                } else {
+                    $fixture->emailChangeConfirmation()->confirmEmail($fixture->userId, 'email-fixture');
+                }
+
+                self::fail('Missing originating attribution admitted a mandatory audited mutation.');
+            } catch (PasswordResetRejectedException $exception) {
+                self::assertSame(
+                    $operation === 'reset' ? 'Password reset rejected.' : 'Email change confirmation rejected.',
+                    $exception->getMessage()
+                );
+            }
+
+            self::assertEquals($user, $fixture->user());
+            self::assertEquals($resetGrant, $fixture->grant());
+            self::assertEquals($emailGrants, $fixture->emailChangeGrantRepository->all());
+            self::assertEquals($sessions, $fixture->refreshSessionRepository->all());
+            self::assertSame($evidence, $fixture->auditEvidenceRepository->all());
+            self::assertCount($events + 1, $fixture->eventDispatcher->events());
+            self::assertFalse($fixture->unitOfWork->transactionActive);
+        }
+    }
+
     private function assertResetRejected(RecoveryFixture $fixture): void
     {
         $caught = null;
         try {
-            $fixture->service()->resetPassword(
+            $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
-                'a sufficiently long recovery password'
+                'a sufficiently long recovery password',
+                AnonymousId::generate()
             );
         } catch (PasswordResetRejectedException $passwordResetRejectedException) {
             $caught = $passwordResetRejectedException;

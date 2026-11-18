@@ -16,6 +16,7 @@ use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleExcepti
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotActiveException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserNotPendingActivationException;
 use Fight\Common\Domain\Collection\HashSet;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 /**
@@ -32,6 +33,8 @@ class User
      * Constructs User
      *
      * Creates a user identity.
+     *
+     * Validates the persisted Role list before constructing the typed assignment set.
      *
      * @phpstan-param list<RoleId> $roleIds
      */
@@ -51,11 +54,15 @@ class User
         private int $canonicalEmailRevision = 0
     ) {
         new RecoveryAuthority($authenticationVersion, $canonicalEmailRevision);
-        $this->roleIds = HashSet::of(RoleId::class);
-
-        foreach ($roleIds as $roleId) {
-            $this->roleIds->add($roleId);
+        if (
+            $authenticationAuthorityRevision < 0
+            || $authorizationAssignmentRevision < 0
+            || $emailChangeReservationRevision < 0
+        ) {
+            throw new DomainException('User persistence revisions must be nonnegative.');
         }
+
+        $this->roleIds = self::roleIdsFromList($roleIds);
     }
 
     /**
@@ -117,6 +124,7 @@ class User
             throw new EmailChangeRequestException('The email-change destination must differ from the canonical email.');
         }
 
+        $this->assertRevisionsCanAdvance($this->emailChangeReservationRevision);
         $this->pendingEmailChange = $email;
         ++$this->emailChangeReservationRevision;
         $this->updatedAt = $now;
@@ -153,6 +161,7 @@ class User
             throw new PendingInvitationCorrectionException('The corrected email must differ from the current email.');
         }
 
+        $this->assertRevisionsCanAdvance($this->canonicalEmailRevision);
         $this->email = $email;
         ++$this->canonicalEmailRevision;
         $this->updatedAt = $now;
@@ -177,6 +186,7 @@ class User
             return;
         }
 
+        $this->assertRevisionsCanAdvance($this->canonicalEmailRevision);
         $this->email = $email;
         ++$this->canonicalEmailRevision;
         $this->updatedAt = $now;
@@ -197,13 +207,21 @@ class User
      */
     public function confirmEmailChange(DateTimeImmutable $now): void
     {
-        if ($this->state !== UserState::ACTIVE || !$this->pendingEmailChange instanceof EmailAddress) {
+        $pendingEmailChange = $this->pendingEmailChange;
+        if ($this->state !== UserState::ACTIVE || !$pendingEmailChange instanceof EmailAddress) {
             throw new EmailChangeConfirmationException('The user has no confirmable email change.');
         }
 
-        $this->email = $this->pendingEmailChange;
+        $this->assertRevisionsCanAdvance(
+            $this->authenticationVersion,
+            $this->authenticationAuthorityRevision,
+            $this->emailChangeReservationRevision,
+            $this->canonicalEmailRevision
+        );
+        $this->email = $pendingEmailChange;
         $this->pendingEmailChange = null;
         ++$this->authenticationVersion;
+        ++$this->authenticationAuthorityRevision;
         ++$this->emailChangeReservationRevision;
         ++$this->canonicalEmailRevision;
         $this->updatedAt = $now;
@@ -220,6 +238,7 @@ class User
             throw new EmailChangeCancellationException('The user has no cancellable email change.');
         }
 
+        $this->assertRevisionsCanAdvance($this->emailChangeReservationRevision);
         $this->pendingEmailChange = null;
         ++$this->emailChangeReservationRevision;
         $this->updatedAt = $now;
@@ -236,6 +255,7 @@ class User
             throw new EmailChangeExpirationException('The user has no expirable email change.');
         }
 
+        $this->assertRevisionsCanAdvance($this->emailChangeReservationRevision);
         $this->pendingEmailChange = null;
         ++$this->emailChangeReservationRevision;
         $this->updatedAt = $now;
@@ -260,6 +280,7 @@ class User
             throw new UserLifecycleException('Only an active user can be disabled.');
         }
 
+        $this->assertRevisionsCanAdvance($this->authenticationVersion);
         ++$this->authenticationVersion;
         $this->state = UserState::DISABLED;
         $this->updatedAt = $now;
@@ -291,6 +312,7 @@ class User
             throw new UserLifecycleException('Only an active or disabled user can be deleted.');
         }
 
+        $this->assertRevisionsCanAdvance($this->authenticationVersion);
         ++$this->authenticationVersion;
         $this->state = UserState::DELETED;
         $this->updatedAt = $now;
@@ -329,7 +351,7 @@ class User
      */
     public function getRoleIds(): array
     {
-        return $this->roleIds->toArray();
+        return array_values($this->roleIds->toArray());
     }
 
     /**
@@ -351,6 +373,7 @@ class User
             return false;
         }
 
+        $this->assertRevisionsCanAdvance($this->authorizationAssignmentRevision);
         $this->roleIds->add($roleId);
         ++$this->authorizationAssignmentRevision;
         $this->updatedAt = $now;
@@ -369,6 +392,7 @@ class User
             return false;
         }
 
+        $this->assertRevisionsCanAdvance($this->authorizationAssignmentRevision);
         $this->roleIds->remove($roleId);
         ++$this->authorizationAssignmentRevision;
         $this->updatedAt = $now;
@@ -379,19 +403,19 @@ class User
     /**
      * Replaces the complete role-assignment set and advances its authority once when changed
      *
+     * Validates each supplied identity before replacing any current assignment.
+     *
      * @phpstan-param iterable<RoleId> $roleIds
      */
     public function replaceRoleAssignments(iterable $roleIds, DateTimeImmutable $now): void
     {
-        $replacementRoleIds = HashSet::of(RoleId::class);
-        foreach ($roleIds as $roleId) {
-            $replacementRoleIds->add($roleId);
-        }
+        $replacementRoleIds = self::roleIdsFromIterable($roleIds);
 
         if ($this->roleIds->difference($replacementRoleIds)->isEmpty()) {
             return;
         }
 
+        $this->assertRevisionsCanAdvance($this->authorizationAssignmentRevision);
         $this->roleIds = $replacementRoleIds;
         ++$this->authorizationAssignmentRevision;
         $this->updatedAt = $now;
@@ -416,7 +440,9 @@ class User
             throw new UserNotPendingActivationException('Only a pending user can be activated.');
         }
 
+        $this->assertRevisionsCanAdvance($this->authenticationAuthorityRevision);
         $this->passwordHash = $passwordHash;
+        ++$this->authenticationAuthorityRevision;
         $this->state = UserState::ACTIVE;
         $this->updatedAt = $now;
     }
@@ -430,16 +456,24 @@ class User
     }
 
     /**
-     * Replaces an active identity's password hash after successful verification
+     * Records a successful login with an optional verified password rehash
+     *
+     * Credential verification remains the caller's responsibility. Every login serializes authority without
+     * invalidating existing sessions or recovery. Without rehash, existing password-update metadata is preserved.
      */
-    public function rehashPassword(PasswordHash $passwordHash, DateTimeImmutable $now): void
+    public function recordSuccessfulLogin(DateTimeImmutable $now, ?PasswordHash $rehashedPassword = null): void
     {
         if ($this->state !== UserState::ACTIVE || !$this->passwordHash instanceof PasswordHash) {
-            throw new UserNotActiveException('Only an active user can rehash an established password.');
+            throw new UserNotActiveException('Only an active user with an established password can log in.');
         }
 
-        $this->passwordHash = $passwordHash;
-        $this->updatedAt = $now;
+        $this->assertRevisionsCanAdvance($this->authenticationAuthorityRevision);
+        if ($rehashedPassword instanceof PasswordHash) {
+            $this->passwordHash = $rehashedPassword;
+            $this->updatedAt = $now;
+        }
+
+        ++$this->authenticationAuthorityRevision;
     }
 
     /**
@@ -451,8 +485,10 @@ class User
             throw new UserNotActiveException('Only an active user can change an established password.');
         }
 
+        $this->assertRevisionsCanAdvance($this->authenticationVersion, $this->authenticationAuthorityRevision);
         $this->passwordHash = $passwordHash;
         ++$this->authenticationVersion;
+        ++$this->authenticationAuthorityRevision;
         $this->updatedAt = $now;
     }
 
@@ -465,8 +501,10 @@ class User
             throw new UserNotActiveException('Only an active user can reset an established password.');
         }
 
+        $this->assertRevisionsCanAdvance($this->authenticationVersion, $this->authenticationAuthorityRevision);
         $this->passwordHash = $passwordHash;
         ++$this->authenticationVersion;
+        ++$this->authenticationAuthorityRevision;
         $this->updatedAt = $now;
     }
 
@@ -487,19 +525,58 @@ class User
     }
 
     /**
-     * Advances the monotonic revision used to serialize credential-authority persistence
-     */
-    public function advanceAuthenticationAuthorityRevision(): void
-    {
-        ++$this->authenticationAuthorityRevision;
-    }
-
-    /**
      * Returns the monotonic credential-authority persistence revision
      */
     public function getAuthenticationAuthorityRevision(): int
     {
         return $this->authenticationAuthorityRevision;
+    }
+
+    /**
+     * Validates a persisted Role list before building its typed assignment set
+     *
+     * @phpstan-param array<array-key, mixed> $roleIds
+     * @phpstan-return HashSet<RoleId>
+     */
+    private static function roleIdsFromList(array $roleIds): HashSet
+    {
+        if (!array_is_list($roleIds)) {
+            throw new DomainException('User Role identities must form a list.');
+        }
+
+        return self::roleIdsFromIterable($roleIds);
+    }
+
+    /**
+     * Validates native iterable elements without relying on runtime assertions
+     *
+     * @phpstan-param iterable<mixed> $roleIds
+     * @phpstan-return HashSet<RoleId>
+     */
+    private static function roleIdsFromIterable(iterable $roleIds): HashSet
+    {
+        $validatedRoleIds = HashSet::of(RoleId::class);
+        foreach ($roleIds as $roleId) {
+            if (!$roleId instanceof RoleId) {
+                throw new DomainException('User Role assignments require Role identities.');
+            }
+
+            $validatedRoleIds->add($roleId);
+        }
+
+        return $validatedRoleIds;
+    }
+
+    /**
+     * Rejects exhausted counters before a transition can change any state
+     */
+    private function assertRevisionsCanAdvance(int ...$revisions): void
+    {
+        foreach ($revisions as $revision) {
+            if ($revision === PHP_INT_MAX) {
+                throw new DomainException('User authority revisions are exhausted.');
+            }
+        }
     }
 
     /**

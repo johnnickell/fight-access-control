@@ -1,0 +1,351 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\AccessControl\Application\AccessControl\Agent\CommandHandler;
+
+use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretCipher;
+use Fight\AccessControl\Application\AccessControl\Agent\Credential\HmacSharedSecretGenerator;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationAuthorization;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\AgentOperationRejection;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryCipher;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Exception\AgentIssuanceFailed;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentCredentialId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
+use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
+use Fight\AccessControl\Domain\AccessControl\Agent\Command\ProvisionAgent;
+use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioned;
+use Fight\AccessControl\Domain\AccessControl\Agent\Event\AgentProvisioningFailed;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationRepository;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationCanonicalization;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationLimits;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentProvisioningRequest;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationCollisionException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationUncertainException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAgentState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
+use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Messaging\Command\CommandHandler;
+use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Domain\Messaging\MessageId;
+use Throwable;
+
+/**
+ * Class ProvisionAgentHandler
+ *
+ * Commits recoverable issuance and prepared delivery without returning raw credential material.
+ */
+final readonly class ProvisionAgentHandler implements CommandHandler
+{
+    /**
+     * Constructs ProvisionAgentHandler
+     */
+    public function __construct(
+        private AgentRepository $agentRepository,
+        private AgentCredentialOperationRepository $operationRepository,
+        private AgentOperationAuthorization $operationAuthorization,
+        private HmacSharedSecretGenerator $hmacSharedSecretGenerator,
+        private HmacSharedSecretCipher $hmacSharedSecretCipher,
+        private AgentDeliveryCipher $deliveryCipher,
+        private Clock $clock,
+        private TransactionalUnitOfWork $unitOfWork,
+        private EventDispatcher $eventDispatcher,
+        private AgentOperationLimits $limits = new AgentOperationLimits(),
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
+    ) {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function commandRegistration(): string
+    {
+        return ProvisionAgent::class;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function handle(CommandMessage $commandMessage): void
+    {
+        /** @var ProvisionAgent $command */
+        $command = $commandMessage->payload();
+        $key = $command->getKey();
+        $request = $command->getRequest();
+        $resolveOnly = false;
+        while (true) {
+            $callbackCompleted = false;
+            $created = false;
+            try {
+                if ($this->unitOfWork->isClosed()) {
+                    throw new AgentOperationRejection(AgentOperationFailure::UNAVAILABLE);
+                }
+
+                /** @var AgentIssuance $issuance */
+                $issuance = $this->unitOfWork->commitTransactional(function () use (
+                    $key,
+                    $request,
+                    $commandMessage,
+                    $resolveOnly,
+                    &$callbackCompleted,
+                    &$created
+                ): AgentIssuance {
+                    try {
+                        $this->operationRepository->getOperationContract()->assertSameCohort(
+                            $this->agentRepository->getOperationContract()
+                        );
+                    } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+                        throw AgentOperationRejection::fromDomain(
+                            $agentOperationRejectedException,
+                            AgentOperationFailure::UNAVAILABLE
+                        );
+                    }
+
+                    try {
+                        $actor = $this->operationAuthorization->authorize($key->getScope(), $request->getDestination());
+                    } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+                        throw AgentOperationRejection::fromDomain(
+                            $agentOperationRejectedException,
+                            AgentOperationFailure::UNAUTHORIZED,
+                            AgentOperationFailure::UNAVAILABLE
+                        );
+                    }
+
+                    try {
+                        $operation = $this->operationRepository->getByKey($key);
+                    } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+                        throw AgentOperationRejection::fromDomain(
+                            $agentOperationRejectedException,
+                            AgentOperationFailure::UNAVAILABLE
+                        );
+                    }
+
+                    if ($operation !== null) {
+                        if ($operation->getIssuance()->getKey()->toString() !== $key->toString()) {
+                            throw new AgentIssuanceFailed();
+                        }
+
+                        try {
+                            $issuance = $operation->resolve($request);
+                        } catch (AgentOperationRejectedException $rejection) {
+                            if (
+                                $rejection->getReason() === AgentOperationFailure::CONFLICT
+                                && $operation->getCanonicalRequest() === $request->canonicalize()
+                            ) {
+                                throw new AgentIssuanceFailed();
+                            }
+
+                            throw AgentOperationRejection::fromDomain(
+                                $rejection,
+                                AgentOperationFailure::INVALID_REQUEST,
+                                AgentOperationFailure::CONFLICT,
+                                AgentOperationFailure::UNSUPPORTED_VERSION
+                            );
+                        }
+                    } else {
+                        if ($resolveOnly) {
+                            throw new AgentOperationRejection(AgentOperationFailure::CONTENTION);
+                        }
+
+                        if ($actor === null && $this->auditEvidenceRepository !== null) {
+                            throw new AgentIssuanceFailed();
+                        }
+
+                        $issuance = $this->issue($key, $request, $actor, $commandMessage->id());
+                        $created = true;
+                    }
+
+                    $callbackCompleted = true;
+
+                    return $issuance;
+                });
+            } catch (Throwable $failure) {
+                // A lost commit acknowledgement cannot be classified as rollback, even after a read-only retry.
+                /** @var bool $callbackCompleted Updated by the owned callback before a possible commit fault */
+                if ($callbackCompleted) {
+                    $this->publishFailure();
+
+                    throw new AgentOperationUncertainException();
+                }
+
+                if (
+                    !$resolveOnly && $failure instanceof AgentOperationRejection
+                    && $failure->getReason() === AgentOperationFailure::CONTENTION
+                ) {
+                    $resolveOnly = true;
+                    continue;
+                }
+
+                $this->publishFailure();
+                if ($failure instanceof AgentOperationRejection) {
+                    throw AgentOperationRejection::fromReason($failure->getReason());
+                }
+
+                // Unknown faults remain internal, without unsafe causes or provider trace arguments.
+                throw new AgentIssuanceFailed();
+            }
+
+            if ($created) {
+                $this->publishIssuance($issuance);
+            }
+
+            return;
+        }
+    }
+
+    /**
+     * Creates all issuance state inside the package-owned transaction
+     */
+    private function issue(
+        AgentOperationKey $key,
+        AgentProvisioningRequest $request,
+        UserId|AgentId|SystemId|AnonymousId|null $actor,
+        MessageId $messageId
+    ): AgentIssuance {
+        try {
+            $this->limits->validateNewRequest($request);
+            $canonicalRequest = $request->canonicalize();
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            throw AgentOperationRejection::fromDomain(
+                $agentOperationRejectedException,
+                AgentOperationFailure::INVALID_REQUEST
+            );
+        }
+
+        $issuedAt = $this->clock->now();
+        $agentId = AgentId::generate();
+        $credentialId = AgentCredentialId::generate();
+        try {
+            $writeVersion = $this->operationRepository->reserveDestinationWrite($request->getDestination());
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            throw AgentOperationRejection::fromDomain(
+                $agentOperationRejectedException,
+                AgentOperationFailure::CONFLICT,
+                AgentOperationFailure::UNAVAILABLE
+            );
+        }
+
+        if ($writeVersion < 1) {
+            throw new AgentIssuanceFailed();
+        }
+
+        $issuance = new AgentIssuance(
+            $key,
+            AgentDeliveryId::generate(),
+            $agentId,
+            $credentialId,
+            0,
+            $request->getDestination(),
+            $writeVersion,
+            $issuedAt
+        );
+        try {
+            $secret = $this->hmacSharedSecretGenerator->generate();
+            $envelope = $this->hmacSharedSecretCipher->encrypt($secret);
+            $material = $this->deliveryCipher->encrypt($secret, $issuance);
+        } catch (Throwable) {
+            throw new AgentIssuanceFailed();
+        }
+
+        $agent = Agent::provision(
+            $agentId,
+            AgentName::fromString($request->getName()),
+            $credentialId,
+            $envelope,
+            $issuedAt
+        );
+        $operation = new AgentCredentialOperation(
+            AgentOperationCanonicalization::VERSION,
+            $canonicalRequest,
+            $issuance,
+            $material,
+            $actor
+        );
+        try {
+            $this->agentRepository->add($agent);
+        } catch (AgentOperationRejectedException $agentOperationRejectedException) {
+            throw AgentOperationRejection::fromDomain(
+                $agentOperationRejectedException,
+                AgentOperationFailure::UNAVAILABLE
+            );
+        }
+
+        try {
+            $this->operationRepository->add($operation, $this->limits);
+        } catch (AgentOperationCollisionException) {
+            throw new AgentOperationRejection(AgentOperationFailure::CONTENTION);
+        } catch (AgentOperationRejectedException $rejection) {
+            throw AgentOperationRejection::fromDomain(
+                $rejection,
+                AgentOperationFailure::CAPACITY,
+                AgentOperationFailure::CONFLICT,
+                AgentOperationFailure::UNAVAILABLE
+            );
+        }
+
+        $this->auditEvidenceRepository?->add(AuditEvidence::record(
+            $actor ?? throw new AgentIssuanceFailed(),
+            new AuditSubject($agentId),
+            AuditAction::AGENT_PROVISIONED,
+            $issuedAt,
+            new AuditAgentOutcome(
+                null,
+                AuditAgentState::fromAgent($agent),
+                $issuance->getDeliveryId(),
+                $operation->getStateRevision()
+            ),
+            new AuditCorrelation($messageId, $key)
+        ));
+
+        return $issuance;
+    }
+
+    /**
+     * Dispatches a confirmed fact without allowing notification faults to disguise committed issuance
+     */
+    private function publishIssuance(AgentIssuance $issuance): void
+    {
+        try {
+            $this->eventDispatcher->trigger(new AgentProvisioned(
+                $issuance->getAgentId(),
+                $issuance->getCredentialId(),
+                $issuance->getCredentialRevision(),
+                $issuance->getIssuedAt()
+            ));
+        } catch (Throwable) {
+            $this->publishFailure();
+        }
+    }
+
+    /**
+     * Dispatches sanitized evidence without replacing the actual operation outcome
+     */
+    private function publishFailure(): void
+    {
+        try {
+            $this->eventDispatcher->trigger(new AgentProvisioningFailed(
+                'credential-operation',
+                'Agent operation failed.'
+            ));
+        } catch (Throwable) {
+        }
+    }
+}

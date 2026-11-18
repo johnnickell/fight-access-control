@@ -27,8 +27,8 @@ final readonly class FeatureAvailability
      * Constructs FeatureAvailability
      */
     public function __construct(
-        private FeatureRepository $features,
-        private PermissionRepository $permissions
+        private FeatureRepository $featureRepository,
+        private PermissionRepository $permissionRepository
     ) {
     }
 
@@ -42,7 +42,7 @@ final readonly class FeatureAvailability
         FeatureName $name,
         AuthenticatedUserPrincipal|AuthenticatedAgentPrincipal|null $principal
     ): bool {
-        $feature = $this->features->getByName($name);
+        $feature = $this->featureRepository->getByName($name);
         if (!$feature instanceof Feature) {
             throw new FeatureNotFoundException('The Feature is not registered.');
         }
@@ -52,7 +52,7 @@ final readonly class FeatureAvailability
         }
 
         $permissionId = $feature->getPermissionId();
-        $permission = $this->permissions->getById($permissionId);
+        $permission = $this->permissionRepository->getById($permissionId);
         if (!$permission instanceof Permission) {
             throw new FeatureBindingException('The Feature testing Permission is missing.');
         }

@@ -1,0 +1,6 @@
+includes:
+    - phpstan.neon.dist
+
+parameters:
+    # Inherit the ordinary production/caller rules; probes do not rely on a stricter hidden level.
+    tmpDir: var/cache/phpstan-type-contracts

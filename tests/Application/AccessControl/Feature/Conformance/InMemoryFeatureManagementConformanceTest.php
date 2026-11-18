@@ -21,27 +21,32 @@ final class InMemoryFeatureManagementConformanceTest extends FeatureManagementCo
     protected function environment(): FeatureManagementEnvironment
     {
         $unit = new InMemoryUnitOfWork();
-        $features = new InMemoryFeatureRepository($unit);
-        $permissions = new InMemoryPermissionRepository($unit);
-        $events = new InMemoryEventDispatcher();
+        $featureRepository = new InMemoryFeatureRepository($unit);
+        $permissionRepository = new InMemoryPermissionRepository($unit);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
-        return new readonly class ($unit, $features, $permissions, $events) implements FeatureManagementEnvironment {
+        return new readonly class (
+            $unit,
+            $featureRepository,
+            $permissionRepository,
+            $eventDispatcher
+        ) implements FeatureManagementEnvironment {
             public function __construct(
                 private InMemoryUnitOfWork $unit,
-                private InMemoryFeatureRepository $features,
-                private InMemoryPermissionRepository $permissions,
-                private InMemoryEventDispatcher $events
+                private InMemoryFeatureRepository $featureRepository,
+                private InMemoryPermissionRepository $permissionRepository,
+                private InMemoryEventDispatcher $eventDispatcher
             ) {
             }
 
             public function features(): FeatureRepository
             {
-                return $this->features;
+                return $this->featureRepository;
             }
 
             public function permissions(): PermissionRepository
             {
-                return $this->permissions;
+                return $this->permissionRepository;
             }
 
             public function unitOfWork(): TransactionalUnitOfWork
@@ -51,17 +56,17 @@ final class InMemoryFeatureManagementConformanceTest extends FeatureManagementCo
 
             public function events(): EventDispatcher
             {
-                return $this->events;
+                return $this->eventDispatcher;
             }
 
             public function storePermission(Permission $permission): void
             {
-                $this->permissions->add($permission);
+                $this->permissionRepository->add($permission);
             }
 
             public function removePermission(Permission $permission): bool
             {
-                return $this->unit->commitTransactional(fn(): bool => $this->permissions->remove($permission));
+                return $this->unit->commitTransactional(fn(): bool => $this->permissionRepository->remove($permission));
             }
         };
     }

@@ -10,6 +10,11 @@ use Fight\Common\Domain\Type\Arrayable;
  * Class ManagedPolicyPlan
  *
  * Provides an immutable deterministic managed-policy reconciliation plan.
+ *
+ * @phpstan-type SerializedPlan array{
+ *     permissions: list<array{id: string, name: string, tier: string, action: string}>,
+ *     roles: list<array{id: string, name: string, permission_ids: list<string>, action: string}>
+ * }
  */
 final readonly class ManagedPolicyPlan implements Arrayable
 {
@@ -52,7 +57,7 @@ final readonly class ManagedPolicyPlan implements Arrayable
     /**
      * Returns the serialized plan
      *
-     * @return array{permissions: list<array<string, mixed>>, roles: list<array<string, mixed>>}
+     * @phpstan-return SerializedPlan
      */
     public function toArray(): array
     {

@@ -16,7 +16,7 @@ Call `AgentCredentialDeliveryService::deliver(AgentOperationKey, AgentCredential
 the authenticated worker. The input is exact original correlation, not an arbitrary slot, URL, path or secret handle.
 It contains no actor string. Inject:
 
-- `AgentRepository`, `AgentOperationRepository` and the package-owned `TransactionalUnitOfWork` on the same connection.
+- `AgentRepository`, `AgentCredentialOperationRepository` and the package-owned `TransactionalUnitOfWork` on the same connection.
 - `AgentOperationAuthorization` for current worker/scope/delegation/destination authorization **before every key
   lookup**. Its audit identity return is not a substitute for authorization and is not exposed by delivery.
 - `AgentDeliveryAuthorization` for current target/Permission/delegation, destination owner/binding and reserved slot
@@ -48,8 +48,40 @@ repository behind a caller-selected secret endpoint. Unsupported composition mus
 Use the existing [authorized status query](agent-operation-status.md) for a secret-free durable snapshot. A result
 never returns a credential, ciphertext, key version/path, receipt, claim token, exception or decryption handle.
 The original TASK-00051 slice introduces no DTOs or optional delivery event. TASK-00052 adds the bounded discovery
-Query; confirmed operation state remains the fact, not event delivery. The issuance/rotation publication-warning
-exception is not extended.
+Query; confirmed operation state remains the fact, not event delivery. TASK-00182's issuance/rotation confirmed-commit publication-containment
+exception is not extended; those Commands return void and expose no publication warnings.
+
+## Optional atomic delivery audit (Unreleased)
+
+`AgentCredentialDeliveryService` accepts an optional last nullable `AuditEvidenceRepository`, after the optional
+policy. Omitted/null intentionally disables durable evidence. When enabled, use the same connection and transaction
+as Agent/operation persistence and the Unit of Work; a repository that merely observes an active transaction is not
+sufficient. Configured storage failure returns `UNAVAILABLE` and rolls back the staged outcome and evidence.
+
+The worker consumes the operation's retained typed `originatingActorId`, never the current worker, scope labels,
+public View or an ambient principal. Current delegated execution authorization remains independent. Missing origin
+prevents enabled admission before materialization/send, and prevents claim-path expiry/exhaustion writes. Existing
+unaudited recorded outcomes and receipt-only polls need no new attribution and never backfill evidence.
+
+Enabled evidence records `agent.delivery.confirmed`, `agent.delivery.failed`, `agent.delivery.expired` or
+`agent.delivery.exhausted` in the transaction that commits the outcome. Expiry/exhaustion reached by `claimDelivery`
+is included. Temporary claims/admissions, rejected/deferred/unavailable attempts, polling and unchanged recorded-result
+reconciliation add none. `AuditAgentDeliveryOutcome` carries typed credential/delivery identities, the original
+credential revision, actual before/after operation revisions/dispositions and closed failure classification. The Agent
+is the typed subject; correlation is the full original scoped operation key, without an invented message ID. Time is
+the trusted instant passed to that transition, not issuance, claim or admission time reused for a later outcome.
+No material, receipt bytes, epoch/token, sink request, diagnostic or entity snapshot is captured.
+
+Claim, admission and outcome remain separate transactions. Audit rollback cannot undo external staging. After an
+outcome audit failure or lost acknowledgement, retain the original bytes/IDs and use receipt-first recovery; do not
+infer rollback of the sink, restage blindly or issue again. Both actual uncertain-commit outcomes remain possible.
+Recovery has no second audit writer or wrapping transaction; `nextRunAt()` stays pure scheduling.
+
+**Pre-v1 consumer obligation:** map the four new actions and complete `AuditAgentDeliveryOutcome` facts, preserve
+retained origin kind/UUID through restart, explicitly choose injection per worker and qualify the actual shared
+connection/fences and independent sink receipts before opt-in. There is no compatibility reader, migration/backfill,
+new Event or publication guarantee. Evidence is not automatically authorized public/log data. Package tests model
+persisted outcomes; real storage/locks, crypto, physical process loss, restoration and activation/use remain separate.
 
 ## Three independent transactions
 
@@ -77,7 +109,7 @@ exception is not extended.
 All state transitions live in `AgentCredentialOperation`; `AgentDeliveryAttempt` owns claim/admission comparisons
 and deadline caps. Application coordinates ports and transactions rather than reconstructing those rules.
 
-`AgentOperationRepository::replaceDelivery(expected, replacement, expectedAgent)` is an atomic expected-state
+`AgentCredentialOperationRepository::replaceDelivery(expected, replacement, expectedAgent)` is an atomic expected-state
 write, not a save/upsert. It verifies the authoritative expected operation revision and original tuple, expected
 Agent identity/credential/state and successor revision, and holds all fences through commit. It cannot resurrect
 retired work or accept a different connection. Every direct consumer delivery write has the same obligations as
@@ -179,15 +211,15 @@ requires fail-closed reconciliation, not an automatic reissue, rollback to a pre
 
 ## Evidence and limits
 
-- [Domain tests](../tests/Domain/AccessControl/Agent/AgentDeliveryTest.php): defaults/overrides and invalid combinations,
+- [Domain tests](../tests/Domain/AccessControl/AgentCredentialOperation/AgentDeliveryTest.php): defaults/overrides and invalid combinations,
   claim/admission/completion, earliest expiry, pinned policy, retry/exhaustion, exact token/fence/lease/epoch/deadline,
   stale revisions, material/credential retirement and malformed persisted attempt evidence.
-- [Delivery tests](../tests/Application/AccessControl/Agent/Security/AgentCredentialDeliveryServiceTest.php): real
+- [Delivery tests](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentCredentialDeliveryServiceTest.php): real
   provision-to-delivery path and persisted receipt, no materialization after claim, all three uncertain commits in
   committed/rolled-back forms, per-stage storage rollback, caller/Permission/delegation/destination/lifecycle changes
   around every boundary, real service/direct revocation races, ABA, worker identity, deadline expiry, capacity isolation,
   original-ID retry after key outage/response loss, ciphertext swaps, unsupported sinks, receipt rejection and safe output.
-- [Behavioral sink contract tests](../tests/Application/AccessControl/Agent/Security/AgentProtectedSinkContractTest.php):
+- [Behavioral sink contract tests](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentProtectedSinkContractTest.php):
   every immutable tuple field and secret bytes, missing/swapped receipts, scoped operation-ID collision, equal slot
   order rejection, late predecessor arrival, identical retry after newer writes, cleanup replay and cross-slot exact
   selection. Synthetic successor tuples specify sink behavior; they are not TASK-00048's actual rotation workflow.

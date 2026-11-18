@@ -8,10 +8,12 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Query\InvitationDeliveryStatusView;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDelivery;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryAbsent;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindCredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindDueCredentialDeliveries;
@@ -43,7 +45,10 @@ final class CredentialDeliveryComponentsTest extends TestCase
         ) {
             $fixture = new ExpiredCredentialFixture($purpose);
             $query = new FindExpiredCredentialDeliveries($fixture->expiresAt, 50);
-            $this->assertCanonicalFields($schemas['Fight.AccessControl.FindExpiredCredentialDeliveries'], $query->toArray());
+            $this->assertCanonicalFields(
+                $schemas['Fight.AccessControl.FindExpiredCredentialDeliveries'],
+                $query->toArray()
+            );
             $work = $fixture->discovery()->handle(QueryMessage::create($query))[0];
             $workSchema = $schemas['Fight.AccessControl.ExpiredCredentialDelivery'];
             $this->assertCanonicalFields($workSchema, $work->toArray());
@@ -54,8 +59,11 @@ final class CredentialDeliveryComponentsTest extends TestCase
             $command = $fixture->command();
             $this->assertCanonicalFields($schemas['Fight.AccessControl.'.$commandName], $command->toArray());
             $fixture->handler()->handle(CommandMessage::create($command));
-            $event = $fixture->events->events()[0];
-            self::assertSame('#/components/schemas/Fight.AccessControl.'.$commandName, $schemas['Fight.AccessControl.'.$eventName]['$ref']);
+            $event = $fixture->eventDispatcher->events()[0];
+            self::assertSame(
+                '#/components/schemas/Fight.AccessControl.'.$commandName,
+                $schemas['Fight.AccessControl.'.$eventName]['$ref']
+            );
             $this->assertCanonicalFields($schemas['Fight.AccessControl.'.$commandName], $event->toArray());
             self::assertSame($command->toArray()['occurred_at'], $event->toArray()['occurred_at']);
         }
@@ -64,11 +72,20 @@ final class CredentialDeliveryComponentsTest extends TestCase
             'at'    => ['type' => 'string', 'format' => 'date-time'],
             'limit' => ['type' => 'integer', 'maximum' => 100, 'minimum' => 1]
         ], $schemas['Fight.AccessControl.FindExpiredCredentialDeliveries']['properties']);
-        self::assertSame(0, $schemas['Fight.AccessControl.ExpiredCredentialDelivery']['properties']['revision']['minimum']);
+        self::assertSame(
+            0,
+            $schemas['Fight.AccessControl.ExpiredCredentialDelivery']['properties']['revision']['minimum']
+        );
         self::assertSame('array', $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['type']);
         self::assertSame(100, $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['maxItems']);
-        self::assertSame('#/components/schemas/Fight.AccessControl.ExpiredCredentialDelivery', $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['items']['$ref']);
-        self::assertSame('#/components/schemas/Fight.AccessControl.ExpiredCredentialDeliveries', $schemas['Fight.AccessControl.JSend.Success.ExpiredCredentialDeliveries']['properties']['data']['$ref']);
+        self::assertSame(
+            '#/components/schemas/Fight.AccessControl.ExpiredCredentialDelivery',
+            $schemas['Fight.AccessControl.ExpiredCredentialDeliveries']['items']['$ref']
+        );
+        self::assertSame(
+            '#/components/schemas/Fight.AccessControl.ExpiredCredentialDeliveries',
+            $schemas['Fight.AccessControl.JSend.Success.ExpiredCredentialDeliveries']['properties']['data']['$ref']
+        );
     }
 
     public function test_generated_activation_origin_matches_the_current_serialized_value_contract(): void
@@ -101,7 +118,7 @@ final class CredentialDeliveryComponentsTest extends TestCase
     {
         $schemas = $this->schemas();
         $expected = array_column(CredentialDeliveryStatus::cases(), 'value');
-        foreach (['InvitationDeliveryStatus', 'CredentialDeliveryStatus', 'DueCredentialDelivery'] as $name) {
+        foreach (['InvitationDeliveryStatus', 'CredentialDeliveryStatus'] as $name) {
             $status = $schemas['Fight.AccessControl.'.$name]['properties']['status'];
             self::assertSame('string', $status['type']);
             self::assertSame($expected, $status['enum']);
@@ -110,6 +127,13 @@ final class CredentialDeliveryComponentsTest extends TestCase
             }
         }
 
+        $dueStatuses = ['pending', 'claimed', 'retry_pending'];
+        self::assertSame(
+            $dueStatuses,
+            $schemas['Fight.AccessControl.DueCredentialDelivery']['properties']['status']['enum']
+        );
+        self::assertSame(0, $schemas['Fight.AccessControl.DueCredentialDelivery']['properties']['revision']['minimum']);
+        self::assertSame(0, $schemas['Fight.AccessControl.CredentialDeliveryStatus']['properties']['revision']['minimum']);
         $deliveries = $this->deliveries();
         self::assertEqualsCanonicalizing($expected, array_keys($deliveries));
         foreach ($deliveries as $delivery) {
@@ -119,24 +143,26 @@ final class CredentialDeliveryComponentsTest extends TestCase
                 $delivery->getExpiresAt(),
                 ActivationDeliveryId::fromString(
                     $delivery->getId()->toString()
-                )
+                ),
+                ActivationOrigin::PRIVATE_INVITATION
             );
-            $view = CredentialDeliveryStatusView::fromDelivery('password_reset', $delivery, 0);
-            $due = new DueCredentialDelivery(
-                'password_reset',
-                $delivery->getId(),
-                $delivery->getUserId(),
-                $delivery->getNextAttemptAt(),
-                0,
-                $delivery->getStatus()
-            );
-            foreach (
-                [
+            $view = CredentialDeliveryStatusView::fromDelivery('password_reset', $delivery, 0, null);
+            $payloads = [
                 'InvitationDeliveryStatus' => $invitation->toArray(),
-                'CredentialDeliveryStatus' => $view->toArray(),
-                'DueCredentialDelivery'    => $due->toArray()
-                ] as $name => $payload
-            ) {
+                'CredentialDeliveryStatus' => $view->toArray()
+            ];
+            if (in_array($delivery->getStatus()->value, $dueStatuses, true)) {
+                $payloads['DueCredentialDelivery'] = new DueCredentialDelivery(
+                    'password_reset',
+                    $delivery->getId(),
+                    $delivery->getUserId(),
+                    $delivery->getNextAttemptAt(),
+                    0,
+                    $delivery->getStatus()
+                )->toArray();
+            }
+
+            foreach ($payloads as $name => $payload) {
                 $schema = $schemas['Fight.AccessControl.'.$name];
                 $this->assertCanonicalFields($schema, $payload);
                 self::assertContains($payload['status'], $schema['properties']['status']['enum']);
@@ -148,11 +174,12 @@ final class CredentialDeliveryComponentsTest extends TestCase
     {
         $schemas = $this->schemas();
         $delivery = $this->deliveries()['pending'];
-        $command = new DeliverPasswordReset('worker:reset', $delivery->getUserId(), $delivery->getId());
+        $command = new DeliverPasswordReset(AnonymousId::generate(), $delivery->getUserId(), $delivery->getId());
         $commandSchema = $schemas['Fight.AccessControl.DeliverPasswordReset'];
         $this->assertCanonicalFields($commandSchema, $command->toArray());
         self::assertSame([
-            'actor_id'                   => ['type' => 'string'],
+            'actor_kind'                 => ['type' => 'string', 'enum' => ['user', 'agent', 'system', 'anonymous']],
+            'actor_id'                   => ['type' => 'string', 'format' => 'uuid'],
             'user_id'                    => ['type' => 'string', 'format' => 'uuid'],
             'password_reset_delivery_id' => ['type' => 'string', 'format' => 'uuid']
         ], $commandSchema['properties']);
@@ -196,37 +223,43 @@ final class CredentialDeliveryComponentsTest extends TestCase
         $failures = [...array_column(CredentialDeliveryFailure::cases(), 'value'), null];
         $operational = $schemas['Fight.AccessControl.CredentialDeliveryStatus'];
         self::assertSame([
-            'purpose'         => $purpose,
-            'delivery_id'     => $uuid,
-            'user_id'         => $uuid,
-            'revision'        => ['type' => 'integer'],
-            'status'          => $status,
-            'due_at'          => $date,
-            'expires_at'      => $date,
-            'attempt_count'   => ['type' => 'integer', 'minimum' => 0],
-            'last_attempt_at' => ['type' => ['string', 'null'], 'format' => 'date-time'],
-            'last_outcome_at' => ['type' => ['string', 'null'], 'format' => 'date-time'],
-            'last_failure'    => ['type' => ['string', 'null'], 'enum' => $failures]
+            'purpose'               => $purpose,
+            'delivery_id'           => $uuid,
+            'user_id'               => $uuid,
+            'email_change_grant_id' => [
+                'description' => 'Exact request ID for email_change; null for invitation/reset',
+                'type'        => ['string', 'null'],
+                'format'      => 'uuid'
+            ],
+            'revision'              => ['type' => 'integer', 'minimum' => 0],
+            'status'                => $status,
+            'due_at'                => $date,
+            'expires_at'            => $date,
+            'attempt_count'         => ['type' => 'integer', 'minimum' => 0],
+            'last_attempt_at'       => ['type' => ['string', 'null'], 'format' => 'date-time'],
+            'last_outcome_at'       => ['type' => ['string', 'null'], 'format' => 'date-time'],
+            'last_failure'          => ['type' => ['string', 'null'], 'enum' => $failures]
         ], $operational['properties']);
         self::assertSame([
             'purpose'     => $purpose,
             'delivery_id' => $uuid,
             'user_id'     => $uuid,
             'due_at'      => $date,
-            'revision'    => ['type' => 'integer'],
-            'status'      => $status
+            'revision'    => ['type' => 'integer', 'minimum' => 0],
+            'status'      => ['type' => 'string', 'enum' => ['pending', 'claimed', 'retry_pending']]
         ], $schemas['Fight.AccessControl.DueCredentialDelivery']['properties']);
         self::assertSame([
             'user_id'                => $uuid,
             'status'                 => $status,
             'expires_at'             => $date,
-            'activation_delivery_id' => $uuid
+            'activation_delivery_id' => $uuid,
+            'origin'                 => ['$ref' => '#/components/schemas/Fight.AccessControl.ActivationOrigin']
         ], $schemas['Fight.AccessControl.InvitationDeliveryStatus']['properties']);
 
         $deliveries = $this->deliveries();
-        $pending = CredentialDeliveryStatusView::fromDelivery('password_reset', $deliveries['pending'], 0)->toArray();
-        foreach (['last_attempt_at', 'last_outcome_at', 'last_failure'] as $field) {
-            self::assertNull($pending[$field]);
+        $pending = CredentialDeliveryStatusView::fromDelivery('password_reset', $deliveries['pending'], 0, null);
+        foreach (['email_change_grant_id', 'last_attempt_at', 'last_outcome_at', 'last_failure'] as $field) {
+            self::assertNull($pending->toArray()[$field]);
             self::assertContains($field, $operational['required']);
             self::assertContains('null', $operational['properties'][$field]['type']);
         }
@@ -242,7 +275,7 @@ final class CredentialDeliveryComponentsTest extends TestCase
                 $failed = $claimed->fail($token, $at, $failure);
             }
 
-            $payload = CredentialDeliveryStatusView::fromDelivery('password_reset', $failed, 2)->toArray();
+            $payload = CredentialDeliveryStatusView::fromDelivery('password_reset', $failed, 2, null)->toArray();
             $this->assertCanonicalFields($operational, $payload);
             self::assertSame(1, $payload['attempt_count']);
             self::assertSame('2030-01-01T12:00:00+00:00', $payload['last_attempt_at']);
@@ -272,7 +305,20 @@ final class CredentialDeliveryComponentsTest extends TestCase
             self::assertSame(['status', 'data'], $envelope['required']);
             self::assertSame(['status', 'data'], array_keys($envelope['properties']));
             self::assertSame(['type' => 'string', 'enum' => ['success']], $envelope['properties']['status']);
-            self::assertSame('#/components/schemas/Fight.AccessControl.'.$name, $envelope['properties']['data']['$ref']);
+            self::assertSame(
+                '#/components/schemas/Fight.AccessControl.'.$name.($name === 'DueCredentialDeliveries' ? '' : 'Result'),
+                $envelope['properties']['data']['$ref']
+            );
+        }
+
+        $absent = new CredentialDeliveryAbsent()->toArray();
+        $this->assertCanonicalFields($schemas['Fight.AccessControl.CredentialDeliveryAbsent'], $absent);
+        self::assertContains($absent['state'], $schemas['Fight.AccessControl.CredentialDeliveryAbsent']['properties']['state']['enum']);
+        foreach (['InvitationDeliveryStatus', 'CredentialDeliveryStatus'] as $name) {
+            self::assertSame([
+                ['$ref' => '#/components/schemas/Fight.AccessControl.'.$name],
+                ['$ref' => '#/components/schemas/Fight.AccessControl.CredentialDeliveryAbsent']
+            ], $schemas['Fight.AccessControl.'.$name.'Result']['oneOf']);
         }
 
         array_walk_recursive($schemas, static function (mixed $value, string|int $key) use ($schemas): void {

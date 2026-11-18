@@ -6,6 +6,7 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent\Event;
 
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 
@@ -31,19 +32,21 @@ final readonly class AgentCredentialRevoked implements Event
     public static function fromArray(array $data): static
     {
         foreach (['agent_id', 'revoked_at'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
+            if (!isset($data[$key]) || !is_string($data[$key])) {
+                throw new DomainException('Missing or invalid Agent revocation fact field.');
             }
         }
 
         return new static(
-            AgentId::fromString((string) $data['agent_id']),
-            new DateTimeImmutable((string) $data['revoked_at'])
+            AgentId::fromString($data['agent_id']),
+            CredentialDeliveryTimestamp::fromString($data['revoked_at'])->toDateTimeImmutable()
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical secret-free revocation fact
+     *
+     * @phpstan-return array{agent_id: string, revoked_at: string}
      */
     public function toArray(): array
     {

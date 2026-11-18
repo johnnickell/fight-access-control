@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\User\Command\EnableUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserEnabled;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
-use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -34,10 +40,10 @@ final readonly class EnableUserHandler implements CommandHandler
      */
     public function __construct(
         private UserRepository $userRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher,
-        private Clock $clock
+        private Clock $clock,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -58,22 +64,39 @@ final readonly class EnableUserHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): UserEnabled {
+            /** @var UserEnabled $event */
+            $event = $this->unitOfWork->commitTransactional(function () use ($command, $commandMessage): UserEnabled {
                 $user = $this->userRepository->getById($command->getUserId());
-                if (!$user instanceof User) {
-                    throw new UserLifecycleException('The user cannot be enabled.');
+                if ($user === null) {
+                    throw new ResourceNotFound('The user cannot be enabled.');
+                }
+
+                if (!$user->getId()->equals($command->getUserId())) {
+                    throw new LogicException('The User repository returned an unrelated identity.');
                 }
 
                 $replacementUser = clone $user;
-                $replacementUser->enable($this->clock->now());
-                if (!$this->userRepository->replaceLifecycleState($user, $replacementUser)) {
-                    throw new LogicException('The user lifecycle state changed concurrently.');
+                $now = $this->clock->now();
+                try {
+                    $replacementUser->enable($now);
+                } catch (UserLifecycleException $userLifecycleException) {
+                    throw new StateConflict('The user cannot be enabled.', previous: $userLifecycleException);
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $command->getActorId()->toString(),
-                    'user.enabled',
-                    $command->getUserId()
+                if (!$this->userRepository->replaceLifecycleState($user, $replacementUser)) {
+                    throw new StateConflict('The user lifecycle state changed concurrently.');
+                }
+
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                    $command->getActorId(),
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::USER_ENABLED,
+                    $now,
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($replacementUser)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return new UserEnabled($command->getActorId(), $command->getUserId());

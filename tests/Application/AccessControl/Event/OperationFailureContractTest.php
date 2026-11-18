@@ -5,14 +5,19 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\Event;
 
 use DateInterval;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\RefreshCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
+use Fight\AccessControl\Application\AccessControl\RefreshSession\SessionLifecycle;
 use Fight\AccessControl\Application\AccessControl\Role\CommandHandler\CreateCustomRoleHandler;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
+use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
 use Fight\AccessControl\Application\AccessControl\User\Service\LoginThrottle;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
@@ -38,7 +43,11 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
 
-#[CoversClass(AuthenticationService::class)]
+#[CoversClass(UserAuthentication::class)]
+#[CoversClass(TokenIssuer::class)]
+#[CoversClass(PasswordManagement::class)]
+#[CoversClass(SessionLifecycle::class)]
+#[CoversClass(EmailChangeConfirmation::class)]
 #[CoversClass(CreateCustomRoleHandler::class)]
 final class OperationFailureContractTest extends TestCase
 {
@@ -74,7 +83,7 @@ final class OperationFailureContractTest extends TestCase
     {
         $primary = new RuntimeException('Synthetic dependency detail.');
         $attempts = [];
-        $events = $this->events($attempts, $notificationFails);
+        $eventDispatcher = $this->events($attempts, $notificationFails);
         $unitOfWork = $this->createMock(TransactionalUnitOfWork::class);
         $unitOfWork->expects(self::once())->method('commitTransactional')->willThrowException($primary);
         $command = new CreateCustomRole(UserId::generate(), RoleId::generate(), RoleName::fromString('ROLE_EDITOR'));
@@ -82,7 +91,7 @@ final class OperationFailureContractTest extends TestCase
             $this->createStub(RoleRepository::class),
             $this->createStub(Clock::class),
             $unitOfWork,
-            $events
+            $eventDispatcher
         );
 
         $caught = null;
@@ -101,6 +110,7 @@ final class OperationFailureContractTest extends TestCase
         self::assertStringNotContainsString($primary->getMessage(), serialize($attempts[0]->toArray()));
     }
 
+    /** @param 'activate'|'login'|'refresh'|'logout'|'resetPassword'|'changePassword'|'confirmEmail' $operation */
     #[DataProvider('authenticationOperations')]
     public function test_authentication_failures_keep_allowlisted_context_and_identity(
         string $operation,
@@ -109,40 +119,34 @@ final class OperationFailureContractTest extends TestCase
     ): void {
         $primary = new RuntimeException('Synthetic dependency detail.');
         $attempts = [];
-        $events = $this->events($attempts, $notificationFails);
+        $eventDispatcher = $this->events($attempts, $notificationFails);
         $unitOfWork = $this->createMock(TransactionalUnitOfWork::class);
         $unitOfWork->expects(self::once())->method('commitTransactional')->willThrowException($primary);
-        $sessions = $this->createStub(RefreshSessionRepository::class);
-        $service = new AuthenticationService(
-            $this->createStub(UserRepository::class),
-            $this->createStub(ActivationGrantRepository::class),
-            $sessions,
-            new SessionRevocationService($sessions),
-            $unitOfWork,
-            $this->createStub(Clock::class),
-            $this->createStub(LoginThrottle::class),
-            $this->createStub(RefreshCredentialGenerator::class),
-            $this->createStub(PasswordHasher::class),
-            $this->createStub(PasswordValidator::class),
-            $this->createStub(TokenEncoder::class),
-            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
-            PasswordHash::fromString(password_hash('synthetic-password', PASSWORD_DEFAULT)),
-            $events,
-            $this->createStub(PasswordResetGrantRepository::class),
-            $this->createStub(AuditEvidenceRepository::class),
-            $this->createStub(EmailChangeGrantRepository::class)
-        );
+        $authentication = $this->authenticationOwner($operation, $unitOfWork, $eventDispatcher);
         $userId = UserId::generate();
         $caught = null;
         try {
             match ($operation) {
-                'activate' => $service->activate($userId, 'synthetic-credential', 'synthetic-password'),
-                'login' => $service->login('person@example.test', 'synthetic-password'),
-                'refresh' => $service->refresh('synthetic-credential'),
-                'logout' => $service->logout('synthetic-credential'),
-                'resetPassword' => $service->resetPassword($userId, 'synthetic-credential', 'synthetic-password'),
-                'changePassword' => $service->changePassword($userId, 'synthetic-current', 'synthetic-password'),
-                'confirmEmail' => $service->confirmEmail($userId, 'synthetic-credential')
+                'activate' => $authentication->activate($userId, 'synthetic-credential', 'synthetic-password'),
+                'login' => $authentication->login('person@example.test', 'synthetic-password'),
+                'refresh' => $authentication->refresh('synthetic-credential'),
+                'logout' => $authentication->logout('synthetic-credential'),
+                'resetPassword' => $authentication->resetPassword(
+                    $userId,
+                    'synthetic-credential',
+                    'synthetic-password',
+                    AnonymousId::generate()
+                ),
+                'changePassword' => $authentication->changePassword(
+                    $userId,
+                    'synthetic-current',
+                    'synthetic-password'
+                ),
+                'confirmEmail' => $authentication->confirmEmail(
+                    $userId,
+                    'synthetic-credential',
+                    AnonymousId::generate()
+                )
             };
         } catch (Throwable $throwable) {
             $caught = $throwable;
@@ -151,7 +155,13 @@ final class OperationFailureContractTest extends TestCase
         self::assertSame($primary, $caught);
         self::assertCount(1, $attempts);
         self::assertInstanceOf(RedactedCommandFailed::class, $attempts[0]);
-        self::assertSame(AuthenticationService::class.'::'.$operation, $attempts[0]->getCommandClass());
+        $owner = match ($operation) {
+            'activate', 'login' => UserAuthentication::class,
+            'refresh', 'logout' => SessionLifecycle::class,
+            'changePassword', 'resetPassword' => PasswordManagement::class,
+            'confirmEmail' => EmailChangeConfirmation::class
+        };
+        self::assertSame($owner.'::'.$operation, $attempts[0]->getCommandClass());
         $context = [];
         if (in_array($operation, ['activate', 'resetPassword', 'changePassword', 'confirmEmail'], true)) {
             $context = ['user_id' => $userId->toString()];
@@ -165,6 +175,81 @@ final class OperationFailureContractTest extends TestCase
         foreach ($details as $detail) {
             self::assertStringNotContainsString($detail, serialize($data));
         }
+    }
+
+    private function authenticationOwner(
+        string $operation,
+        TransactionalUnitOfWork $unitOfWork,
+        InMemoryEventDispatcher $eventDispatcher
+    ): UserAuthentication|PasswordManagement|SessionLifecycle|EmailChangeConfirmation {
+        // Valid bcrypt fixture; these cases fail at transaction entry, before password verification.
+        $hash = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
+
+        return match ($operation) {
+            'activate', 'login' => new UserAuthentication(
+                $this->createStub(UserRepository::class),
+                $this->createStub(ActivationGrantRepository::class),
+                $unitOfWork,
+                $this->createStub(Clock::class),
+                $this->createStub(LoginThrottle::class),
+                $this->createStub(RefreshCredentialGenerator::class),
+                $this->createStub(PasswordHasher::class),
+                $this->createStub(PasswordValidator::class),
+                $this->tokenIssuer(),
+                PasswordHash::fromString($hash),
+                $eventDispatcher
+            ),
+            'resetPassword', 'changePassword' => new PasswordManagement(
+                $this->createStub(UserRepository::class),
+                $this->createStub(PasswordResetGrantRepository::class),
+                new SessionRevocationService($this->createStub(RefreshSessionRepository::class)),
+                $unitOfWork,
+                $this->createStub(Clock::class),
+                $this->createStub(PasswordHasher::class),
+                $this->createStub(PasswordValidator::class),
+                PasswordHash::fromString($hash),
+                $eventDispatcher,
+                $this->createStub(AuditEvidenceRepository::class)
+            ),
+            'refresh', 'logout' => $this->sessionLifecycle($unitOfWork, $eventDispatcher),
+            'confirmEmail' => new EmailChangeConfirmation(
+                $this->createStub(UserRepository::class),
+                $this->createStub(EmailChangeGrantRepository::class),
+                $this->createStub(PasswordResetGrantRepository::class),
+                new SessionRevocationService($this->createStub(RefreshSessionRepository::class)),
+                $unitOfWork,
+                $this->createStub(Clock::class),
+                $eventDispatcher,
+                $this->createStub(AuditEvidenceRepository::class)
+            )
+        };
+    }
+
+    private function sessionLifecycle(
+        TransactionalUnitOfWork $unitOfWork,
+        InMemoryEventDispatcher $eventDispatcher
+    ): SessionLifecycle {
+        $refreshSessionRepository = $this->createStub(RefreshSessionRepository::class);
+
+        return new SessionLifecycle(
+            $this->createStub(UserRepository::class),
+            $refreshSessionRepository,
+            new SessionRevocationService($refreshSessionRepository),
+            $unitOfWork,
+            $this->createStub(Clock::class),
+            $this->createStub(RefreshCredentialGenerator::class),
+            $this->tokenIssuer(),
+            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
+            $eventDispatcher
+        );
+    }
+
+    private function tokenIssuer(): TokenIssuer
+    {
+        return new TokenIssuer(
+            $this->createStub(TokenEncoder::class),
+            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
+        );
     }
 
     /** @param list<Event> $attempts */

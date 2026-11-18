@@ -251,6 +251,8 @@ final class InMemoryEmailChangeGrantRepository implements EmailChangeGrantReposi
             && $left->getCredentialHash() === $right->getCredentialHash()
             && $left->getExpiresAt() == $right->getExpiresAt()
             && $left->getEmailChangeReservationRevision() === $right->getEmailChangeReservationRevision()
+            && $left->getRequestOrigin()->requesterId->equals($right->getRequestOrigin()->requesterId)
+            && $left->getRequestOrigin()->oldMailbox === $right->getRequestOrigin()->oldMailbox
             && $left->getDelivery()->getId()->equals($right->getDelivery()->getId());
     }
 

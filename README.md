@@ -11,26 +11,31 @@ Agent credentials, sessions, Roles, Permissions and account lifecycles without t
 [Install](#release-and-installation) · [Integration](#integrate-with-your-application) ·
 [Capabilities](#choose-a-capability) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
 
+[Delivery closeout](planning/CONVENTIONS.md#publication-closeout) belongs to Land: accepted TASK/current-doc
+closeout, exact live PR validation and eligible owned local Git/Docker/storage retirement. Human merge remains
+separate, without a tracked pending-merge queue or recurring post-merge planning chore. Historical acceptance/
+publication checkpoints remain evidence; planning stays offline and releases stay separate.
+
 ## Release and installation
 
 <!-- release:start -->
-**Release: [v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0)**
+**Release: [v0.9.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.9.0)**
 
 **Status: prepared (not yet published).**
 
-Requires **PHP 8.5+** and **Fight Common ^1.3** (resolved by Composer).
+Requires **PHP 8.5+** and **Fight Common ^1.5.1** (resolved by Composer).
+Use this command once the version is available on Packagist:
 
 ```bash
-composer require johnnickell/fight-access-control:"~0.8.0"
+composer require johnnickell/fight-access-control:"~0.9.0"
 ```
 
-[Release overview](docs/release-0.8.0.md) ·
-[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.8.0/docs)
+[Release overview](docs/release-0.9.0.md) ·
+[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.9.0/docs)
 <!-- release:end -->
 
-The command and candidate tag links above await publication. **v0.7.0 remains the latest published release**;
-use its [release overview](docs/release-0.7.0.md) and
-[tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.7.0/docs) for that version.
+[v0.8.0](docs/release-0.8.0.md) was the latest published release at this preparation checkpoint.
+Registry availability is not proof of installation or qualification in your application.
 
 The constraint stays on this minor line. Pre-v1 minors can break API and persistence contracts: read the
 [Changelog](CHANGELOG.md) and the target release overview before upgrading. Only the current contract is supported;
@@ -43,8 +48,42 @@ endpoints, a database schema, a login UI, framework bindings or production confi
 
 ## Integrate with your application
 
-Dependencies point inward: **Application → Domain**. Consumers supply infrastructure through package interfaces;
-there is no production Adapter layer in this library.
+Core dependencies point inward: **Application → Domain**. Consumers supply infrastructure through package interfaces.
+Optional [HTTP Permission admission](docs/http-permission-admission.md) now uses capability-first `src/Adapter`,
+pointing inward through Application, with separately qualified Slim/Yii 3 route composition and optional native
+Symfony admission and [native CodeIgniter 4 before-filter/JSON-error composition](docs/codeigniter-permission-admission.md).
+[Native Laravel middleware](docs/laravel-permission-admission.md) has independent Review and behavioral QA acceptance
+for TASK-00105; consumer deployment qualification remains separate. Domain/Application retain their DDD structure; no consumer bindings or configuration are installed.
+Maintainers placing classes or naming collaborators should use the checkout-local
+[architecture target](docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules) and
+[naming rules](docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections). These codify approved
+EPIC-00015 guidance. Agent MCP presentation/bindings now live in `Adapter/Mcp/{Tool,Resource,Skill,Prompt,Task}/Agent`
+([current composition](docs/agent-profile-tools.md), [complete guarded Task serving](docs/agent-task-authorization.md#complete-guarded-mcp-serving--slice-e)); authentication, Permission policy and continuation stay inward.
+Agent authentication, credential lifecycle, delivery, maintenance and continuation now have cohesive Application
+homes, alongside Feature Discovery and authorization Admission; see the
+[current composition map](docs/agent-integration.md#public-composition-map). User secret-bearing operations now use
+[direct synchronous authentication, session, password and email-confirmation owners](docs/user-authentication.md),
+without the retired broad service. Recoverable Agent issuance now uses registered void `ProvisionAgent` and
+`RotateAgentCredential` Commands plus independent authorized outcome Queries, including delayed/restarted execution;
+see [current composition](docs/agent-integration.md). No direct issuance service/result facade or publication warning
+remains. These v0.9.0 changes supply no blanket persistence/framework support or consumer qualification.
+
+The independently persisted `AgentCredentialOperation` now has its own Domain/Application aggregate home.
+Status, scheduler and maintenance readers inject `AgentCredentialOperationReadRepository`; material-bearing writers
+use the separate `AgentCredentialOperationRepository` with their existing UoW. Update imports/named arguments
+directly; wire shapes and atomic Agent/operation cancellation, cohort/restoration and recovery behavior are unchanged.
+See the [operation ownership map](docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
+TASK-00114's integrated candidate with TASK-00112's advanced authentication base has independent Review ACCEPT
+and nonvisual QA PASS. Current delivery results are in its canonical Land handoff and PR #158. The integrated
+TASK-00182 Command conversion has independent Review ACCEPT and nonvisual QA PASS; publication and final delivery
+verification were pending at closeout. Current results are in its canonical Land handoff and actual PR; no consumer
+qualification is claimed.
+
+The [Agent identity/administration type corrections](docs/agent-current-contract.md#precise-identity-and-administration-types-unreleased)
+have independent Review ACCEPT and nonvisual QA PASS for TASK-00118, including R-01's iterable-member repair.
+The TASK records its accepted candidate; publication/final checks are pending at that closeout checkpoint.
+Current delivery/resource results belong to canonical `.runs/handoffs/TASK-00118/land.md` and the actual PR.
+This bounded acceptance does not qualify consumer persistence, cryptography or the whole-library typing target.
 
 | This package owns | Your application owns |
 | --- | --- |
@@ -72,20 +111,29 @@ there is no production Adapter layer in this library.
 | Capability | Start here |
 | --- | --- |
 | User invitation, activation and credential delivery | [Delivery composition](docs/credential-delivery.md) · [Expired-work cleanup](docs/credential-expiry.md) |
-| Optional User registration and administrator recovery | [Registration](docs/user-registration.md) · [Recovery](docs/registration-recovery.md) |
-| Login, refresh, logout, passwords and current authority | [Behavioral contract](planning/tickets/00001-TICKET.md) · [Vocabulary and boundaries](CONTEXT.md#vocabulary) |
+| Optional User registration and administrator recovery | [Registration](docs/user-registration.md) · [Recovery](docs/registration-recovery.md) · [Request-time admission and lifecycle constructors](docs/user-lifecycle-contracts.md) |
+| Login, refresh, logout, passwords and current authority | [Direct synchronous composition](docs/user-authentication.md) · [Behavioral contract](planning/tickets/00001-TICKET.md) · [Domain glossary](GLOSSARY.md) · [Package boundaries](planning/agents/project-profile.md#package-boundary-and-contracts) |
 | Roles, Permission tiers and managed policy | [Permission tiers](docs/permission-tiers.md) · [Operation outcomes](docs/operation-outcomes.md) |
 | Recoverable Agent provisioning, rotation and delivery | [Agent integration](docs/agent-integration.md) · [Conformance and evidence](docs/agent-operation-evidence.md) |
-| Agent profiles and protected MCP Tools | [Profile Tools](docs/agent-profile-tools.md) · [MCP authorization](docs/agent-mcp-authorization.md) |
+| Agent profiles and protected MCP capabilities | [Profile Tools](docs/agent-profile-tools.md) · [Tool authorization](docs/agent-mcp-authorization.md) · [Resource authorization](docs/agent-resource-authorization.md) · [Skill authorization](docs/agent-skill-authorization.md) · [Prompt authorization](docs/agent-prompt-authorization.md) · [Current continuation](docs/agent-continuation-authorization.md) · [Notice mutations](docs/agent-notice-authorization.md) |
+| Optional HTTP Permission admission | [Shared/Slim/Yii 3 composition](docs/http-permission-admission.md) · [Native Symfony composition](docs/symfony-permission-admission.md) · [Native CI4 composition](docs/codeigniter-permission-admission.md) · [Native Laravel composition](docs/laravel-permission-admission.md) |
+| Optional Feature HTTP admission | [Shared/Slim/Yii 3 composition and runtime flow](docs/http-feature-admission.md) · [Native Symfony composition and runtime flow](docs/symfony-feature-admission.md) · [Native Laravel composition and runtime flow](docs/laravel-feature-admission.md) · [Native CodeIgniter 4 composition and runtime flow](docs/codeigniter-feature-admission.md) |
 | Permission-based Feature flags | [Declarations](docs/feature-references.md) · [Provisioning](docs/feature-provisioning.md) · [Preparation](docs/feature-preparation.md) · [Availability](docs/feature-availability.md) · [Management](docs/feature-management.md) · [Retirement](docs/feature-retirement.md) |
 | Consumer-owned OpenAPI documents | [Opt-in schema components](docs/openapi-composition.md) |
 
 Feature availability is not authorization for the underlying action. Registration exposure and enablement are
 consumer choices. MCP support supplies neutral authorization and profile Tools, not a hosted server or endpoint.
 
-### Prepared for v0.8.0
+### Prepared for v0.9.0
 
-This candidate includes breaking Role caller revisions and recovery composition requirements, plus operation-outcome
+This breaking minor adds optional atomic audit composition and portable HTTP Feature and Permission admission.
+It changes synchronous User services, Agent issuance and credential status contracts, and requires exact-request
+email-change cancellation. Start with the [v0.9.0 integration overview](docs/release-0.9.0.md) and the
+[Changelog](CHANGELOG.md) before updating consumers.
+
+### Released in v0.8.0
+
+This release includes breaking Role caller revisions and recovery composition requirements, plus operation-outcome
 and managed-policy consistency changes. Custom Role rename/remove bind the displayed `expected_revision`; stale
 intent requires a fresh read and reconfirmation, not automatic token substitution. See
 [Role composition](docs/role-revisions.md), [operation outcomes](docs/operation-outcomes.md) and the
@@ -101,10 +149,16 @@ cd fight-access-control
 ./bin/build
 ```
 
-`./bin/build` builds the isolated `fight-access-control` image, resolves latest-compatible dependencies into the
-ignored lockfile with `composer update`, then runs the canonical quality gate: syntax, planning, PHPCS, PHPStan,
-architecture, Rector, PHPUnit, exact statement coverage and documentation links. No application server or database
-is required for package tests. After that initial setup, focused commands include:
+`./bin/build` validates planning freshly, then either reuses qualifying application evidence or prepares and runs
+the full gate. On a cache miss, preparation refreshes the isolated PHP image, admits its actual runtime and resolves
+latest-compatible dependencies with `composer update` into the ignored lockfile. `./bin/build --force` requests fresh
+application execution. [Local tooling](docs/engineering/LOCAL_TOOLING.md#two-caches-with-different-lifetimes) owns the
+cache/evidence and fail-closed runtime rules, including focused-wrapper admission.
+The full gate covers syntax, PHPCS, PHPStan, architecture, Rector, PHPUnit, exact statement coverage, separate
+[Unit-line enforcement and suite evidence](docs/unit-coverage.md), and documentation links. No application server or database
+is required for package tests. PHPStan analyzes production `src/` and shipped `openapi/` metadata only, not tests
+or scripts; required [type-contract fixtures](docs/type-contracts.md) separately qualify the production API.
+After that initial setup, focused commands include:
 
 ```bash
 ./bin/phpunit
@@ -133,3 +187,5 @@ still required before v1.0.0.
 
 Report suspected vulnerabilities privately through [SECURITY.md](SECURITY.md), not public issues or pull requests.
 Fight AccessControl is available under the [MIT License](LICENSE).
+
+See [local Docker, worktree and build-cache operations](docs/engineering/LOCAL_TOOLING.md) for explicit main/worktree selection, guarded teardown and fresh versus reused gate evidence.

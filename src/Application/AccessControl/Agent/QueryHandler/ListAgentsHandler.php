@@ -13,6 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\Query\ListAgents;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Collection\ArrayList;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\ResultSet;
 
@@ -50,6 +51,14 @@ final readonly class ListAgentsHandler implements QueryHandler
         /** @var ListAgents $query */
         $query = $queryMessage->payload();
         $agents = $this->agentRepository->getAll($query->getPagination());
+        $agents = ResultSet::strict($agents->page(), $agents->perPage(), $agents->totalRecords(), $agents->records());
+        if (
+            $agents->page() !== $query->getPagination()->page()
+            || $agents->perPage() !== $query->getPagination()->perPage()
+        ) {
+            throw new DomainException('The Agent page does not match the requested pagination.');
+        }
+
         $agentRecords = $agents->records()->toArray();
         $views = ArrayList::of(AgentView::class);
         $permissionIds = [];
@@ -85,7 +94,7 @@ final readonly class ListAgentsHandler implements QueryHandler
             throw new AgentReadException('The Agent Permission snapshot is invalid.');
         }
 
-        return new ResultSet(
+        return ResultSet::strict(
             $agents->page(),
             $agents->perPage(),
             $agents->totalRecords(),

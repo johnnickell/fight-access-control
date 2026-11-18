@@ -25,20 +25,23 @@ final class InMemoryFeatureAvailabilityConformanceTest extends FeatureAvailabili
     protected function environment(): FeatureAvailabilityEnvironment
     {
         $unit = new InMemoryUnitOfWork();
-        $features = new InMemoryFeatureRepository($unit);
-        $permissions = new InMemoryPermissionRepository($unit);
+        $featureRepository = new InMemoryFeatureRepository($unit);
+        $permissionRepository = new InMemoryPermissionRepository($unit);
 
-        return new readonly class ($features, $permissions) implements FeatureAvailabilityEnvironment {
+        return new readonly class (
+            $featureRepository,
+            $permissionRepository
+        ) implements FeatureAvailabilityEnvironment {
             public function __construct(
-                private InMemoryFeatureRepository $features,
-                private InMemoryPermissionRepository $permissions
+                private InMemoryFeatureRepository $featureRepository,
+                private InMemoryPermissionRepository $permissionRepository
             ) {
             }
 
             public function permission(string $name): PermissionId
             {
                 $id = PermissionId::generate();
-                $this->permissions->add(Permission::define(
+                $this->permissionRepository->add(Permission::define(
                     $id,
                     PermissionName::fromString($name),
                     new DateTimeImmutable()
@@ -50,9 +53,9 @@ final class InMemoryFeatureAvailabilityConformanceTest extends FeatureAvailabili
             public function setFeature(string $name, FeatureStatus $status, PermissionId $binding): void
             {
                 $featureName = FeatureName::fromString($name);
-                foreach ($this->features->records as $key => $existing) {
+                foreach ($this->featureRepository->records as $key => $existing) {
                     if ($existing->getName()->equals($featureName)) {
-                        $this->features->records[$key] = Feature::reconstitute(
+                        $this->featureRepository->records[$key] = Feature::reconstitute(
                             $existing->getId(),
                             $featureName,
                             $binding,
@@ -64,7 +67,7 @@ final class InMemoryFeatureAvailabilityConformanceTest extends FeatureAvailabili
                     }
                 }
 
-                $this->features->seed(Feature::reconstitute(
+                $this->featureRepository->seed(Feature::reconstitute(
                     FeatureId::generate(),
                     $featureName,
                     $binding,
@@ -75,7 +78,7 @@ final class InMemoryFeatureAvailabilityConformanceTest extends FeatureAvailabili
 
             public function evaluator(): FeatureAvailability
             {
-                return new FeatureAvailability($this->features, $this->permissions);
+                return new FeatureAvailability($this->featureRepository, $this->permissionRepository);
             }
         };
     }

@@ -2,11 +2,50 @@
 
 Features: write testable code first, then tests. Bugs: reproduce locally, capture useful evidence, add one meaningful failing regression test proving the defect, then repair it. Verify that the initial failure is the expected bug rather than broken test setup. Keep the regression test and add coverage for the finished behavior. If reproduction is blocked, report why; never fabricate a red result.
 
-Aim for 100% coverage of owned production lines/statements through unit tests first, with appropriate mocks. Use meaningful adapter integration/functional tests when boundaries need proof. Follow the project's exact coverage gate and metadata. Resolve frontend metrics/exemptions explicitly; do not silently assert an unconfigured metric passed.
+Require **100% Unit-only line coverage** of owned unit-testable production behavior. Report the source
+denominator, covered/total executable lines, driver and exact justified exclusions; include unexecuted source.
+Generated/vendor code and non-behavioral composition may have explicit, justified exclusions. Do not exclude
+difficult behavior or simple DTOs to reach the number. Integration/Functional hits cannot fill Unit gaps.
+Report branch coverage separately where available. Missing proof or a result below 100% is an unmet requirement,
+not a pass. Preserve existing stronger gates; identify missing enforcement and its bounded correction honestly.
+This guidance alone does not change the gate or establish a coverage result.
 
 Choose collaborators according to what a test proves. A handler unit test may mock a specification. A specification may test against controlled repositories/services. Container integration may resolve them together with a mocked database boundary; label that as composition proof, not real database integration. Prefer real value objects, but do not score a test arrangement merely because the reviewer prefers different mocks.
 
 Cover failure paths and business effects, not only successful calls. Use project fixtures/builders, test naming, namespaces, and assertion conventions. Avoid tests that mirror implementation or mechanically inspect text.
+
+## Test quality and suite balance
+
+The current source denominator is all `src/` PHP files, with no source-file exclusions. Retain the
+existing exact statement gate and required coverage metadata. The existing all-suite statement
+gate does not by itself establish Unit-only line coverage; independent Unit attribution and line enforcement
+remain to be qualified. Preserve shipped OpenAPI schema-contract integration tests as product behavior.
+
+Test one behavior with clear setup, one execution and preferably one assertion. A few related assertions may
+prove one outcome; do not split cohesive checks or hide them in a giant Boolean expression to satisfy a count.
+Use the clearest helper: `self::assertSame(20, $total)` for an exact value, `self::assertTrue($allowed)` for a
+Boolean. Expected values must come from the contract, not copied production output. Names and whitespace can
+show Arrange/Act/Assert or Given/When/Then; redundant phase comments are unnecessary.
+
+Immutable Commands, Events and Queries carry important contracts. Test meaningful assignment, defaults,
+validation and transformations; do not discard them because they are small or repeatedly test PHP guarantees.
+Look for tautological tests (assertions guaranteed by their own setup), duplicated scenarios and assertions
+that would pass after the protected behavior broke. Before removing a test, identify its unique protection
+and retain equivalent proof. Remove redundant comments while preserving required docblocks and useful reasons.
+
+Review the suite against roughly **1000 Unit : 100 Integration : 10 Functional** expanded runnable cases,
+including data-provider cases; report skipped cases separately. This is a review guide, not a quota or a
+coverage ratio. Unit tests isolate behavior without real databases, filesystems, networks or processes;
+Integration tests prove real boundaries; Functional tests cover critical journeys and smoke behavior.
+Classify by actual behavior, not folder names. Record counts and measured runtime, use the cheapest boundary
+that proves the contract, and explain risk-based or small-project exceptions. Never pad Unit counts, relabel
+slow tests or delete unique security, concurrency or external-contract protection to meet the ratio.
+
+Do not add tests proving that Deptrac, PHPStan, wrappers, build/planning tools or test infrastructure detect
+seeded failures. Validate tooling directly with its owning command. Focused mutation analysis of application
+code is allowed: it checks whether assertions detect changed behavior, not whether a quality tool works.
+It is optional, not an automatic dependency installation or routine gate. Measure its runtime; surviving
+mutants can be equivalent code or missing assertions and are not a test-deletion list.
 
 ## Gate boundaries
 

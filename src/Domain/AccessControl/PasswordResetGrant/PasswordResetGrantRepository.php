@@ -42,7 +42,9 @@ interface PasswordResetGrantRepository
      *
      * Pending and due-retry work is eligible at its due time. Claimed work is eligible at lease expiry. Only the
      * authoritative latest issued generation for each eligible matching User authority participates.
-     * The positive limit is applied after ordering.
+     * Return a list of password_reset-purpose work with eligibility time <= at, at most one entry per User and
+     * delivery ID. Apply the positive limit after filtering and ordering; return no more than limit entries.
+     * Reads never mutate. No cross-family snapshot is promised.
      *
      * @return list<DueCredentialDelivery>
      *
@@ -55,7 +57,8 @@ interface PasswordResetGrantRepository
      *
      * Select recoverable pending, retry-pending or claimed delivery at expiry <= at, regardless of due time or lease.
      * Filter before ordering by expiry instant, delivery ID and purpose, then apply the limit (1–100).
-     * Exclude terminal authority, obsolete generations and material-free delivery. Reads never mutate or publish.
+     * Exclude terminal authority, obsolete generations and material-free delivery. Return a list of password_reset
+     * work, no more than limit entries and at most one entry per User and delivery ID. Reads never mutate or publish.
      * Commands revalidate advisory identities and complete stored state inside their transaction.
      *
      * @return list<ExpiredCredentialDelivery>

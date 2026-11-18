@@ -35,7 +35,8 @@ final class CatalogCompositionTest extends TestCase
         );
         foreach (['PaginationRequest', 'ListActiveSessions'] as $name) {
             $orderings = $schemas['Fight.AccessControl.'.$name]['properties']['orderings'];
-            self::assertSame('object', $orderings['type']);
+            self::assertSame(['object', 'array'], $orderings['type']);
+            self::assertSame(0, $orderings['maxItems']);
             self::assertSame('string', $orderings['additionalProperties']['type']);
             self::assertSame(['ASC', 'DESC'], $orderings['additionalProperties']['enum']);
         }
@@ -58,7 +59,10 @@ final class CatalogCompositionTest extends TestCase
         foreach (['Permission', 'PermissionCollection'] as $name) {
             $envelope = $schemas['Fight.AccessControl.JSend.Success.'.$name];
             self::assertSame(['status', 'data'], $envelope['required']);
-            self::assertSame('#/components/schemas/Fight.AccessControl.'.$name, $envelope['properties']['data']['$ref']);
+            self::assertSame(
+                '#/components/schemas/Fight.AccessControl.'.$name,
+                $envelope['properties']['data']['$ref']
+            );
         }
     }
 }

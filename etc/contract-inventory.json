@@ -1,0 +1,181 @@
+{
+  "owners": {
+    "TASK-00087": {
+      "boundaries": 102,
+      "sha256": "5cbd263a6eafdcba5f65cde7cb6679adf849fc040c9c87de18d6acc64a95c214"
+    },
+    "TASK-00089": {
+      "boundaries": 60,
+      "sha256": "1653f95e4297dbaafa1ad4a34f7b9b4604472e9d02f81aeed838206f49c74626"
+    },
+    "TASK-00090": {
+      "boundaries": 63,
+      "sha256": "b98459f44010c585c7241629f2741561a09f8f90912badf4625ed3f132df0ac5"
+    },
+    "TASK-00091": {
+      "boundaries": 153,
+      "sha256": "b57d11f093a154866a3433a01bb9b9e1e25f31de83fedac52f42feb6a36b1b43"
+    },
+    "TASK-00092": {
+      "boundaries": 40,
+      "sha256": "b72a7caf05b9c5540b5a11ec782e9606ad4860e97e0dabc08d7e5c58ac6804b0"
+    },
+    "TASK-00093": {
+      "boundaries": 151,
+      "sha256": "7a0e98252959643356e6bbd36a465019c90e7176edc892c16bca69a3fde75a08"
+    },
+    "TASK-00096": {
+      "boundaries": 22,
+      "sha256": "cd2c53c528913e9c14e8fe6284337121a5ba4a305e3d6d2339fe0be7a7ed9c83"
+    },
+    "TASK-00097": {
+      "boundaries": 170,
+      "sha256": "39b4c771d29adc5cd5dc2435bb3a70ab7ae1acb3d578b40bcbe7ef23784373cb"
+    },
+    "TASK-00098": {
+      "boundaries": 22,
+      "sha256": "75e9cb73d8c41307a3f1c3c7d581945365361f7937b28d1c0f43b9e5da34b275"
+    },
+    "TASK-00099": {
+      "boundaries": 82,
+      "sha256": "548609b07c766065bccb2724a358e72c04f6934f61b422aca40b9de005029754"
+    },
+    "TASK-00100": {
+      "boundaries": 34,
+      "sha256": "1c4e628acb593057a112f8f922fbcf05d2e85b846969c4baad1f501c192c84ea"
+    },
+    "TASK-00101": {
+      "boundaries": 116,
+      "sha256": "153436fc36e59a0bb0fb742521143a12a0d4b397342fb9041dd346794ffb1bb4"
+    },
+    "TASK-00102": {
+      "boundaries": 126,
+      "sha256": "7316e2c6c44dc0e53fb1d7cbbff57d7b8e6c3701af8b2c104fb269ad0cd2f8d0"
+    },
+    "TASK-00115": {
+      "boundaries": 3197,
+      "sha256": "d5334c8309cb8875cccb587fc0d1444559e9e5deea2a62ed137e9df9a75b0941"
+    },
+    "TASK-00116": {
+      "boundaries": 2434,
+      "sha256": "f2c711c98e35725165adc1645b38931c7c4a1d3f7825e363d38818b197d62c02"
+    },
+    "TASK-00117": {
+      "boundaries": 1445,
+      "sha256": "2f7614a0f3d60a4d371a28e07858c985e50cf4b504f57751a7614a2d9a744c70"
+    },
+    "TASK-00118": {
+      "boundaries": 1016,
+      "sha256": "93e24958638f2bccab41417573b5b6714999615bcd1aef6f2cedfa6c4867fc9f"
+    },
+    "TASK-00119": {
+      "boundaries": 1578,
+      "sha256": "1a76e7c7ef7fefe3e9c5d334a2b02d70bfa466bcea45f63c338292306744280a"
+    },
+    "TASK-00120": {
+      "boundaries": 642,
+      "sha256": "4c3bea918e79a0bd8e1b8d947531b5d80f20e62493331aea36d0cd4b6042ccb9"
+    },
+    "TASK-00121": {
+      "boundaries": 30,
+      "sha256": "f6332b90b629f051fb480c121668d575d9c0309ca129456e18b7b195a51b0942"
+    },
+    "TASK-00131": {
+      "boundaries": 170,
+      "sha256": "08d6a907de7122ab32d643af5ff95671a14a8340c4b0168250be5041862ed59b"
+    },
+    "TASK-00132": {
+      "boundaries": 286,
+      "sha256": "6be2eb10da5f2599c519b8e9c7ecc4a1adf0bc615b2a1807ddfe409896e8ea25"
+    },
+    "TASK-00133": {
+      "boundaries": 220,
+      "sha256": "620b462b0eb06ab4dc918b88e756fbdbb7c5a932c36efc53e81402c5dec44d7f"
+    },
+    "TASK-00134": {
+      "boundaries": 319,
+      "sha256": "6a46a0f3adcb6d25c1ae44b1a095cbbb51ee7ddb0c71000eba3bb06df21b5940"
+    },
+    "TASK-00135": {
+      "boundaries": 68,
+      "sha256": "a193dcb83402b5cecf2a7223b36e8df52d717db44deb95bbeb4d11b89926fc73"
+    },
+    "TASK-00136": {
+      "boundaries": 122,
+      "sha256": "16085599cdeb93f597d47c116cbb990ec580fe57ceebfa35d8db35689e58cb32"
+    },
+    "TASK-00137": {
+      "boundaries": 822,
+      "sha256": "4fe67e7aad118388fb4b18cabcaa04c69858571f8e0e5b378d9f8cf25765a617"
+    },
+    "TASK-00138": {
+      "boundaries": 1590,
+      "sha256": "2698b29185241aba5faae48a49315d96608eb93de07069ecdd2ea45ff545ab8b"
+    },
+    "TASK-00139": {
+      "boundaries": 1029,
+      "sha256": "b1c6589a08ab46684e50153c0e8ca5be134cc1057c6bc2e87ec84c591ac97cbb"
+    },
+    "TASK-00140": {
+      "boundaries": 675,
+      "sha256": "4ac06edd1bb003535c2dffccb3b4673907d5f19c7e415a64170eeeab11a12ce6"
+    },
+    "TASK-00141": {
+      "boundaries": 386,
+      "sha256": "e97a2844abba941409d3ae97477f6cc065f25481896bb79691d18034d4defa7e"
+    },
+    "TASK-00142": {
+      "boundaries": 1056,
+      "sha256": "c39426cfdbb6fdc0b01ee4aea0ec1a5f3eca4434ad4398ef69a97bc02c7e08d6"
+    },
+    "TASK-00143": {
+      "boundaries": 459,
+      "sha256": "3705faf733a76b2e25d949b11192e51f8d9dea13888d81d5d5f08b659af73ddf"
+    },
+    "TASK-00144": {
+      "boundaries": 873,
+      "sha256": "5d23f1524ccdfd3bdad0dc7778a488f830881ed3c9ebb128ea298a5ebbef39fc"
+    },
+    "TASK-00145": {
+      "boundaries": 667,
+      "sha256": "7a897d30686c8572c4a08cb39e42fd840b2120d0aad29fbbfffaa71dcf0073fa"
+    },
+    "TASK-00146": {
+      "boundaries": 575,
+      "sha256": "0ccbf968ca450307f156d35c54074092ed3bdc11e77ae8e97898d3dbf2f7b4ab"
+    },
+    "TASK-00147": {
+      "boundaries": 192,
+      "sha256": "e55edee2e2c103a535263f47ad16d52a18e8663b923a12b1896a7f8672a29390"
+    },
+    "TASK-00148": {
+      "boundaries": 242,
+      "sha256": "b600ab60b9c0b7dd96981fdbf8e4cb2ac248d7d2c59413e8d5c50df29a6533d4"
+    },
+    "TASK-00149": {
+      "boundaries": 699,
+      "sha256": "9a930899109018dec0ec3de4ba0ed777dea77c5eb37e53384336d707f7b6f6f6"
+    },
+    "TASK-00170": {
+      "boundaries": 85,
+      "sha256": "d23ca5d796bf159f0faeb09ef15c748f99ba6376f7d4ecf7ead4635573d54e3b"
+    },
+    "TASK-00171": {
+      "boundaries": 44,
+      "sha256": "ff5073efe88f213631cc25ce2c53cc13facb953195cab82b563bb0bc84210795"
+    },
+    "TASK-00172": {
+      "boundaries": 127,
+      "sha256": "03a9f8a97bacb0b745140d47cf6eb7fae39516176fa620cb1fb07f1a04527158"
+    },
+    "TASK-00175": {
+      "boundaries": 96,
+      "sha256": "c98dc711fcb0f53d4b13e8c2a00e689f783190c546e73ed7ea34a00c1066d4fd"
+    },
+    "TASK-00179": {
+      "boundaries": 63,
+      "sha256": "ed5a4074645d788e0b266ff605adbd95f2fd6c745954ea88ec62feeab566869e"
+    }
+  },
+  "schema": 1
+}

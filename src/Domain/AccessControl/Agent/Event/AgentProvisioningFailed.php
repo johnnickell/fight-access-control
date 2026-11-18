@@ -29,16 +29,18 @@ final readonly class AgentProvisioningFailed implements Event
     public static function fromArray(array $data): static
     {
         foreach (['actor_id', 'error_message'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
+            if (!isset($data[$key]) || !is_string($data[$key])) {
+                throw new DomainException('Missing or invalid Agent provisioning failure field.');
             }
         }
 
-        return new static((string) $data['actor_id'], (string) $data['error_message']);
+        return new static($data['actor_id'], $data['error_message']);
     }
 
     /**
-     * @inheritDoc
+     * Returns typed failure evidence supplied by the owning publisher
+     *
+     * @phpstan-return array{actor_id: string, error_message: string}
      */
     public function toArray(): array
     {

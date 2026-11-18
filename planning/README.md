@@ -26,6 +26,7 @@ operations, and pre-PR synchronization. After changing a planning record, run:
     ./bin/planning-check --write
     ./bin/planning-check
 
-Build coordination belongs in ignored `.runs/build/<TASK-ID>/`. Approved linked checkouts use
-`.runs/worktree/<task-slug>/`; evidence stays in the purpose-named locations in the
+Build coordination belongs in ignored `.runs/build/<TASK-ID>/`. Create new linked source checkouts at
+`<repo_path>/.runs/worktrees/<task-slug>/`, where `repo_path` is the canonical base checkout resolved through Git metadata.
+Preserve existing registered paths; evidence stays in the purpose-named locations in the
 [project profile](agents/project-profile.md#evidence-and-resume). Cleanup requires proved ownership and authorization.

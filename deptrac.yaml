@@ -11,6 +11,40 @@ deptrac:
           collectors:
               - type: classLike
                 value: ^Fight\\AccessControl\\Application\\.*
+        - name: Adapter
+          collectors:
+              - type: classLike
+                value: ^Fight\\AccessControl\\Adapter\\.*
+        - name: PsrHttp
+          collectors:
+              - type: classLike
+                value: ^Psr\\Http\\.*
+        - name: PsrLog
+          collectors:
+              - type: classLike
+                value: ^Psr\\Log\\(AbstractLogger|LoggerInterface)$
+        - name: LaravelHttp
+          collectors:
+              - type: classLike
+                value: ^Illuminate\\(Http|Routing)\\.*
+        - name: SymfonyHttp
+          collectors:
+              - type: classLike
+                value: ^Symfony\\Component\\(EventDispatcher|HttpFoundation|HttpKernel|Routing)\\.*
+        - name: CodeIgniterHttp
+          collectors:
+              - type: classLike
+                value: ^CodeIgniter\\(CodeIgniter|Filters\\FilterInterface|HTTP\\.*|Router\\.*)$
+              - type: classLike
+                value: ^Config\\(App|Cache)$
+        - name: CommonHttpError
+          collectors:
+              - type: classLike
+                value: ^Fight\\Common\\Adapter\\Http\\Error\\.*
+        - name: CommonTaskRouting
+          collectors:
+              - type: classLike
+                value: ^Fight\\Common\\Adapter\\Messaging\\(Command\\Sync\\(Routing\\InMemoryCommandRouter|RoutingCommandBus)|Query\\(Routing\\InMemoryQueryRouter|RoutingQueryBus))$
         - name: CommonDomain
           collectors:
               - type: classLike
@@ -33,6 +67,32 @@ deptrac:
             - Domain
             - CommonDomain
             - CommonApplication
+            - PhpInternal
+        Adapter:
+            - Adapter
+            - Application
+            - Domain
+            - CommonDomain
+            - CommonApplication
+            - PsrHttp
+            - PsrLog
+            - LaravelHttp
+            - SymfonyHttp
+            - CodeIgniterHttp
+            - CommonHttpError
+            - CommonTaskRouting
+            - PhpInternal
+        PsrHttp: []
+        PsrLog: []
+        LaravelHttp: []
+        SymfonyHttp: []
+        CodeIgniterHttp: []
+        CommonHttpError:
+            - CommonApplication
+            - PhpInternal
+        CommonTaskRouting:
+            - CommonApplication
+            - CommonDomain
             - PhpInternal
         CommonDomain:
             - PhpInternal

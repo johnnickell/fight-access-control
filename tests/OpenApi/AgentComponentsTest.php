@@ -29,6 +29,13 @@ final class AgentComponentsTest extends TestCase
         self::assertNotNull($document);
         $schemas = json_decode($document->toJson(), true, flags: JSON_THROW_ON_ERROR)['components']['schemas'];
         $schema = $schemas['Fight.AccessControl.Agent'];
+        self::assertSame(0, $schema['properties']['credential_revision']['minimum'] ?? null);
+        self::assertSame(1, $schema['properties']['permission_assignment_revision']['minimum'] ?? null);
+        self::assertSame(
+            1,
+            $schemas['Fight.AccessControl.ReplaceAgentPermissions']['properties']
+                ['expected_permission_assignment_revision']['minimum'] ?? null
+        );
         $at = new DateTimeImmutable('2026-01-01T00:00:00Z');
         foreach (AgentState::cases() as $state) {
             $view = AgentView::fromAgent(Agent::reconstitute(

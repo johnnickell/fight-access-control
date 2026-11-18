@@ -66,6 +66,10 @@ class Feature
             return $this;
         }
 
+        if ($this->revision === PHP_INT_MAX) {
+            throw new FeatureStateException('The Feature revision is exhausted.');
+        }
+
         return new static($this->id, $this->name, $this->permissionId, $status, $this->revision + 1);
     }
 
@@ -76,6 +80,10 @@ class Feature
     {
         if ($permissionId->equals($this->permissionId)) {
             return $this;
+        }
+
+        if ($this->revision === PHP_INT_MAX) {
+            throw new FeatureStateException('The Feature revision is exhausted.');
         }
 
         return new static($this->id, $this->name, $permissionId, $this->status, $this->revision + 1);

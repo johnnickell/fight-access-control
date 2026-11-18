@@ -8,12 +8,31 @@ are implemented by their owning slices; the [integration guide](agent-integratio
 
 ## Public scheduler composition
 
-Inject `ListDueAgentDeliveriesHandler`, `AgentCredentialDeliveryService`, a trusted `Clock` and optionally
-`AgentDeliverySchedule` into `AgentDeliveryRecoveryService`. As an authenticated worker with explicit current
+Delivery workers/ports now live under `Application\AccessControl\AgentCredentialOperation\Delivery`; the Query
+and its handler mirror operation ownership in Domain/Application. `ListDueAgentDeliveriesHandler` injects only
+`AgentCredentialOperationReadRepository`, delivery authorization and Clock. It needs no write/material repository
+or UoW. The delivery worker separately retains `AgentCredentialOperationRepository` and its existing UoW; read
+selection never supplies those capabilities or grants admission.
+
+Inject the configured Common `QueryBus`, `AgentCredentialDeliveryService`, a trusted `Clock` and optionally
+`AgentDeliverySchedule` into `AgentDeliveryRecoveryService`. Register `ListDueAgentDeliveries` with its actual
+`ListDueAgentDeliveriesHandler` on that bus; direct-handler injection is removed without a compatibility mode.
+See the unreleased [worker contracts](agent-worker-contracts.md) for dynamic result validation and the separate
+generic-inference ownership. As an authenticated worker with explicit current
 delegation, call `recover(originalScope, registeredDestination)` once per scheduled pass. It selects one batch,
 then calls the actual delivery service once per item. The safe result maps original global delivery IDs to
 `AgentDeliveryResult` values. No process-local queue, event, initiating caller retry, claim token or secret is input.
-Constructing new services after restart does not change recovery authority.
+Constructing new services after restart does not change recovery authority. Issuance now retains explicit nullable
+typed origin on `AgentCredentialOperation`, independently of optional evidence. Consumer hydration/copies and complete
+expected-state comparisons must preserve its kind/UUID, even through retirement and tombstones. It is not public
+status data or worker authority. Never parse scope labels, substitute the current worker or query audit history to
+recover origin. Optional delivery evidence is now inserted only by the delivery service in its actual outcome
+transaction, including claim-path expiry/exhaustion. Inject its optional last audit repository, not a scheduler
+writer or wrapping transaction. Claims/admissions/polls and unchanged receipt reconciliation add none;
+`nextRunAt()` remains pure. Enabled missing-origin admission fails before send, and configured audit failure cannot
+silently disable evidence or reverse an external effect. See
+[delivery audit composition](agent-credential-delivery.md#optional-atomic-delivery-audit-unreleased) and
+[issuance composition](agent-provisioning-operations.md#optional-atomic-issuance-audit-unreleased).
 
 Call `nextRunAt()` after the pass (also after a failed pass) to obtain the next bounded polling time. Consumers own
 scheduling, enumeration of their registered scope/destination pairs, worker authentication, concurrency limits and
@@ -22,7 +41,7 @@ impersonate the originating caller. The service neither sleeps nor schedules ano
 is scheduling guidance enforced by consumer composition, not a cross-worker global rate limiter. Each pass is
 bounded even if another pass runs concurrently; persisted claim/admission/attempt policy still governs each delivery.
 
-Alternatively dispatch the public `ListDueAgentDeliveries(scope, destination, limit = 50)` Query through its handler
+Alternatively dispatch the public `ListDueAgentDeliveries(scope, destination, limit = 50)` Query through the configured bus
 and schedule the returned exact keys/destinations/delivery IDs through `AgentCredentialDeliveryService::deliver()`.
 The message has canonical `namespace`, `caller_type`, `caller_id`, `destination_id`, `destination_revision`, and
 `limit` fields. All are required by `fromArray()`; the constructor supplies a default limit. Worker identity is not
@@ -31,7 +50,9 @@ same package transitions; consumers must not copy claim, admission, retry or ter
 
 ## Discovery, authority and persistence
 
-`AgentOperationRepository::listDueDeliveries(scope, destination, now, limit)` returns `list<AgentOperationView>`.
+`AgentCredentialOperationReadRepository::listDueDeliveries(scope, destination, now, limit)` now returns
+`list<AgentDeliveryWorkView>` selection evidence internally; the handler returns `list<AgentOperationView>`.
+See the unreleased [exact Query/read-adapter contracts](agent-query-contracts.md).
 It is an authoritative, bounded, **secret-free projection**, not an entity/material load or write transaction.
 The existing [safe operation representation](agent-operation-status.md) keeps original issuance and recorded
 credential/delivery disposition separate. No receipt, claim token, key version, ciphertext or capability is returned.
@@ -80,9 +101,10 @@ checks every returned original target before revealing any batch. A denied item 
 partial disclosure. Current-authority races after this read are handled independently by delivery admission; a
 read allow never authorizes materialization. Consumers implement visibility policy, not package lifecycle policy.
 
-Storage faults or malformed/unsupported snapshots produce sanitized `AgentOperationRejectedException(UNAVAILABLE)`;
-current authorization denials produce `UNAUTHORIZED`. Neither becomes an empty queue. Unknown canonical versions
-fail closed without reinterpreting or reissuing. Query execution does not commit, emit events or consult issuance
+Deliberately classified availability failures retain `AgentOperationRejectedException(UNAVAILABLE)` and current
+authorization denials retain `UNAUTHORIZED`. Unexpected faults and broken repository selection contracts now raise
+safe internal `AgentOperationReadFailed`, never an ordinary business refusal or empty queue. Unknown canonical
+versions retain `UNSUPPORTED_VERSION` after current target authorization, without reinterpretation or reissuance. Query execution does not commit, emit events or consult issuance
 capacity. `getDeliveryDueAt()` owns operation-local eligibility in Domain; the Domain repository contract additionally
 requires current cross-operation slot reservation. Adapters implement both as equivalent bounded selection.
 
@@ -150,18 +172,18 @@ The existing delivery result enum adds `reconciliation_required`; consumers must
 The opt-in OpenAPI catalog includes the new Query, bounded unpaginated due list, shared safe operation/issuance values
 and optional typed JSend envelope. These are value descriptions, not a package endpoint or worker authorization.
 
-- [Discovery tests](../tests/Application/AccessControl/Agent/QueryHandler/ListDueAgentDeliveriesHandlerTest.php)
+- [Discovery tests](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/ListDueAgentDeliveriesHandlerTest.php)
   prove safe deterministic bounded reads, equal-time current-write selection, cross-scope/binding exclusion,
   completed-reservation and rollback behavior, real-worker checks, target denial, revocation during selection and faults.
-- [Recovery tests](../tests/Application/AccessControl/Agent/Security/AgentDeliveryRecoveryServiceTest.php) exercise
+- [Recovery tests](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/AgentDeliveryRecoveryServiceTest.php) exercise
   real provisioning and actual delivery with fresh Application services, both persisted/rolled-back forms of all
   three uncertain commits, interruption around durable boundaries, receipt-first key-independent recovery,
   takeover, authority/expiry races, original identity/material, capacity isolation, bounds and terminal outcomes.
   A 51-operation regression proves default-only restarted passes deliver the current write past 50 obsolete writes,
   leave obsolete delivery denied and unchanged, and never repeat issuance. Additional tests cover reservation changes
   after discovery and current retry delays without falling back to an older due write.
-- [Domain discovery tests](../tests/Domain/AccessControl/Agent/AgentDeliveryDiscoveryTest.php) and
-  [delivery tests](../tests/Domain/AccessControl/Agent/AgentDeliveryTest.php) cover input/override validation,
+- [Domain discovery tests](../tests/Domain/AccessControl/AgentCredentialOperation/AgentDeliveryDiscoveryTest.php) and
+  [delivery tests](../tests/Domain/AccessControl/AgentCredentialOperation/AgentDeliveryTest.php) cover input/override validation,
   canonical Query round trips, due-time and recovered-admission policy.
 - [Generated schema integration](../tests/OpenApi/AgentDeliveryComponentsTest.php) runs in the default PHPUnit suite
   and full gate with `CoversNothing`, keeping incidental schema-fixture execution out of exact `src/` coverage.

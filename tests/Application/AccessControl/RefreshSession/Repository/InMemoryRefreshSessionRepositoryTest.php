@@ -25,9 +25,9 @@ final class InMemoryRefreshSessionRepositoryTest extends TestCase
 
     public function test_that_only_the_expected_predecessor_can_be_atomically_replaced(): void
     {
-        $repository = new InMemoryRefreshSessionRepository();
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository();
         $current = $this->session();
-        $repository->add($current);
+        $refreshSessionRepository->add($current);
         $winner = $current->rotate(
             RefreshCredential::fromString(self::WINNER_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T12:00:00+00:00'),
@@ -40,24 +40,24 @@ final class InMemoryRefreshSessionRepositoryTest extends TestCase
         );
         $skippedRevision = $current->revoke()->revoke();
 
-        self::assertFalse($repository->replace($current, $skippedRevision));
-        self::assertSame($current, $repository->getById($current->getId()));
+        self::assertFalse($refreshSessionRepository->replace($current, $skippedRevision));
+        self::assertSame($current, $refreshSessionRepository->getById($current->getId()));
 
-        self::assertTrue($repository->replace($current, $winner));
+        self::assertTrue($refreshSessionRepository->replace($current, $winner));
 
-        self::assertFalse($repository->replace($current, $staleCandidate));
-        self::assertSame($winner, $repository->getById($current->getId()));
-        self::assertSame($winner, $repository->getByCredential(
+        self::assertFalse($refreshSessionRepository->replace($current, $staleCandidate));
+        self::assertSame($winner, $refreshSessionRepository->getById($current->getId()));
+        self::assertSame($winner, $refreshSessionRepository->getByCredential(
             RefreshCredential::fromString(self::WINNER_CREDENTIAL)
         ));
-        self::assertNull($repository->getByCredential(
+        self::assertNull($refreshSessionRepository->getByCredential(
             RefreshCredential::fromString(self::STALE_ROTATED_CREDENTIAL)
         ));
     }
 
     public function test_that_used_credential_history_resolves_the_authoritative_family(): void
     {
-        $repository = new InMemoryRefreshSessionRepository();
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository();
         $current = $this->session();
         $firstWinner = $current->rotate(
             RefreshCredential::fromString(self::WINNER_CREDENTIAL),
@@ -69,15 +69,15 @@ final class InMemoryRefreshSessionRepositoryTest extends TestCase
             new DateTimeImmutable('2026-08-19T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-20T12:00:00+00:00')
         );
-        $repository->add($secondWinner);
+        $refreshSessionRepository->add($secondWinner);
 
-        self::assertSame($secondWinner, $repository->getByUsedCredential(
+        self::assertSame($secondWinner, $refreshSessionRepository->getByUsedCredential(
             RefreshCredential::fromString(self::CURRENT_CREDENTIAL)
         ));
-        self::assertSame($secondWinner, $repository->getByUsedCredential(
+        self::assertSame($secondWinner, $refreshSessionRepository->getByUsedCredential(
             RefreshCredential::fromString(self::WINNER_CREDENTIAL)
         ));
-        self::assertNull($repository->getByUsedCredential(
+        self::assertNull($refreshSessionRepository->getByUsedCredential(
             RefreshCredential::fromString(self::SECOND_WINNER_CREDENTIAL)
         ));
     }

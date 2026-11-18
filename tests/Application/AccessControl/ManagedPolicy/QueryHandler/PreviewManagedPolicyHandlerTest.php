@@ -23,6 +23,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
+use Fight\Common\Application\Error\Exception\RuleViolation;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Type\Arrayable;
@@ -299,10 +300,10 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                 []
             )));
             self::fail('A persisted permission name collision must be rejected.');
-        } catch (ManagedPolicyDefinitionException $managedPolicyDefinitionException) {
+        } catch (RuleViolation $ruleViolation) {
             self::assertSame(
                 'Permission name "VIEW_USERS" belongs to persisted identifier "018f0000-0000-7000-8000-000000000111".',
-                $managedPolicyDefinitionException->getMessage()
+                $ruleViolation->getMessage()
             );
         }
 
@@ -316,10 +317,10 @@ final class PreviewManagedPolicyHandlerTest extends TestCase
                 )]
             )));
             self::fail('A persisted role name collision must be rejected.');
-        } catch (ManagedPolicyDefinitionException $managedPolicyDefinitionException) {
+        } catch (RuleViolation $ruleViolation) {
             self::assertSame(
                 'Role name "ROLE_VIEWER" belongs to persisted identifier "018f0000-0000-7000-8000-000000000211".',
-                $managedPolicyDefinitionException->getMessage()
+                $ruleViolation->getMessage()
             );
         }
 

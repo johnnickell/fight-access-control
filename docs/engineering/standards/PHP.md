@@ -2,7 +2,11 @@
 
 Read the installed Fight PHPCS ruleset and project composition for mechanically enforced details: strict types, four-space indentation, braces, import sorting, array alignment, member ordering, blank lines, and trailing commas. Follow current tooling; propose a scoped correction when it conflicts with an explicit preference. Warnings fail style checks.
 
-Use final classes by default. Preserve exceptions needed for extension or framework mapping; Doctrine entities in John's current projects are an exception. Properties are readonly by default unless mutation belongs to their responsibility. ValueObject classes are readonly. Prefer constructor promotion for straightforward assignments and explicit initialization when construction does real work.
+Choose placement and inward contracts under [Architecture](Architecture.md#accesscontrol-placement-and-dependency-rules)
+before following an existing PHP file as a template. Apply [descriptive collaborator naming](Naming.md#descriptive-collaborators-and-collections)
+to promoted properties, parameters and locals alike; update named-argument callers with an implemented rename.
+
+Use final classes by default. Preserve exceptions needed for extension or framework mapping; Doctrine entities in John's current projects are an exception. AccessControl aggregate entities remain extensible under the project profile; final readonly fits immutable DTOs, handlers and services where extension is not part of their contract. Properties are readonly by default unless mutation belongs to their responsibility. ValueObject classes are readonly. Prefer constructor promotion for straightforward assignments and explicit initialization when construction does real work.
 
 ```php
 /**
@@ -50,6 +54,55 @@ public function getRoleIds(): array
 ```
 
 Comments explain business reasons, constraints, and non-obvious order. Avoid narration and routine section comments. Sections may help an unusually large block, but a huge method is a candidate for cohesive private methods; no arbitrary line-count threshold is imposed. Test documentation follows the actual project rules; do not extend production sniff requirements beyond their configured scope without a decision.
+
+## Handler payload declarations
+
+John's explicit [TASK-00129 amendment](../../../planning/tasks/00129-TASK.md#dependencies-and-current-contract-gap)
+selects one supported Command or Query per handler, declared by its registration method. Keep that declaration,
+the concrete payload import and the local extraction type together in the owning handler. Use a flat docblock
+immediately before extraction, rather than a multiline annotation or a class-level generic replacement:
+
+```php
+public function handle(CommandMessage $commandMessage): void
+{
+    /** @var RegisterUser $command **/
+    $command = $commandMessage->payload();
+}
+```
+
+Query handlers analogously use `/** @var GetUserById $query **/` immediately before
+`$query = $queryMessage->payload();`. Event subscribers put the corresponding concrete Event annotation inside
+the owning listener method. This shared style rule does not implement the separately owned Query/Event slices.
+
+The annotation records the selected binding; it does not validate a message or prove static assignability between
+a registration string and a payload. PHP has no native generics. The handler declaration and trusted routing map
+must match; deriving registration from the declaration is the selected configuration boundary. A focused handler
+unit test asserting the expected registration class suffices for declaration proof. Qualify correct routing and
+missing-route/failure behavior separately; rejection of deliberately inconsistent explicit maps is not required.
+Do not add local buses, shadow messages, validation bridges or defect-hiding ignores.
+
+### Message payload declarations
+
+Each CommandHandler and QueryHandler declares the single Command or Query it supports through its registration
+method in that same owning class. Configure the routing bus with that declaration and handler; do not register
+it for unrelated payloads. Query handlers declare their specific native result, with precise PHPStan collection
+or union types where needed, or throw. QueryBus fetch/dispatch remain `mixed`; known caller result annotations
+are permitted, not runtime generic enforcement.
+
+Inside `handle()`, put a flat, single-line payload PHPDoc immediately above extraction, matching the registered
+type. For example, in `GetUserByIdHandler`:
+
+```php
+/** @var GetUserById $query */
+$query = $queryMessage->payload();
+```
+
+Command handlers use the same form with their Command type and `$commandMessage->payload()`. Event Subscribers
+use the analogous single-line annotation immediately above event payload extraction in the listener method;
+keep the supported Event/listener declarations in that same owning subscriber. Do not move the concrete payload
+declaration to an external map or replace it with a multiline annotation. These local annotations document the
+configured route, not validation of arbitrary decoded/injected data. Preserve existing dynamic-boundary validation
+and runtime guards; annotations neither create native payload narrowing nor make those checks redundant at runtime.
 
 ## Expressions
 

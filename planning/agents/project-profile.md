@@ -1,7 +1,7 @@
 # Fight AccessControl Project Profile
 
-This package binds the [Fight Engineering Standards](../../docs/engineering/STANDARDS.md) to its Domain and
-Application package boundary.
+This package binds the [Fight Engineering Standards](../../docs/engineering/STANDARDS.md) to its Domain/Application
+core and the approved optional, capability-first Adapter integration boundary below.
 
 ## Agent OS workflow binding
 
@@ -31,6 +31,10 @@ Correction-batch implementation/review still requires its full approved maintain
 private channel. Absence from public records proves neither availability nor unavailability: verify the authorized
 private handoff, and name the missing input if actually unavailable. General workflow maintenance does not require
 that brief. Never copy restricted criteria into tracked docs, logs intended for publication or PR prose.
+Resolve the canonical base through Git metadata before locating private handoffs: ignored evidence is not copied
+into a new linked checkout. Follow the existing TASK or correction-batch handoff to its approved source, check
+which criteria apply and honor later approved amendments. Historical access alone is not present access; an
+empty linked-checkout scratch directory alone is not proof that the source is missing.
 
 ### Provider resolution and target substitutions
 
@@ -48,7 +52,7 @@ Inspection, enrollment or an available command is not end-to-end Build qualifica
 remain ordinary Pi tools, not OS isolation or universal Jev enforcement. Optional discovery does not grant authority.
 
 Pi loads context from its working directory and ancestors, not every descendant instruction file when reading
-source. Explicitly read this profile, applicable CONTEXT sections and linked standards; do not assume they were
+source. Explicitly read this profile, the root GLOSSARY.md, relevant composition guides, applicable ADRs and linked standards; do not assume they were
 automatically loaded. Before every delegated stage, the coordinator supplies a private reusable project-context
 path plus owning skill, target checkout, TASK/base/head, permitted effects and evidence paths. The child verifies
 Git identity and reads that context and target instructions before the skill; apply these substitutions through
@@ -56,7 +60,7 @@ all nested references:
 
 | Concern | AccessControl authority |
 | --- | --- |
-| Instructions and accepted scope | Root `AGENTS.md`, this profile, `CONTEXT.md`, selected `planning/tasks/NNNNN-TASK.md` and applicable accepted parents |
+| Instructions and accepted scope | Root `AGENTS.md`, this profile, `GLOSSARY.md`, relevant composition guides/applicable ADRs, selected `planning/tasks/NNNNN-TASK.md` and applicable accepted parents |
 | Planning/navigation | `planning/CONVENTIONS.md`, `planning/tasks/BOARD.md`, `planning/wayfinder/README.md`, authored `planning/ROADMAP.md` handoff; generated views remain generator-owned |
 | Engineering rules | Local `docs/engineering/STANDARDS.md` and its selected standards; preserve package exceptions below |
 | Runtime and commands | Isolated package PHP Docker runtime through `./bin/*`; no application webserver, database, HTTP Adapter or UI provisioning required for package-only work |
@@ -66,8 +70,38 @@ all nested references:
 | Completion | `done` requires independent acceptance and required verification, including applicable QA; it means neither publication, merge nor release. Apply automatic parent completion and regenerate views in the same authorized closeout |
 
 Provider application planning, runtime, infrastructure, receipts and release examples are not AccessControl facts.
-Preserve Domain/Application-only ownership, exact statement coverage, OpenAPI integration coverage, pre-v1 current
-contracts and the security rules below. Unresolved conflicts hold only the affected action with its owner named.
+Preserve Domain/Application core ownership and the approved optional Adapter boundary, exact statement coverage,
+OpenAPI integration coverage, pre-v1 current contracts and the security rules below. Unresolved conflicts hold only the affected action with its owner named.
+
+### Integrated delivery and resource retirement
+
+Land closes independently accepted TASKs, eligible parents and applicable current Board/Roadmap/README/context
+claims during delivery. Keep historical acceptance/publication checkpoints and independent reports; no tracked
+delivery marker/table, persistent pending-merge queue or recurring post-merge planning maintenance. Planning
+checks and view refresh stay offline. Live subject evidence belongs in the durable ignored receipt and actual
+PR. Missing/contradictory identity holds the affected effect; never infer merge or acceptance.
+
+For TASK publication, resolve the live GitHub default against AccessControl's `develop` policy and existing
+subject PR before reconciliation, pre-publication and final handoff. Use the resolved provider's
+`.pi/skills/land/scripts/bind-target.py` with target `--root`, `--policy develop`, and existing `--pr`/`--head`.
+Retain its observation and use the bound base throughout. Stale `origin/HEAD` is not authority; default/policy/PR
+conflicts require explicit owner disposition, not silent retargeting.
+
+Consume the provider's `docs/engineering/LANDING.md` cleanup-only, inventory/preservation, live-consumer,
+Git/Docker and postcondition/resume contract (TASK-00534 plus qualified TASK-00537), alongside local gates.
+Publication, document synchronization and eligible local retirement are separate required obligations; a hold
+means incomplete cleanup. Verified-merge cleanup-only needs no correction PR or repeated acceptance gate.
+Discover orphan stacks independently of worktrees, corroborating paths/source/topology/data rather than names.
+After worker exit continue from a safe checkout with original model/ledger/authority, preserving active sessions.
+Qualify Docker VM read-only sharing positively using all containers (including stopped), parent mounts, host
+cwd/writers and stable preservation manifests; arbitrary/unknown readers hold, never shut down a shared VM.
+Preserve active/dirty/shared resources, independent reports, credentials and durable data. Capture exact
+creating-container mounts and named/image-anonymous volume creation provenance before creator removal. Distinguish task-created disposable effects from merely used/shared/durable resources across containers,
+networks, volumes, images and caches; record size, authority, dependencies and remove/retain/hold reasons.
+Reobserve identity and all consumers, including stopped containers, before each normal exact effect; unknown,
+shared, excluded, durable or denied inspection holds without force/prune or suppressed cleanup errors. Resume
+only missing authorized effects and verify absence/preservation postconditions with finite recovery actions.
+Human merge remains separate; preserve the remote head of an open PR.
 
 ### Evidence and resume
 
@@ -79,7 +113,7 @@ assuming the current directory owns canonical evidence. Use these ignored target
 - `<base>/.runs/qa/<TASK-ID>/qa.md` — canonical independent behavioral report under the provider QA contract.
 - `.runs/tasks/<TASK-ID>/runs/` — owned execution scratch; `.runs/logs/<TASK-ID>/` and
   `.runs/handoffs/<TASK-ID>/` — complete gate logs/receipts and reusable handoffs.
-- `.runs/worktree/<task-slug>/` — optional linked checkout; retain useful evidence and owned runtime through review.
+- `<base>/.runs/worktrees/<task-slug>/` — isolated source checkout under the canonical base resolved above; retain useful evidence and owned runtime through review. Do not nest it under another linked checkout or relocate existing worktrees implicitly.
 
 Match repository, TASK/requirements, branch, full base/head and working-tree snapshot before advancing. Review and
 QA must be independent of implementation and its submitted acceptance evidence; green commands or child exit zero
@@ -106,26 +140,113 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 
 ## Package boundary and contracts
 
-- Production code is limited to src/Domain/AccessControl and src/Application/AccessControl, mirrored by tests.
-- Consumers own production persistence adapters, transport, framework composition, keys, queues, and runtime. Do not
-  add a production Adapter layer, contracts directory, or Composer production namespace without explicit approval.
+[Domain definitions](../../GLOSSARY.md) are separate from current behavior/composition and ADR decisions.
+The former CONTEXT is retained only as [historical evidence](../../CONTEXT.historical.md), not required orientation
+or a current delivery queue. Read the relevant capability guides below for behavior and state-transition contracts.
+
+Consumers protect every Command entry point, including HTTP, CLI, workers and direct bus invocation. Outer layers
+normally authenticate, validate, authorize, choose synchronous/asynchronous invocation and translate failures;
+Application/Domain retain their own invariant checks. Invitation correction and registration recovery rely on
+consumer request-time admission for the actual caller, operation and exact target. The separate target-sensitive
+session and email-change ports remain, as distinct contracts from these and the retired actor-only Role and Agent
+Permission administration ports. See
+[Permission tiers](../../docs/permission-tiers.md) for all-path authorization, no-op eligibility and consumer last-admin duties.
+Package-owned workflow coordinators marked `@internal` are final implementation details, not consumer extension ports.
+Use public Commands, services, authenticated principals and SecurityContext. Credential providers receive one sensitive
+invocation after a committed claim and return a typed outcome; schedulers use the package's secret-free discovery and
+delivery Commands instead of copying claim/retry/terminalization/stale-generation policy. See
+[human delivery](../../docs/credential-delivery.md) and [Agent integration](../../docs/agent-integration.md).
+
+- The normative [placement/dependency rules](../../docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules)
+  and [collaborator naming](../../docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections)
+  codify EPIC-00015. Domain is aggregate-first under `src/Domain/AccessControl`; Application mirrors ownership with
+  cohesive capabilities and mirrored tests. These are approved rules, not certification of all current source.
+- [WF-035](../wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md)'s capability-first framework layout
+  remains valid for mechanisms. EPIC-00015 explicitly specializes its no-DDD-buckets restriction for aggregate-oriented
+  protocol presentation: `Adapter/Mcp/{Tool,Resource,Skill}/Agent`. `Adapter/<Capability>/<Framework-or-Provider-or-Standard>`
+  and `Adapter/ServiceContainer/<Framework>` remain the framework patterns, not the only permitted presentation shape.
+  Common canonical API adoption still requires actual qualification, not a guessed future destination.
+- Dependency direction remains `Adapter → Application → Domain`; Application may use PSR and supported upstream
+  Application/Domain contracts, Domain pure PHP and supported upstream Domain contracts. Framework/infrastructure
+  mechanisms belong in Adapter; current executable collectors remain unchanged by guidance. Keep framework
+  dependencies optional/isolated and adapters explicitly enabled; reuse PSR-15 where the actual contract fits. Compose Common's safe-error approach
+  without competing reporting/rendering or leaking private exceptions; preserve MCP/OAuth protocol boundaries.
+- Consumers still own production persistence adapters, application policy/grants/target scope, transport routes,
+  framework bootstrap, keys, queues and runtime. The narrow Adapter approval does not authorize persistence or
+  unrelated infrastructure, blanket framework support, a contracts directory or arbitrary production namespaces.
+- TASK-00103 establishes the first PSR-15 permission adapter and its Composer/autoload, architecture, mirrored
+  `tests/Adapter`, style/static-analysis/default-suite and exact owned-statement coverage wiring. Follow the
+  [HTTP admission guide](../../docs/http-permission-admission.md) for qualified Slim/Yii 3 composition and limits.
+  [CI4 composition](../../docs/codeigniter-permission-admission.md) has TASK-00106's accepted base integration and
+  TASK-00179's independently reviewed and QA-accepted portable Permission/native diagnostic composition.
+  [Laravel composition](../../docs/laravel-permission-admission.md) now has
+  TASK-00105's accepted base and TASK-00178's accepted portable integration. The current package floor is Common
+  `^1.5.1`; earlier base-adapter minimum lanes remain historical. The
+  [current five-family evidence map](../../docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
+  covers independent/combined selection while retaining CI4's amended Feature-native limits. Other native adapters
+  retain their own TASK evidence. Do not implement adapters or change executable inputs through planning edits.
 - Reuse public Fight Common values and identities: context IDs extend UniqueId, email is the common EmailAddress,
   messages use the public Command, Query, Event, and handler contracts, and package exceptions stay under their
   aggregate Exception namespace.
-- Repositories are Domain interfaces beside their aggregate. Handlers use canonical add/getById/remove operations and
-  the supported atomic boundary; do not create Application Store ports, save ports, or preflight reservation calls.
+- Repositories are Domain interfaces beside their aggregate. Use canonical add/getById/remove where appropriate,
+  preserving actual CAS/uniqueness/coupled-write and transaction-duration fence contracts, not replacing them with
+  get-then-save. Keep UoW separate; do not create Application Store/save ports or preflight reservation calls.
+- TASK-00087 adds optional [Prompt authorization](../../docs/agent-prompt-authorization.md) under
+  `Adapter/Mcp/Prompt/Agent`: exact immutable Common definitions, conjunctive direct requirements and existing
+  ordinary-request authority, with Common-owned list/get, safe bounds and independent Query/linked-target admission.
+  Its canonical Work handoff owns verification; independent Review ACCEPT and nonvisual QA PASS cover candidate
+  `1428f9bb9b5ff179332c1001e89009d964409986`. The canonical Land handoff owns subsequent delivery/retirement outcomes;
+  actual consumer qualification remains separate.
+- Agent profile Tools/catalogs and family availability now live in `Adapter/Mcp/{Tool,Resource,Skill}/Agent`
+  under TASK-00108; authentication, Permission policy and synchronized continuation remain inward. TASK-00109
+  organizes Agent Authentication/Credential/Delivery/Maintenance/Continuation, PermissionAssignment, Feature Discovery
+  and authorization Admission, with descriptive collaborators and mirrored tests. Current source has
+  direct User authentication/session/password/email-confirmation owners under TASK-00112 after TASK-00111;
+  see [synchronous composition](../../docs/user-authentication.md). User business transitions
+  now own authentication-authority revisions, including successful login with optional verified rehash; see
+  [current transition composition](../../docs/operation-outcomes.md#user-authentication-transitions-unreleased).
+  TASK-00114's Work now places the operation root/owned values, Domain read/write repositories and Application
+  Delivery/Maintenance/query owners under `AccessControl/AgentCredentialOperation`; Agent issuance/lifecycle
+  remain separate. Readers require only `AgentCredentialOperationReadRepository`, writers the independent
+  `AgentCredentialOperationRepository` and existing UoW. View mapping is query-owned; cohort evidence remains
+  Domain-owned while actual composition qualification stays with consumers. See the
+  [current ownership map](../../docs/agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
+  Independent Review ACCEPT and nonvisual QA PASS cover TASK-00114's integrated candidate with TASK-00112's
+  advanced authentication base. See the canonical Work handoff for subject and verification, and the Land
+  handoff/PR #158 for current delivery results.
+  TASK-00110 owns qualified canonical Common adoption; TASK-00107
+  implemented neither this source change nor Common adoption.
+  See the [consumed-contract notes](domain.md#consumed-common-contracts) for actual source and supplier limits.
 - UserRepository::add() enforces canonical-email uniqueness atomically. Backed enum cases are uppercase and retain
   stable serialized string values.
 
 ## Application and security behavior
 
-- Secret-bearing activation, login, refresh, logout, and password operations remain synchronous
-  AuthenticationService methods. Raw secrets are sensitive parameters, never serializable messages, and failures
-  dispatch only redacted failure evidence.
+- **Current optional atomic audit (EPIC-00017):** every covered handler and related synchronous outcome owner uses
+  optional nullable `AuditEvidenceRepository`, including formerly mandatory writers. Email-change request and
+  confirmation take it before the separate [optional participant](../../docs/credential-delivery.md#atomic-email-change-notification-intent-unreleased).
+  Omitted/null deliberately
+  disables durability for that owner only; configured failure never does. Enabled evidence joins the actual mutation
+  transaction before commit. Later opt-in does not backfill history. Explicit typed origin grants no authority;
+  disabled/no-change work needs no new audit-only actor, while existing business actors and all admission/fence/
+  recovery contracts remain mandatory. See the [complete current outcome matrix](../../docs/audit-outcome-coverage.md),
+  [typed mapping](../../docs/audit-evidence.md) and [ordinary Role composition](../../docs/role-audit-composition.md).
+  Historical mandatory-audit releases/acceptance retain their subjects; package models do not qualify actual consumer
+  mapping, shared connections, locks, processes, keys/sinks, restoration or activation/use, or authorize workaround removal.
+
+- Secret-bearing activation, login, refresh, logout, password and email-confirmation operations remain synchronous.
+  EPIC-00015 replaces ADR 0003's single AuthenticationService placement mandate with cohesive direct owners under
+  the Architecture rule; TASK-00112 implements `UserAuthentication`, `SessionLifecycle`, `PasswordManagement` and
+  `EmailChangeConfirmation`, sharing token creation through `TokenIssuer`. The retired service has no facade or alias;
+  this approved redesign is not a retroactive finding against its earlier accepted placement. Raw secrets remain
+  sensitive, non-serializable parameters and failures dispatch only redacted failure evidence; supported JWT/security/atomic/recovery/post-commit guarantees are unchanged.
 - Serializable Commands, Queries, and Events are immutable DTOs with canonical fromArray/toArray round trips,
   named getters, and rejection of missing required data.
-- Command and Query handlers implement the corresponding public Fight Common handler interface, declare their
-  registration method, and extract the typed payload from the received message.
+- Command and Query handlers implement the corresponding public Fight Common handler interface and declare exactly
+  one supported payload. Keep registration and the flat local extraction annotation together in the owning class,
+  under the [canonical PHP rule](../../docs/engineering/standards/PHP.md#handler-payload-declarations). Routing owns
+  runtime binding through a trusted map matching the declaration, not generic inference or annotation validation.
+  A focused expected-registration unit assertion suffices; deliberately mismatched explicit maps are outside this contract.
 - A CommandHandler owns one atomic Unit of Work: aggregate mutation and repository persistence precede one commit;
   a success event is dispatched only after that commit. The approved
   [operation-outcome amendment](../tickets/00001-TICKET.md#approved-correction-batch-amendment) governs the correction
@@ -139,14 +260,29 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   operation-outcome policy.
 - Approved replacement exception: [EPIC-00009 D3](../epics/00009-EPIC.md#d3--post-commit-result-behavior), ratified by
   John on 2026-09-27, applies only to replacement recoverable Agent provision and rotation. After a confirmed commit,
-  publication failure returns committed metadata with a typed, sanitized warning, not a publication-failure throw.
+  publication failure cannot disguise committed issuance. The original direct-service contract returned safe
+  metadata with a typed warning; TASK-00182 now replaces that caller contract with void Commands and independent
+  authorized outcome Queries, without returned or reconstructed warnings.
   Pre-commit failure and indeterminate commit remain distinct; same-key resolution and authorized scheduler discovery
   survive even both publishers failing. This prevents a notification fault disguising committed issuance. Issuance
   confirms neither delivery, enrollment activation nor launch permission; each needs its own confirmed outcome and
-  current authorization. Revocation, AuthenticationService and other handlers retain their publication behavior.
+  current authorization. Revocation, synchronous User capabilities and other handlers retain their publication behavior.
   TASK-00046 implements the provision exception and TASK-00048 implements rotation as unreleased work; the old
   raw-return rotation API is removed. TASK-00049/00052 prove package scheduler-only recovery; actual consumer
-  qualification remains separate. This guidance grants no independent implementation or release authority.
+  qualification remains separate. Historical direct-service results/warnings are removed without facades under
+  the amendment below. No independent execution or release authority.
+- **Approved Agent Command caller-contract amendment:** [TICKET-00053](../tickets/00053-TICKET.md)/
+  [TASK-00182](../tasks/00182-TASK.md) replace those direct APIs with void Commands and authorized outcome Queries.
+  Commands may execute sync or async at any time; no transport, response code, broker or request lifetime assumed.
+  Reuse GetAgentOperation for authoritative original issuance/dispositions, not queue progress or reconstructed
+  publication warnings. Dispatch acceptance/absence is not commit/rollback proof. Current execution/read authority,
+  original-key recovery, atomicity and committed issuance despite publication failure remain required. The prior
+  result-capable Common bus prerequisite is superseded; generic typing proof remains TASK-00130's separate scope.
+  Raw-secret inputs stay non-serializable, and consumers retain broker/error/runtime ownership. TASK-00182's integrated
+  candidate implements this contract through ProvisionAgentHandler/RotateAgentCredentialHandler with supported
+  Common routing and has independent Review ACCEPT and nonvisual QA PASS; current delivery results are in its
+  canonical Land handoff and actual PR. Lost commit acknowledgement throws sanitized
+  AgentOperationUncertainException, never a guessed success/rollback. Follow the current composition guides.
 - For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
   documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
   requirement for routine operation/recovery. Capacity exhaustion must give new work a clear retryable rejection or
@@ -173,7 +309,7 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   prior-contract migration is supplied; modeled package tests do not qualify actual consumer restore/activation/use.
 - TASK-00068 removes TASK-00055's superseded legacy-Agent model, recovery marker and old-API stubs. Follow the
   [current Agent contract](../../docs/agent-current-contract.md): validated hydration and unconditional lifecycle
-  correlation/cancellation with audit atomicity. User delivery requires explicit claim identity/time and due time;
+  correlation/cancellation with enabled audit atomicity. User delivery requires explicit claim identity/time and due time;
   use [current worker composition](../../docs/credential-delivery.md), not the removed transport-confirmation Command.
   `ManagedPolicyPlanner` requires all four repositories, including Agent; it has no older optional composition.
   No prior-data conversion, legacy adoption or schema migration is a package obligation.
@@ -184,19 +320,37 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   neither guides nor package passes authorize release, activation/use, consumer adoption, deployment or
   Agent OS TASK-00138 closure.
 - QueryHandlers read through Domain repositories only: no aggregate mutation, commit, or domain-event dispatch.
-- AuthenticationService follows the same atomic, post-commit ordering, uses Fight Common password and token ports,
-  returns non-serializable token results, and emits RedactedCommandFailed without raw secret input.
+- Current direct synchronous User capabilities retain the same atomic, post-commit ordering,
+  Fight Common password/token ports, non-serializable token results and RedactedCommandFailed without raw secret input.
 - Aggregate roots own state transitions. Keep aggregate entities extensible; use final readonly only for immutable
   DTOs, handlers, and services where extension is not part of the contract.
 
 ## Tests and delivery
 
+- **Explicit CI4 coverage amendment (TASK-00168):** John selected "Unit test what we can and remove those integration
+  tests" and directed updating the existing TASK-00168 PR. Remove only the affected CI4 bootstrap-dependent native
+  integration tests and now-unused fixtures; preserve practical package decisions, denial/fault handling and lifetime
+  checks through isolated units. This narrowly supersedes native-test retention for those tests, not general testing
+  policy. Keep all-src exact statements and separate Unit-only lines without exclusions. Native route conversion,
+  aliases/short-circuit, validator/controller/required-filter ordering, downstream interception and bootstrap/worker
+  reset are no longer current executable proof; consumers must qualify them separately. Earlier TASK-00175 acceptance
+  and merged history remain historical, not amendment acceptance. See the
+  [current CI4 verification boundary](../../docs/codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment).
+  TASK-00179 separately requires and adds new Permission-native routing/filter/controller/response proof, not
+  restoration or acceptance of those removed Feature journeys. See its [Permission evidence boundary](../../docs/codeigniter-permission-admission.md#current-verification-boundary).
+
+- **Explicit PHPStan scope decision (TASK-00152):** ordinary/default analysis covers production `src/` and shipped
+  `openapi/` metadata only. Do not analyze `tests/` or `scripts/`, directly or through another pass. John rejected
+  the prior split pass: "Yes. Running our tests should tell us if there are wrong argument types. We DONT TEST TESTS".
+  Keep meaningful PHPUnit behavior checks and required positive/negative production API type-contract fixtures;
+  those fixtures qualify production contracts, not tests or quality machinery. Shared framework symbol discovery,
+  existing style/Rector checks and both required production coverage gates remain unchanged.
 - In-memory repositories and service doubles belong in the matching Application test boundary. Production tests use
-  CoversClass; tooling tests use CoversNothing. Handler tests prove post-commit event ordering and failure rethrow
+  CoversClass; qualifying boundary/journey tests may use CoversNothing. Metadata is not permission to test tooling. Handler tests prove post-commit event ordering and failure rethrow
   behavior outside the scoped EPIC-00009 D3 replacement exception. Acceptance of that replacement requires tests for
   pre-commit rollback, both uncertain-commit outcomes, post-commit publication failures including both publishers
   failing, same-key recovery after response loss/restart, and authorized scheduler-only recovery without caller retry.
-  Assert persisted outcomes and typed warning safety, not only call order; issuance cannot imply delivery, activation
+  Assert persisted outcomes and safe void/Query execution distinctions, not only call order; issuance cannot imply delivery, activation
   or launch authority. Real consumer conformance must separately prove current activation/use authorization.
 - Shipped OpenAPI metadata is a public library contract. Its generated-schema integration tests belong in the
   default PHPUnit/build pipeline under the approved
@@ -204,12 +358,13 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
   not the release-only tooling category. TASK-00052 established suite wiring and Agent discovery checks;
   TASK-00060 adds released credential-delivery and shared composition checks. Exact Domain/Application statement
   coverage remains unchanged.
-- Application clocks, credential generators, and ciphers belong under the matching Application aggregate Service
-  namespace; their test doubles use the matching test Service namespace.
-- Every production statement requires executable coverage. The isolated fight-access-control PHP container is the
+- Application clocks, credential generators and ciphers retain explicit inward aggregate/capability ownership,
+  with matching test doubles. Existing aggregate Service homes remain current source; apply the Architecture
+  semantic-capability rule during approved cohesion work, not a new cross-layer helper bucket.
+- Follow the [Unit-only line coverage and test-quality policy](../../docs/engineering/standards/Testing.md#test-quality-and-suite-balance). Every production statement still requires executable coverage; the current all-suite statement gate does not establish the new Unit-only line requirement. The isolated fight-access-control PHP container is the
   package runtime; ./bin/planning-check and ./bin/build are mandatory pre-submit gates, and the build enforces
   PHPCS, PHPStan, architecture, Rector, PHPUnit, and exact statement coverage.
-- Keep ignored run artifacts in purpose-named subdirectories: `.runs/worktree/<task-slug>/` for linked worktrees,
+- Keep ignored run artifacts in purpose-named subdirectories: `<base>/.runs/worktrees/<task-slug>/` for registered source worktrees,
   `.runs/notes/<task>/` for coordination, `.runs/logs/<task>/` for gate logs and receipts, and
   `.runs/handoffs/<task>/` for reusable handoffs. Canonical reviews remain `.runs/reviews/<TASK-ID>/review.md`.
   Do not create mixed-purpose dated folders directly under `.runs/`. See the approved

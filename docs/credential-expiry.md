@@ -19,6 +19,17 @@ repository to the same `TransactionalUnitOfWork` connection. Register:
 | `ExpirePasswordResetDelivery` | `ExpirePasswordResetDeliveryHandler` | Actor, User, `password_reset_delivery_id`, occurrence time |
 | `ExpireEmailChange` | `ExpireEmailChangeHandler` | Actor, User, **`email_change_grant_id`**, occurrence time |
 
+Invitation and password-reset expiry support optional final audit storage and typed actor provenance; see
+[invitation composition](credential-delivery.md#optional-invitation-audit-composition-unreleased) and
+[password-reset composition](credential-delivery.md#optional-password-reset-audit-composition-unreleased).
+Their Commands and Events require `actor_kind` plus UUID `actor_id`, not string worker labels. Deliberate autonomous
+cleanup supplies fixed-nil SystemId explicitly; an admitted User/Agent keeps its identity. Enabled evidence joins
+the actual successful expiry transaction at the admitted occurrence time, not discovery time. Failed CAS/no-change
+creates no evidence. Audit failure rolls back staged expiry, while post-commit notification failure retains it.
+Email expiry now has the same typed actor-kind/UUID Command/Event representation and optional final storage;
+see [email-change audit composition](credential-delivery.md#optional-email-change-audit-composition-unreleased).
+It records the actual coupled User reservation/grant expiry, not only material cleanup.
+
 Cleanup needs no cipher, key or provider capability. Bind those only to issuance/delivery handlers, not these cleanup
 handlers. Do not decrypt old material to decide whether it is expired. Queries are advisory; commands own policy,
 transactional rereads, authoritative-generation checks and complete-state CAS. The observed revision is diagnostic,
@@ -56,9 +67,10 @@ ownership, attempts and previous outcome/failure history. Direct expiry of a rec
 failure: compare the complete expected expiry state before considering a retry-failure terminalization. Persist material
 removal and claim token/time/lease clearing in the same commit as terminal state; rollback restores the original state.
 
-`EmailChangeGrant::issue()` now requires its seventh argument, the positive User reservation revision produced by the
-request. Persist/hydrate this immutable binding on every grant revision, include it in complete-state comparisons and
-preserve it across delivery, consumption, revocation and expiry. The package request handler supplies it. Matching the
+`EmailChangeGrant::issue()` requires the positive User reservation revision and
+[typed request origin](credential-delivery.md#atomic-email-change-notification-intent-unreleased) produced by the request.
+Persist/hydrate these immutable bindings on every grant revision, include them in complete-state comparisons and
+preserve them across delivery, consumption, revocation and expiry. The package request handler supplies both. Matching the
 same email string alone cannot authorize clearing a newer reservation (same-email ABA). This is a current-contract
 integration change, not a compatibility default or a historical backfill requirement.
 
@@ -109,7 +121,8 @@ outbox/reliable-publication infrastructure or exactly-once event guarantee is ad
 ## Invitation recovery after expiry (v0.6.0 retry repair)
 
 Manual `RetryInvitationDelivery` now samples a required injected Clock after latest-grant retrieval inside its existing
-transaction. At `now >= expiresAt` it throws `ActivationDeliveryNotRetryableException` with constant safe text
+transaction. In the Unreleased worker contract, at `now >= expiresAt` it throws Common Application `StateConflict`
+(the v0.6.0 release used the Domain `ActivationDeliveryNotRetryableException`) with constant safe text
 `The activation delivery work is no longer retryable.`, without changing retry state/audit or publishing a retry-request
 fact. Failure notification cannot replace that rejection. This does not run cleanup, destroy material or issue new
 authority. `ExpireInvitationDelivery` remains the explicit cleanup path; an authorized `ResendInvitationDelivery`

@@ -51,6 +51,14 @@ final readonly class RoleRevision
     }
 
     /**
+     * Determines whether this is the first state of its existing incarnation
+     */
+    public function isInitial(): bool
+    {
+        return $this->sequence === 1;
+    }
+
+    /**
      * Returns the next revision without wrapping or changing incarnation
      */
     public function next(): self

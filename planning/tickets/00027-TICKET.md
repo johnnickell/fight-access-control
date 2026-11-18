@@ -1,0 +1,125 @@
+---
+id: TICKET-00027
+epic: EPIC-00014
+title: Authorize Prompt discovery and retrieval
+status: done
+---
+
+# Authorize Prompt discovery and retrieval
+
+## Approved Refactoring Amendment
+
+[EPIC-00015](../epics/00015-EPIC.md) adds canonical adapter composition from
+[TASK-00108](../tasks/00108-TASK.md) and the qualified consumed-Common baseline from
+[TASK-00110](../tasks/00110-TASK.md) as direct prerequisites of TASK-00087. This supersedes earlier placement/
+no-local-blocker wording, not Prompt independence from Tool/live features. The
+[Common v1.5.0 amendment](../epics/00014-EPIC.md#common-v150-readiness-amendment) clears the Prompt supplier hold;
+minimum/ordinary-lane tests remain implementation acceptance work.
+Keep Common-facing Prompt glue in Adapter/Mcp/Prompt/Agent and genuine policy inward; use actual Common ports/buses.
+
+## Problem and Outcome
+
+An Agent permitted to use a Tool or read a Resource is not automatically permitted to discover or retrieve every
+Prompt. Consumers need reusable direct-Permission checks through Common's neutral Prompt availability boundary,
+without inventing a template engine or allowing Prompt links to confer authority over their targets.
+
+Protect both `prompts/list` and independent `prompts/get` using trusted request authority and validated requirement
+association. Preserve Common's lazy selected provider, argument/output limits, safe failures and separately
+protected application data. This is item 3 of [EPIC-00014](../epics/00014-EPIC.md).
+
+## Use Cases
+
+| Actor and trigger | Commands / Queries / Events | Observable outcome and side effects |
+| --- | --- | --- |
+| Integrator composes protected Prompt definitions | N/A; composition | Associate actual Common identities with validated conjunctive requirements; missing/unmapped is never public by default. |
+| Agent lists Prompts | No new business message | Current permissions filter visible metadata before ordering/cursor pagination; listing constructs no Prompt bodies. |
+| Agent directly gets a Prompt without prior listing | No new AccessControl business message | Admit before declared argument validation/selected provider processing at Common's supported boundary. |
+| Application-backed Prompt needs protected business data | Existing consumer/shared Query, owned by its handler | Preserve independent current business admission; Prompt permission alone grants no application scope. |
+| Agent later follows a returned Resource/Skill link | Later Resource operation, not an automatic fetch | Independent target checks apply; no content opening, activation or execution merely from Prompt retrieval. |
+
+Static Prompt content needs no new Query; permission checking adds no Command, Domain event, grant, mutation or
+business transaction. Consumer provider code remains trusted application code, not a sandbox implemented here.
+
+## Requirements, Validation and Permissions
+
+- Implement reusable Agent Permission composition through the actual accepted Common Prompt hook, using stable
+  validated definition association and nonempty conjunctive requirements. Define/reject missing, malformed,
+  conflicting and unknown mappings without inventing a competing Prompt registry or naming algorithm.
+- Use one trusted ordinary-request principal; reauthorize each later list page/get with current authority.
+  A saved definition, catalog cursor, earlier successful get or known Prompt name grants no access.
+- Common owns outer and declared string-argument validation, lazy provider selection, message/link representation,
+  finite definition/input/output/result/envelope budgets and safe unknown/denied/internal errors. Do not reflect
+  protected declarations, supplied arguments or private policy/provider exception text.
+- Preserve private zero-TTL results and visible-catalog continuation semantics. No shared caller-independent cache
+  is inferred from static instructions, immutable metadata or a cursor signature.
+- Prompt permission and Query/Resource/whole-Skill permissions remain independent. A body must not embed otherwise
+  forbidden content merely because it contains instructions; Resource-link metadata itself must be recipient-safe.
+- Retrieving instructions grants no Workflow authority, human role, independent acceptance, Skill activation,
+  Tool/model execution or permission to change an application record. Human/Agent authority and OAuth remain distinct.
+
+## Dependencies and External Gates
+
+- Reuse existing request authentication; Tool bindings in [TICKET-00025](00025-TICKET.md) are not prerequisites.
+- [TICKET-00026](00026-TICKET.md) owns actual linked Resource/Skill admission. A static Prompt can be listed/retrieved
+  independently, and returning a link does not force a fetch or grant its access.
+- [TICKET-00030](00030-TICKET.md) consumes this family's checks for optional Prompt catalog-change disclosure,
+  without blocking ordinary Prompt list/get on live Subscriptions.
+- Common v1.5.0 supplies released Prompt contracts; TASK-00110 records canonical adoption. Exercise actual Prompt
+  composition at the supported minimum and ordinary lane during implementation, not as an unresolved information hold.
+- Keep EPIC-00014's combined release/current-contract rules; exact public bindings, Permission vocabulary and TASK
+  boundaries remain downstream design. No consumer provider, database or runtime is implemented by this TICKET.
+
+## Acceptance Evidence
+
+- [x] Real Common Prompt composition and actual AccessControl authority checks reject missing/unknown/invalid
+  requirement associations and every missing-Permission combination without provider processing.
+- [x] Current list/get checks are independent of prior listing, cursors and earlier success; changed permissions,
+  revoked Agent or changed credentials affect later requests. Listing never builds a body.
+- [x] Denied and unknown names retain Common's safe outcomes; invalid arguments/provider/policy failures do not
+  expose declarations, caller data or exception text or become misleading successful empty output.
+- [x] Permitted static and Query-backed provider journeys preserve independent Query access and later Resource
+  denial, exact complete output, finite budgets and private cache semantics; no automatic execution or fetch.
+- [x] Minimum-version composition, tests/documentation, exact coverage, canonical gate and later independent
+  technical Review/behavioral QA qualify the package boundary, not actual deployed providers/clients.
+
+## Exclusions
+
+Template engines, Prompt storage, interpolation policy, automatic linked reads or execution, Tool/Resource grants,
+application relationship policy, live notification mechanics, consumer changes and deployment.
+
+## Child Tasks
+
+| Order | TASK ID | Title | Status |
+| --- | --- | --- | --- |
+| 87 | [TASK-00087](../tasks/00087-TASK.md) | Authorize Agent-protected Prompt discovery and retrieval | done |
+## Decisions and Progress
+
+### Accepted package checkpoint
+
+TASK-00087's exact candidate `1428f9bb9b5ff179332c1001e89009d964409986` has independent technical
+ACCEPT and complete nonvisual QA PASS with no findings. All acceptance evidence above is satisfied by the
+controlled package composition, minimum/ordinary lanes and complete canonical gate; see the owning TASK and
+canonical independent reports. Automatic parent completion closes this TICKET; unfinished sibling TICKETs keep
+EPIC-00014 open. Publication/final delivery remain pending at this checkpoint, with subsequent results in
+`.runs/handoffs/TASK-00087/land.md`. No deployed consumer, merge, release or deployment is qualified.
+
+### Historical planning checkpoint
+
+John approved item 3 of the complete eight-TICKET split, explicitly invoked To Tasks for this TICKET, then approved
+one complete feature TASK: [TASK-00087 — Authorize Agent-protected Prompt discovery and retrieval](../tasks/00087-TASK.md).
+Its full accepted decomposition is now written, including definition association, real list/get, request freshness,
+static/Query-backed providers, independently protected links, safe bounded errors/output, tests/docs/minimum-version
+qualification and independent Review/QA. No separate prefactor or verification-only TASK is planned.
+
+TASK-00087 is ready-for-agent under the released Common v1.5.0 baseline; TASK-00108 and TASK-00110 are done and their
+edges remain recorded. Definition association is an implementation choice; configured consumer scope and providers
+are exercised with controlled fixtures, not prerequisites for a new operator decision or production adoption.
+Prompt serving still does not depend on TASK-00084, Resource/Skill TASK-00085/00086 or live Subscriptions/durable Tasks. Linked targets retain independent later admission.
+
+This TICKET's TASK planning is complete. TICKET-00028's approved TASK-00088 plan is now written;
+TICKET-00029's approved TASK-00089/00090 plan is now written; TICKET-00030's approved TASK-00091–00096 plan is now written; TICKET-00031's TASK-00097–00102 and TICKET-00032's approved TASK-00103–00106 plans are written.
+All EPIC-00014 map planning phases/full TASK plans are accepted/complete; consult the Board for execution selection. No source/dependency/config
+change, grant, implementation, release, publication or consumer adoption is authorized or established by this plan.
+Keep the map Closed and continue remaining planning before Board-based implementation selection.
+
+Next: `/skill:next` for Board-based selection; recommendation does not launch execution.

@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\OpenApi;
 
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
+use Fight\AccessControl\Domain\AccessControl\Feature\Command\CreateFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
+use Fight\AccessControl\Domain\AccessControl\Feature\Command\RemoveFeature;
+use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationIssue;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationProblem;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationResult;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\ValidateFeaturePreparation;
+use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use OpenApi\Generator;
+use Opis\JsonSchema\Validator;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
@@ -40,6 +46,65 @@ final class FeatureComponentsTest extends TestCase
         self::assertArrayNotHasKey('pattern', $property);
         self::assertArrayNotHasKey('minLength', $property);
         self::assertSame('object', $schema['type']);
+        $validator = new Validator();
+        $jsonSchema = json_decode(json_encode($schema, JSON_THROW_ON_ERROR));
+        foreach (
+            [
+            [null, null], ['user', PublicMessageSamples::ID], ['agent', PublicMessageSamples::ID],
+            ['system', '00000000-0000-0000-0000-000000000000'],
+            ['anonymous', '00000000-0000-0000-0000-000000000000']
+            ] as [$kind, $id]
+        ) {
+            $payload = ['default_permission_name' => null, 'actor_kind' => $kind, 'actor_id' => $id];
+            self::assertTrue($validator->validate((object) $payload, $jsonSchema)->isValid());
+            self::assertSame($payload, ProvisionFeatures::fromArray($payload)->toArray());
+        }
+
+        foreach (
+            [
+            ['system', PublicMessageSamples::ID], ['anonymous', PublicMessageSamples::ID],
+            ['user', null], [null, PublicMessageSamples::ID], ['worker', PublicMessageSamples::ID], [1, true]
+            ] as [$kind, $id]
+        ) {
+            self::assertFalse($validator->validate((object) [
+                'default_permission_name' => null, 'actor_kind' => $kind, 'actor_id' => $id
+            ], $jsonSchema)->isValid());
+        }
+    }
+
+    public function test_lifecycle_schemas_expose_optional_typed_origin_without_making_it_authority(): void
+    {
+        require_once dirname(__DIR__, 2).'/openapi/bootstrap.php';
+        require_once __DIR__.'/CredentialDeliveryConsumerDocument.php';
+        $document = new Generator()->generate([
+            dirname(__DIR__, 2).'/openapi',
+            __DIR__.'/CredentialDeliveryConsumerDocument.php'
+        ], null, false);
+        self::assertNotNull($document);
+        $schemas = json_decode($document->toJson(), true, flags: JSON_THROW_ON_ERROR)['components']['schemas'];
+        foreach (
+            [
+            'CreateFeature' => new CreateFeature(
+                FeatureName::fromString('dashboard'),
+                PermissionId::generate(),
+                SystemId::generate()
+            ),
+            'RemoveFeature' => new RemoveFeature(FeatureId::generate(), 7, SystemId::generate())
+            ] as $name => $command
+        ) {
+            $schema = $schemas['Fight.AccessControl.'.$name];
+            $schema['properties'] = $schema['allOf'][1]['properties'];
+            self::assertSame(array_keys($command->toArray()), array_keys($schema['properties']));
+            self::assertNotContains('actor_id', $schema['required']);
+            self::assertNotContains('actor_kind', $schema['required']);
+            self::assertSame(['string', 'null'], $schema['properties']['actor_id']['type']);
+            self::assertSame('uuid', $schema['properties']['actor_id']['format']);
+            self::assertSame(
+                ['user', 'agent', 'system', 'anonymous', null],
+                $schema['properties']['actor_kind']['enum']
+            );
+            self::assertSame($command->toArray(), $command::fromArray($command->toArray())->toArray());
+        }
     }
 
     public function test_preparation_query_and_result_schemas_match_safe_public_values(): void
@@ -53,7 +118,9 @@ final class FeatureComponentsTest extends TestCase
         self::assertNotNull($document);
         $schemas = json_decode($document->toJson(), true, flags: JSON_THROW_ON_ERROR)['components']['schemas'];
         self::assertSame([], new ValidateFeaturePreparation()->toArray());
-        self::assertSame('object', $schemas['Fight.AccessControl.ValidateFeaturePreparation']['type']);
+        self::assertSame(['object', 'array'], $schemas['Fight.AccessControl.ValidateFeaturePreparation']['type']);
+        self::assertSame(0, $schemas['Fight.AccessControl.ValidateFeaturePreparation']['maxItems']);
+        self::assertSame(0, $schemas['Fight.AccessControl.ValidateFeaturePreparation']['maxProperties']);
         self::assertSame([], $schemas['Fight.AccessControl.ValidateFeaturePreparation']['properties'] ?? []);
 
         $result = new FeaturePreparationResult(new FeaturePreparationIssue(
@@ -72,6 +139,9 @@ final class FeatureComponentsTest extends TestCase
         $issue = $schemas['Fight.AccessControl.FeaturePreparationIssue'];
         self::assertSame(array_keys($result->toArray()['issues'][0]), $issue['required']);
         self::assertSame(array_keys($result->toArray()['issues'][0]), array_keys($issue['properties']));
-        self::assertSame(array_column(FeaturePreparationProblem::cases(), 'value'), $issue['properties']['problem']['enum']);
+        self::assertSame(
+            array_column(FeaturePreparationProblem::cases(), 'value'),
+            $issue['properties']['problem']['enum']
+        );
     }
 }

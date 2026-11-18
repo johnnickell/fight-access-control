@@ -37,17 +37,23 @@ final readonly class RequestEmailChange implements Command
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid type for "%s" in data array', $key));
+            }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id']),
-            EmailAddress::fromString((string) $data['email'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id']),
+            EmailAddress::fromString($data['email'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical email request payload
+     *
+     * @phpstan-return array{actor_id: string, user_id: string, email: string}
      */
     public function toArray(): array
     {

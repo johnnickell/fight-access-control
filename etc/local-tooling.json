@@ -1,0 +1,24 @@
+{
+  "project": "fight-access-control",
+  "gate": [
+    "./bin/.build-full"
+  ],
+  "outputs": [
+    "var/reports"
+  ],
+  "directories": [
+    "var/cache"
+  ],
+  "build_options": [
+    "--latest"
+  ],
+  "build_prepare": [
+    "./bin/.build-prepare"
+  ],
+  "images": [
+    "php"
+  ],
+  "setup": [
+    "./bin/.php-admit"
+  ]
+}

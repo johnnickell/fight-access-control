@@ -5,19 +5,28 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant;
 
 use Fiber;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\DeliverPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\RequestPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetRevocationService;
+use Fight\AccessControl\Application\AccessControl\RefreshSession\SessionLifecycle;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DeleteUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUserHandler;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
+use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
-#[CoversClass(AuthenticationService::class)]
+#[CoversClass(UserAuthentication::class)]
+#[CoversClass(TokenIssuer::class)]
+#[CoversClass(PasswordManagement::class)]
+#[CoversClass(SessionLifecycle::class)]
+#[CoversClass(EmailChangeConfirmation::class)]
 #[CoversClass(DeleteUserHandler::class)]
 #[CoversClass(DisableUserHandler::class)]
 #[CoversClass(DeliverPasswordResetHandler::class)]
@@ -57,8 +66,8 @@ final class RecoveryConcurrencyTest extends TestCase
                 self::assertNotNull($caught);
                 self::assertEquals($expectedUser, $fixture->user());
                 self::assertEquals($expectedGrant, $fixture->grant());
-                self::assertSame([], $paused->audit->all());
-                self::assertCount(1, $paused->events->events());
+                self::assertSame([], $paused->auditEvidenceRepository->all());
+                self::assertCount(1, $paused->eventDispatcher->events());
                 self::assertFalse($fixture->userState->isAuthenticationAuthorityFenceHeld($fixture->userId));
             }
         }
@@ -82,7 +91,7 @@ final class RecoveryConcurrencyTest extends TestCase
                 );
                 self::assertFalse($fixture->grant()->isIssued());
                 self::assertNull($fixture->grant()->getDelivery()->getEncryptedMaterial());
-                self::assertSame([], $fixture->grants->findDue($fixture->now, 10));
+                self::assertSame([], $fixture->passwordResetGrantRepository->findDue($fixture->now, 10));
                 self::assertFalse($fixture->unitOfWork->transactionActive);
             }
         }
@@ -125,9 +134,11 @@ final class RecoveryConcurrencyTest extends TestCase
 
                     $competitor->unitOfWork->commitTransactional(function () use ($competitor): void {
                         $grant = $competitor->grant();
-                        self::assertFalse($competitor->grants->replace($grant, $grant->invalidateDelivery()));
+                        self::assertFalse(
+                            $competitor->passwordResetGrantRepository->replace($grant, $grant->invalidateDelivery())
+                        );
                     });
-                    self::assertSame([], $competitor->audit->all());
+                    self::assertSame([], $competitor->auditEvidenceRepository->all());
                 };
                 $fixture->unitOfWork->failNextCommit = $rollback;
                 $caught = null;
@@ -171,10 +182,11 @@ final class RecoveryConcurrencyTest extends TestCase
 
                 self::assertNotNull($caught);
                 self::assertTrue($fixture->grant()->isIssued());
-                $other->service()->resetPassword(
+                $other->passwordManagement()->resetPassword(
                     $other->userId,
                     'successor-fixture',
-                    'a sufficiently long recovered password'
+                    'a sufficiently long recovered password',
+                    AnonymousId::generate()
                 );
             } else {
                 $this->operate($fixture, 'redemption');
@@ -182,9 +194,9 @@ final class RecoveryConcurrencyTest extends TestCase
                 self::assertSame(2, $other->grant()->getAuthority()->getAuthenticationVersion());
             }
 
-            self::assertCount(2, $fixture->grants->all());
-            self::assertFalse($fixture->grants->all()[0]->isIssued());
-            self::assertNull($fixture->grants->all()[0]->getDelivery()->getEncryptedMaterial());
+            self::assertCount(2, $fixture->passwordResetGrantRepository->all());
+            self::assertFalse($fixture->passwordResetGrantRepository->all()[0]->isIssued());
+            self::assertNull($fixture->passwordResetGrantRepository->all()[0]->getDelivery()->getEncryptedMaterial());
         }
     }
 
@@ -193,10 +205,11 @@ final class RecoveryConcurrencyTest extends TestCase
         if ($operation === 'request') {
             $fixture->request('next-recovery-fixture');
         } elseif ($operation === 'redemption') {
-            $fixture->service()->resetPassword(
+            $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
-                'a sufficiently long recovered password'
+                'a sufficiently long recovered password',
+                AnonymousId::generate()
             );
         } else {
             $fixture->deliver();
@@ -206,9 +219,17 @@ final class RecoveryConcurrencyTest extends TestCase
     private function change(RecoveryFixture $fixture, string $change, string $password = 'correct-secret'): void
     {
         if ($change === 'password') {
-            $fixture->service()->changePassword($fixture->userId, $password, 'a sufficiently long changed password');
+            $fixture->passwordManagement()->changePassword(
+                $fixture->userId,
+                $password,
+                'a sufficiently long changed password'
+            );
         } elseif ($change === 'email') {
-            $fixture->service()->confirmEmail($fixture->userId, 'email-fixture');
+            $fixture->emailChangeConfirmation()->confirmEmail(
+                $fixture->userId,
+                'email-fixture',
+                AnonymousId::generate()
+            );
         } elseif ($change === 'disable') {
             $fixture->disable();
         } else {

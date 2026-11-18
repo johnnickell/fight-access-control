@@ -1,0 +1,261 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Test\AccessControl\Adapter\Middleware\Psr15;
+
+use Closure;
+use Fight\AccessControl\Application\AccessControl\Action\SelectedAction;
+use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
+use Fight\Common\Adapter\Http\Error\SafeHttpDiagnostics;
+use Fight\Common\Adapter\Http\Error\SafeHttpErrorPolicy;
+use Fight\Common\Adapter\Http\Error\SafeHttpMetadata;
+use Fight\Common\Adapter\Http\Error\SafeHttpPresentation;
+use Fight\Common\Adapter\Http\Error\SafeHttpProjector;
+use Fight\Common\Adapter\Http\Psr17\JSendResponseFactory;
+use Fight\Common\Adapter\Middleware\Psr15\SafeJSendErrorMiddleware;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
+use LogicException;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\App;
+use Slim\Factory\AppFactory;
+use Slim\Psr7\Factory\ResponseFactory;
+use Slim\Psr7\Factory\StreamFactory;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+use Slim\Routing\RouteContext;
+use Throwable;
+use Yiisoft\Di\Container;
+use Yiisoft\Middleware\Dispatcher\MiddlewareFactory;
+use Yiisoft\Router\CurrentRoute;
+use Yiisoft\Router\FastRoute\UrlMatcher;
+use Yiisoft\Router\Middleware\Router;
+use Yiisoft\Router\Route;
+use Yiisoft\Router\RouteCollection;
+use Yiisoft\Router\RouteCollector;
+
+/**
+ * @phpstan-type TargetFactory Closure(ServerRequestInterface): SelectedAction
+ * @phpstan-type GateFactory Closure(SelectedAction, TargetFactory): MiddlewareInterface
+ */
+final class NativePipeline implements RequestHandlerInterface, SafeHttpDiagnostics
+{
+    public int $reports = 0;
+
+    public int $validators = 0;
+
+    /** @var list<?SecurityContext> */
+    public array $contexts = [];
+
+    /** @var list<string> */
+    public array $reportedTypes = [];
+
+    public ?Closure $reportHook = null;
+
+    public ?Closure $beforeWork = null;
+
+    public SafeJSendErrorMiddleware $errors;
+
+    /** @var App<ContainerInterface|null> */
+    private readonly App $slim;
+
+    private readonly RouteCollection $yiiRoutes;
+
+    /**
+     * @phpstan-param MiddlewareInterface|GateFactory $permission
+     * @phpstan-param MiddlewareInterface|GateFactory|null $otherPermission
+     * @param class-string<NativeController> $controller
+     */
+    public function __construct(
+        private readonly string $framework,
+        MiddlewareInterface|Closure $permission,
+        string $form = 'method',
+        MiddlewareInterface|Closure|null $otherPermission = null,
+        ?Closure $protocol = null,
+        string $controller = NativeController::class
+    ) {
+        $this->errors = $this->boundary();
+        $this->slim = AppFactory::create(new ResponseFactory());
+        $validator = function (ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
+            ++$this->validators;
+            $this->contexts[] = $request->getAttribute(SecurityContext::class);
+            if ($this->beforeWork !== null) {
+                ($this->beforeWork)($request);
+            }
+
+            return $handler->handle($request);
+        };
+        $slimAction = $controller.':slim';
+        if ($form === 'inherited') {
+            $slimAction = FeatureNativeChild::class.':slim';
+        } elseif ($form === 'invokable') {
+            $slimAction = $controller;
+        } elseif ($form === 'closure') {
+            $slimAction = static fn(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface =>
+                new $controller()->slim($request, $response);
+        }
+
+        $slimPermission = $permission;
+        if ($permission instanceof Closure || $otherPermission instanceof Closure) {
+            $slimTarget = static function (ServerRequestInterface $request): SelectedAction {
+                $route = RouteContext::fromRequest($request)->getRoute();
+                if ($route === null) {
+                    throw new LogicException('A native selected route is required.');
+                }
+
+                return self::action($route->getCallable());
+            };
+            if ($permission instanceof Closure) {
+                $slimPermission = $permission(self::action($slimAction), $slimTarget);
+            }
+        }
+
+        $this->slim->get('/protected/{id}', $slimAction)->add($validator)->add($slimPermission);
+        $this->slim->get('/other', static fn($request, $response): ResponseInterface => $response->withStatus(202));
+        if ($otherPermission !== null) {
+            $otherSlim = $otherPermission;
+            if ($otherPermission instanceof Closure) {
+                $otherSlim = $otherPermission(self::action($slimAction), $slimTarget);
+            }
+
+            $this->slim->get('/second/{id}', $slimAction)->add($validator)->add($otherSlim);
+        }
+
+        if ($protocol !== null) {
+            $this->slim->get('/protocol', $protocol);
+        }
+
+        $this->slim->addRoutingMiddleware();
+        $yiiAction = [$controller, 'yii'];
+        if ($form === 'inherited') {
+            $yiiAction = [FeatureNativeChild::class, 'yii'];
+        } elseif ($form === 'closure') {
+            $yiiAction = static fn(ServerRequestInterface $request): ResponseInterface =>
+                new $controller()->yii($request);
+        }
+
+        $yiiPermission = $permission;
+        // Bind the exact same immutable action definition to middleware and native dispatch.
+        $selected = self::action($yiiAction);
+        if ($permission instanceof Closure) {
+            $yiiPermission = $permission($selected, static fn(): SelectedAction => $selected);
+        }
+
+        // Yii's supported definition is the bound PSR-15 process callable, not an invented shared route API.
+        $collector = new RouteCollector();
+        $collector->addRoute(
+            Route::get('/protected/{id}')->middleware($yiiPermission->process(...), $validator)->action($yiiAction),
+            Route::get('/other')->action(static fn(): ResponseInterface => new Response(202))
+        );
+        if ($otherPermission !== null) {
+            $otherYii = $otherPermission;
+            if ($otherPermission instanceof Closure) {
+                $otherYii = $otherPermission($selected, static fn(): SelectedAction => $selected);
+            }
+
+            $collector->addRoute(Route::get('/second/{id}')
+                ->middleware($otherYii->process(...), $validator)->action($yiiAction));
+        }
+
+        if ($protocol !== null) {
+            $collector->addRoute(Route::get('/protocol')->action($protocol));
+        }
+
+        $this->yiiRoutes = new RouteCollection($collector);
+    }
+
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        if (!$request instanceof Request) {
+            throw new LogicException('This native entry requires the qualified Slim PSR-7 request implementation.');
+        }
+
+        // Each independent dispatch owns a distinct identity, even on same-object nested reentry.
+        // Only adjacent gates inside this entry may share the privately selected authentication state.
+        $request = (clone $request)->withoutAttribute(SecurityContext::class);
+        if ($this->framework === 'slim') {
+            return $this->slim->handle($request);
+        }
+
+        // CurrentRoute is single-assignment. A reused process/container must create a new request-owned router context.
+        return new Router(
+            new UrlMatcher($this->yiiRoutes),
+            new ResponseFactory(),
+            new MiddlewareFactory(new Container()),
+            new CurrentRoute()
+        )->process($request, new class implements RequestHandlerInterface {
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                return new Response(404);
+            }
+        });
+    }
+
+    /** @phpstan-impure */
+    public function request(ServerRequestInterface $request): ResponseInterface
+    {
+        if ($request->getUri()->getPath() === '/protocol') {
+            // Protocol owner selected outside ordinary HTTP/JSend error presentation.
+            return $this->handle($request);
+        }
+
+        return $this->errors->process($request, $this);
+    }
+
+    public function report(Throwable $failure): void
+    {
+        ++$this->reports;
+        // Model a redaction-aware owner: never forward the Throwable/message/cause/trace to a logger.
+        $this->reportedTypes[] = $failure::class;
+        ($this->reportHook ?? static function (): void {
+        })();
+    }
+
+    public function boundary(
+        ?SafeHttpProjector $projector = null,
+        ?JSendResponseFactory $responses = null
+    ): SafeJSendErrorMiddleware {
+        $projector ??= new class implements SafeHttpProjector {
+            public function project(Throwable $failure, int $status): ?SafeHttpPresentation
+            {
+                if ($failure instanceof AuthenticationRequired) {
+                    return new SafeHttpPresentation(
+                        metadata: new SafeHttpMetadata(challenge: 'Signature realm="example"')
+                    );
+                }
+
+                return null;
+            }
+        };
+
+        return new SafeJSendErrorMiddleware(
+            $responses ?? new JSendResponseFactory(new ResponseFactory(), new StreamFactory()),
+            new SafeHttpErrorPolicy(),
+            $this,
+            $projector
+        );
+    }
+
+    private static function action(mixed $action): SelectedAction
+    {
+        if ($action instanceof Closure) {
+            return SelectedAction::closure($action);
+        }
+
+        if (is_array($action)) {
+            return SelectedAction::method($action[0], $action[1]);
+        }
+
+        if (is_string($action) && str_contains($action, ':')) {
+            [$class, $method] = explode(':', $action, 2);
+
+            return SelectedAction::method($class, $method);
+        }
+
+        return SelectedAction::invokable($action);
+    }
+}

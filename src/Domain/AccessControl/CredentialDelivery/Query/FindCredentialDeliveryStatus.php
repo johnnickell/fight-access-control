@@ -39,13 +39,19 @@ final readonly class FindCredentialDeliveryStatus implements Query
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid type for "%s" in data array', $key));
+            }
         }
 
-        return new static((string) $data['purpose'], (string) $data['delivery_id']);
+        return new static($data['purpose'], $data['delivery_id']);
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical status query payload
+     *
+     * @phpstan-return array{purpose: string, delivery_id: string}
      */
     public function toArray(): array
     {

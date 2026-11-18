@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Query\ListPermissions;
 use Fight\AccessControl\Domain\AccessControl\Permission\Query\PermissionView;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Collection\ArrayList;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\ResultSet;
 
@@ -45,12 +46,25 @@ final readonly class ListPermissionsHandler implements QueryHandler
         $query = $queryMessage->payload();
 
         $permissions = $this->permissionRepository->getAll($query->getPagination());
+        $permissions = ResultSet::strict(
+            $permissions->page(),
+            $permissions->perPage(),
+            $permissions->totalRecords(),
+            $permissions->records()
+        );
+        if (
+            $permissions->page() !== $query->getPagination()->page()
+            || $permissions->perPage() !== $query->getPagination()->perPage()
+        ) {
+            throw new DomainException('The Permission page does not match the requested pagination.');
+        }
+
         $views = ArrayList::of(PermissionView::class);
-        foreach ($permissions->records() as $permission) {
+        foreach ($permissions->records()->toArray() as $permission) {
             $views->add(PermissionView::fromPermission($permission));
         }
 
-        return new ResultSet(
+        return ResultSet::strict(
             $permissions->page(),
             $permissions->perPage(),
             $permissions->totalRecords(),

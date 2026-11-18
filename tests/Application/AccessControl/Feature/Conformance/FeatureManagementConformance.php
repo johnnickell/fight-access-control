@@ -13,8 +13,6 @@ use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\ListFeatu
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\CreateFeature;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeaturePermission;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeatureStatus;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureStatus;
@@ -23,9 +21,12 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Query\ListFeatures;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -41,44 +42,63 @@ abstract class FeatureManagementConformance extends TestCase
         $environment->storePermission($first);
         $environment->storePermission($second);
 
-        $features = $environment->features();
-        $permissions = $environment->permissions();
+        $featureRepository = $environment->features();
+        $permissionRepository = $environment->permissions();
         $unit = $environment->unitOfWork();
-        $events = $environment->events();
+        $eventDispatcher = $environment->events();
         $name = FeatureName::fromString('dashboard');
-        new CreateFeatureHandler($features, $permissions, $unit, $events)
+        new CreateFeatureHandler(
+            $featureRepository,
+            $permissionRepository,
+            new FixedClock('2026-01-01'),
+            $unit,
+            $eventDispatcher
+        )
             ->handle(CommandMessage::create(new CreateFeature($name, $first->getId())));
-        $stored = $features->getByName($name);
+        $stored = $featureRepository->getByName($name);
         self::assertInstanceOf(Feature::class, $stored);
         self::assertSame(FeatureStatus::OFF, $stored->getStatus());
         self::assertSame(1, $stored->getRevision());
 
-        new SetFeaturePermissionHandler($features, $permissions, $unit, $events)->handle(CommandMessage::create(
-            new SetFeaturePermission($stored->getId(), $second->getId(), 1)
-        ));
+        new SetFeaturePermissionHandler(
+            $featureRepository,
+            $permissionRepository,
+            new FixedClock(new DateTimeImmutable('2026-01-01')),
+            $unit,
+            $eventDispatcher
+        )->handle(
+            CommandMessage::create(
+                new SetFeaturePermission($stored->getId(), $second->getId(), 1)
+            )
+        );
         try {
-            new SetFeatureStatusHandler($features, $unit, $events)->handle(CommandMessage::create(
+            new SetFeatureStatusHandler(
+                $featureRepository,
+                new FixedClock(new DateTimeImmutable('2026-01-01')),
+                $unit,
+                $eventDispatcher
+            )->handle(CommandMessage::create(
                 new SetFeatureStatus($stored->getId(), FeatureStatus::ON, 1)
             ));
             self::fail('Cross-field stale edit must reject.');
-        } catch (FeatureRevisionException) {
-            self::assertSame(2, $features->getById($stored->getId())?->getRevision());
+        } catch (PreconditionFailed) {
+            self::assertSame(2, $featureRepository->getById($stored->getId())?->getRevision());
         }
 
-        $view = new GetFeatureByIdHandler($features, $permissions)
+        $view = new GetFeatureByIdHandler($featureRepository, $permissionRepository)
             ->handle(QueryMessage::create(new GetFeatureById($stored->getId())));
         self::assertSame($second->getId(), $view->getPermissionId());
         self::assertSame(2, $view->getRevision());
         self::assertFalse($view->isBindingMissing());
-        $page = new ListFeaturesHandler($features, $permissions)
+        $page = new ListFeaturesHandler($featureRepository, $permissionRepository)
             ->handle(QueryMessage::create(new ListFeatures(new Pagination(1, 1, []))));
         self::assertSame(1, $page->totalRecords());
         self::assertSame(2, $page->records()->first()->getRevision());
         self::assertFalse($environment->removePermission($second));
         self::assertTrue($environment->removePermission($first));
-        self::assertNull($permissions->getById($first->getId()));
-        self::assertSame($stored->getId(), $features->getByName($name)?->getId());
-        self::assertSame($second->getId(), $features->getById($stored->getId())?->getPermissionId());
+        self::assertNull($permissionRepository->getById($first->getId()));
+        self::assertSame($stored->getId(), $featureRepository->getByName($name)?->getId());
+        self::assertSame($second->getId(), $featureRepository->getById($stored->getId())?->getPermissionId());
     }
 
     public function test_removed_target_cannot_become_a_binding_through_management(): void
@@ -89,31 +109,33 @@ abstract class FeatureManagementConformance extends TestCase
         $environment->storePermission($first);
         $environment->storePermission($second);
 
-        $features = $environment->features();
+        $featureRepository = $environment->features();
         $name = FeatureName::fromString('dashboard');
         $create = new CreateFeatureHandler(
-            $features,
+            $featureRepository,
             $environment->permissions(),
+            new FixedClock('2026-01-01'),
             $environment->unitOfWork(),
             $environment->events()
         );
         $create->handle(CommandMessage::create(new CreateFeature($name, $first->getId())));
 
-        $stored = $features->getByName($name);
+        $stored = $featureRepository->getByName($name);
         self::assertInstanceOf(Feature::class, $stored);
         self::assertTrue($environment->removePermission($second));
 
         try {
             new SetFeaturePermissionHandler(
-                $features,
+                $featureRepository,
                 $environment->permissions(),
+                new FixedClock(new DateTimeImmutable('2026-01-01')),
                 $environment->unitOfWork(),
                 $environment->events()
             )->handle(CommandMessage::create(new SetFeaturePermission($stored->getId(), $second->getId(), 1)));
             self::fail('Removal of the target must prevent rebinding.');
-        } catch (FeatureReferenceException) {
-            self::assertSame($first->getId(), $features->getById($stored->getId())?->getPermissionId());
-            self::assertSame(1, $features->getById($stored->getId())->getRevision());
+        } catch (ResourceNotFound) {
+            self::assertSame($first->getId(), $featureRepository->getById($stored->getId())?->getPermissionId());
+            self::assertSame(1, $featureRepository->getById($stored->getId())->getRevision());
             self::assertFalse($environment->removePermission($first));
             self::assertNull($environment->permissions()->getById($second->getId()));
         }

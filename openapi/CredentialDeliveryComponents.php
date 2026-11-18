@@ -15,9 +15,11 @@ use OpenApi\Attributes as OA;
 )]
 #[OA\Schema(
     schema: 'Fight.AccessControl.DeliverPasswordReset',
-    required: ['actor_id', 'user_id', 'password_reset_delivery_id'],
+    description: 'Preserve the admitted originating actor through workers. Identity supplies no authority; system and anonymous IDs are fixed nil of their distinct kinds.',
+    required: ['actor_kind', 'actor_id', 'user_id', 'password_reset_delivery_id'],
     properties: [
-        new OA\Property(property: 'actor_id', type: 'string'),
+        new OA\Property(property: 'actor_kind', type: 'string', enum: ['user', 'agent', 'system', 'anonymous']),
+        new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'),
         new OA\Property(property: 'user_id', type: 'string', format: 'uuid'),
         new OA\Property(property: 'password_reset_delivery_id', type: 'string', format: 'uuid')
     ]
@@ -39,16 +41,47 @@ use OpenApi\Attributes as OA;
     ]
 )]
 #[OA\Schema(
+    schema: 'Fight.AccessControl.CredentialDeliveryAbsent',
+    description: 'Optional status absence; not rollback, rejection, or permission to issue or disclose credentials',
+    required: ['state'],
+    properties: [new OA\Property(property: 'state', type: 'string', enum: ['absent'])]
+)]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.CredentialDeliveryStatusResult',
+    oneOf: [
+        new OA\Schema(ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryStatus'),
+        new OA\Schema(ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryAbsent')
+    ]
+)]
+#[OA\Schema(
+    schema: 'Fight.AccessControl.InvitationDeliveryStatusResult',
+    oneOf: [
+        new OA\Schema(ref: '#/components/schemas/Fight.AccessControl.InvitationDeliveryStatus'),
+        new OA\Schema(ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryAbsent')
+    ]
+)]
+#[OA\Schema(
     schema: 'Fight.AccessControl.CredentialDeliveryStatus',
+    oneOf: [
+        new OA\Schema(properties: [
+            new OA\Property(property: 'purpose', type: 'string', enum: ['activation', 'password_reset']),
+            new OA\Property(property: 'email_change_grant_id', type: ['null'])
+        ]),
+        new OA\Schema(properties: [
+            new OA\Property(property: 'purpose', type: 'string', enum: ['email_change']),
+            new OA\Property(property: 'email_change_grant_id', type: 'string', format: 'uuid')
+        ])
+    ],
     required: [
-        'purpose', 'delivery_id', 'user_id', 'revision', 'status', 'due_at', 'expires_at',
+        'purpose', 'delivery_id', 'user_id', 'email_change_grant_id', 'revision', 'status', 'due_at', 'expires_at',
         'attempt_count', 'last_attempt_at', 'last_outcome_at', 'last_failure'
     ],
     properties: [
         new OA\Property(property: 'purpose', type: 'string', enum: ['activation', 'password_reset', 'email_change']),
         new OA\Property(property: 'delivery_id', type: 'string', format: 'uuid'),
         new OA\Property(property: 'user_id', type: 'string', format: 'uuid'),
-        new OA\Property(property: 'revision', type: 'integer'),
+        new OA\Property(property: 'email_change_grant_id', type: ['string', 'null'], format: 'uuid', description: 'Exact request ID for email_change; null for invitation/reset'),
+        new OA\Property(property: 'revision', type: 'integer', minimum: 0),
         new OA\Property(property: 'status', type: 'string', enum: ['pending', 'claimed', 'retry_pending', 'delivered', 'permanent_failure', 'expired', 'invalidated']),
         new OA\Property(property: 'due_at', type: 'string', format: 'date-time'),
         new OA\Property(property: 'expires_at', type: 'string', format: 'date-time'),
@@ -66,8 +99,8 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'delivery_id', type: 'string', format: 'uuid'),
         new OA\Property(property: 'user_id', type: 'string', format: 'uuid'),
         new OA\Property(property: 'due_at', type: 'string', format: 'date-time'),
-        new OA\Property(property: 'revision', type: 'integer'),
-        new OA\Property(property: 'status', type: 'string', enum: ['pending', 'claimed', 'retry_pending', 'delivered', 'permanent_failure', 'expired', 'invalidated'])
+        new OA\Property(property: 'revision', type: 'integer', minimum: 0),
+        new OA\Property(property: 'status', type: 'string', enum: ['pending', 'claimed', 'retry_pending'])
     ]
 )]
 #[OA\Schema(
@@ -80,7 +113,7 @@ use OpenApi\Attributes as OA;
     required: ['status', 'data'],
     properties: [
         new OA\Property(property: 'status', type: 'string', enum: ['success']),
-        new OA\Property(property: 'data', ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryStatus')
+        new OA\Property(property: 'data', ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryStatusResult')
     ]
 )]
 #[OA\Schema(
@@ -101,6 +134,16 @@ use OpenApi\Attributes as OA;
 )]
 #[OA\Schema(
     schema: 'Fight.AccessControl.ExpiredCredentialDelivery',
+    oneOf: [
+        new OA\Schema(properties: [
+            new OA\Property(property: 'purpose', type: 'string', enum: ['activation', 'password_reset']),
+            new OA\Property(property: 'email_change_grant_id', type: ['null'])
+        ]),
+        new OA\Schema(properties: [
+            new OA\Property(property: 'purpose', type: 'string', enum: ['email_change']),
+            new OA\Property(property: 'email_change_grant_id', type: 'string', format: 'uuid')
+        ])
+    ],
     required: ['purpose', 'delivery_id', 'user_id', 'email_change_grant_id', 'expires_at', 'revision', 'status'],
     properties: [
         new OA\Property(property: 'purpose', type: 'string', enum: ['activation', 'password_reset', 'email_change']),
@@ -126,7 +169,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'data', ref: '#/components/schemas/Fight.AccessControl.ExpiredCredentialDeliveries')
     ]
 )]
-#[OA\Schema(schema: 'Fight.AccessControl.ExpireInvitationDelivery', required: ['actor_id', 'user_id', 'activation_delivery_id', 'occurred_at'], properties: [new OA\Property(property: 'actor_id', type: 'string'), new OA\Property(property: 'user_id', type: 'string', format: 'uuid'), new OA\Property(property: 'activation_delivery_id', type: 'string', format: 'uuid'), new OA\Property(property: 'occurred_at', type: 'string', format: 'date-time')])]
+#[OA\Schema(schema: 'Fight.AccessControl.ExpireInvitationDelivery', required: ['actor_kind', 'actor_id', 'user_id', 'activation_delivery_id', 'occurred_at'], properties: [new OA\Property(property: 'actor_kind', type: 'string', enum: ['user', 'agent', 'system', 'anonymous']), new OA\Property(property: 'actor_id', type: 'string', format: 'uuid'), new OA\Property(property: 'user_id', type: 'string', format: 'uuid'), new OA\Property(property: 'activation_delivery_id', type: 'string', format: 'uuid'), new OA\Property(property: 'occurred_at', type: 'string', format: 'date-time')])]
 #[OA\Schema(schema: 'Fight.AccessControl.InvitationDeliveryExpired', ref: '#/components/schemas/Fight.AccessControl.ExpireInvitationDelivery')]
 #[OA\Schema(schema: 'Fight.AccessControl.PasswordResetDeliveryExpired', ref: '#/components/schemas/Fight.AccessControl.ExpirePasswordResetDelivery')]
 #[OA\Schema(schema: 'Fight.AccessControl.EmailChangeExpired', ref: '#/components/schemas/Fight.AccessControl.ExpireEmailChange')]

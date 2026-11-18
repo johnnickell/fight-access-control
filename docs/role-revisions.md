@@ -1,6 +1,6 @@
 # Role caller revisions
 
-Current-contract capability included in [v0.8.0 release preparation](release-0.8.0.md), not published v0.7.0.
+Current-contract capability published in [v0.8.0](release-0.8.0.md), not part of v0.7.0.
 Role revisions identify state, not authority. Consumers continue to protect
 all HTTP, CLI, worker and direct command-bus entry points, including no-ops, and own actor provenance, target/tenant
 scope, last-admin policy, destructive confirmation, response mapping and safe logs under
@@ -23,17 +23,36 @@ No endpoint, transport status or error envelope is supplied.
 
 A matching token permits only an otherwise legal operation. Missing Roles, managed/reserved identities, colliding
 names, invalid membership and live references still reject. A stale token, including a stale same-name request,
-raises safe typed `RoleConflictException` (a `CustomRoleException`). A lost final expected-state/reference fence also
-raises that type; the preliminary comparison does not replace final atomic admission. On conflict, refresh the
+raises Common Application `PreconditionFailed` at the Command boundary (Unreleased). Direct Domain revision checks
+retain `RoleConflictException` (a `CustomRoleException`). A lost final expected-state/reference fence raises
+Application `StateConflict`; the preliminary comparison does not replace final atomic admission. See the complete
+[Role and User membership contract](role-membership-contracts.md) for deliberate failures versus internal faults.
+On a failed expectation, refresh the
 current Role, display the new state and obtain fresh intent/confirmation. **Never silently substitute a newer token
 or automatically retry stale intent.** A token is neither a credential nor permission.
 
 A valid same-name rename validates/fences the complete current snapshot without writing, changing timestamps or
 revision, or publishing success. Membership desired-state retries retain their existing no-write/no-success behavior
-and required Permission/reference guards; they have no new caller-token input. Every real custom rename or
+and required Permission/reference guards, plus non-writing complete Role-state validation through transaction
+completion (Unreleased); they have no new caller-token input. Every real custom rename or
 Permission grant/revoke advances exactly once. Managed creation/reconciliation/removal uses the same incarnation
 and revision rules. Unchanged managed definitions retain their state; the existing policy-level reconciliation
 notification semantics are unchanged. Reads and User Role assignments do not advance Role state.
+
+## Serialized input types (Unreleased)
+
+Role Commands, Events and identity Queries require string identities/names; Event timestamps must be nonempty
+strings rather than values coerced to strings or an implicit current time. Rename/remove still parse the required
+revision through `RoleRevision`, with its existing typed rejection. Canonical serialized fields and valid round trips
+are unchanged. `ListRoles` and `ListPermissions` require integer bounds and a string-field/string-direction ordering
+map when decoded; this does not change the existing Pagination object's bounds/normalization semantics.
+Role names must match their complete canonical spelling, without a trailing newline.
+
+Typed membership constructors still take `list<PermissionId>`; returned memberships are independent lists, preserving
+set deduplication and order. Principal snapshot constructors deliberately accept dynamic arrays, validate every
+entry, and expose typed deduplicated lists. These snapshots remain request facts, never continuing authority.
+Update malformed producers directly; no coercion/legacy mode or new grant is supplied. See the focused
+[type-contract fixtures](type-contracts.md) for native/static proof and its limits.
 
 ## Persistence and all-writer fences
 
@@ -64,6 +83,49 @@ created by pending registration as well as other User assignments. `UserReposito
 complete resolved Roles **including revision**, so even an otherwise identical revision-only mismatch rolls back
 registration's pending User, assignments, grant/delivery and required audit. A prior query or startup check supplies
 neither reservation nor transaction admission.
+
+## Optional lifecycle audit (Unreleased)
+
+`CreateCustomRoleHandler`, `RenameCustomRoleHandler` and `RemoveCustomRoleHandler` accept an optional last
+`?AuditEvidenceRepository $auditEvidenceRepository = null`. Existing positional and named arguments keep their
+meaning; omitted or explicit null deliberately disables durable evidence. The required `UserId` actor remains
+required and is attribution, not administrative authority. No Command or Event wire fields change.
+
+See [ordinary Role audit composition](role-audit-composition.md) for the executable modeled binding, complete
+mapping matrix and exact prerequisites to retire the Agent OS workaround. Inject the upgraded audit repository
+directly alongside ordinary `TransactionalUnitOfWork`, not an Event-inspecting transaction decorator. For example, using consumer-owned adapters on one actual connection:
+
+```php
+$create = new CreateCustomRoleHandler($roleRepository, $clock, $unitOfWork, $eventDispatcher, $auditEvidenceRepository);
+$rename = new RenameCustomRoleHandler($roleRepository, $clock, $unitOfWork, $eventDispatcher, $auditEvidenceRepository);
+$remove = new RemoveCustomRoleHandler(
+    $roleRepository,
+    $userRepository,
+    $clock,
+    $unitOfWork,
+    $eventDispatcher,
+    $auditEvidenceRepository
+);
+```
+
+Each handler explicitly adds `AuditEvidence::record()` after authoritative persistence and before commit, using
+`ROLE_CREATED`, `ROLE_RENAMED` or `ROLE_REMOVED`. `AuditRoleRevisions` stores the complete incarnation/revision:
+creation has null before-state, rename has actual before/after, and removal has null after-state. The evidence
+uses the existing trusted outcome Clock sample, direct actor, typed Role subject and incoming MessageId, plus a
+fresh evidence identity. Names, entity snapshots and raw messages are not captured. Correlation is not deduplication;
+evidence is not automatically authorized public or log output. Validated same-name rename adds no evidence and
+still performs its non-writing current-state fence without sampling a new outcome time.
+
+Enabled audit failure rolls back staged Role/evidence together; concurrent loss creates no losing mutation record.
+An uncertain commit can have committed both or neither: inspect authoritative state, never infer rollback from the
+exception or replay stale intent. Ordinary post-commit publisher/subscriber failure still throws while both persist;
+notification failure cannot replace the primary fault. No rejected-attempt store or new replay/outbox is supplied.
+
+Consumers must update mappings for the [current evidence contract](audit-evidence.md), preserve actor/subject kinds,
+and qualify Role, User references, audit and UoW on the **same actual connection and enclosing transaction**.
+An active-transaction flag alone is insufficient. Package modeled transaction tests do not qualify production
+schema, isolation, locks, restart or bootstrap, and do not authorize removing consumer workarounds. Other audit
+families and cross-family adoption remain separately owned.
 
 ## Outcomes and verification
 

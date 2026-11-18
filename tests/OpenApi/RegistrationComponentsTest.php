@@ -48,8 +48,14 @@ final class RegistrationComponentsTest extends TestCase
         }
 
         self::assertFalse($schemas['Fight.AccessControl.RegisterUser']['additionalProperties']);
-        self::assertSame('uuid', $schemas['Fight.AccessControl.UserRegistered']['properties']['activation_delivery_id']['format']);
-        self::assertSame('date-time', $schemas['Fight.AccessControl.UserRegistered']['properties']['issued_at']['format']);
+        self::assertSame(
+            'uuid',
+            $schemas['Fight.AccessControl.UserRegistered']['properties']['activation_delivery_id']['format']
+        );
+        self::assertSame(
+            'date-time',
+            $schemas['Fight.AccessControl.UserRegistered']['properties']['issued_at']['format']
+        );
         // Existing activation remains password-setting, not a second registration or a new credential format.
         self::assertSame(
             ['user_id', 'activation_credential', 'plain_password'],

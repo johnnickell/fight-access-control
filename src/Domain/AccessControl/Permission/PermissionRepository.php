@@ -12,6 +12,10 @@ use Fight\Common\Domain\Repository\ResultSet;
  * Interface PermissionRepository
  *
  * Provides authoritative permission persistence.
+ * For protected Agent continuation, definition/reference writers, including direct calls and restoration, must
+ * coordinate with the consumer's qualified composite admission fence. Read definitions authoritatively after its
+ * acquisition and hold protection through the bounded action with Agent and consumer-scope authorities. An advisory
+ * getByIds() result or a separate reader-only lock is not synchronized admission.
  */
 interface PermissionRepository
 {
@@ -78,6 +82,8 @@ interface PermissionRepository
     /**
      * Replaces the expected permission when it remains current
      *
+     * Compare complete expected state and hold the common definition/reference fence through transaction completion,
+     * including an unchanged successor. An unchanged successor validates without writing or changing timestamps.
      * A tier promotion to SUPER_ADMIN_ONLY must atomically reject any custom Role, ordinary managed Role, or
      * Agent membership under the same transaction-duration reference/tier fence used by Role and Agent grants,
      * including their no-op validations. Return false on a stale definition or forbidden membership. The adapter

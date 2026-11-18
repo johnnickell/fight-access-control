@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Feature\Conformance;
 
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureConflictException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureDiscoveryException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureStatus;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -94,7 +94,7 @@ abstract class FeaturePreparationConformance extends TestCase
         try {
             $environment->provision('DEFAULT');
             self::fail('The losing pass must reject.');
-        } catch (FeatureConflictException) {
+        } catch (StateConflict) {
             self::assertNull($environment->definition('first'));
             self::assertSame($winner, $environment->definition('second'));
         }

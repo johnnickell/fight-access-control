@@ -1,0 +1,599 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance;
+
+use DateTimeImmutable;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentCredentialCleanup;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryMaintenanceService;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceAuthorization;
+use Fight\AccessControl\Application\AccessControl\AgentCredentialOperation\Maintenance\AgentMaintenanceResult;
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialDestination;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperationRepository;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentIssuance;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationKey;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationScope;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryAuthority;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Delivery\AgentDeliveryFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentDeliveryFailedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Maintenance\AgentDeliveryKeyVersion;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
+
+#[CoversClass(AgentDeliveryMaintenanceService::class)]
+final class AgentMaintenanceContractTest extends TestCase
+{
+    public function test_wrong_lookup_key_is_internal_without_touching_another_operations_material(): void
+    {
+        $env = new MaintenanceEnvironment();
+        $other = new MaintenanceEnvironment();
+        $repository = $this->createMock(AgentCredentialOperationRepository::class);
+        $repository->method('getOperationContract')->willReturn(
+            $env->delivery->provisioning->operationRepository->getOperationContract()
+        );
+        $repository->method('getByKey')->willReturn($other->delivery->operation());
+        $repository->expects(self::never())->method('replaceMaintenance');
+        $before = $env->delivery->operation();
+        self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $this->rewrap($env, $repository));
+        self::assertSame($before, $env->delivery->operation());
+        self::assertSame(0, $env->rewraps);
+    }
+
+    /** @return iterable<string, array{int, ?AgentDeliveryFailure}> */
+    public static function rewrapClockFailures(): iterable
+    {
+        foreach ([1, 2] as $sample) {
+            foreach ([...AgentDeliveryFailure::cases(), null] as $reason) {
+                yield $sample.':'.($reason->value ?? 'unclassified') => [$sample, $reason];
+            }
+        }
+    }
+
+    #[DataProvider('rewrapClockFailures')]
+    public function test_clock_after_rewrap_cannot_discard_original_material_or_record_provider_failure(
+        int $sample,
+        ?AgentDeliveryFailure $reason
+    ): void {
+        $env = new MaintenanceEnvironment();
+        $before = $env->delivery->operation();
+        $agents = $env->delivery->provisioning->agentRepository->all();
+        $audit = $env->delivery->provisioning->auditEvidenceRepository->all();
+        $clock = $this->createStub(Clock::class);
+        $samples = 0;
+        $clock->method('now')->willReturnCallback(static function () use (
+            $env,
+            $sample,
+            $reason,
+            &$samples
+        ): DateTimeImmutable {
+            if ($env->rewraps > 0 && ++$samples === $sample) {
+                if ($reason !== null) {
+                    throw new AgentDeliveryFailedException($reason);
+                }
+
+                throw new RuntimeException('Synthetic clock failure.');
+            }
+
+            return $env->delivery->clock->now();
+        });
+        $issuance = $env->delivery->issuance;
+        $service = new AgentDeliveryMaintenanceService(
+            $env->delivery->provisioning->operationRepository,
+            $env,
+            $env,
+            $env->delivery->sink,
+            $clock,
+            $env->delivery->transaction
+        );
+        self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $service->rewrap(
+            $issuance->getKey(),
+            $issuance->getDestination(),
+            $issuance->getDeliveryId(),
+            new AgentDeliveryKeyVersion('test-key-v2')
+        ));
+        self::assertSame($sample, $samples);
+        self::assertSame(1, $env->rewraps);
+        self::assertSame($before, $env->delivery->operation());
+        self::assertSame($before->getMaterial(), $env->delivery->operation()->getMaterial());
+        self::assertNull($env->delivery->operation()->getDeliveryFailure());
+        self::assertSame($agents, $env->delivery->provisioning->agentRepository->all());
+        self::assertSame($audit, $env->delivery->provisioning->auditEvidenceRepository->all());
+        self::assertSame(0, $env->delivery->sink->cleanups);
+
+        self::assertSame(AgentMaintenanceResult::REWRAPPED, $env->rewrapOriginal());
+        self::assertSame($issuance, $env->delivery->operation()->getIssuance());
+        self::assertSame('test-key-v2', $env->delivery->operation()->getMaterial()?->getKeyVersion());
+    }
+
+    /** @return iterable<string, array{AgentOperationFailure}> */
+    public static function invalidReadReasons(): iterable
+    {
+        foreach (AgentOperationFailure::cases() as $reason) {
+            if ($reason !== AgentOperationFailure::UNAVAILABLE) {
+                yield $reason->value => [$reason];
+            }
+        }
+    }
+
+    #[DataProvider('invalidReadReasons')]
+    public function test_failed_lookup_is_not_a_maintenance_refusal(AgentOperationFailure $reason): void
+    {
+        $env = new MaintenanceEnvironment();
+        $repository = $this->createStub(AgentCredentialOperationRepository::class);
+        $repository->method('getOperationContract')->willReturn(
+            $env->delivery->provisioning->operationRepository->getOperationContract()
+        );
+        $repository->method('getByKey')->willThrowException(new AgentOperationRejectedException($reason));
+        self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $this->rewrap($env, $repository));
+        self::assertSame(0, $env->rewraps);
+    }
+
+    public function test_rewrapper_cannot_report_receipt_or_sink_failure_as_ordinary_retry(): void
+    {
+        foreach ([AgentDeliveryFailure::INVALID_RECEIPT, AgentDeliveryFailure::UNSUPPORTED_SINK] as $reason) {
+            $env = new MaintenanceEnvironment();
+            $before = $env->delivery->operation();
+            $env->failure = $reason;
+            self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $env->rewrapOriginal());
+            self::assertSame($before, $env->delivery->operation());
+            self::assertSame(0, $env->delivery->sink->cleanups);
+        }
+    }
+
+    public function test_slow_scope_authorization_expiring_before_return_prevents_concealed_lookup(): void
+    {
+        $env = new MaintenanceEnvironment();
+        $env->expiresAt = $env->delivery->clock->now()->modify('+1 second');
+
+        $authorization = $this->createStub(AgentMaintenanceAuthorization::class);
+        $authorization->method('authorize')->willReturnCallback(static function (
+            AgentOperationScope $scope,
+            AgentCredentialDestination $destination,
+            ?AgentIssuance $issuance,
+            ?AgentDeliveryKeyVersion $target,
+            DateTimeImmutable $now
+        ) use ($env): AgentDeliveryAuthority {
+            $authority = $env->authorize($scope, $destination, $issuance, $target, $now);
+            $env->delivery->clock->advance(1);
+
+            return $authority;
+        });
+        $repository = $this->createMock(AgentCredentialOperationRepository::class);
+        $repository->method('getOperationContract')->willReturn(
+            $env->delivery->provisioning->operationRepository->getOperationContract()
+        );
+        $repository->expects(self::never())->method('getByKey');
+        $issuance = $env->delivery->issuance;
+        self::assertSame(AgentMaintenanceResult::REJECTED, new AgentDeliveryMaintenanceService(
+            $repository,
+            $authorization,
+            $env,
+            $env->delivery->sink,
+            $env->delivery->clock,
+            $env->delivery->transaction
+        )->expire($issuance->getKey(), $issuance->getDestination(), $issuance->getDeliveryId()));
+        self::assertSame(0, $env->rewraps);
+        self::assertSame(0, $env->delivery->sink->cleanups);
+    }
+
+    /** @return iterable<string, array{string, AgentOperationFailure, AgentMaintenanceResult}> */
+    public static function boundaryReasons(): iterable
+    {
+        foreach (['scope', 'target', 'cohort', 'write'] as $source) {
+            foreach (AgentOperationFailure::cases() as $reason) {
+                $expected = AgentMaintenanceResult::UNAVAILABLE;
+                if (
+                    $source !== 'cohort' && in_array($reason, [
+                    AgentOperationFailure::UNAUTHORIZED, AgentOperationFailure::CONFLICT
+                    ], true)
+                ) {
+                    $expected = AgentMaintenanceResult::REJECTED;
+                } elseif ($source === 'write' && $reason === AgentOperationFailure::CONTENTION) {
+                    $expected = AgentMaintenanceResult::REJECTED;
+                }
+
+                yield $source.':'.$reason->value => [$source, $reason, $expected];
+            }
+        }
+    }
+
+    #[DataProvider('boundaryReasons')]
+    public function test_only_source_qualified_reasons_describe_maintenance(
+        string $source,
+        AgentOperationFailure $reason,
+        AgentMaintenanceResult $expected
+    ): void {
+        $env = new MaintenanceEnvironment();
+        $failure = new AgentOperationRejectedException($reason);
+        $repository = $this->createStub(AgentCredentialOperationRepository::class);
+        if ($source === 'cohort') {
+            $repository->method('getOperationContract')->willThrowException($failure);
+        } else {
+            $repository->method('getOperationContract')->willReturn(
+                $env->delivery->provisioning->operationRepository->getOperationContract()
+            );
+            $repository->method('getByKey')->willReturn($env->delivery->operation());
+            $repository->method('replaceMaintenance')->willThrowException($failure);
+        }
+
+        $authorization = $this->createStub(AgentMaintenanceAuthorization::class);
+        $authorization->method('authorize')->willReturnCallback(static function (
+            AgentOperationScope $scope,
+            AgentCredentialDestination $destination,
+            ?AgentIssuance $issuance,
+            ?AgentDeliveryKeyVersion $target,
+            DateTimeImmutable $now
+        ) use (
+            $env,
+            $source,
+            $failure
+): AgentDeliveryAuthority {
+            if (($source === 'scope' && $issuance === null) || ($source === 'target' && $issuance !== null)) {
+                throw $failure;
+            }
+
+            return $env->authorize($scope, $destination, $issuance, $target, $now);
+        });
+        $before = $env->delivery->operation();
+        self::assertSame($expected, $this->rewrap($env, $repository, $authorization));
+        self::assertSame($before, $env->delivery->operation());
+        self::assertSame(0, $env->delivery->sink->cleanups);
+    }
+
+    /** @return iterable<string, array{string, string, bool, AgentDeliveryFailure}> */
+    public static function nonProviderDeliveryFailures(): iterable
+    {
+        $sources = [
+            'scope', 'target', 'cohort', 'lookup', 'before write', 'after write', 'uow status', 'uow start'
+        ];
+        foreach (['rewrap', 'expire', 'cleanup'] as $operation) {
+            foreach ($sources as $source) {
+                foreach ([false, true] as $acknowledgement) {
+                    if ($acknowledgement && ($operation !== 'cleanup' || str_contains($source, 'write'))) {
+                        continue;
+                    }
+
+                    foreach (
+                        [
+                        AgentDeliveryFailure::TEMPORARY,
+                        AgentDeliveryFailure::UNSUPPORTED_SINK,
+                        AgentDeliveryFailure::INVALID_RECEIPT
+                        ] as $reason
+                    ) {
+                        $name = $operation.':'.$source.':'.($acknowledgement ? 'ack:' : 'initial:').$reason->value;
+                        yield $name => [$operation, $source, $acknowledgement, $reason];
+                    }
+                }
+            }
+        }
+    }
+
+    #[DataProvider('nonProviderDeliveryFailures')]
+    public function test_non_provider_delivery_failure_is_unavailable_without_acknowledging_state(
+        string $operation,
+        string $source,
+        bool $acknowledgement,
+        AgentDeliveryFailure $reason
+    ): void {
+        $env = new MaintenanceEnvironment();
+        if ($operation === 'expire') {
+            $env->delivery->clock->advance(86400);
+        } elseif ($operation === 'cleanup') {
+            $env->delivery->deliver();
+            $env->delivery->revoke();
+            $env->delivery->clock->advance(172800);
+        }
+
+        $before = $env->delivery->operation();
+        $agents = $env->delivery->provisioning->agentRepository->all();
+        $audit = $env->delivery->provisioning->auditEvidenceRepository->all();
+        $failure = new AgentDeliveryFailedException($reason);
+        $fault = static function () use ($failure): never {
+            throw $failure;
+        };
+        $inPhase = static fn (): bool => !$acknowledgement || $env->delivery->sink->cleanups > 0;
+        $ownedRepository = $env->delivery->provisioning->operationRepository;
+        $repository = $ownedRepository;
+        if ($source === 'cohort' || $source === 'lookup') {
+            $repository = $this->createStub(AgentCredentialOperationRepository::class);
+            $repository->method('getOperationContract')->willReturnCallback(static function () use (
+                $source,
+                $inPhase,
+                $fault,
+                $ownedRepository
+            ): AgentOperationContract {
+                if ($source === 'cohort' && $inPhase()) {
+                    $fault();
+                }
+
+                return $ownedRepository->getOperationContract();
+            });
+            $repository->method('getByKey')->willReturnCallback(static function (AgentOperationKey $key) use (
+                $source,
+                $inPhase,
+                $fault,
+                $ownedRepository
+            ): ?AgentCredentialOperation {
+                if ($source === 'lookup' && $inPhase()) {
+                    $fault();
+                }
+
+                return $ownedRepository->getByKey($key);
+            });
+        } elseif ($source === 'before write') {
+            $ownedRepository->beforeMaintenanceWrite = $fault;
+        } elseif ($source === 'after write') {
+            $ownedRepository->afterMaintenanceWrite = $fault;
+        }
+
+        $authorization = $this->createStub(AgentMaintenanceAuthorization::class);
+        $authorization->method('authorize')->willReturnCallback(static function (
+            AgentOperationScope $scope,
+            AgentCredentialDestination $destination,
+            ?AgentIssuance $issuance,
+            ?AgentDeliveryKeyVersion $target,
+            DateTimeImmutable $now
+        ) use (
+            $env,
+            $source,
+            $inPhase,
+            $fault
+        ): AgentDeliveryAuthority {
+            if (
+                $inPhase() && (($source === 'scope' && $issuance === null)
+                || ($source === 'target' && $issuance !== null))
+            ) {
+                $fault();
+            }
+
+            return $env->authorize($scope, $destination, $issuance, $target, $now);
+        });
+        $unitOfWork = $this->createStub(TransactionalUnitOfWork::class);
+        $unitOfWork->method('isClosed')->willReturnCallback(static function () use (
+            $source,
+            $inPhase,
+            $fault
+        ): bool {
+            if ($source === 'uow status' && $inPhase()) {
+                $fault();
+            }
+
+            return false;
+        });
+        $unitOfWork->method('commitTransactional')->willReturnCallback(static function (callable $callback) use (
+            $env,
+            $source,
+            $inPhase,
+            $fault
+        ): mixed {
+            if ($source === 'uow start' && $inPhase()) {
+                $fault();
+            }
+
+            return $env->delivery->transaction->commitTransactional($callback);
+        });
+        $service = new AgentDeliveryMaintenanceService(
+            $repository,
+            $authorization,
+            $env,
+            $env->delivery->sink,
+            $env->delivery->clock,
+            $unitOfWork
+        );
+        $issuance = $env->delivery->issuance;
+        $arguments = [$issuance->getKey(), $issuance->getDestination(), $issuance->getDeliveryId()];
+        $result = match ($operation) {
+            'rewrap' => $service->rewrap(...[...$arguments, new AgentDeliveryKeyVersion('test-key-v2')]),
+            'expire' => $service->expire(...$arguments),
+            default => $service->cleanup(...$arguments)
+        };
+        self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $result);
+        self::assertSame($before, $env->delivery->operation());
+        self::assertSame($agents, $env->delivery->provisioning->agentRepository->all());
+        self::assertSame($audit, $env->delivery->provisioning->auditEvidenceRepository->all());
+        self::assertFalse($env->delivery->operation()->isSinkCleaned());
+        $externalEffect = $operation === 'cleanup' && ($acknowledgement || str_contains($source, 'write'));
+        self::assertSame($externalEffect ? 1 : 0, $env->delivery->sink->cleanups);
+        if ($operation === 'cleanup') {
+            self::assertSame(
+                $externalEffect ? null : 'original-test-secret',
+                $env->delivery->sink->stagedBytes($issuance)
+            );
+        }
+
+        $ownedRepository->beforeMaintenanceWrite = null;
+        $ownedRepository->afterMaintenanceWrite = null;
+
+        $recovered = match ($operation) {
+            'rewrap' => $env->rewrapOriginal(),
+            'expire' => $env->expire(),
+            default => $env->cleanup()
+        };
+        self::assertSame(match ($operation) {
+            'rewrap' => AgentMaintenanceResult::REWRAPPED,
+            'expire' => AgentMaintenanceResult::EXPIRED,
+            default => AgentMaintenanceResult::CLEANED
+        }, $recovered);
+        self::assertSame($issuance, $env->delivery->operation()->getIssuance());
+        self::assertSame(1, $env->delivery->provisioning->generations);
+    }
+
+    /** @return iterable<string, array{string, bool, AgentDeliveryFailure}> */
+    public static function deliveryFailuresAfterCompletion(): iterable
+    {
+        foreach (['rewrap', 'expire', 'cleanup admission', 'cleanup acknowledgement'] as $operation) {
+            foreach ([false, true] as $persist) {
+                foreach (
+                    [
+                    AgentDeliveryFailure::TEMPORARY,
+                    AgentDeliveryFailure::UNSUPPORTED_SINK,
+                    AgentDeliveryFailure::INVALID_RECEIPT
+                    ] as $reason
+                ) {
+                    yield $operation.':'.($persist ? 'committed:' : 'rolled back:').$reason->value => [
+                        $operation, $persist, $reason
+                    ];
+                }
+            }
+        }
+    }
+
+    #[DataProvider('deliveryFailuresAfterCompletion')]
+    public function test_wrong_purpose_failure_after_callback_completion_remains_indeterminate(
+        string $operation,
+        bool $persist,
+        AgentDeliveryFailure $reason
+    ): void {
+        $env = new MaintenanceEnvironment();
+        if ($operation === 'expire') {
+            $env->delivery->clock->advance(86400);
+        } elseif (str_starts_with($operation, 'cleanup')) {
+            $env->delivery->deliver();
+            $env->delivery->revoke();
+            $env->delivery->clock->advance(172800);
+        }
+
+        $before = $env->delivery->operation();
+        $unitOfWork = $this->createStub(TransactionalUnitOfWork::class);
+        $unitOfWork->method('isClosed')->willReturn(false);
+        $unitOfWork->method('commitTransactional')->willReturnCallback(static function (callable $callback) use (
+            $env,
+            $operation,
+            $persist,
+            $reason
+        ): mixed {
+            $fail = $operation !== 'cleanup acknowledgement' || $env->delivery->sink->cleanups > 0;
+            $result = $env->delivery->transaction->commitTransactional(static function () use (
+                $callback,
+                $fail,
+                $persist,
+                $reason
+            ): mixed {
+                $result = $callback();
+                if ($fail && !$persist) {
+                    throw new AgentDeliveryFailedException($reason);
+                }
+
+                return $result;
+            });
+            if ($fail) {
+                throw new AgentDeliveryFailedException($reason);
+            }
+
+            return $result;
+        });
+        $service = new AgentDeliveryMaintenanceService(
+            $env->delivery->provisioning->operationRepository,
+            $env,
+            $env,
+            $env->delivery->sink,
+            $env->delivery->clock,
+            $unitOfWork
+        );
+        $issuance = $env->delivery->issuance;
+        $arguments = [$issuance->getKey(), $issuance->getDestination(), $issuance->getDeliveryId()];
+        $result = match ($operation) {
+            'rewrap' => $service->rewrap(...[...$arguments, new AgentDeliveryKeyVersion('test-key-v2')]),
+            'expire' => $service->expire(...$arguments),
+            default => $service->cleanup(...$arguments)
+        };
+        self::assertSame(AgentMaintenanceResult::INDETERMINATE, $result);
+        if (!$persist || $operation === 'cleanup admission') {
+            self::assertSame($before, $env->delivery->operation());
+        } elseif ($operation === 'rewrap') {
+            self::assertSame('test-key-v2', $env->delivery->operation()->getMaterial()?->getKeyVersion());
+        } elseif ($operation === 'expire') {
+            self::assertNull($env->delivery->operation()->getMaterial());
+        }
+
+        self::assertSame(
+            $persist && $operation === 'cleanup acknowledgement',
+            $env->delivery->operation()->isSinkCleaned()
+        );
+        self::assertSame($operation === 'cleanup acknowledgement' ? 1 : 0, $env->delivery->sink->cleanups);
+        self::assertSame($issuance, $env->delivery->operation()->getIssuance());
+        self::assertSame(1, $env->delivery->provisioning->generations);
+    }
+
+    public function test_cleanup_failures_distinguish_retry_binding_rejection_and_internal_contract_failure(): void
+    {
+        foreach (AgentDeliveryFailure::cases() as $reason) {
+            $env = new MaintenanceEnvironment();
+            $env->delivery->revoke();
+            $env->delivery->clock->advance(172800);
+            $cleanup = $this->createStub(AgentCredentialCleanup::class);
+            $cleanup->method('remove')->willThrowException(new AgentDeliveryFailedException($reason));
+            $issuance = $env->delivery->issuance;
+            $expected = match ($reason) {
+                AgentDeliveryFailure::TEMPORARY,
+                AgentDeliveryFailure::UNSUPPORTED_SINK => AgentMaintenanceResult::RETRYABLE,
+                AgentDeliveryFailure::INVALID_RECEIPT => AgentMaintenanceResult::REJECTED,
+                default => AgentMaintenanceResult::UNAVAILABLE
+            };
+            self::assertSame($expected, new AgentDeliveryMaintenanceService(
+                $env->delivery->provisioning->operationRepository,
+                $env,
+                $env,
+                $cleanup,
+                $env->delivery->clock,
+                $env->delivery->transaction
+            )->cleanup($issuance->getKey(), $issuance->getDestination(), $issuance->getDeliveryId()));
+            self::assertFalse($env->delivery->operation()->isSinkCleaned());
+            self::assertSame(1, $env->delivery->provisioning->generations);
+        }
+    }
+
+    public function test_key_and_cleanup_providers_do_not_supply_operation_authorization_intent(): void
+    {
+        foreach (['rewrap', 'cleanup'] as $operation) {
+            $env = new MaintenanceEnvironment();
+            $fault = static function (): void {
+                throw new AgentOperationRejectedException(AgentOperationFailure::UNAUTHORIZED);
+            };
+            if ($operation === 'rewrap') {
+                $env->afterRewrap = $fault;
+                $result = $env->rewrapOriginal();
+                self::assertSame('test-key-v1', $env->delivery->operation()->getMaterial()?->getKeyVersion());
+            } else {
+                $env->delivery->revoke();
+                $env->delivery->clock->advance(172800);
+                $env->delivery->sink->afterCleanup = $fault;
+                $result = $env->cleanup();
+                self::assertFalse($env->delivery->operation()->isSinkCleaned());
+            }
+
+            self::assertSame(AgentMaintenanceResult::UNAVAILABLE, $result);
+        }
+    }
+
+    private function rewrap(
+        MaintenanceEnvironment $env,
+        AgentCredentialOperationRepository $operationRepository,
+        ?AgentMaintenanceAuthorization $authorization = null
+    ): AgentMaintenanceResult {
+        $issuance = $env->delivery->issuance;
+
+        return new AgentDeliveryMaintenanceService(
+            $operationRepository,
+            $authorization ?? $env,
+            $env,
+            $env->delivery->sink,
+            $env->delivery->clock,
+            $env->delivery->transaction
+        )->rewrap(
+            $issuance->getKey(),
+            $issuance->getDestination(),
+            $issuance->getDeliveryId(),
+            new AgentDeliveryKeyVersion('test-key-v2')
+        );
+    }
+}

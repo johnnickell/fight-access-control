@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\AccessControl\Domain\AccessControl\Audit;
+
+/**
+ * Enum AuditAction
+ *
+ * Names admitted package outcomes, not arbitrary caller descriptions.
+ */
+enum AuditAction: string
+{
+    case USER_INVITED = 'user.invited';
+    case USER_REGISTERED = 'user.registered';
+    case USER_PENDING_INVITATION_CORRECTED = 'user.pending_invitation_corrected';
+    case USER_PENDING_REGISTRATION_RECOVERED = 'user.pending_registration_recovered';
+    case USER_ENABLED = 'user.enabled';
+    case USER_DISABLED = 'user.disabled';
+    case USER_DELETED = 'user.deleted';
+    case USER_RESTORED = 'user.restored';
+    case USER_ROLE_ASSIGNED = 'user.role_assigned';
+    case USER_ROLE_REMOVED = 'user.role_removed';
+    case USER_ACTIVATED = 'user.activated';
+    case USER_LOGGED_IN = 'user.logged_in';
+    case SESSION_REFRESHED = 'refresh_session.refreshed';
+    case SESSION_LOGGED_OUT = 'refresh_session.logged_out';
+    case SESSION_REPLAY_REVOKED = 'refresh_session.replay_revoked';
+    case SESSION_REVOKED = 'refresh_session.revoked';
+    case INVITATION_RESENT = 'user.invitation_delivery.resent';
+    case INVITATION_RETRY_REQUESTED = 'user.invitation_delivery.retry_requested';
+    case INVITATION_DELIVERY_FAILED = 'user.invitation_delivery.failed';
+    case INVITATION_DELIVERY_CONFIRMED = 'user.invitation_delivery.confirmed';
+    case INVITATION_DELIVERY_EXPIRED = 'user.invitation_delivery.expired';
+    case PASSWORD_RESET_REQUESTED = 'user.password_reset_requested';
+    case PASSWORD_RESET_DELIVERY_FAILED = 'user.password_reset_delivery.failed';
+    case PASSWORD_RESET_DELIVERY_CONFIRMED = 'user.password_reset_delivery.confirmed';
+    case PASSWORD_RESET_DELIVERY_EXPIRED = 'user.password_reset_delivery.expired';
+    case PASSWORD_CHANGED = 'user.password_changed';
+    case PASSWORD_RESET_COMPLETED = 'user.password_reset_completed';
+    case EMAIL_CHANGE_REQUESTED = 'user.email_change_requested';
+    case EMAIL_CHANGE_CANCELLED = 'user.email_change_cancelled';
+    case EMAIL_CHANGE_DELIVERY_FAILED = 'user.email_change_delivery.failed';
+    case EMAIL_CHANGE_DELIVERY_CONFIRMED = 'user.email_change_delivery.confirmed';
+    case EMAIL_CHANGE_EXPIRED = 'user.email_change_expired';
+    case EMAIL_CHANGE_CONFIRMED = 'user.email_change_confirmed';
+    case SESSION_ADMINISTRATIVELY_REVOKED = 'refresh_session.administratively_revoked';
+    case AGENT_NAME_CHANGED = 'agent.name_changed';
+    case AGENT_PROVISIONED = 'agent.provisioned';
+    case AGENT_CREDENTIAL_ROTATED = 'agent.credential_rotated';
+    case AGENT_CREDENTIAL_REVOKED = 'agent.credential_revoked';
+    case AGENT_MATERIAL_REWRAPPED = 'agent.material_rewrapped';
+    case AGENT_MATERIAL_FAILED = 'agent.material_failed';
+    case AGENT_MATERIAL_EXPIRED = 'agent.material_expired';
+    case AGENT_SINK_CLEANED = 'agent.sink_cleaned';
+    case AGENT_DELIVERY_CONFIRMED = 'agent.delivery.confirmed';
+    case AGENT_DELIVERY_FAILED = 'agent.delivery.failed';
+    case AGENT_DELIVERY_EXPIRED = 'agent.delivery.expired';
+    case AGENT_DELIVERY_EXHAUSTED = 'agent.delivery.exhausted';
+    case AGENT_PERMISSION_GRANTED = 'agent.permission_granted';
+    case AGENT_PERMISSION_REVOKED = 'agent.permission_revoked';
+    case AGENT_PERMISSIONS_REPLACED = 'agent.permissions_replaced';
+    case MANAGED_ROLE_CREATED = 'managed_role.created';
+    case MANAGED_ROLE_RECONCILED = 'managed_role.reconciled';
+    case MANAGED_ROLE_REMOVED = 'managed_role.removed';
+    case ROLE_CREATED = 'role.created';
+    case ROLE_RENAMED = 'role.renamed';
+    case ROLE_REMOVED = 'role.removed';
+    case ROLE_PERMISSION_GRANTED = 'role.permission_granted';
+    case ROLE_PERMISSION_REVOKED = 'role.permission_revoked';
+    case PERMISSION_CREATED = 'permission.created';
+    case PERMISSION_RECONCILED = 'permission.reconciled';
+    case PERMISSION_REMOVED = 'permission.removed';
+    case FEATURE_CREATED = 'feature.created';
+    case FEATURE_STATUS_CHANGED = 'feature.status_changed';
+    case FEATURE_PERMISSION_CHANGED = 'feature.permission_changed';
+    case FEATURE_REMOVED = 'feature.removed';
+}

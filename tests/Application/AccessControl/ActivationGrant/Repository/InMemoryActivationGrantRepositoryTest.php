@@ -26,18 +26,18 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
 {
     public function test_it_discovers_due_pending_and_expired_lease_work_deterministically_without_secrets(): void
     {
-        $repository = new InMemoryActivationGrantRepository();
+        $activationGrantRepository = new InMemoryActivationGrantRepository();
         $later = $this->grant(UserId::generate(), 'later', '12:06:00');
         $earlier = $this->grant(UserId::generate(), 'earlier', '12:00:00');
-        self::assertTrue($repository->add($later));
-        self::assertTrue($repository->add($earlier));
+        self::assertTrue($activationGrantRepository->add($later));
+        self::assertTrue($activationGrantRepository->add($earlier));
 
         $claimToken = CredentialDeliveryClaimToken::generate();
         $claimed = $earlier->claimDelivery($claimToken, $this->at('12:00:00'), $this->at('12:05:00'));
-        self::assertTrue($repository->replace($earlier, $claimed));
-        self::assertSame([], $repository->findDue($this->at('12:04:59'), 10));
+        self::assertTrue($activationGrantRepository->replace($earlier, $claimed));
+        self::assertSame([], $activationGrantRepository->findDue($this->at('12:04:59'), 10));
 
-        $due = $repository->findDue($this->at('12:05:00'), 1);
+        $due = $activationGrantRepository->findDue($this->at('12:05:00'), 1);
         self::assertCount(1, $due);
         self::assertSame($claimed->getDelivery()->getId()->toString(), $due[0]->getDeliveryId()->toString());
         self::assertSame(CredentialDeliveryStatus::CLAIMED, $due[0]->getStatus());
@@ -45,14 +45,14 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
         self::assertSame($claimed->getRevision(), $due[0]->getRevision());
         self::assertEquals($this->at('12:05:00'), $due[0]->getDueAt());
         self::assertStringNotContainsString('ciphertext', serialize($due[0]->toArray()));
-        self::assertSame([], $repository->findDue($this->at('12:05:00'), 0));
+        self::assertSame([], $activationGrantRepository->findDue($this->at('12:05:00'), 0));
     }
 
     public function test_concurrent_claims_and_stale_outcomes_have_one_complete_state_cas_winner(): void
     {
-        $repository = new InMemoryActivationGrantRepository();
+        $activationGrantRepository = new InMemoryActivationGrantRepository();
         $grant = $this->grant(UserId::generate(), 'once');
-        self::assertTrue($repository->add($grant));
+        self::assertTrue($activationGrantRepository->add($grant));
         $claimA = $grant->claimDelivery(
             CredentialDeliveryClaimToken::generate(),
             $this->at('12:00:00'),
@@ -64,53 +64,53 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
             $this->at('12:05:00')
         );
 
-        self::assertTrue($repository->replace(clone $grant, $claimA));
-        self::assertFalse($repository->replace(clone $grant, $claimB));
+        self::assertTrue($activationGrantRepository->replace(clone $grant, $claimA));
+        self::assertFalse($activationGrantRepository->replace(clone $grant, $claimB));
         $outcome = $claimA->failDelivery(
             $claimA->getDelivery()->getClaimToken(),
             $this->at('12:01:00'),
             CredentialDeliveryFailure::RETRYABLE_PROVIDER
         );
-        self::assertTrue($repository->replace(clone $claimA, $outcome));
-        self::assertFalse($repository->replace($claimA, $claimA->confirmDelivery(
+        self::assertTrue($activationGrantRepository->replace(clone $claimA, $outcome));
+        self::assertFalse($activationGrantRepository->replace($claimA, $claimA->confirmDelivery(
             $claimA->getDelivery()->getClaimToken(),
             $this->at('12:01:00')
         )));
-        self::assertSame($outcome, $repository->getById($grant->getId()));
-        self::assertSame($outcome, $repository->getByDeliveryId($grant->getDelivery()->getId()));
+        self::assertSame($outcome, $activationGrantRepository->getById($grant->getId()));
+        self::assertSame($outcome, $activationGrantRepository->getByDeliveryId($grant->getDelivery()->getId()));
     }
 
     public function test_writes_roll_back_with_the_callers_unit_of_work(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $repository = new InMemoryActivationGrantRepository($unitOfWork);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
         $grant = $this->grant(UserId::generate(), 'once');
 
         try {
-            $unitOfWork->commitTransactional(function () use ($repository, $grant): void {
-                self::assertTrue($repository->add($grant));
+            $unitOfWork->commitTransactional(function () use ($activationGrantRepository, $grant): void {
+                self::assertTrue($activationGrantRepository->add($grant));
                 throw new RuntimeException('rollback');
             });
         } catch (RuntimeException) {
         }
 
-        self::assertSame([], $repository->all());
+        self::assertSame([], $activationGrantRepository->all());
 
-        self::assertTrue($repository->add($grant));
+        self::assertTrue($activationGrantRepository->add($grant));
         $claimed = $grant->claimDelivery(
             CredentialDeliveryClaimToken::generate(),
             $this->at('12:00:00'),
             $this->at('12:05:00')
         );
         try {
-            $unitOfWork->commitTransactional(function () use ($repository, $grant, $claimed): void {
-                self::assertTrue($repository->replace($grant, $claimed));
+            $unitOfWork->commitTransactional(function () use ($activationGrantRepository, $grant, $claimed): void {
+                self::assertTrue($activationGrantRepository->replace($grant, $claimed));
                 throw new RuntimeException('rollback');
             });
         } catch (RuntimeException) {
         }
 
-        self::assertSame($grant, $repository->getLatestByUserId($grant->getUserId()));
+        self::assertSame($grant, $activationGrantRepository->getLatestByUserId($grant->getUserId()));
     }
 
     public function test_initial_and_successor_writes_reject_non_pristine_delivery_state_without_mutation(): void
@@ -144,35 +144,35 @@ final class InMemoryActivationGrantRepositoryTest extends TestCase
         ];
 
         foreach ($candidates as $candidate) {
-            $repository = new InMemoryActivationGrantRepository();
-            self::assertFalse($repository->add($candidate));
-            self::assertSame([], $repository->all());
+            $activationGrantRepository = new InMemoryActivationGrantRepository();
+            self::assertFalse($activationGrantRepository->add($candidate));
+            self::assertSame([], $activationGrantRepository->all());
 
             $predecessor = $this->grant($candidate->getUserId(), 'predecessor');
-            self::assertTrue($repository->add($predecessor));
+            self::assertTrue($activationGrantRepository->add($predecessor));
             $terminal = $predecessor->revoke($this->at('12:10:00'));
-            self::assertFalse($repository->replaceWithSuccessor($predecessor, $terminal, $candidate));
-            self::assertSame([$predecessor], $repository->all());
+            self::assertFalse($activationGrantRepository->replaceWithSuccessor($predecessor, $terminal, $candidate));
+            self::assertSame([$predecessor], $activationGrantRepository->all());
         }
     }
 
     public function test_successor_replacement_is_atomic_and_fences_historical_or_duplicate_authority(): void
     {
         $userId = UserId::generate();
-        $repository = new InMemoryActivationGrantRepository();
+        $activationGrantRepository = new InMemoryActivationGrantRepository();
         $predecessor = $this->grant($userId, 'old');
-        self::assertTrue($repository->add($predecessor));
+        self::assertTrue($activationGrantRepository->add($predecessor));
         $terminal = $predecessor->revoke($this->at('12:10:00'));
 
-        self::assertFalse($repository->replaceWithSuccessor(
+        self::assertFalse($activationGrantRepository->replaceWithSuccessor(
             $predecessor,
             $terminal,
             $this->grant($userId, 'old')
         ));
         $successor = $this->grant($userId, 'new');
-        self::assertTrue($repository->replaceWithSuccessor($predecessor, $terminal, $successor));
-        self::assertSame([$terminal, $successor], $repository->all());
-        self::assertFalse($repository->addSuccessor($this->grant($userId, 'third')));
+        self::assertTrue($activationGrantRepository->replaceWithSuccessor($predecessor, $terminal, $successor));
+        self::assertSame([$terminal, $successor], $activationGrantRepository->all());
+        self::assertFalse($activationGrantRepository->addSuccessor($this->grant($userId, 'third')));
     }
 
     private function withDelivery(

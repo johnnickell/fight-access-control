@@ -34,7 +34,10 @@ final class AgentNameComponentsTest extends TestCase
             self::assertEqualsCanonicalizing(array_keys($command->toArray()), $commandSchema['required']);
             self::assertEqualsCanonicalizing(array_keys($command->toArray()), array_keys($commandSchema['properties']));
             self::assertEqualsCanonicalizing(array_keys($initiator->toArray()), $initiatorSchema['required']);
-            self::assertEqualsCanonicalizing(array_keys($initiator->toArray()), array_keys($initiatorSchema['properties']));
+            self::assertEqualsCanonicalizing(
+                array_keys($initiator->toArray()),
+                array_keys($initiatorSchema['properties'])
+            );
             self::assertContains($initiator->getType()->value, $initiatorSchema['properties']['type']['enum']);
             self::assertEquals($command, UpdateAgent::fromArray($command->toArray()));
         }

@@ -27,7 +27,7 @@ final readonly class RefreshCredential
      */
     public static function fromString(string $value): self
     {
-        if (preg_match('/^[0-9a-f]{64}$/', $value) !== 1) {
+        if (preg_match('/\A[0-9a-f]{64}\z/', $value) !== 1) {
             throw new DomainException('The refresh credential must be a 256-bit hexadecimal value.');
         }
 

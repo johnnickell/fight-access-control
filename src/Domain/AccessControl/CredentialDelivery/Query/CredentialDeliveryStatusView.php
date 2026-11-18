@@ -5,10 +5,15 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDelivery;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
+use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
@@ -25,6 +30,7 @@ final readonly class CredentialDeliveryStatusView implements Arrayable
         private string $purpose,
         private string $deliveryId,
         private UserId $userId,
+        private ?EmailChangeGrantId $emailChangeGrantId,
         private int $revision,
         private CredentialDeliveryStatus $status,
         private DateTimeImmutable $dueAt,
@@ -39,12 +45,27 @@ final readonly class CredentialDeliveryStatusView implements Arrayable
     /**
      * Creates a safe view from package-owned delivery state
      */
-    public static function fromDelivery(string $purpose, CredentialDelivery $delivery, int $revision): self
-    {
+    public static function fromDelivery(
+        string $purpose,
+        CredentialDelivery $delivery,
+        int $revision,
+        ?EmailChangeGrantId $emailChangeGrantId
+    ): self {
+        $validPurpose = match ($purpose) {
+            'activation' => $delivery instanceof ActivationDelivery,
+            'password_reset' => $delivery instanceof PasswordResetDelivery,
+            'email_change' => $delivery instanceof EmailChangeDelivery,
+            default => false
+        };
+        if (!$validPurpose || $revision < 0 || ($purpose === 'email_change') !== ($emailChangeGrantId !== null)) {
+            throw new DomainException('Invalid credential-delivery status identity or revision.');
+        }
+
         return new self(
             $purpose,
             $delivery->getId()->toString(),
             $delivery->getUserId(),
+            $emailChangeGrantId,
             $revision,
             $delivery->getStatus(),
             $delivery->getNextAttemptAt(),
@@ -78,6 +99,14 @@ final readonly class CredentialDeliveryStatusView implements Arrayable
     public function getUserId(): UserId
     {
         return $this->userId;
+    }
+
+    /**
+     * Returns the corresponding email-change request identifier, if applicable
+     */
+    public function getEmailChangeGrantId(): ?EmailChangeGrantId
+    {
+        return $this->emailChangeGrantId;
     }
 
     /**
@@ -151,6 +180,7 @@ final readonly class CredentialDeliveryStatusView implements Arrayable
      *     purpose: string,
      *     delivery_id: string,
      *     user_id: string,
+     *     email_change_grant_id: ?string,
      *     revision: int,
      *     status: string,
      *     due_at: string,
@@ -164,17 +194,18 @@ final readonly class CredentialDeliveryStatusView implements Arrayable
     public function toArray(): array
     {
         return [
-            'purpose'         => $this->purpose,
-            'delivery_id'     => $this->deliveryId,
-            'user_id'         => $this->userId->toString(),
-            'revision'        => $this->revision,
-            'status'          => $this->status->value,
-            'due_at'          => $this->dueAt->format(DATE_ATOM),
-            'expires_at'      => $this->expiresAt->format(DATE_ATOM),
-            'attempt_count'   => $this->attemptCount,
-            'last_attempt_at' => $this->lastAttemptAt?->format(DATE_ATOM),
-            'last_outcome_at' => $this->lastOutcomeAt?->format(DATE_ATOM),
-            'last_failure'    => $this->lastFailure?->value
+            'purpose'               => $this->purpose,
+            'delivery_id'           => $this->deliveryId,
+            'user_id'               => $this->userId->toString(),
+            'email_change_grant_id' => $this->emailChangeGrantId?->toString(),
+            'revision'              => $this->revision,
+            'status'                => $this->status->value,
+            'due_at'                => $this->dueAt->format(DATE_ATOM),
+            'expires_at'            => $this->expiresAt->format(DATE_ATOM),
+            'attempt_count'         => $this->attemptCount,
+            'last_attempt_at'       => $this->lastAttemptAt?->format(DATE_ATOM),
+            'last_outcome_at'       => $this->lastOutcomeAt?->format(DATE_ATOM),
+            'last_failure'          => $this->lastFailure?->value
         ];
     }
 }

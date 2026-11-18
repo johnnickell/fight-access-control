@@ -1,7 +1,8 @@
-# Self-service Agent profile Tools (v0.5.0)
+# Self-service Agent profile Tools
 
-[TASK-00071](../planning/tasks/00071-TASK.md) adds two noninteractive Application `Agent\Tool` classes using
-Fight Common `^1.3`. They reuse the [minimal profile query](agent-profile.md), [generic rename](agent-name-updates.md)
+[TASK-00071](../planning/tasks/00071-TASK.md) introduced two noninteractive Tools in v0.5.0.
+[TASK-00108](../planning/tasks/00108-TASK.md) relocates them to `Fight\AccessControl\Adapter\Mcp\Tool\Agent`
+in the current checkout, using the existing qualified Common contracts (`^1.5.0`). They reuse the [minimal profile query](agent-profile.md), [generic rename](agent-name-updates.md)
 and [Agent-aware authorization](agent-mcp-authorization.md); they do not implement a second protocol or rename path.
 
 | Class | Canonical Common Tool name | Input | Required Permission |
@@ -11,11 +12,14 @@ and [Agent-aware authorization](agent-mcp-authorization.md); they do not impleme
 
 Both declarations reject additional properties. There is no caller-selected Agent ID, initiator, credential,
 Permission or lifecycle field. Each successful output contains exactly `{agent_id, name}`, plus Common's matching
-derived JSON text, not an authored success sentence. These are additive PHP/Tool contracts, with no existing API,
-persisted contract or OpenAPI component change. No endpoint or consumer adapter is supplied.
+derived JSON text, not an authored success sentence. Tool IDs, schemas, persisted contracts and OpenAPI components are unchanged by relocation. The PHP namespace and
+bus constructor parameter changes are pre-v1 breaking changes: update imports/registrations and named arguments
+directly; no old-name aliases are supplied. No endpoint or consumer bootstrap is supplied.
 
 ## Compose one protected request
 
+Authentication (`CurrentAgentPrincipalProvider`, `SignedAgentRequest`), Permission policy and synchronized
+continuation remain in Application/Domain; adapters own only protocol presentation and binding.
 Use a fresh `CurrentAgentPrincipalProvider`, `SignedAgentRequest` and nonempty safe correlation ID for each MCP
 request. Pass **that same provider, request and correlation** to both Tools and `AgentToolAvailability`. The provider
 resolves lazily during availability and returns the same immutable principal during Tool execution, without a second
@@ -23,20 +27,20 @@ authentication/nonce transaction. Transport authentication may resolve that same
 Tools, provider or availability across requests or jobs, even when the signed credential has not changed.
 
 ```php
-use Fight\AccessControl\Application\AccessControl\Agent\AgentToolPermissionCatalog;
-use Fight\AccessControl\Application\AccessControl\Agent\Security\AgentToolAvailability;
-use Fight\AccessControl\Application\AccessControl\Agent\Tool\AgentProfileToolFailures;
-use Fight\AccessControl\Application\AccessControl\Agent\Tool\GetAgentProfileTool;
-use Fight\AccessControl\Application\AccessControl\Agent\Tool\UpdateAgentProfileTool;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentProfileToolFailures;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolAvailability;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\AgentToolPermissionCatalog;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\GetAgentProfileTool;
+use Fight\AccessControl\Adapter\Mcp\Tool\Agent\UpdateAgentProfileTool;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 
-// Request-scoped dependencies; $commands implements Common SynchronousCommandBus.
+// Request-scoped dependencies; $synchronousCommandBus implements Common SynchronousCommandBus.
 $tools = [
-    new GetAgentProfileTool($provider, $signedRequest, $correlationId, $queries),
-    new UpdateAgentProfileTool($provider, $signedRequest, $correlationId, $commands)
+    new GetAgentProfileTool($provider, $signedRequest, $correlationId, queryBus: $queryBus),
+    new UpdateAgentProfileTool($provider, $signedRequest, $correlationId, synchronousCommandBus: $synchronousCommandBus)
 ];
 $registry = new McpToolRegistry($tools);
 $catalog = new AgentToolPermissionCatalog($registry);
@@ -46,7 +50,7 @@ $invoker = new McpToolInvoker($registry, $availability, failures: AgentProfileTo
 $invocation = new McpToolInvocation($invoker);
 ```
 
-Here `$queries` is Common `QueryBus`, registering `GetAgentProfile` with `GetAgentProfileHandler`; `$commands`
+Here `$queryBus` is Common `QueryBus`, registering `GetAgentProfile` with `GetAgentProfileHandler`; `$synchronousCommandBus`
 registers `UpdateAgent` with `UpdateAgentHandler`. The latter is explicitly `SynchronousCommandBus`, not an async
 queue or a result-bearing bus. Handlers use consumer implementations of the existing Domain repositories and
 transaction/clock/event contracts. The cursor key is consumer-managed, at least 32 bytes, not an Agent credential.
@@ -65,13 +69,22 @@ request retains its snapshot. Fresh profile reads and ACTIVE-state rename fences
 
 ## Read and update outcomes
 
-A read dispatches `GetAgentProfile` using only the authenticated principal's Agent ID. Every invocation fetches a
+A read dispatches `GetAgentProfile` using only the authenticated principal's Agent ID. Its result is non-null or
+throws deliberate Common Application `ResourceNotFound`; the exact-class Tool binding preserves the unavailable
+message for both missing and revoked targets. Generic `LookupException` (including missing bus configuration) and
+identity/result faults stay unmapped internal errors, never profile absence. Every invocation fetches a
 fresh minimal ACTIVE profile. Missing and revoked targets both produce the same safe unavailable failure. No
 Permission lookup, name cache, mutation, transaction or event belongs to the read itself; request authentication
 retains its existing separate nonce transaction. Repository faults are not absence or a successful cached read.
 
-An update normalizes `name` through `AgentName::fromString()` (PHP `trim`, nonempty, at most 120 characters **after**
-trimming). Common's input schema validates the string shape; the Domain value owns name semantics. Invalid names
+An update normalizes `name` through `AgentName::fromString()`, shared with provisioning: trim the
+[fixed Unicode edge set plus NUL](agent-canonical-upgrades.md#supported-representation), require nonempty UTF-8 and
+at most 120 code points **after** trimming, preserve case/internal whitespace, no NFC conversion. U+200B/U+FEFF remain.
+This intentionally replaces rename's previous PHP `trim` semantics before v1: NBSP/ideographic padding now trims,
+and Unicode-whitespace-only names reject. Common's input schema validates the string shape, not raw length;
+the Domain value owns name semantics. `ApplicationData::get()` remains dynamic: the Tool validates a string
+at its own extraction boundary, including direct in-process calls, rather than asserting a mixed value with PHPDoc.
+This does not make direct calls authorized or duplicate Common's whole-object schema validator. Invalid names
 return a safe Tool failure before dispatch or a write. Both the command's target and typed Agent initiator come only
 from the authenticated principal, never input. Initiator identity records provenance, not authorization.
 
@@ -87,8 +100,12 @@ bindings, never throwable text:
 | Failure class | Safe Tool message |
 | --- | --- |
 | `AgentNameException` | `The Agent name is invalid.` |
-| `AgentUpdateException`, Common `LookupException` | `The Agent profile is unavailable.` |
 | `AgentOperationRejectedException` | `The Agent profile operation could not be completed.` |
+| Common Application `InvalidInput` | `The Agent name is invalid.` |
+| Common Application `ResourceNotFound` | `The Agent profile is unavailable.` |
+| Common Application `StateConflict` | `The Agent profile operation could not be completed.` |
+
+Generic Domain `AgentUpdateException` is deliberately unmapped and remains an internal error.
 
 Expected mapped failures are Common `isError: true` Tool results without structured success content. They are distinct
 from pre-execution unknown/unavailable concealment. Unmapped exceptions propagate through Common's diagnostic boundary;
@@ -114,6 +131,30 @@ Consumers must protect every other generic `UpdateAgent` and `GetAgentProfile` e
 bus/repository access) with caller/target policy. These Tools expose self-service only; no administrator endpoint is
 created. Consumers own transport authentication, exposed-tool selection, request lifetimes, TLS/limits/origins,
 persistence and shared fences, event/diagnostic sanitization, seeding/grants and actual runtime composition.
+
+## Current contract dispositions (TASK-00147)
+
+The refreshed primary boundary is exactly six declarations under `src/Adapter/Mcp/Tool/Agent`; no production
+addition, move or removal is needed. All members and the catalog/availability callbacks are accounted for below.
+Supplier semantics remain with [required-resource Queries](required-resource-queries.md),
+[Query dispatch](query-dispatch-contracts.md) and [Agent administration](agent-administration-contracts.md).
+
+| Declaration / members | Disposition and executable evidence |
+| --- | --- |
+| `GetAgentProfileTool`: constructor's provider/request/correlation/QueryBus; `handle()` metadata, principal target, fetch, output | Unchanged. Actual `GetAgentProfileHandler` returns non-null `AgentProfileView` or throws. The precise known-caller annotation is permitted by TASK-00128; no generic inference, cast, result check or nullable fallback is claimed. Real routing and exact fresh structured/derived-text results: `AgentProfileToolsTest`, `GetAgentProfileToolTest`. |
+| `UpdateAgentProfileTool`: constructor's provider/request/correlation/synchronous bus; `handle()` metadata, name extraction/normalization, void dispatch, acknowledgement | Corrected dynamic name extraction with native `is_string` validation and deliberate `InvalidInput`. Schemas, typed principal initiator/target, normalized request acknowledgement and no extra read/Event stay unchanged. Seven malformed dynamic inputs plus Domain-name cases: `UpdateAgentProfileToolTest`; real/no-op/change/rollback/postcommit composition: `AgentProfileToolsTest`. |
+| `AgentProfileToolFailures::create()` | Unchanged exact-class map: Domain `AgentNameException` at Tool normalization; Application `InvalidInput`, `ResourceNotFound`, `StateConflict` at corrected handlers; `AgentOperationRejectedException` still produced by repository cohort/correlation admission. Retain its authored constant, not a blanket Domain-base/HTTP binding. Real correlated refusal/conflict and unregistered subclass checks: `AgentProfileToolsTest`. |
+| `AgentToolPermissionCatalog`: `$requirements`, constructor, include-all callback, `requirementsFor()` | Unchanged. Dynamic `array<mixed>` configuration is fully validated; private shape retains exact `McpToolInfo` plus nonempty `PermissionName` list. Registry `find()` assertion records Common's construction-owned available/find identity invariant, not a Query result assertion. Reflection instantiation remains inside deliberate construction failure wrapping. Equal requirements deduplicate; requirements are conjunctive. `AgentToolPermissionCatalogTest` covers all branches, including mixed explicit/attribute composition added by TASK-00084. |
+| `Attribute\RequiresAgentPermission`: constructor, `$permissionName`, getter and Attribute target/repeatability | Unchanged validated `string` → `PermissionName`, immutable method-only repeatable declaration. `RequiresAgentPermissionTest` and catalog tests prove malformed declarations reject and metadata alone never grants execution. |
+| `AgentToolAvailability`: constructor collaborators, `$resolved`, nullable `$principal`, `isAvailable()` and Permission predicate | Unchanged request-only one-resolution state. Foreign descriptors deny before resolution; any resolution throwable is deliberately contained before execution, unlike Resource/Skill propagation. `array_all` receives native `PermissionName` values and keeps all-of semantics. `AgentToolAvailabilityTest` proves successful/failed resolution caching, nonce, freshness, concealment and protected retry; `MixedAgentToolsTest` proves current Common-owned Tool composition. |
+
+Static fixtures add nine exact positive probes and three rejected incompatible descriptor/input/nullable-list uses.
+They explicitly retain mixed `ApplicationData` and QueryBus returns; the annotated known profile result exports
+exactly `array{agent_id: string, name: string}`. Owned source receives focused level-8 analysis separately.
+The fixtures do not enforce runtime generics or qualify authentication/storage. No current caller needs another nullable
+check or retired `LookupException` catch; external consumers must catch deliberate Application absence and protect
+all alternate dispatch paths. Native protocol-exclusion fixtures keep MCP/OAuth outside ordinary HTTP/JSend handling.
+These current-contract corrections are pre-v1 breaking caller/adapter obligations, without compatibility modes.
 
 ## Evidence and limits
 

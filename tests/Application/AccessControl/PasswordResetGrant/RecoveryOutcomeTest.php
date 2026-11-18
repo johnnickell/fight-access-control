@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant;
 
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\DeliverPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\RequestPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetRevocationService;
+use Fight\AccessControl\Application\AccessControl\RefreshSession\SessionLifecycle;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssuer;
+use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DeleteUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUserHandler;
-use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationService;
+use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\Event\RedactedCommandFailed;
@@ -21,7 +26,11 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
 
-#[CoversClass(AuthenticationService::class)]
+#[CoversClass(UserAuthentication::class)]
+#[CoversClass(TokenIssuer::class)]
+#[CoversClass(PasswordManagement::class)]
+#[CoversClass(SessionLifecycle::class)]
+#[CoversClass(EmailChangeConfirmation::class)]
 #[CoversClass(DeleteUserHandler::class)]
 #[CoversClass(DisableUserHandler::class)]
 #[CoversClass(DeliverPasswordResetHandler::class)]
@@ -41,7 +50,7 @@ final class RecoveryOutcomeTest extends TestCase
                 }
 
                 $beforeUser = clone $fixture->user();
-                $beforeGrants = $fixture->grants->all();
+                $beforeGrants = $fixture->passwordResetGrantRepository->all();
                 $primary = new RuntimeException('Synthetic interrupted completion.');
                 $hook = static function () use ($fixture, $operation, $primary): void {
                     if ($operation !== 'outcome' || $fixture->unitOfWork->transactions === 3) {
@@ -62,6 +71,15 @@ final class RecoveryOutcomeTest extends TestCase
                 }
 
                 self::assertSame($primary, $caught);
+                if (in_array($operation, ['request', 'claim', 'outcome'], true)) {
+                    $expectedAuditCount = (int) ($operation !== 'request');
+                    if ($committed && $operation !== 'claim') {
+                        ++$expectedAuditCount;
+                    }
+
+                    self::assertCount($expectedAuditCount, $fixture->auditEvidenceRepository->all());
+                }
+
                 $restarted = $fixture->connection();
                 self::assertFalse($fixture->unitOfWork->transactionActive);
                 self::assertFalse($fixture->userState->isAuthenticationAuthorityFenceHeld($fixture->userId));
@@ -73,10 +91,10 @@ final class RecoveryOutcomeTest extends TestCase
                             $restarted->grant()->getDelivery()->getStatus()
                         );
                     } else {
-                        self::assertEquals($beforeGrants, $restarted->grants->all());
+                        self::assertEquals($beforeGrants, $restarted->passwordResetGrantRepository->all());
                     }
                 } elseif ($operation === 'request') {
-                    self::assertCount(1, $restarted->grants->all());
+                    self::assertCount(1, $restarted->passwordResetGrantRepository->all());
                     self::assertTrue($restarted->grant()->isAuthorizedBy($restarted->user()));
                 } elseif ($operation === 'claim') {
                     self::assertSame(
@@ -121,14 +139,16 @@ final class RecoveryOutcomeTest extends TestCase
 
             $primary = new RuntimeException('Synthetic detail. recovery-fixture fixture:encrypted');
             $attempts = [];
-            $fixture->events = new InMemoryEventDispatcher(static function ($event) use (&$attempts, $primary): void {
-                $attempts[] = $event;
-                if ($event instanceof CommandFailedEvent || $event instanceof RedactedCommandFailed) {
-                    throw new RuntimeException('Synthetic secondary failure.');
-                }
+            $fixture->eventDispatcher = new InMemoryEventDispatcher(
+                static function ($event) use (&$attempts, $primary): void {
+                    $attempts[] = $event;
+                    if ($event instanceof CommandFailedEvent || $event instanceof RedactedCommandFailed) {
+                        throw new RuntimeException('Synthetic secondary failure.');
+                    }
 
-                throw $primary;
-            });
+                    throw $primary;
+                }
+            );
             $caught = null;
             try {
                 $this->operate($fixture, $operation);
@@ -146,11 +166,11 @@ final class RecoveryOutcomeTest extends TestCase
             self::assertStringNotContainsString('Synthetic detail', $serialized);
             if ($operation === 'request') {
                 self::assertTrue($fixture->grant()->isIssued());
-                self::assertCount(1, $fixture->audit->all());
+                self::assertCount(1, $fixture->auditEvidenceRepository->all());
             } else {
                 self::assertFalse($fixture->grant()->isIssued());
                 self::assertNull($fixture->grant()->getDelivery()->getEncryptedMaterial());
-                self::assertCount(2, $fixture->audit->all());
+                self::assertCount(2, $fixture->auditEvidenceRepository->all());
             }
         }
     }
@@ -160,13 +180,14 @@ final class RecoveryOutcomeTest extends TestCase
         if ($operation === 'request') {
             $fixture->request();
         } elseif ($operation === 'reset') {
-            $fixture->service()->resetPassword(
+            $fixture->passwordManagement()->resetPassword(
                 $fixture->userId,
                 'recovery-fixture',
-                'a sufficiently long recovered password'
+                'a sufficiently long recovered password',
+                AnonymousId::generate()
             );
         } elseif ($operation === 'password') {
-            $fixture->service()->changePassword(
+            $fixture->passwordManagement()->changePassword(
                 $fixture->userId,
                 'correct-secret',
                 'a sufficiently long changed password'

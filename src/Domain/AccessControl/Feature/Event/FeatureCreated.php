@@ -46,7 +46,9 @@ final readonly class FeatureCreated implements Event
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical event payload
+     *
+     * @return array{feature_id: string, name: string, permission_id: string}
      */
     public function toArray(): array
     {

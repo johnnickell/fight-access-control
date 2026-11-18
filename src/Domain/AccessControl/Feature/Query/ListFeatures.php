@@ -33,11 +33,23 @@ final readonly class ListFeatures implements Query
             }
         }
 
-        return new self(new Pagination((int) $data['page'], (int) $data['per_page'], $data['orderings']));
+        if (!is_int($data['page']) || !is_int($data['per_page']) || !is_array($data['orderings'])) {
+            throw new DomainException('Pagination requires integer bounds and an ordering map.');
+        }
+
+        foreach ($data['orderings'] as $field => $direction) {
+            if (!is_string($field) || !is_string($direction)) {
+                throw new DomainException('Pagination ordering fields and directions must be strings.');
+            }
+        }
+
+        return new self(new Pagination($data['page'], $data['per_page'], $data['orderings']));
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical query payload
+     *
+     * @return array{page: int, per_page: int, orderings: array<string, string>}
      */
     public function toArray(): array
     {

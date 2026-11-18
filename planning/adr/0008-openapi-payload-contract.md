@@ -6,7 +6,7 @@
 ## Decision
 
 The package will publish components for every public Domain Command and Query, every safe query result, and every
-synchronous `AuthenticationService` operation. Command and Query components mirror their canonical `toArray()`
+[synchronous User capability](../../docs/user-authentication.md) operation. Command and Query components mirror their canonical `toArray()`
 fields and snake case; fields describe package values rather than HTTP location. Context-owned IDs are UUID strings,
 timestamps are `date-time`, and enums expose their current serialized values.
 

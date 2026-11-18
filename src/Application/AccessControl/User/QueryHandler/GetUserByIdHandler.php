@@ -6,10 +6,11 @@ namespace Fight\AccessControl\Application\AccessControl\User\QueryHandler;
 
 use Fight\AccessControl\Domain\AccessControl\User\Query\GetUserById;
 use Fight\AccessControl\Domain\AccessControl\User\Query\UserView;
-use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use UnexpectedValueException;
 
 /**
  * Class GetUserByIdHandler
@@ -38,14 +39,18 @@ final readonly class GetUserByIdHandler implements QueryHandler
     /**
      * @inheritDoc
      */
-    public function handle(QueryMessage $queryMessage): ?UserView
+    public function handle(QueryMessage $queryMessage): UserView
     {
         /** @var GetUserById $query */
         $query = $queryMessage->payload();
         $user = $this->userRepository->getById($query->getUserId());
 
-        if (!$user instanceof User) {
-            return null;
+        if ($user === null) {
+            throw new ResourceNotFound('The User is unavailable.');
+        }
+
+        if (!$user->getId()->equals($query->getUserId())) {
+            throw new UnexpectedValueException('The User lookup returned a different identity.');
         }
 
         return UserView::fromUser($user);

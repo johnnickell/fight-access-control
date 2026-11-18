@@ -16,13 +16,13 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\RetryInvitationDelivery;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
@@ -64,20 +64,20 @@ final class ActivationOriginRecoveryTest extends TestCase
                 );
                 self::assertSame(
                     CredentialDeliveryStatus::CLAIMED,
-                    $fixture->grants->all()[0]->getDelivery()->getStatus()
+                    $fixture->activationGrantRepository->all()[0]->getDelivery()->getStatus()
                 );
             });
             $fixture->worker($provider)->handle(CommandMessage::create($this->command($fixture->initial)));
             self::assertCount(1, $provider->invocations());
-            self::assertSame($origin, $fixture->grants->all()[0]->getOrigin());
-            self::assertTrue($fixture->grants->all()[0]->isIssued());
+            self::assertSame($origin, $fixture->activationGrantRepository->all()[0]->getOrigin());
+            self::assertTrue($fixture->activationGrantRepository->all()[0]->isIssued());
             self::assertSame(
                 UserState::PENDING_ACTIVATION,
-                $fixture->users->getById($fixture->user->getId())?->getState()
+                $fixture->userRepository->getById($fixture->user->getId())?->getState()
             );
             self::assertSame(
                 CredentialDeliveryStatus::DELIVERED,
-                $fixture->grants->all()[0]->getDelivery()->getStatus()
+                $fixture->activationGrantRepository->all()[0]->getDelivery()->getStatus()
             );
         }
     }
@@ -91,31 +91,35 @@ final class ActivationOriginRecoveryTest extends TestCase
                     new RuntimeException('private vendor diagnostic')
                 ]);
                 $fixture->worker($provider)->handle(CommandMessage::create($this->command($fixture->initial)));
-                $failed = $fixture->grants->all()[0];
+                $failed = $fixture->activationGrantRepository->all()[0];
                 self::assertSame(CredentialDeliveryStatus::RETRY_PENDING, $failed->getDelivery()->getStatus());
                 self::assertSame([], $fixture->discover('2030-01-01T00:00:59Z'));
                 if ($manualRetry) {
                     new RetryInvitationDeliveryHandler(
-                        $fixture->grants,
-                        $fixture->audit,
+                        $fixture->activationGrantRepository,
                         $fixture->unitOfWork,
                         new FixedClock('2030-01-01T00:00:01Z'),
-                        new InMemoryEventDispatcher()
-                    )->handle(CommandMessage::create(new RetryInvitationDelivery('worker', $fixture->user->getId())));
+                        new InMemoryEventDispatcher(),
+                        $fixture->auditEvidenceRepository
+                    )->handle(CommandMessage::create(new RetryInvitationDelivery(
+                        SystemId::generate(),
+                        $fixture->user->getId()
+                    )));
                 }
 
-                $fixture->grants = $fixture->grants->restart();
+                $fixture->activationGrantRepository = $fixture->activationGrantRepository->restart();
                 $due = $fixture->discover('2030-01-01T00:01:00Z');
                 self::assertCount(1, $due);
                 self::assertSame('activation', $due[0]->getPurpose());
                 $fixture->worker($provider, '2030-01-01T00:01:00Z')->handle(CommandMessage::create(
                     DeliverUserInvitation::fromArray([
-                        'actor_id'               => 'restarted-worker',
+                        'actor_kind'             => 'system',
+                        'actor_id'               => SystemId::generate()->toString(),
                         'user_id'                => $due[0]->getUserId()->toString(),
                         'activation_delivery_id' => $due[0]->getDeliveryId()->toString()
                     ])
                 ));
-                $stored = $fixture->grants->all()[0];
+                $stored = $fixture->activationGrantRepository->all()[0];
                 self::assertSame($origin, $stored->getOrigin());
                 self::assertSame(2, $stored->getDelivery()->getAttemptCount());
                 self::assertSame(CredentialDeliveryStatus::DELIVERED, $stored->getDelivery()->getStatus());
@@ -130,7 +134,8 @@ final class ActivationOriginRecoveryTest extends TestCase
                 $safe = json_encode(CredentialDeliveryStatusView::fromDelivery(
                     'activation',
                     $stored->getDelivery(),
-                    $stored->getRevision()
+                    $stored->getRevision(),
+                    null
                 )->toArray(), JSON_THROW_ON_ERROR);
                 foreach (['origin-fixture', 'ciphertext:', 'private vendor diagnostic'] as $secret) {
                     self::assertStringNotContainsString($secret, $safe);
@@ -145,9 +150,9 @@ final class ActivationOriginRecoveryTest extends TestCase
             foreach ([1, 2] as $failedTransaction) {
                 $fixture = new ActivationOriginFixture($origin, new InMemoryUnitOfWork($failedTransaction));
                 $provider = new RecordingCredentialDeliveryProvider();
-                $events = new InMemoryEventDispatcher();
+                $eventDispatcher = new InMemoryEventDispatcher();
                 try {
-                    $fixture->worker($provider, events: $events)->handle(
+                    $fixture->worker($provider, eventDispatcher: $eventDispatcher)->handle(
                         CommandMessage::create($this->command($fixture->initial))
                     );
                     self::fail('The injected commit failure was accepted.');
@@ -156,14 +161,14 @@ final class ActivationOriginRecoveryTest extends TestCase
                 }
 
                 self::assertCount($failedTransaction - 1, $provider->invocations());
-                self::assertSame($origin, $fixture->grants->all()[0]->getOrigin());
-                self::assertSame([], $fixture->audit->all());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertSame($origin, $fixture->activationGrantRepository->all()[0]->getOrigin());
+                self::assertSame([], $fixture->auditEvidenceRepository->all());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
                 self::assertSame(
                     $this->command($fixture->initial)->toArray(),
-                    $events->events()[0]->getCommand()->toArray()
+                    $eventDispatcher->events()[0]->getCommand()->toArray()
                 );
-                $fixture->grants = $fixture->grants->restart();
+                $fixture->activationGrantRepository = $fixture->activationGrantRepository->restart();
                 if ($failedTransaction === 2) {
                     self::assertSame([], $fixture->discover('2030-01-01T00:04:59Z'));
                 }
@@ -175,7 +180,7 @@ final class ActivationOriginRecoveryTest extends TestCase
                 );
                 self::assertSame(
                     CredentialDeliveryStatus::DELIVERED,
-                    $fixture->grants->all()[0]->getDelivery()->getStatus()
+                    $fixture->activationGrantRepository->all()[0]->getDelivery()->getStatus()
                 );
                 foreach ($provider->invocations() as $invocation) {
                     self::assertSame($origin, $invocation->getActivationOrigin());
@@ -209,26 +214,26 @@ final class ActivationOriginRecoveryTest extends TestCase
                         self::assertSame('Uncertain transaction result.', $exception->getMessage());
                     }
 
-                    $fixture->grants = $fixture->grants->restart();
-                    $stored = $fixture->grants->all()[0];
+                    $fixture->activationGrantRepository = $fixture->activationGrantRepository->restart();
+                    $stored = $fixture->activationGrantRepository->all()[0];
                     self::assertSame($origin, $stored->getOrigin());
                     self::assertCount($uncertainAt - 1, $provider->invocations());
                     $due = $fixture->discover('2030-01-01T00:05:00Z');
                     if ($uncertainAt === 2 && $committed) {
                         self::assertSame(CredentialDeliveryStatus::DELIVERED, $stored->getDelivery()->getStatus());
                         self::assertSame([], $due);
-                        self::assertCount(1, $fixture->audit->all());
+                        self::assertCount(1, $fixture->auditEvidenceRepository->all());
                         continue;
                     }
 
                     self::assertCount(1, $due);
-                    self::assertSame([], $fixture->audit->all());
+                    self::assertSame([], $fixture->auditEvidenceRepository->all());
                     $fixture->worker($provider, '2030-01-01T00:05:00Z')->handle(
                         CommandMessage::create($this->command($fixture->initial))
                     );
                     self::assertSame(
                         CredentialDeliveryStatus::DELIVERED,
-                        $fixture->grants->all()[0]->getDelivery()->getStatus()
+                        $fixture->activationGrantRepository->all()[0]->getDelivery()->getStatus()
                     );
                     foreach ($provider->invocations() as $invocation) {
                         self::assertSame($origin, $invocation->getActivationOrigin());
@@ -246,7 +251,10 @@ final class ActivationOriginRecoveryTest extends TestCase
     {
         foreach (ActivationOrigin::cases() as $origin) {
             $fixture = new ActivationOriginFixture($origin);
-            $command = CommandMessage::create(new ResendInvitationDelivery('worker', $fixture->user->getId()));
+            $command = CommandMessage::create(new ResendInvitationDelivery(
+                SystemId::generate(),
+                $fixture->user->getId()
+            ));
             $fixture->unitOfWork->failNextCommit = true;
             try {
                 $fixture->resend()->handle($command);
@@ -254,29 +262,29 @@ final class ActivationOriginRecoveryTest extends TestCase
             } catch (RuntimeException) {
             }
 
-            self::assertCount(1, $fixture->grants->all());
-            self::assertEquals($fixture->initial, $fixture->grants->all()[0]);
-            self::assertSame([], $fixture->audit->all());
+            self::assertCount(1, $fixture->activationGrantRepository->all());
+            self::assertEquals($fixture->initial, $fixture->activationGrantRepository->all()[0]);
+            self::assertSame([], $fixture->auditEvidenceRepository->all());
             $fault = new RuntimeException('Publication failed.');
-            $events = new InMemoryEventDispatcher(static function ($event) use ($fault): void {
+            $eventDispatcher = new InMemoryEventDispatcher(static function ($event) use ($fault): void {
                 if (!$event instanceof CommandFailedEvent) {
                     throw $fault;
                 }
             });
             try {
-                $fixture->resend($events)->handle($command);
+                $fixture->resend($eventDispatcher)->handle($command);
                 self::fail('Publication failure was hidden.');
             } catch (RuntimeException $exception) {
                 self::assertSame($fault, $exception);
             }
 
-            self::assertCount(2, $fixture->grants->all());
-            self::assertTrue($fixture->grants->all()[0]->isRevoked());
-            self::assertSame($origin, $fixture->grants->all()[0]->getOrigin());
-            self::assertNull($fixture->grants->all()[0]->getDelivery()->getEncryptedMaterial());
-            self::assertCount(1, $fixture->audit->all());
-            $fixture->grants = $fixture->grants->restart();
-            $successor = $fixture->grants->all()[1];
+            self::assertCount(2, $fixture->activationGrantRepository->all());
+            self::assertTrue($fixture->activationGrantRepository->all()[0]->isRevoked());
+            self::assertSame($origin, $fixture->activationGrantRepository->all()[0]->getOrigin());
+            self::assertNull($fixture->activationGrantRepository->all()[0]->getDelivery()->getEncryptedMaterial());
+            self::assertCount(1, $fixture->auditEvidenceRepository->all());
+            $fixture->activationGrantRepository = $fixture->activationGrantRepository->restart();
+            $successor = $fixture->activationGrantRepository->all()[1];
             self::assertSame($origin, $successor->getOrigin());
             self::assertFalse($successor->getDelivery()->getId()->equals($fixture->initial->getDelivery()->getId()));
             self::assertFalse($successor->matchesCredential(ActivationCredential::fromString('origin-fixture')));
@@ -286,7 +294,7 @@ final class ActivationOriginRecoveryTest extends TestCase
                     CommandMessage::create($this->command($fixture->initial))
                 );
                 self::fail('Obsolete work invoked the provider.');
-            } catch (ActivationDeliveryNotRetryableException) {
+            } catch (StateConflict) {
                 self::assertCount(0, $provider->invocations());
             }
 
@@ -308,18 +316,18 @@ final class ActivationOriginRecoveryTest extends TestCase
             $fixture = new ActivationOriginFixture($origin);
             $provider = new RecordingCredentialDeliveryProvider(onDeliver: static function () use ($fixture): void {
                 $fixture->resend()->handle(CommandMessage::create(new ResendInvitationDelivery(
-                    'worker',
+                    SystemId::generate(),
                     $fixture->user->getId()
                 )));
             });
             try {
                 $fixture->worker($provider)->handle(CommandMessage::create($this->command($fixture->initial)));
                 self::fail('An obsolete provider outcome overwrote the successor.');
-            } catch (ActivationDeliveryNotRetryableException) {
+            } catch (StateConflict) {
                 self::assertCount(1, $provider->invocations());
             }
 
-            $successor = $fixture->grants->all()[1];
+            $successor = $fixture->activationGrantRepository->all()[1];
             self::assertSame($origin, $successor->getOrigin());
             self::assertSame(0, $successor->getRevision());
             self::assertSame(CredentialDeliveryStatus::PENDING, $successor->getDelivery()->getStatus());
@@ -337,14 +345,14 @@ final class ActivationOriginRecoveryTest extends TestCase
             foreach ([CredentialDeliveryOutcome::PERMANENT_FAILURE, CredentialDeliveryOutcome::DELIVERED] as $outcome) {
                 $fixture = new ActivationOriginFixture($origin);
                 $fault = new RuntimeException('Publication failed.');
-                $events = new InMemoryEventDispatcher(static function ($event) use ($fault): void {
+                $eventDispatcher = new InMemoryEventDispatcher(static function ($event) use ($fault): void {
                     if (!$event instanceof CommandFailedEvent) {
                         throw $fault;
                     }
                 });
                 $provider = new RecordingCredentialDeliveryProvider([$outcome]);
                 try {
-                    $fixture->worker($provider, events: $events)->handle(
+                    $fixture->worker($provider, eventDispatcher: $eventDispatcher)->handle(
                         CommandMessage::create($this->command($fixture->initial))
                     );
                     self::assertSame(CredentialDeliveryOutcome::PERMANENT_FAILURE, $outcome);
@@ -353,14 +361,14 @@ final class ActivationOriginRecoveryTest extends TestCase
                     self::assertSame(CredentialDeliveryOutcome::DELIVERED, $outcome);
                 }
 
-                $fixture->grants = $fixture->grants->restart();
-                $stored = $fixture->grants->all()[0];
+                $fixture->activationGrantRepository = $fixture->activationGrantRepository->restart();
+                $stored = $fixture->activationGrantRepository->all()[0];
                 self::assertSame($origin, $stored->getOrigin());
                 self::assertSame($origin, $provider->invocations()[0]->getActivationOrigin());
                 self::assertTrue($stored->isIssued());
                 self::assertNull($stored->getDelivery()->getEncryptedMaterial());
                 self::assertSame(2, $stored->getRevision());
-                self::assertCount(1, $fixture->audit->all());
+                self::assertCount(1, $fixture->auditEvidenceRepository->all());
                 self::assertSame([], $fixture->discover('2030-01-01T00:01:00Z'));
             }
         }
@@ -370,17 +378,16 @@ final class ActivationOriginRecoveryTest extends TestCase
     {
         foreach (ActivationOrigin::cases() as $origin) {
             $fixture = new ActivationOriginFixture($origin);
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
             $handler = new CorrectPendingInvitationHandler(
-                $fixture->users,
-                $fixture->grants,
-                new ActivationService\FixedInvitationAdministrationAuthorization(true),
-                $fixture->audit,
+                $fixture->userRepository,
+                $fixture->activationGrantRepository,
                 $fixture->unitOfWork,
                 new ActivationService\FixedCredentialGenerator('corrected-fixture'),
                 new ActivationService\PrefixInvitationDeliveryCipher(),
                 new FixedClock('2030-01-01T00:01:00Z'),
-                $events
+                $eventDispatcher,
+                $fixture->auditEvidenceRepository
             );
             try {
                 $handler->handle(CommandMessage::create(new CorrectPendingInvitation(
@@ -389,9 +396,9 @@ final class ActivationOriginRecoveryTest extends TestCase
                     EmailAddress::fromString('corrected@example.test')
                 )));
                 self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $origin);
-                $successor = $fixture->grants->all()[1];
+                $successor = $fixture->activationGrantRepository->all()[1];
                 self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $successor->getOrigin());
-                self::assertTrue($fixture->grants->all()[0]->isRevoked());
+                self::assertTrue($fixture->activationGrantRepository->all()[0]->isRevoked());
                 $provider = new RecordingCredentialDeliveryProvider();
                 $fixture->worker($provider, '2030-01-01T00:01:00Z')->handle(
                     CommandMessage::create($this->command($successor))
@@ -401,23 +408,23 @@ final class ActivationOriginRecoveryTest extends TestCase
                     ActivationOrigin::PRIVATE_INVITATION,
                     $provider->invocations()[0]->getActivationOrigin()
                 );
-            } catch (PendingInvitationCorrectionException) {
+            } catch (StateConflict) {
                 self::assertSame(ActivationOrigin::REGISTRATION, $origin);
                 self::assertSame(
                     'origin@example.test',
-                    $fixture->users->getById($fixture->user->getId())?->getEmail()->canonical()
+                    $fixture->userRepository->getById($fixture->user->getId())?->getEmail()->canonical()
                 );
-                self::assertCount(1, $fixture->grants->all());
-                self::assertEquals($fixture->initial, $fixture->grants->all()[0]);
-                self::assertSame([], $fixture->audit->all());
-                self::assertCount(1, $events->events());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+                self::assertCount(1, $fixture->activationGrantRepository->all());
+                self::assertEquals($fixture->initial, $fixture->activationGrantRepository->all()[0]);
+                self::assertSame([], $fixture->auditEvidenceRepository->all());
+                self::assertCount(1, $eventDispatcher->events());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
 
     private function command(ActivationGrant $grant): DeliverUserInvitation
     {
-        return new DeliverUserInvitation('worker', $grant->getUserId(), $grant->getDelivery()->getId());
+        return new DeliverUserInvitation(SystemId::generate(), $grant->getUserId(), $grant->getDelivery()->getId());
     }
 }

@@ -82,15 +82,20 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
     public function test_reference_lookup_failure_propagates_from_preview_and_apply(bool $notificationFails): void
     {
         $unit = new InMemoryUnitOfWork();
-        $permissions = new InMemoryPermissionRepository($unit);
-        $roles = new InMemoryRoleRepository($unit);
+        $permissionRepository = new InMemoryPermissionRepository($unit);
+        $roleRepository = new InMemoryRoleRepository($unit);
         $permission = $this->permission('OBSOLETE');
-        $permissions->add($permission);
+        $permissionRepository->add($permission);
         $primary = new RuntimeException('Synthetic reference lookup detail.');
-        $agents = $this->createMock(AgentRepository::class);
-        $agents->expects(self::exactly(2))->method('hasPermissionAssignment')
+        $agentRepository = $this->createMock(AgentRepository::class);
+        $agentRepository->expects(self::exactly(2))->method('hasPermissionAssignment')
             ->with($permission->getId())->willThrowException($primary);
-        $planner = new ManagedPolicyPlanner($permissions, $roles, new InMemoryUserRepository($unit), $agents);
+        $planner = new ManagedPolicyPlanner(
+            $permissionRepository,
+            $roleRepository,
+            new InMemoryUserRepository($unit),
+            $agentRepository
+        );
         $policy = new ManagedPolicy([], []);
         $caught = null;
         try {
@@ -101,12 +106,12 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
 
         self::assertSame($primary, $caught);
         self::assertSame(0, $unit->transactions);
-        self::assertSame([$permission], $permissions->getManaged());
+        self::assertSame([$permission], $permissionRepository->getManaged());
         $attempts = [];
-        $events = $this->failureEvents($attempts, $notificationFails);
+        $eventDispatcher = $this->failureEvents($attempts, $notificationFails);
         $caught = null;
         try {
-            $this->handler($unit, $permissions, $roles, $planner, $events)->handle(
+            $this->handler($unit, $permissionRepository, $roleRepository, $planner, $eventDispatcher)->handle(
                 CommandMessage::create(new ReconcileManagedPolicy($policy))
             );
         } catch (Throwable $throwable) {
@@ -114,8 +119,8 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
         }
 
         self::assertSame($primary, $caught);
-        self::assertSame([$permission], $permissions->getManaged());
-        self::assertSame([], $roles->getManaged());
+        self::assertSame([$permission], $permissionRepository->getManaged());
+        self::assertSame([], $roleRepository->getManaged());
         self::assertFalse($unit->transactionCompleted);
         $this->assertFailure($attempts);
     }
@@ -127,7 +132,7 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
     ): void {
         $unit = new InMemoryUnitOfWork();
         $primary = new RuntimeException('Synthetic persistence detail.');
-        $permissions = new InMemoryPermissionRepository(
+        $permissionRepository = new InMemoryPermissionRepository(
             $unit,
             beforeRemove: static function () use ($boundary, $primary): void {
                 if ($boundary === 'removal') {
@@ -141,11 +146,11 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
             };
         }
 
-        $roles = new InMemoryRoleRepository($unit);
+        $roleRepository = new InMemoryRoleRepository($unit);
         $old = $this->permission('OBSOLETE');
-        $permissions->add($old);
+        $permissionRepository->add($old);
         $oldRole = Role::defineManaged(RoleId::generate(), RoleName::fromString('ROLE_OLD'), [], $this->now());
-        $roles->add($oldRole);
+        $roleRepository->add($oldRole);
         $new = $this->permission('NEW_POLICY');
         $newRole = Role::defineManaged(
             RoleId::generate(),
@@ -154,14 +159,14 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
             $this->now()
         );
         $policy = $this->policy($new, $newRole);
-        $planner = $this->planner($unit, $permissions, $roles);
+        $planner = $this->planner($unit, $permissionRepository, $roleRepository);
         $planner->plan($policy);
 
         $attempts = [];
-        $events = $this->failureEvents($attempts, $notificationFails);
+        $eventDispatcher = $this->failureEvents($attempts, $notificationFails);
         $caught = null;
         try {
-            $this->handler($unit, $permissions, $roles, $planner, $events)->handle(
+            $this->handler($unit, $permissionRepository, $roleRepository, $planner, $eventDispatcher)->handle(
                 CommandMessage::create(new ReconcileManagedPolicy($policy))
             );
         } catch (Throwable $throwable) {
@@ -169,10 +174,10 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
         }
 
         self::assertSame($primary, $caught);
-        self::assertSame([$old], $permissions->getManaged());
-        self::assertSame([$oldRole], $roles->getManaged());
-        self::assertNull($permissions->getById($new->getId()));
-        self::assertNull($roles->getById($newRole->getId()));
+        self::assertSame([$old], $permissionRepository->getManaged());
+        self::assertSame([$oldRole], $roleRepository->getManaged());
+        self::assertNull($permissionRepository->getById($new->getId()));
+        self::assertNull($roleRepository->getById($newRole->getId()));
         self::assertFalse($unit->transactionCompleted);
         self::assertFalse($unit->transactionActive);
         $this->assertFailure($attempts);
@@ -183,10 +188,10 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
         bool $notificationFails
     ): void {
         $unit = new InMemoryUnitOfWork();
-        $permissions = new InMemoryPermissionRepository($unit);
-        $roles = new InMemoryRoleRepository($unit);
+        $permissionRepository = new InMemoryPermissionRepository($unit);
+        $roleRepository = new InMemoryRoleRepository($unit);
         $old = $this->permission('OBSOLETE');
-        $permissions->add($old);
+        $permissionRepository->add($old);
         $new = $this->permission('NEW_POLICY');
         $newRole = Role::defineManaged(
             RoleId::generate(),
@@ -195,11 +200,11 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
             $this->now()
         );
         $policy = $this->policy($new, $newRole);
-        $planner = $this->planner($unit, $permissions, $roles);
+        $planner = $this->planner($unit, $permissionRepository, $roleRepository);
         $plan = $planner->plan($policy);
         $primary = new RuntimeException('Synthetic publication detail.');
         $attempts = [];
-        $events = new InMemoryEventDispatcher(static function (Event $event) use (
+        $eventDispatcher = new InMemoryEventDispatcher(static function (Event $event) use (
             $unit,
             &$attempts,
             $primary,
@@ -218,7 +223,7 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
         });
         $caught = null;
         try {
-            $this->handler($unit, $permissions, $roles, $planner, $events)->handle(
+            $this->handler($unit, $permissionRepository, $roleRepository, $planner, $eventDispatcher)->handle(
                 CommandMessage::create(new ReconcileManagedPolicy($policy))
             );
         } catch (Throwable $throwable) {
@@ -227,9 +232,9 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
 
         self::assertSame($primary, $caught);
         self::assertTrue($unit->transactionCompleted);
-        self::assertNull($permissions->getById($old->getId()));
-        self::assertSame('NEW_POLICY', $permissions->getById($new->getId())?->getName()->toString());
-        $createdRole = $roles->getById($newRole->getId());
+        self::assertNull($permissionRepository->getById($old->getId()));
+        self::assertSame('NEW_POLICY', $permissionRepository->getById($new->getId())?->getName()->toString());
+        $createdRole = $roleRepository->getById($newRole->getId());
         self::assertInstanceOf(Role::class, $createdRole);
         self::assertEquals($newRole->getId(), $createdRole->getId());
         self::assertEquals($newRole->getName(), $createdRole->getName());
@@ -249,14 +254,14 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
     public function test_removal_winner_rejects_a_later_reference_using_a_stale_permission(string $writer): void
     {
         $unit = new InMemoryUnitOfWork();
-        $permissions = new InMemoryPermissionRepository($unit);
-        $roles = new InMemoryRoleRepository($unit);
-        $agents = new InMemoryAgentRepository($unit);
-        $features = new InMemoryFeatureRepository($unit);
+        $permissionRepository = new InMemoryPermissionRepository($unit);
+        $roleRepository = new InMemoryRoleRepository($unit);
+        $agentRepository = new InMemoryAgentRepository($unit);
+        $featureRepository = new InMemoryFeatureRepository($unit);
         $old = $this->permission('OBSOLETE');
-        $permissions->add($old);
+        $permissionRepository->add($old);
         $role = Role::define(RoleId::generate(), RoleName::fromString('ROLE_CUSTOM'), [], $this->now());
-        $roles->add($role);
+        $roleRepository->add($role);
         $agent = Agent::provision(
             AgentId::generate(),
             AgentName::fromString('Policy fixture'),
@@ -264,55 +269,60 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
             'fixture-encrypted-envelope',
             $this->now()
         );
-        $agents->add($agent);
+        $agentRepository->add($agent);
         $feature = Feature::define(FeatureId::generate(), FeatureName::fromString('policy-fixture'), $old->getId());
-        $planner = new ManagedPolicyPlanner($permissions, $roles, new InMemoryUserRepository($unit), $agents);
+        $planner = new ManagedPolicyPlanner(
+            $permissionRepository,
+            $roleRepository,
+            new InMemoryUserRepository($unit),
+            $agentRepository
+        );
         $policy = new ManagedPolicy([], []);
         $preview = new PreviewManagedPolicyHandler($planner)->handle(
             QueryMessage::create(new PreviewManagedPolicy($policy))
         );
-        $events = new InMemoryEventDispatcher();
-        $this->handler($unit, $permissions, $roles, $planner, $events)->handle(
+        $eventDispatcher = new InMemoryEventDispatcher();
+        $this->handler($unit, $permissionRepository, $roleRepository, $planner, $eventDispatcher)->handle(
             CommandMessage::create(new ReconcileManagedPolicy($policy))
         );
-        self::assertNull($permissions->getById($old->getId()));
-        self::assertInstanceOf(ManagedPolicyReconciled::class, $events->events()[0]);
-        self::assertSame($preview->toArray(), $events->events()[0]->getPlan());
+        self::assertNull($permissionRepository->getById($old->getId()));
+        self::assertInstanceOf(ManagedPolicyReconciled::class, $eventDispatcher->events()[0]);
+        self::assertSame($preview->toArray(), $eventDispatcher->events()[0]->getPlan());
 
         $now = $this->now();
         $unit->commitTransactional(static function () use (
             $writer,
-            $roles,
+            $roleRepository,
             $role,
-            $agents,
+            $agentRepository,
             $agent,
-            $features,
+            $featureRepository,
             $feature,
             $old,
             $now
         ): void {
             if ($writer === 'role') {
-                self::assertFalse($roles->replace($role, $role->grantPermissionToCustom($old->getId(), $now)));
+                self::assertFalse($roleRepository->replace($role, $role->grantPermissionToCustom($old->getId(), $now)));
             } elseif ($writer === 'agent') {
-                self::assertFalse($agents->replacePermissionAssignments(
+                self::assertFalse($agentRepository->replacePermissionAssignments(
                     $agent,
                     $agent->grantPermission($old->getId(), $now)
                 ));
             } else {
                 try {
-                    $features->add($feature);
+                    $featureRepository->add($feature);
                     self::fail('A removed Permission cannot acquire a Feature reference.');
                 } catch (FeatureReferenceException) {
-                    self::assertNull($features->getById($feature->getId()));
+                    self::assertNull($featureRepository->getById($feature->getId()));
                 }
             }
         });
 
-        self::assertSame($role, $roles->getById($role->getId()));
-        self::assertSame($agent, $agents->getById($agent->getId()));
-        self::assertSame([], $features->records);
-        self::assertNull($permissions->getById($old->getId()));
-        self::assertCount(1, $events->events());
+        self::assertSame($role, $roleRepository->getById($role->getId()));
+        self::assertSame($agent, $agentRepository->getById($agent->getId()));
+        self::assertSame([], $featureRepository->records);
+        self::assertNull($permissionRepository->getById($old->getId()));
+        self::assertCount(1, $eventDispatcher->events());
     }
 
     /** @param list<Event> $attempts */
@@ -337,17 +347,17 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
 
     private function handler(
         InMemoryUnitOfWork $unit,
-        InMemoryPermissionRepository $permissions,
-        InMemoryRoleRepository $roles,
+        InMemoryPermissionRepository $permissionRepository,
+        InMemoryRoleRepository $roleRepository,
         ManagedPolicyPlanner $planner,
-        InMemoryEventDispatcher $events
+        InMemoryEventDispatcher $eventDispatcher
     ): ReconcileManagedPolicyHandler {
         return new ReconcileManagedPolicyHandler(
-            $permissions,
-            $roles,
+            $permissionRepository,
+            $roleRepository,
             $planner,
             $unit,
-            $events,
+            $eventDispatcher,
             new FixedClock($this->now())
         );
     }
@@ -369,12 +379,12 @@ final class ManagedPolicyRemovalOutcomeTest extends TestCase
 
     private function planner(
         InMemoryUnitOfWork $unit,
-        InMemoryPermissionRepository $permissions,
-        InMemoryRoleRepository $roles
+        InMemoryPermissionRepository $permissionRepository,
+        InMemoryRoleRepository $roleRepository
     ): ManagedPolicyPlanner {
         return new ManagedPolicyPlanner(
-            $permissions,
-            $roles,
+            $permissionRepository,
+            $roleRepository,
             new InMemoryUserRepository($unit),
             new InMemoryAgentRepository($unit)
         );

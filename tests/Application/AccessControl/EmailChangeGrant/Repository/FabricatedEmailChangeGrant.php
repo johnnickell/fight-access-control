@@ -9,10 +9,28 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliver
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Domain\Value\Internet\EmailAddress;
 
 final class FabricatedEmailChangeGrant extends EmailChangeGrant
 {
+    public static function rehydrateIssued(EmailChangeGrant $grant): self
+    {
+        $requesterId = $grant->getRequestOrigin()->requesterId->toString();
+        $oldMailbox = $grant->getRequestOrigin()->oldMailbox;
+
+        return new self(
+            EmailChangeGrantId::fromString($grant->getId()->toString()),
+            UserId::fromString($grant->getUserId()->toString()),
+            $grant->getCredentialHash(),
+            $grant->getExpiresAt(),
+            clone $grant->getDelivery(),
+            $grant->getEmailChangeReservationRevision(),
+            new EmailChangeRequestOrigin(UserId::fromString($requesterId), EmailAddress::fromString($oldMailbox))
+        );
+    }
+
     public static function withDeliveryState(
         EmailChangeGrant $grant,
         DateTimeImmutable $dueAt,
@@ -24,7 +42,8 @@ final class FabricatedEmailChangeGrant extends EmailChangeGrant
             $grant->getCredentialHash(),
             $grant->getExpiresAt(),
             FabricatedEmailChangeDelivery::malformedPending($grant->getDelivery(), $dueAt, $withMetadata),
-            $grant->getEmailChangeReservationRevision()
+            $grant->getEmailChangeReservationRevision(),
+            $grant->getRequestOrigin()
         );
     }
 
@@ -37,6 +56,7 @@ final class FabricatedEmailChangeGrant extends EmailChangeGrant
             $grant->getExpiresAt(),
             $grant->getDelivery(),
             $grant->getEmailChangeReservationRevision(),
+            $grant->getRequestOrigin(),
             $grant->getConsumedAt(),
             $grant->getRevokedAt(),
             $grant->getExpiredAt(),
@@ -63,7 +83,8 @@ final class FabricatedEmailChangeGrant extends EmailChangeGrant
                 $expiresAt,
                 $delivery->getDueAt()
             ),
-            $grant->getEmailChangeReservationRevision()
+            $grant->getEmailChangeReservationRevision(),
+            $grant->getRequestOrigin()
         );
     }
 
@@ -75,7 +96,8 @@ final class FabricatedEmailChangeGrant extends EmailChangeGrant
             $grant->getCredentialHash(),
             $grant->getExpiresAt(),
             $grant->getDelivery(),
-            $revision
+            $revision,
+            $grant->getRequestOrigin()
         );
     }
 
@@ -98,7 +120,8 @@ final class FabricatedEmailChangeGrant extends EmailChangeGrant
                 $delivery->getExpiresAt(),
                 $delivery->getDueAt()
             ),
-            $grant->getEmailChangeReservationRevision()
+            $grant->getEmailChangeReservationRevision(),
+            $grant->getRequestOrigin()
         );
     }
 
@@ -124,7 +147,8 @@ final class FabricatedEmailChangeGrant extends EmailChangeGrant
                 $delivery->getExpiresAt(),
                 $delivery->getDueAt()
             ),
-            $grant->getEmailChangeReservationRevision()
+            $grant->getEmailChangeReservationRevision(),
+            $grant->getRequestOrigin()
         );
     }
 }

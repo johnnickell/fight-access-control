@@ -6,12 +6,12 @@ namespace Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Serv
 
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
-use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\RefreshSessionNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use Fight\Common\Application\Error\Exception\StateConflict as RefreshSessionNotFoundException;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
@@ -25,56 +25,58 @@ final class SessionRevocationServiceTest extends TestCase
 {
     public function test_that_revoke_persists_an_immutable_revocation(): void
     {
-        $repository = new InMemoryRefreshSessionRepository();
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository();
         $session = $this->session(UserId::generate());
-        $repository->add($session);
-        $service = new SessionRevocationService($repository);
+        $refreshSessionRepository->add($session);
+        $service = new SessionRevocationService($refreshSessionRepository);
 
-        $revoked = $service->revoke($session);
+        [$before, $revoked] = $service->revoke($session);
 
+        self::assertSame($session, $before);
         self::assertTrue($revoked->isRevoked());
-        self::assertTrue($repository->getById($session->getId())?->isRevoked());
+        self::assertTrue($refreshSessionRepository->getById($session->getId())?->isRevoked());
     }
 
     public function test_that_revoke_returns_an_already_revoked_session_without_replacement(): void
     {
-        $repository = new InMemoryRefreshSessionRepository();
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository();
         $revoked = $this->session(UserId::generate())->revoke();
-        $repository->add($revoked);
-        $service = new SessionRevocationService($repository);
+        $refreshSessionRepository->add($revoked);
+        $service = new SessionRevocationService($refreshSessionRepository);
 
         $result = $service->revoke($revoked);
 
-        self::assertSame($revoked, $result);
+        self::assertSame([null, $revoked], $result);
     }
 
     public function test_that_revoke_retries_after_a_stale_revision(): void
     {
         $state = new InMemoryRefreshSessionRepositoryState();
-        $repository = new InMemoryRefreshSessionRepository(state: $state);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository(state: $state);
         $session = $this->session(UserId::generate());
-        $repository->add($session);
+        $refreshSessionRepository->add($session);
         $state->refreshSessions[0] = $session->rotate(
             RefreshCredential::fromString(str_repeat('b', 64)),
             new DateTimeImmutable('2026-08-20T10:00:00+00:00'),
             new DateTimeImmutable('2026-08-21T10:00:00+00:00')
         );
-        $service = new SessionRevocationService($repository);
+        $service = new SessionRevocationService($refreshSessionRepository);
 
-        $revoked = $service->revoke($session);
+        [$before, $revoked] = $service->revoke($session);
 
+        self::assertSame(1, $before?->getRevision());
         self::assertTrue($revoked->isRevoked());
-        self::assertTrue($repository->getById($session->getId())?->isRevoked());
+        self::assertTrue($refreshSessionRepository->getById($session->getId())?->isRevoked());
     }
 
     public function test_that_revoke_fails_when_the_session_disappears_during_retry(): void
     {
         $state = new InMemoryRefreshSessionRepositoryState();
-        $repository = new InMemoryRefreshSessionRepository(state: $state);
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository(state: $state);
         $session = $this->session(UserId::generate());
-        $repository->add($session);
+        $refreshSessionRepository->add($session);
         $state->refreshSessions = [];
-        $service = new SessionRevocationService($repository);
+        $service = new SessionRevocationService($refreshSessionRepository);
 
         $this->expectException(RefreshSessionNotFoundException::class);
         $service->revoke($session);
@@ -91,7 +93,7 @@ final class SessionRevocationServiceTest extends TestCase
 
     public function test_that_revoke_all_active_for_only_revokes_usable_sessions(): void
     {
-        $repository = new InMemoryRefreshSessionRepository();
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository();
         $userId = UserId::generate();
         $active = $this->session($userId);
         $expired = RefreshSession::start(
@@ -105,17 +107,17 @@ final class SessionRevocationServiceTest extends TestCase
             false
         );
         $alreadyRevoked = $this->session($userId)->revoke();
-        $repository->add($active);
-        $repository->add($expired);
-        $repository->add($alreadyRevoked);
+        $refreshSessionRepository->add($active);
+        $refreshSessionRepository->add($expired);
+        $refreshSessionRepository->add($alreadyRevoked);
 
-        $service = new SessionRevocationService($repository);
+        $service = new SessionRevocationService($refreshSessionRepository);
 
         $service->revokeAllActiveFor($userId, new DateTimeImmutable('2026-08-20T12:00:00+00:00'));
 
-        self::assertTrue($repository->all()[0]->isRevoked());
-        self::assertFalse($repository->all()[1]->isRevoked());
-        self::assertTrue($repository->all()[2]->isRevoked());
+        self::assertTrue($refreshSessionRepository->all()[0]->isRevoked());
+        self::assertFalse($refreshSessionRepository->all()[1]->isRevoked());
+        self::assertTrue($refreshSessionRepository->all()[2]->isRevoked());
     }
 
     private function alwaysFailingRepository(RefreshSession $session): RefreshSessionRepository

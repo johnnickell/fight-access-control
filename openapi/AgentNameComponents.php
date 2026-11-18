@@ -23,7 +23,7 @@ use OpenApi\Attributes as OA;
     properties: [
         new OA\Property(property: 'initiator', ref: '#/components/schemas/Fight.AccessControl.AgentUpdateInitiator'),
         new OA\Property(property: 'agent_id', type: 'string', format: 'uuid'),
-        new OA\Property(property: 'name', description: 'AgentName trims input and requires 1–120 characters after trimming.', type: 'string')
+        new OA\Property(property: 'name', description: 'AgentName trims the fixed Unicode White_Space edge set plus NUL; requires nonempty UTF-8 and at most 120 code points after trimming. Preserves case/internal whitespace; no NFC conversion; U+200B/U+FEFF remain.', type: 'string')
     ],
     type: 'object'
 )]

@@ -11,25 +11,31 @@ the separate v1.0.0 stability decision. Package publication does not establish c
 `RegisterUser(UserId $userId, EmailAddress $email)` has exactly `user_id` and `email` serialized fields. Generate a
 new stable User ID at the consumer's admission boundary. `fromArray()` rejects missing, non-string or invalid values
 and extra keys, including actor, Role and credential inputs. There is no password at registration: the existing
-synchronous `AuthenticationService::activate()` takes the one-time credential and new password later.
+synchronous [`UserAuthentication::activate()`](user-authentication.md) takes the one-time credential and new password later.
 
-No authenticated actor is asserted by this command or `UserRegistered`. Audit uses fixed source `registration`,
-action `user.registered` and the new User ID, without email, credential or arbitrary caller context. That source
-marker identifies the use case, not an authenticated User, and grants no authority. The optional delivery subscriber
-uses the same source marker for immediate worker dispatch. Consumer authorization/admission cannot be derived from it.
+No authenticated actor is asserted by this command or `UserRegistered`. The
+[shared audit replacement](audit-evidence.md) explicitly establishes AnonymousId for this declared public journey,
+with action `user.registered`, the new User identity and admitted revision/grant facts, without email, credentials
+or arbitrary context. The optional delivery subscriber preserves that anonymous origin with canonical `actor_kind`
+and `actor_id`; it does not overwrite provenance with a worker label. This identity grants no authority. Current
+Unreleased TASK-00123 makes account-handler auditing optional; consumer authorization/admission remains separate.
 
 Construct `RegisterUserHandler` with these dependencies, in order:
 
 1. Domain `UserRepository`
 2. Domain `RoleRepository`
 3. Domain `ActivationGrantRepository`
-4. Domain `AuditEvidenceRepository`
-5. Common `TransactionalUnitOfWork`
-6. Application `ActivationCredentialGenerator`
-7. Application `InvitationDeliveryCipher`
-8. Application Timing `Clock`
-9. Common `EventDispatcher`
-10. Nonempty consumer configuration `list<string> $defaultRoleNames`
+4. Common `TransactionalUnitOfWork`
+5. Application `ActivationCredentialGenerator`
+6. Application `InvitationDeliveryCipher`
+7. Application Timing `Clock`
+8. Common `EventDispatcher`
+9. Nonempty consumer configuration `list<string> $defaultRoleNames`
+10. Optional last `?AuditEvidenceRepository $auditEvidenceRepository = null`
+
+This is the current Unreleased constructor, not the historical v0.7.0 signature. Omitted/null disables durable
+audit without changing Role/email/grant admission. With storage supplied, evidence is required in that same
+transaction; storage failure rolls back all staged work. Later opt-in does not backfill prior registrations.
 
 Names must pass `RoleName::fromString()`. Empty configuration, invalid names and `ROLE_SUPER_ADMIN` reject handler
 construction. Repeated names form one set. There is no global `ROLE_USER` requirement; other managed or custom
@@ -42,6 +48,9 @@ expected complete Role snapshots, not caller authority. A missing/mismatched or 
 Changing defaults affects later registrations only. A later rename/redefinition does not retroactively change the
 stored assignment IDs of earlier Users; normal Role authority management still applies to those IDs.
 
+Current unreleased [Application lifecycle contracts](user-lifecycle-contracts.md) distinguish broken configuration
+from canonical-email/reference conflicts and document renamed PHP constructor arguments. Success remains void.
+
 ## Creation-time persistence contract
 
 Consumers implement the new mandatory Domain method directly; there is no optional capability, compatibility default,
@@ -53,12 +62,14 @@ creation. The extra expected-snapshot method binds registration's configured **n
 The consumer adapter must, on the same connection and transaction:
 
 - Atomically enforce fresh User identity and canonical-email uniqueness against **all** pending, active, disabled and
-  deleted Users and live email-change reservations. Never rely on an availability preflight. A duplicate throws the
-  existing internal rejection; it does not create a User, activation, delivery, successful-registration audit or fact,
+  deleted Users and live email-change reservations. Never rely on an availability preflight. A claimed/reserved
+  email throws Domain `DuplicateEmailException`, translated here to Application `StateConflict`; it does not create a
+  User, activation, delivery, successful-registration audit or fact,
   send duplicate mail, recover another User or return package generic success.
 - Validate the nonempty expected Role set against the User's **exact entire initial assignment set** and authoritative
   stored Roles. Compare complete current identity, unique canonical name, managed ownership, Permission membership and
-  timestamps. Duplicate/conflicting IDs or names, removal, rename and replacement must reject stale expectations.
+  timestamps and required incarnation/revision. Duplicate/conflicting IDs or names, removal, rename and replacement
+  must reject stale expectations.
   A matching PHP object or cached name lookup alone is not evidence of persisted authority.
 - Hold the shared Role-reference/name fence through **transaction completion**, including User insertion and every
   Role add/replace/remove path (including managed-policy writers). Removal may not miss a newly created pending User's
@@ -121,7 +132,8 @@ and protect event/audit access (messages contain email/identity).
 
 Private invitations retain `PRIVATE_INVITATION`, private correction rejects registration, and deleted-to-pending restore
 starts a fresh private invitation. Administrator `RecoverPendingRegistration` retains the pending User and exact Roles,
-using its expected delivery ID and transaction-scoped target authorization; it never resolves new default Roles.
+after consumer entry admission for the operation and exact target. It checks the expected delivery ID inside its
+business transaction and never resolves new default Roles.
 The existing protected invitation status now exposes `activation_delivery_id` for generation inspection. See the
 [recovery composition and evidence](registration-recovery.md). Password-reset and email-change behavior is unchanged.
 

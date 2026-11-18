@@ -36,16 +36,24 @@ final readonly class GrantPermissionToAgent implements Command
             if (!array_key_exists($key, $data)) {
                 throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
             }
+
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Required key "%s" must be a string.', $key));
+            }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            AgentId::fromString((string) $data['agent_id']),
-            PermissionId::fromString((string) $data['permission_id'])
+            UserId::fromString($data['actor_id']),
+            AgentId::fromString($data['agent_id']),
+            PermissionId::fromString($data['permission_id'])
         );
     }
 
-    /** @inheritDoc */
+    /**
+     * Returns the canonical command payload
+     *
+     * @return array{actor_id: string, agent_id: string, permission_id: string}
+     */
     public function toArray(): array
     {
         return [

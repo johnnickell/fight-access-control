@@ -41,16 +41,37 @@ final readonly class ListActiveSessions implements Query
             }
         }
 
+        foreach (['actor_id', 'user_id', 'current_session_id'] as $key) {
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid string "%s" in session query data', $key));
+            }
+        }
+
+        if (!is_int($data['page']) || !is_int($data['per_page']) || !is_array($data['orderings'])) {
+            throw new DomainException('Pagination requires integer bounds and an ordering map.');
+        }
+
+        foreach ($data['orderings'] as $field => $direction) {
+            if (!is_string($field) || !is_string($direction)) {
+                throw new DomainException('Pagination orderings require named string directions.');
+            }
+        }
+
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id']),
-            RefreshSessionId::fromString((string) $data['current_session_id']),
-            new Pagination((int) $data['page'], (int) $data['per_page'], $data['orderings'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id']),
+            RefreshSessionId::fromString($data['current_session_id']),
+            new Pagination($data['page'], $data['per_page'], $data['orderings'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical active-session query payload
+     *
+     * @phpstan-return array{
+     *     actor_id: string, user_id: string, current_session_id: string,
+     *     page: int, per_page: int, orderings: array<string, string>
+     * }
      */
     public function toArray(): array
     {

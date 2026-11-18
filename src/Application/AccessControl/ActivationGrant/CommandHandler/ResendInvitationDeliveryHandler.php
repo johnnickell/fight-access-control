@@ -13,9 +13,14 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotResendableException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -38,12 +43,12 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
      */
     public function __construct(
         private ActivationGrantRepository $activationGrantRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -65,17 +70,25 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
 
         try {
             $issuedAt = $this->clock->now();
+            /** @var ActivationDeliveryId $activationDeliveryId */
             $activationDeliveryId = $this->unitOfWork->commitTransactional(function () use (
                 $command,
+                $commandMessage,
                 $issuedAt
             ): ActivationDeliveryId {
                 $predecessor = $this->activationGrantRepository->getLatestByUserId($command->getUserId());
+                if (
+                    $predecessor instanceof ActivationGrant
+                    && !$predecessor->getUserId()->equals($command->getUserId())
+                ) {
+                    throw new LogicException("The credential repository returned another User's generation.");
+                }
 
                 if (
                     !$predecessor instanceof ActivationGrant
                     || $predecessor->isIssued() === false
                 ) {
-                    throw new ActivationDeliveryNotResendableException(
+                    throw new StateConflict(
                         'The activation delivery cannot be resent.'
                     );
                 }
@@ -98,13 +111,20 @@ final readonly class ResendInvitationDeliveryHandler implements CommandHandler
                         $replacement
                     )
                 ) {
-                    throw new LogicException('The activation grant changed concurrently.');
+                    throw new StateConflict('The activation grant changed concurrently.');
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     $command->getActorId(),
-                    'user.invitation_delivery.resent',
-                    $command->getUserId()
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::INVITATION_RESENT,
+                    $issuedAt,
+                    new AuditGrantOutcome(
+                        AuditGrantState::fromGrant($predecessor),
+                        AuditGrantState::fromGrant($replacement),
+                        replacedPredecessor: AuditGrantState::fromGrant($revokedPredecessor)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return $replacement->getDelivery()->getId();

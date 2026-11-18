@@ -21,6 +21,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\Pagination;
@@ -58,13 +59,13 @@ final class AgentQueryHandlerTest extends TestCase
             $permission->getId(),
             new DateTimeImmutable('2026-01-02T00:00:00+00:00')
         );
-        $agents = new InMemoryAgentRepository();
-        $agents->add($agent);
+        $agentRepository = new InMemoryAgentRepository();
+        $agentRepository->add($agent);
 
-        $permissions = new InMemoryPermissionRepository();
-        $permissions->add($permission);
+        $permissionRepository = new InMemoryPermissionRepository();
+        $permissionRepository->add($permission);
 
-        $handler = new GetAgentByIdHandler($agents, $permissions);
+        $handler = new GetAgentByIdHandler($agentRepository, $permissionRepository);
 
         self::assertSame(GetAgentById::class, GetAgentByIdHandler::queryRegistration());
         $view = $handler->handle(QueryMessage::create(new GetAgentById($agent->getId())));
@@ -89,14 +90,20 @@ final class AgentQueryHandlerTest extends TestCase
         self::assertStringNotContainsString('consumer-encrypted-secret', serialize($view));
     }
 
-    public function test_get_returns_null_for_unknown_agent_and_supports_empty_assignments(): void
+    public function test_get_rejects_unknown_agent_and_supports_empty_assignments(): void
     {
-        $agents = new InMemoryAgentRepository();
+        $agentRepository = new InMemoryAgentRepository();
         $agent = $this->agent('Production deployment');
-        $agents->add($agent);
-        $handler = new GetAgentByIdHandler($agents, new InMemoryPermissionRepository());
+        $agentRepository->add($agent);
+        $handler = new GetAgentByIdHandler($agentRepository, new InMemoryPermissionRepository());
 
-        self::assertNull($handler->handle(QueryMessage::create(new GetAgentById(AgentId::generate()))));
+        try {
+            $handler->handle(QueryMessage::create(new GetAgentById(AgentId::generate())));
+            self::fail('An unknown Agent must not return success.');
+        } catch (ResourceNotFound) {
+            self::addToAssertionCount(1);
+        }
+
         $view = $handler->handle(QueryMessage::create(new GetAgentById($agent->getId())));
 
         self::assertInstanceOf(AgentView::class, $view);
@@ -107,13 +114,13 @@ final class AgentQueryHandlerTest extends TestCase
 
     public function test_list_preserves_page_metadata_order_and_typed_safe_views(): void
     {
-        $agents = new InMemoryAgentRepository();
+        $agentRepository = new InMemoryAgentRepository();
         $first = $this->agent('First deployment');
         $second = $this->agent('Second deployment');
-        $agents->add($first);
-        $agents->add($second);
+        $agentRepository->add($first);
+        $agentRepository->add($second);
 
-        $handler = new ListAgentsHandler($agents, new InMemoryPermissionRepository());
+        $handler = new ListAgentsHandler($agentRepository, new InMemoryPermissionRepository());
 
         self::assertSame(ListAgents::class, ListAgentsHandler::queryRegistration());
         $result = $handler->handle(QueryMessage::create(new ListAgents(new Pagination(2, 1))));
@@ -150,18 +157,18 @@ final class AgentQueryHandlerTest extends TestCase
             $firstPermission->getId(),
             new DateTimeImmutable('2026-01-04T00:00:00+00:00')
         );
-        $agents = new InMemoryAgentRepository();
-        $agents->add($agent);
-        $agents->add($secondAgent);
+        $agentRepository = new InMemoryAgentRepository();
+        $agentRepository->add($agent);
+        $agentRepository->add($secondAgent);
 
-        $permissions = new InMemoryPermissionRepository();
-        $permissions->add($firstPermission);
-        $permissions->add($secondPermission);
+        $permissionRepository = new InMemoryPermissionRepository();
+        $permissionRepository->add($firstPermission);
+        $permissionRepository->add($secondPermission);
 
-        $getView = new GetAgentByIdHandler($agents, $permissions)->handle(
+        $getView = new GetAgentByIdHandler($agentRepository, $permissionRepository)->handle(
             QueryMessage::create(new GetAgentById($agent->getId()))
         );
-        $listResult = new ListAgentsHandler($agents, $permissions)->handle(
+        $listResult = new ListAgentsHandler($agentRepository, $permissionRepository)->handle(
             QueryMessage::create(new ListAgents(new Pagination()))
         );
 
@@ -196,12 +203,12 @@ final class AgentQueryHandlerTest extends TestCase
             $reviewPermission->getId(),
             new DateTimeImmutable('2026-01-05T00:00:00+00:00')
         );
-        $agents = new InMemoryAgentRepository();
-        $agents->add($firstAgent);
-        $agents->add($secondAgent);
+        $agentRepository = new InMemoryAgentRepository();
+        $agentRepository->add($firstAgent);
+        $agentRepository->add($secondAgent);
 
-        $permissions = $this->createMock(PermissionRepository::class);
-        $permissions->expects(self::once())
+        $permissionRepository = $this->createMock(PermissionRepository::class);
+        $permissionRepository->expects(self::once())
             ->method('getByIds')
             ->with(self::callback(function (array $ids) use ($reviewPermission, $publishPermission): bool {
                 self::assertSame([$reviewPermission->getId(), $publishPermission->getId()], $ids);
@@ -210,7 +217,7 @@ final class AgentQueryHandlerTest extends TestCase
             }))
             ->willReturn([$publishPermission, $reviewPermission]);
 
-        $result = new ListAgentsHandler($agents, $permissions)->handle(
+        $result = new ListAgentsHandler($agentRepository, $permissionRepository)->handle(
             QueryMessage::create(new ListAgents(new Pagination()))
         );
 
@@ -244,9 +251,9 @@ final class AgentQueryHandlerTest extends TestCase
                     $secondPermission->getId(),
                     new DateTimeImmutable('2026-01-03T00:00:00+00:00')
                 );
-                $agents = new InMemoryAgentRepository();
-                $agents->add($agent);
-                $permissions = new InMemoryPermissionRepository(
+                $agentRepository = new InMemoryAgentRepository();
+                $agentRepository->add($agent);
+                $permissionRepository = new InMemoryPermissionRepository(
                     getByIdsResult: static fn(): array => match ($case) {
                         'missing' => [$firstPermission],
                         'duplicate' => [$firstPermission, $firstPermission],
@@ -257,18 +264,18 @@ final class AgentQueryHandlerTest extends TestCase
 
                 try {
                     if ($queryType === 'get') {
-                        new GetAgentByIdHandler($agents, $permissions)->handle(
+                        new GetAgentByIdHandler($agentRepository, $permissionRepository)->handle(
                             QueryMessage::create(new GetAgentById($agent->getId()))
                         );
                     } else {
-                        new ListAgentsHandler($agents, $permissions)->handle(
+                        new ListAgentsHandler($agentRepository, $permissionRepository)->handle(
                             QueryMessage::create(new ListAgents(new Pagination()))
                         );
                     }
 
                     self::fail(sprintf('Invalid %s bulk result was exposed by %s.', $case, $queryType));
                 } catch (AgentReadException) {
-                    self::assertSame($agent, $agents->getById($agent->getId()));
+                    self::assertSame($agent, $agentRepository->getById($agent->getId()));
                 }
             }
         }

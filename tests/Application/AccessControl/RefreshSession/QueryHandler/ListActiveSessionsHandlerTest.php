@@ -36,8 +36,8 @@ final class ListActiveSessionsHandlerTest extends TestCase
         $userId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
         $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
         $otherSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003');
-        $repository = new InMemoryRefreshSessionRepository();
-        $repository->add($this->session(
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository();
+        $refreshSessionRepository->add($this->session(
             $currentSessionId,
             $userId,
             '2026-08-19T08:00:00+00:00',
@@ -45,7 +45,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
             '2026-08-22T08:00:00+00:00',
             false
         ));
-        $repository->add($this->session(
+        $refreshSessionRepository->add($this->session(
             $otherSessionId,
             $userId,
             '2026-08-18T07:00:00+00:00',
@@ -53,7 +53,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
             '2026-09-18T07:00:00+00:00',
             true
         ));
-        $repository->add($this->session(
+        $refreshSessionRepository->add($this->session(
             RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000004'),
             $userId,
             '2026-08-17T06:00:00+00:00',
@@ -61,7 +61,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
             '2026-08-22T06:00:00+00:00',
             false
         ));
-        $repository->add($this->session(
+        $refreshSessionRepository->add($this->session(
             RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000005'),
             $userId,
             '2026-08-17T05:00:00+00:00',
@@ -69,7 +69,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
             '2026-08-22T05:00:00+00:00',
             false
         )->revoke());
-        $repository->add($this->session(
+        $refreshSessionRepository->add($this->session(
             RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000006'),
             UserId::fromString('018f0000-0000-7000-8000-000000000007'),
             '2026-08-19T04:00:00+00:00',
@@ -78,7 +78,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
             false
         ));
         $handler = new ListActiveSessionsHandler(
-            $repository,
+            $refreshSessionRepository,
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $authorization = new FixedSessionAdministrationAuthorization(true)
         );
@@ -176,8 +176,8 @@ final class ListActiveSessionsHandlerTest extends TestCase
         $actorId = UserId::fromString('018f0000-0000-7000-8000-000000000008');
         $userId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
         $sessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
-        $repository = new InMemoryRefreshSessionRepository();
-        $repository->add($this->session(
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository();
+        $refreshSessionRepository->add($this->session(
             $sessionId,
             $userId,
             '2026-08-19T08:00:00+00:00',
@@ -187,7 +187,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
         ));
         $authorization = new FixedSessionAdministrationAuthorization(true);
         $handler = new ListActiveSessionsHandler(
-            $repository,
+            $refreshSessionRepository,
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $authorization
         );
@@ -206,17 +206,17 @@ final class ListActiveSessionsHandlerTest extends TestCase
         self::assertSame(1, $authorization->calls());
         self::assertSame($actorId, $authorization->lastActorId());
         self::assertSame($userId, $authorization->lastUserId());
-        self::assertSame(1, $repository->getByUserIdCalls());
+        self::assertSame(1, $refreshSessionRepository->getByUserIdCalls());
     }
 
     public function test_that_denied_administrative_inspection_does_not_read_sessions(): void
     {
         $actorId = UserId::fromString('018f0000-0000-7000-8000-000000000008');
         $userId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
-        $repository = new InMemoryRefreshSessionRepository();
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository();
         $authorization = new FixedSessionAdministrationAuthorization(false);
         $handler = new ListActiveSessionsHandler(
-            $repository,
+            $refreshSessionRepository,
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             $authorization
         );
@@ -237,7 +237,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
         }
 
         self::assertSame(1, $authorization->calls());
-        self::assertSame(0, $repository->getByUserIdCalls());
+        self::assertSame(0, $refreshSessionRepository->getByUserIdCalls());
     }
 
     public function test_that_pagination_is_applied_after_active_session_filtering(): void
@@ -245,8 +245,8 @@ final class ListActiveSessionsHandlerTest extends TestCase
         $userId = UserId::fromString('018f0000-0000-7000-8000-000000000001');
         $currentSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000002');
         $expectedSessionId = RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000004');
-        $repository = new InMemoryRefreshSessionRepository();
-        $repository->add($this->session(
+        $refreshSessionRepository = new InMemoryRefreshSessionRepository();
+        $refreshSessionRepository->add($this->session(
             RefreshSessionId::fromString('018f0000-0000-7000-8000-000000000003'),
             $userId,
             '2026-08-17T06:00:00+00:00',
@@ -254,7 +254,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
             '2026-08-22T06:00:00+00:00',
             false
         ));
-        $repository->add($this->session(
+        $refreshSessionRepository->add($this->session(
             $currentSessionId,
             $userId,
             '2026-08-19T08:00:00+00:00',
@@ -262,7 +262,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
             '2026-08-22T08:00:00+00:00',
             false
         ));
-        $repository->add($this->session(
+        $refreshSessionRepository->add($this->session(
             $expectedSessionId,
             $userId,
             '2026-08-18T07:00:00+00:00',
@@ -271,7 +271,7 @@ final class ListActiveSessionsHandlerTest extends TestCase
             false
         ));
         $handler = new ListActiveSessionsHandler(
-            $repository,
+            $refreshSessionRepository,
             new FixedClock(new DateTimeImmutable('2026-08-20T12:00:00+00:00')),
             new FixedSessionAdministrationAuthorization(true)
         );

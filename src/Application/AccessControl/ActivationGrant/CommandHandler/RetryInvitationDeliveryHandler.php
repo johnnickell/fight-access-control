@@ -11,13 +11,20 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepo
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\RetryInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use LogicException;
 use Throwable;
 
 /**
@@ -34,10 +41,10 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
      */
     public function __construct(
         private ActivationGrantRepository $activationGrantRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -58,30 +65,54 @@ final readonly class RetryInvitationDeliveryHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
+            /** @var ActivationDeliveryId $activationDeliveryId */
             $activationDeliveryId = $this->unitOfWork->commitTransactional(function () use (
-                $command
+                $command,
+                $commandMessage
             ): ActivationDeliveryId {
                 $activationGrant = $this->activationGrantRepository->getLatestByUserId($command->getUserId());
                 if (
-                    !$activationGrant instanceof ActivationGrant
-                    || !$activationGrant->isUsableAt($this->clock->now())
+                    $activationGrant instanceof ActivationGrant
+                    && !$activationGrant->getUserId()->equals($command->getUserId())
                 ) {
-                    throw new ActivationDeliveryNotRetryableException(
+                    throw new LogicException("The credential repository returned another User's generation.");
+                }
+
+                $occurredAt = $this->clock->now();
+                if (
+                    !$activationGrant instanceof ActivationGrant
+                    || !$activationGrant->isUsableAt($occurredAt)
+                ) {
+                    throw new StateConflict(
                         'The activation delivery work is no longer retryable.'
                     );
                 }
 
-                $retryRequested = $activationGrant->requestDeliveryRetry();
+                try {
+                    $retryRequested = $activationGrant->requestDeliveryRetry();
+                } catch (ActivationDeliveryNotRetryableException $activationDeliveryNotRetryableException) {
+                    throw new StateConflict(
+                        'The activation delivery work is no longer retryable.',
+                        previous: $activationDeliveryNotRetryableException
+                    );
+                }
+
                 if (!$this->activationGrantRepository->replace($activationGrant, $retryRequested)) {
-                    throw new ActivationDeliveryNotRetryableException(
+                    throw new StateConflict(
                         'The activation delivery generation changed concurrently.'
                     );
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
                     $command->getActorId(),
-                    'user.invitation_delivery.retry_requested',
-                    $command->getUserId()
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::INVITATION_RETRY_REQUESTED,
+                    $occurredAt,
+                    new AuditGrantOutcome(
+                        AuditGrantState::fromGrant($activationGrant),
+                        AuditGrantState::fromGrant($retryRequested)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return $retryRequested->getDelivery()->getId();

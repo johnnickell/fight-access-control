@@ -8,8 +8,14 @@ use DateInterval;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\RequestPasswordReset;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Event\PasswordResetRequested;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
@@ -17,6 +23,7 @@ use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGra
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -42,12 +49,12 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
     public function __construct(
         private UserRepository $userRepository,
         private PasswordResetGrantRepository $passwordResetGrantRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private PasswordResetCredentialGenerator $passwordResetCredentialGenerator,
         private PasswordResetDeliveryCipher $passwordResetDeliveryCipher,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -68,20 +75,33 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
+            /** @var ?PasswordResetRequested $successEvent */
             $successEvent = $this->unitOfWork->commitTransactional(function () use (
-                $command
+                $command,
+                $commandMessage
             ): ?PasswordResetRequested {
                 $user = $this->userRepository->getByEmail($command->getEmail());
+                if ($user instanceof User && $user->getEmail()->canonical() !== $command->getEmail()->canonical()) {
+                    throw new LogicException('The User repository returned another canonical email.');
+                }
+
                 if (!$user instanceof User || $user->getState() !== UserState::ACTIVE) {
                     return null;
                 }
 
                 if (!$this->userRepository->validateRecoveryAuthority($user)) {
-                    throw new LogicException('Password-reset authority changed concurrently.');
+                    throw new StateConflict('Password-reset authority changed concurrently.');
                 }
 
                 $issuedAt = $this->clock->now();
                 $predecessorGrant = $this->passwordResetGrantRepository->getLatestByUserId($user->getId());
+                if (
+                    $predecessorGrant instanceof PasswordResetGrant
+                    && !$predecessorGrant->getUserId()->equals($user->getId())
+                ) {
+                    throw new LogicException("The credential repository returned another User's generation.");
+                }
+
                 $credential = $this->passwordResetCredentialGenerator->generate();
                 $expiresAt = $issuedAt->add(new DateInterval(self::GRANT_LIFETIME));
                 $passwordResetGrant = PasswordResetGrant::issue(
@@ -94,6 +114,7 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                     $user->getRecoveryAuthority()
                 );
                 $passwordResetDelivery = $passwordResetGrant->getDelivery();
+                $terminalPredecessor = $predecessorGrant;
 
                 if (
                     $predecessorGrant instanceof PasswordResetGrant
@@ -111,7 +132,7 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                             $passwordResetGrant
                         )
                     ) {
-                        throw new LogicException('Password-reset authority changed concurrently.');
+                        throw new StateConflict('Password-reset authority changed concurrently.');
                     }
                 } elseif ($predecessorGrant instanceof PasswordResetGrant) {
                     if (
@@ -120,18 +141,27 @@ final readonly class RequestPasswordResetHandler implements CommandHandler
                             $passwordResetGrant
                         )
                     ) {
-                        throw new LogicException('Password-reset authority changed concurrently.');
+                        throw new StateConflict('Password-reset authority changed concurrently.');
                     }
                 } else {
                     if (!$this->passwordResetGrantRepository->add($passwordResetGrant)) {
-                        throw new LogicException('Password-reset authority changed concurrently.');
+                        throw new StateConflict('Password-reset authority changed concurrently.');
                     }
                 }
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    'anonymous',
-                    'user.password_reset_requested',
-                    $user->getId()
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                    AnonymousId::generate(),
+                    new AuditSubject($user->getId()),
+                    AuditAction::PASSWORD_RESET_REQUESTED,
+                    $issuedAt,
+                    new AuditGrantOutcome(
+                        $predecessorGrant === null ? null : AuditGrantState::fromGrant($predecessorGrant),
+                        AuditGrantState::fromGrant($passwordResetGrant),
+                        replacedPredecessor: $terminalPredecessor === null ? null : AuditGrantState::fromGrant(
+                            $terminalPredecessor
+                        )
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return new PasswordResetRequested(

@@ -1,6 +1,6 @@
 # Standards governance and project adoption
 
-Each project carries its own AGENTS.md and committed standards under `docs/engineering/standards/`, reached through relative links. Its `planning/agents/project-profile.md` contains actual commands, runtime/operator references, architecture exceptions and release/deployment procedures. Domain language remains in CONTEXT.md.
+Each project carries its own AGENTS.md and committed standards under `docs/engineering/standards/`, reached through relative links. Its `planning/agents/project-profile.md` contains actual commands, runtime/operator references, architecture exceptions and release/deployment procedures. Domain definitions belong only in the root [GLOSSARY.md](../../../GLOSSARY.md); behavior and composition belong in their owning guides/profile, and decisions in applicable [ADRs](../../../planning/adr/README.md). Historical checkpoints are not mandatory orientation or current delivery instructions.
 
 The engineering authoring source maintains the canonical baseline. Projects receive explicit reviewed copies, not symlinks or automatic live synchronization. Their AGENTS.md and shared standards contain no home-directory paths or private skill dependencies. A contributor can work from the checkout without the author's private tooling. The private skill suite reads the project's adopted copy when executing there.
 

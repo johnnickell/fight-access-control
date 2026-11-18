@@ -33,11 +33,17 @@ final readonly class FindInvitationDeliveryStatus implements Query
             throw new DomainException('Missing required key "user_id" in data array');
         }
 
-        return new static(UserId::fromString((string) $data['user_id']));
+        if (!is_string($data['user_id'])) {
+            throw new DomainException('Invalid type for "user_id" in data array');
+        }
+
+        return new static(UserId::fromString($data['user_id']));
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical invitation status query payload
+     *
+     * @phpstan-return array{user_id: string}
      */
     public function toArray(): array
     {

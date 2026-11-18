@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\Feature\Query\ListFeatures;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Collection\ArrayList;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Repository\ResultSet;
 
@@ -23,8 +24,10 @@ final readonly class ListFeaturesHandler implements QueryHandler
     /**
      * Constructs ListFeaturesHandler
      */
-    public function __construct(private FeatureRepository $features, private PermissionRepository $permissions)
-    {
+    public function __construct(
+        private FeatureRepository $featureRepository,
+        private PermissionRepository $permissionRepository
+    ) {
     }
 
     /**
@@ -44,15 +47,23 @@ final readonly class ListFeaturesHandler implements QueryHandler
     {
         /** @var ListFeatures $query */
         $query = $queryMessage->payload();
-        $page = $this->features->getAll($query->getPagination());
+        $page = $this->featureRepository->getAll($query->getPagination());
+        $page = ResultSet::strict($page->page(), $page->perPage(), $page->totalRecords(), $page->records());
+        if (
+            $page->page() !== $query->getPagination()->page()
+            || $page->perPage() !== $query->getPagination()->perPage()
+        ) {
+            throw new DomainException('The Feature page does not match the requested pagination.');
+        }
+
         $views = ArrayList::of(FeatureView::class);
-        foreach ($page->records() as $feature) {
+        foreach ($page->records()->toArray() as $feature) {
             $views->add(FeatureView::fromFeature(
                 $feature,
-                $this->permissions->getById($feature->getPermissionId())
+                $this->permissionRepository->getById($feature->getPermissionId())
             ));
         }
 
-        return new ResultSet($page->page(), $page->perPage(), $page->totalRecords(), $views);
+        return ResultSet::strict($page->page(), $page->perPage(), $page->totalRecords(), $views);
     }
 }

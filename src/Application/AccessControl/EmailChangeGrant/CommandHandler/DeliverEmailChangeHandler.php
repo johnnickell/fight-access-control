@@ -12,20 +12,28 @@ use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\Cre
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryProvider;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Exception\CredentialDeliveryTransitionException;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\DeliverEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeDelivered;
-use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeDeliveryNotRetryableException;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use Fight\Common\Domain\Messaging\MessageId;
+use LogicException;
 use Throwable;
 
 /**
@@ -42,12 +50,12 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
      */
     public function __construct(
         private EmailChangeGrantRepository $emailChangeGrantRepository,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private EmailChangeDeliveryCipher $emailChangeDeliveryCipher,
         private CredentialDeliveryProvider $credentialDeliveryProvider,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -73,7 +81,13 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
             assert($claimToken instanceof CredentialDeliveryClaimToken);
 
             $attemptResult = $this->invoke($claimed, $claimToken);
-            $successEvent = $this->recordOutcome($command, $claimed, $claimToken, $attemptResult);
+            $successEvent = $this->recordOutcome(
+                $command,
+                $claimed,
+                $claimToken,
+                $attemptResult,
+                $commandMessage->id()
+            );
             if ($successEvent instanceof EmailChangeDelivered) {
                 $this->eventDispatcher->trigger($successEvent);
             }
@@ -93,31 +107,43 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
      */
     private function claim(DeliverEmailChange $command): EmailChangeGrant
     {
-        return $this->unitOfWork->commitTransactional(function () use ($command): EmailChangeGrant {
+        /** @var EmailChangeGrant $claimed */
+        $claimed = $this->unitOfWork->commitTransactional(function () use ($command): EmailChangeGrant {
             $grant = $this->emailChangeGrantRepository->getByDeliveryId(
                 $command->getEmailChangeDeliveryId()
             );
             $latest = $this->emailChangeGrantRepository->getLatestByUserId($command->getUserId());
             if (!$this->isCurrent($grant, $latest, $command)) {
-                throw new EmailChangeDeliveryNotRetryableException(
+                throw new StateConflict(
                     'The email-change delivery work is no longer retryable.'
                 );
             }
 
             $claimedAt = $this->clock->now();
-            $claimed = $grant->claimDelivery(
-                CredentialDeliveryClaimToken::generate(),
-                $claimedAt,
-                $this->leaseUntil($claimedAt, $grant->getExpiresAt())
-            );
+            $leaseUntil = $this->leaseUntil($claimedAt, $grant->getExpiresAt());
+            try {
+                $claimed = $grant->claimDelivery(
+                    CredentialDeliveryClaimToken::generate(),
+                    $claimedAt,
+                    $leaseUntil
+                );
+            } catch (CredentialDeliveryTransitionException $credentialDeliveryTransitionException) {
+                throw new StateConflict(
+                    'The email-change delivery cannot be claimed.',
+                    previous: $credentialDeliveryTransitionException
+                );
+            }
+
             if (!$this->emailChangeGrantRepository->replace($grant, $claimed)) {
-                throw new EmailChangeDeliveryNotRetryableException(
+                throw new StateConflict(
                     'The email-change delivery generation changed concurrently.'
                 );
             }
 
             return $claimed;
         });
+
+        return $claimed;
     }
 
     /**
@@ -128,9 +154,17 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
         CredentialDeliveryClaimToken $claimToken
     ): CredentialDeliveryAttemptResult {
         $delivery = $claimed->getDelivery();
+        $at = $this->clock->now();
+        try {
+            $material = $delivery->materialForClaim($claimToken, $at);
+        } catch (CredentialDeliveryTransitionException $credentialDeliveryTransitionException) {
+            throw new StateConflict(
+                'The email-change delivery claim is stale.',
+                previous: $credentialDeliveryTransitionException
+            );
+        }
 
         try {
-            $material = $delivery->materialForClaim($claimToken, $this->clock->now());
             $credential = $this->emailChangeDeliveryCipher->decrypt($material);
             $outcome = $this->credentialDeliveryProvider->deliver(new CredentialDeliveryInvocation(
                 $claimed->purpose(),
@@ -153,13 +187,16 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
         DeliverEmailChange $command,
         EmailChangeGrant $claimed,
         CredentialDeliveryClaimToken $claimToken,
-        CredentialDeliveryAttemptResult $attemptResult
+        CredentialDeliveryAttemptResult $attemptResult,
+        MessageId $messageId
     ): ?EmailChangeDelivered {
-        return $this->unitOfWork->commitTransactional(function () use (
+        /** @var ?EmailChangeDelivered $successEvent */
+        $successEvent = $this->unitOfWork->commitTransactional(function () use (
             $command,
             $claimed,
             $claimToken,
-            $attemptResult
+            $attemptResult,
+            $messageId
         ): ?EmailChangeDelivered {
             $current = $this->emailChangeGrantRepository->getByDeliveryId(
                 $command->getEmailChangeDeliveryId()
@@ -169,40 +206,60 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
                 !$this->isCurrent($current, $latest, $command)
                 || $current->getRevision() !== $claimed->getRevision()
             ) {
-                throw new EmailChangeDeliveryNotRetryableException(
+                throw new StateConflict(
                     'The email-change delivery outcome is stale.'
                 );
             }
 
+            if (!$current->getDelivery()->sameStateAs($claimed->getDelivery())) {
+                throw new LogicException('The credential repository changed claim state without a revision.');
+            }
+
             $occurredAt = $this->clock->now();
             $outcome = $attemptResult->getOutcome();
-            $replacement = match ($outcome) {
-                CredentialDeliveryOutcome::DELIVERED => $current->confirmDelivery($claimToken, $occurredAt),
-                CredentialDeliveryOutcome::RETRYABLE_FAILURE => $current->failDelivery(
-                    $claimToken,
-                    $occurredAt,
-                    $attemptResult->getFailure() ?? CredentialDeliveryFailure::UNEXPECTED_PROVIDER
-                ),
-                CredentialDeliveryOutcome::PERMANENT_FAILURE => $current->failDeliveryPermanently(
-                    $claimToken,
-                    $occurredAt
-                )
-            };
+            try {
+                $replacement = match ($outcome) {
+                    CredentialDeliveryOutcome::DELIVERED => $current->confirmDelivery($claimToken, $occurredAt),
+                    CredentialDeliveryOutcome::RETRYABLE_FAILURE => $current->failDelivery(
+                        $claimToken,
+                        $occurredAt,
+                        $attemptResult->getFailure() ?? CredentialDeliveryFailure::UNEXPECTED_PROVIDER
+                    ),
+                    CredentialDeliveryOutcome::PERMANENT_FAILURE => $current->failDeliveryPermanently(
+                        $claimToken,
+                        $occurredAt
+                    )
+                };
+            } catch (CredentialDeliveryTransitionException $credentialDeliveryTransitionException) {
+                throw new StateConflict(
+                    'The email-change delivery outcome is stale.',
+                    previous: $credentialDeliveryTransitionException
+                );
+            }
+
             if (!$this->emailChangeGrantRepository->replace($current, $replacement)) {
-                throw new EmailChangeDeliveryNotRetryableException(
+                throw new StateConflict(
                     'The email-change delivery outcome changed concurrently.'
                 );
             }
 
-            $action = 'user.email_change_delivery.failed';
+            $action = AuditAction::EMAIL_CHANGE_DELIVERY_FAILED;
             if ($outcome === CredentialDeliveryOutcome::DELIVERED) {
-                $action = 'user.email_change_delivery.confirmed';
+                $action = AuditAction::EMAIL_CHANGE_DELIVERY_CONFIRMED;
             }
 
-            $this->auditEvidenceRepository->add(AuditEvidence::record(
-                $command->getActorId()->toString(),
+            $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                $command->getActorId(),
+                new AuditSubject($command->getUserId()),
                 $action,
-                $command->getUserId()
+                $occurredAt,
+                new AuditGrantOutcome(
+                    AuditGrantState::fromGrant($current),
+                    AuditGrantState::fromGrant($replacement),
+                    $replacement->getDelivery()->getStatus(),
+                    $attemptResult->getFailure()
+                ),
+                new AuditCorrelation($messageId, null)
             ));
 
             if ($outcome !== CredentialDeliveryOutcome::DELIVERED) {
@@ -215,6 +272,8 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
                 $command->getEmailChangeDeliveryId()
             );
         });
+
+        return $successEvent;
     }
 
     /**
@@ -232,16 +291,34 @@ final readonly class DeliverEmailChangeHandler implements CommandHandler
 
     /**
      * Returns whether the exact generation remains authoritative
+     *
+     * @phpstan-assert-if-true EmailChangeGrant $grant
+     * @phpstan-assert-if-true EmailChangeGrant $latest
      */
     private function isCurrent(
         ?EmailChangeGrant $grant,
         ?EmailChangeGrant $latest,
         DeliverEmailChange $command
     ): bool {
+        if (
+            $grant instanceof EmailChangeGrant
+            && (!$grant->getDelivery()->getId()->equals($command->getEmailChangeDeliveryId())
+                || $grant->purpose() !== 'email_change'
+                || !$grant->getDelivery()->getUserId()->equals($grant->getUserId())
+                || $grant->getDelivery()->getExpiresAt() != $grant->getExpiresAt())
+        ) {
+            throw new LogicException('The credential repository returned another delivery.');
+        }
+
+        if ($latest instanceof EmailChangeGrant && !$latest->getUserId()->equals($command->getUserId())) {
+            throw new LogicException("The credential repository returned another User's generation.");
+        }
+
         return $grant instanceof EmailChangeGrant
             && $latest instanceof EmailChangeGrant
             && $latest->getId()->equals($grant->getId())
             && $latest->getRevision() === $grant->getRevision()
-            && $grant->getUserId()->equals($command->getUserId());
+            && $grant->getUserId()->equals($command->getUserId())
+            && $grant->isIssued();
     }
 }

@@ -1,0 +1,17 @@
+services:
+  php:
+    build: ./etc/docker
+    init: true
+    command: ["sleep", "infinity"]
+    working_dir: /app
+    user: "${FIGHT_UID}:${FIGHT_GID}"
+    volumes: [".:/app"]
+    environment:
+      HOME: /tmp
+      COMPOSER_HOME: /app/var/cache/composer
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: safe.directory
+      GIT_CONFIG_VALUE_0: /app
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 256

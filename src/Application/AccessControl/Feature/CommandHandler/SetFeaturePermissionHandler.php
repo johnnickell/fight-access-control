@@ -4,21 +4,30 @@ declare(strict_types=1);
 
 namespace Fight\AccessControl\Application\AccessControl\Feature\CommandHandler;
 
+use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditFeatureState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\SetFeaturePermission;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeaturePermissionChanged;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureNotFoundException;
 use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureReferenceException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Exception\FeatureRevisionException;
-use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureRepository;
-use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionRepository;
+use Fight\Common\Application\Error\Exception\InvalidInput;
+use Fight\Common\Application\Error\Exception\PreconditionFailed;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Throwable;
+use UnexpectedValueException;
 
 /**
  * Class SetFeaturePermissionHandler
@@ -31,10 +40,12 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
      * Constructs SetFeaturePermissionHandler
      */
     public function __construct(
-        private FeatureRepository $features,
-        private PermissionRepository $permissions,
+        private FeatureRepository $featureRepository,
+        private PermissionRepository $permissionRepository,
+        private Clock $clock,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $events
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -54,27 +65,67 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
         /** @var SetFeaturePermission $command */
         $command = $commandMessage->payload();
         try {
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): ?FeaturePermissionChanged {
-                $feature = $this->features->getById($command->getFeatureId());
-                if (!$feature instanceof Feature) {
-                    throw new FeatureNotFoundException('The Feature does not exist.');
+            $messageId = $commandMessage->id();
+            /** @var FeaturePermissionChanged|null $event */
+            $event = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                $messageId
+            ): ?FeaturePermissionChanged {
+                $feature = $this->featureRepository->getById($command->getFeatureId());
+                if ($feature === null) {
+                    throw new ResourceNotFound('The Feature does not exist.');
+                }
+
+                if (!$feature->getId()->equals($command->getFeatureId())) {
+                    throw new UnexpectedValueException('Feature lookup returned a different identity.');
                 }
 
                 if ($feature->getRevision() !== $command->getExpectedRevision()) {
-                    throw new FeatureRevisionException('The Feature changed concurrently.');
+                    throw new PreconditionFailed('The expected Feature revision does not match.');
                 }
 
-                if (!$this->permissions->getById($command->getPermissionId()) instanceof Permission) {
-                    throw new FeatureReferenceException('The selected testing Permission does not exist.');
+                $permission = $this->permissionRepository->getById($command->getPermissionId());
+                if ($permission === null) {
+                    throw new ResourceNotFound('The selected testing Permission does not exist.');
+                }
+
+                if (!$permission->getId()->equals($command->getPermissionId())) {
+                    throw new UnexpectedValueException('Permission lookup returned a different identity.');
                 }
 
                 $successor = $feature->withPermission($command->getPermissionId());
-                if (!$this->features->replace($feature, $successor)) {
-                    throw new FeatureRevisionException('The Feature changed concurrently.');
+                $actorId = $command->getActorId();
+                if ($successor !== $feature && $this->auditEvidenceRepository !== null && $actorId === null) {
+                    throw new InvalidInput('Feature audit requires explicit actor provenance.');
+                }
+
+                try {
+                    if (!$this->featureRepository->replace($feature, $successor)) {
+                        throw new StateConflict('The Feature changed concurrently.');
+                    }
+                } catch (FeatureReferenceException $featureReferenceException) {
+                    throw new StateConflict(
+                        'The Feature Permission changed concurrently.',
+                        previous: $featureReferenceException
+                    );
                 }
 
                 if ($successor === $feature) {
                     return null;
+                }
+
+                if ($this->auditEvidenceRepository !== null && $actorId !== null) {
+                    $this->auditEvidenceRepository->add(AuditEvidence::record(
+                        $actorId,
+                        new AuditSubject($feature->getId()),
+                        AuditAction::FEATURE_PERMISSION_CHANGED,
+                        $this->clock->now(),
+                        new AuditFeatureOutcome(
+                            AuditFeatureState::fromFeature($feature),
+                            AuditFeatureState::fromFeature($successor)
+                        ),
+                        new AuditCorrelation($messageId, null)
+                    ));
                 }
 
                 return new FeaturePermissionChanged(
@@ -83,12 +134,12 @@ final readonly class SetFeaturePermissionHandler implements CommandHandler
                     $successor->getRevision()
                 );
             });
-            if ($event instanceof FeaturePermissionChanged) {
-                $this->events->trigger($event);
+            if ($event !== null) {
+                $this->eventDispatcher->trigger($event);
             }
         } catch (Throwable $throwable) {
             try {
-                $this->events->trigger(new CommandFailedEvent($command, 'Feature permission update failed.'));
+                $this->eventDispatcher->trigger(new CommandFailedEvent($command, 'Feature permission update failed.'));
             } finally {
                 throw $throwable;
             }

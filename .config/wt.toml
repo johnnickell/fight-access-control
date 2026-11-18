@@ -1,0 +1,2 @@
+[pre-remove]
+runtime = "{{ primary_worktree_path }}/bin/down --worktree {{ worktree_path }}"

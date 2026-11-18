@@ -22,6 +22,12 @@ final class PermissionNameTest extends TestCase
         self::assertTrue($name->equals(PermissionName::fromString('MANAGE_USERS')));
     }
 
+    public function test_it_rejects_a_terminal_newline_in_a_canonical_requirement(): void
+    {
+        $this->expectException(PermissionNameException::class);
+        PermissionName::fromString("READ_DOCUMENTS\n");
+    }
+
     public function test_it_rejects_names_outside_the_canonical_format(): void
     {
         foreach (

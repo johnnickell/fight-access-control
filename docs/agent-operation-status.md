@@ -12,18 +12,22 @@ qualified consumer deployment; see the [current integration guide](agent-integra
 ## Composition and authority
 
 Register `GetAgentOperationHandler::queryRegistration()` with Common's QueryHandler registration. Construct the
-handler with the Domain `AgentOperationRepository` and request-scoped Application `AgentOperationAuthorization`.
+handler with Domain `AgentCredentialOperation\AgentCredentialOperationReadRepository` and request-scoped
+Application `AgentCredentialOperation\AgentOperationAuthorization`. The read repository has no material-bearing
+lookup, reservation or persistence methods; its `Query` messages/View and Application `QueryHandler` now live under
+`AccessControl\AgentCredentialOperation`. See the [ownership/composition map](agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
 There is no Unit of Work, cipher, generator, sink, audit repository, event dispatcher or admission-limit dependency.
 
 ```php
-use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentOperation;
-use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\AgentOperationView;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Query\GetAgentOperation;
 
 // Use the original retained key and registered destination, not a name, path or URL.
 $query = new GetAgentOperation($retainedKey, $registeredDestination);
-$view = $handler->handle(QueryMessage::create($query));
+/** @var AgentOperationView $view */
+$view = $queryBus->fetch($query);
 if (!$view->isConfirmed()) {
-    // Outcome remains indeterminate. Keep the original key/request for service resolution.
+    // Outcome remains indeterminate. Keep the original key/request for authorized Command retry.
     // Do not infer rollback, choose a new key, or report delivery or launch permission.
 }
 ```
@@ -45,14 +49,17 @@ v0.5.0 contract; there is no permissive compatibility default.
 3. Immediately before disclosure, `authorizeRead()` rechecks the scope/delegation/destination and, when present,
    the original Agent target. It also repeats the check when storage returned no record. Do not cache the earlier
    allow. Terminal or retired work does not bypass current target/destination policy.
-4. The Domain view verifies the exact scoped key/destination binding and single supported request marker (`2`).
-   A binding mismatch denies without exposing a conflicting operation. Unsupported versions reject only after
+4. The handler rejects a wrong repository key as an internal contract fault. The Domain view then verifies the
+   requested destination binding and single supported request marker (`2`). A key-only lookup's legitimate binding
+   mismatch remains concealed, not an internal fault. Unsupported versions reject only after
    current target authorization, without selecting a current canonicalizer or changing retained request evidence.
 
 A read returns the stored snapshot observed by the repository; it does not freeze subsequent lifecycle/authority
 changes. Authorization changes observed before the final check deny. Later changes do not retroactively recall an
 already authorized response. This is **not** the transactional admission fence required for delivery or activation.
 Consumers must check current authority again for those operations and each credential use.
+
+See [exact Query contracts](agent-query-contracts.md) for the unreleased read-adapter and failure distinction.
 
 ## Query and result shapes
 
@@ -98,8 +105,8 @@ whose key differs from its top-level key. Missing result fields and invalid enum
   `current` is recorded lifecycle metadata, not permission to sign, activate an enrollment or launch.
 
 Original issuance stays identical after supersession, revocation, expiry or delivery-copy retirement. No successor
-credential is substituted. Publication warnings are transient service-result metadata, not stored delivery outcomes;
-status does not reconstruct warnings from events. Even both publishers failing leaves authoritative issuance readable.
+credential is substituted. Under TASK-00182, provisioning/rotation Commands return void; there is no returned or
+stored publication warning, and status does not reconstruct one from events. Even both publishers failing leaves authoritative issuance readable.
 Neither a confirmed result nor a `delivered` value supplies enrollment activation, launch permission or secret access.
 
 Every Agent uses the [current correlated model](agent-current-contract.md). Administrative `AgentView` has no legacy
@@ -108,13 +115,16 @@ or material access. A missing current operation cannot justify skipping lifecycl
 
 ## Storage, uncertainty and bounded recovery
 
-`AgentOperationRepository::getStatusByKey()` must project one coherent authoritative snapshot of original issuance,
+`AgentCredentialOperationReadRepository::getStatusByKey()` must project one coherent authoritative snapshot of original issuance,
 retained canonical version and recorded dispositions. Include permanent tombstones and unknown versions. Never use
 an eventually consistent replica, load/decrypt material, acknowledge work, advance a lifecycle, or apply new-work
 capacity limits. It must throw on storage failure, not return null. Do not implement this method by calling the
 transaction-fenced/material-bearing `getByKey()` path from a QueryHandler.
 
-`AgentCredentialOperation` carries persisted delivery and credential dispositions for safe projection. Newly
+`AgentCredentialOperation` carries persisted delivery and credential dispositions for safe projection.
+It exposes `getDeliveryDisposition()` / `getCredentialDisposition()`, not public read construction. Query-owned
+`AgentOperationView::fromOperation()` maps an already-loaded snapshot without reading material, receipts or
+canonical request content; read adapters should project persisted safe metadata directly, not hydrate a whole root. Newly
 provisioned records default to `pending` / `current`. Hydration must supply recorded values for later states; it must
 not reset retired or delivered work to defaults. The existing `retireMaterial()` retains original correlation and
 credential disposition, changes pending/retryable copies to `retired`, and preserves already-recorded delivered,
@@ -126,15 +136,18 @@ those writers and retain them in tombstones. Unknown canonical versions remain s
 | --- | --- | --- |
 | Authoritative committed record | Confirmed original issuance and recorded disposition | No issuance, generation, audit or event repeats |
 | Authoritative absence | Indeterminate view; no guessed identity/disposition | Absence is not proof of rollback; retain the key |
-| Storage or integration unavailable | Sanitized retryable `AgentOperationRejectedException(UNAVAILABLE)` | Retry status or original service request after recovery; no fabricated result |
-| Current authority denied or binding mismatch | Sanitized `UNAUTHORIZED` | No conflicting/existing outcome disclosed |
-| Unsupported retained request version | Sanitized `UNSUPPORTED_VERSION` | No rewrite, current canonicalization, mutation or new issuance |
-| Prior known pre-commit service rejection | Remains the original service's rejection, not reconstructed by this query | An absent record still cannot prove why an earlier attempt left no record |
+| Deliberately classified storage/integration unavailability | Common Application `ServiceUnavailable`, without provider cause | Retry status or original Command after recovery; no fabricated result |
+| Unexpected provider/programmer fault or wrong returned key | Safe Application `AgentOperationReadFailed` / Common `ServerError` | Internal failure, not caller denial, absence or ordinary refusal; no diagnostic cause retained |
+| Current authority denied or binding mismatch | Common Application `PermissionDenied` | No conflicting/existing outcome disclosed |
+| Unsupported retained request version | Common Application `ServiceUnavailable` | No rewrite, current canonicalization, mutation or new issuance |
+| Prior known pre-commit execution rejection | Remains the execution-channel rejection, not reconstructed by this Query | An absent record still cannot prove why an earlier attempt left no record |
 
 The query never infers outcomes from missing success/failure events. After lost commit acknowledgement, an actually
 committed record becomes confirmed; an actually rolled-back attempt remains indeterminate to the read path. The
-owning provisioning/rotation service reconciles the same original key/request when a mutation decision is needed.
-No automatic key replacement or reissue occurs here. New-work capacity exhaustion and invalid issuance-limit
+owning provisioning/rotation CommandHandler reconciles the same original key/request when a mutation decision is needed.
+Before delayed execution, during in-flight work, after rollback or when unknown, absence remains the same
+indeterminate view—not queued/running/rejected status. It cannot reconstruct worker errors or promise an async
+submitter receives them. No automatic key replacement or reissue occurs here. New-work capacity exhaustion and invalid issuance-limit
 overrides do not gate status. There are no read-policy overrides requiring manual setup or another human approval.
 
 Dependency exceptions are sanitized without chaining their original throwable. Status arrays, ordinary object
@@ -145,9 +158,9 @@ traces. Consumers remain responsible for their own logging and caller-stack argu
 
 ## Executable evidence and limits
 
-[AgentOperationViewTest](../tests/Domain/AccessControl/Agent/AgentOperationViewTest.php) proves canonical round trips,
+[AgentOperationViewTest](../tests/Domain/AccessControl/AgentCredentialOperation/AgentOperationViewTest.php) proves canonical round trips,
 required fields, strict types, finite identifiers, date/enum rejection, historical version/binding checks and safe
-retirement projection. [GetAgentOperationHandlerTest](../tests/Application/AccessControl/Agent/QueryHandler/GetAgentOperationHandlerTest.php)
+retirement projection. [GetAgentOperationHandlerTest](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/GetAgentOperationHandlerTest.php)
 proves the public read path against controlled repository/consumer-policy fixtures:
 
 | TICKET-00012 evidence | Test |
@@ -162,7 +175,7 @@ proves the public read path against controlled repository/consumer-policy fixtur
 | I1, I7 actual provision commit uncertainty and known pre-commit rejection | `test_uncertain_commit_and_known_precommit_rejection_never_turn_absence_into_rollback` |
 | I1, I7 both publishers failing, no inferred delivery | `test_both_publishers_failing_cannot_hide_issuance_or_prove_delivery` |
 | I6 new-work capacity and invalid overrides preserve status/retry | `test_new_work_capacity_and_override_validation_do_not_gate_existing_status` |
-| I7 safe storage/authorization failure, no material reads or writes | `test_storage_and_authorization_faults_are_sanitized_unavailable_not_absence` |
+| I7 safe storage/authorization failure, no material reads or writes | `test_storage_and_authorization_faults_preserve_internal_or_known_intent_not_absence` |
 
 Provision-to-read and uncertain-provision-to-read cases exercise real package code with in-memory persistence and
 transaction fixtures. All delivered, superseded, revoked, expired, retryable and terminal **disposition fixtures**

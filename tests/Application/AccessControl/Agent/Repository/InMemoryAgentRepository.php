@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Fight\Test\AccessControl\Application\AccessControl\Agent\Repository;
 
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Repository\{
+    InMemoryAgentOperationContract
+};
+use Fight\Test\AccessControl\Application\AccessControl\AgentCredentialOperation\Repository\{
+    InMemoryAgentCredentialOperationRepository
+};
 use Closure;
 use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\Agent\Agent;
@@ -12,11 +18,11 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentId;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentName;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentState;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentOperationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUpdateException;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentCredentialOperation;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContract;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\Agent\Exception\AgentUnavailableException;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentCredentialOperation;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContract;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationFailure;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\Exception\AgentOperationRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Collection\ArrayList;
@@ -53,7 +59,7 @@ final class InMemoryAgentRepository implements AgentRepository
         private readonly ?Closure $beforeReplacePermissionAssignments = null,
         private readonly ?Closure $beforeValidatePermissionAssignments = null,
         private readonly ?Throwable $replacePermissionAssignmentsFailure = null,
-        private readonly ?InMemoryAgentOperationRepository $operations = null
+        private readonly ?InMemoryAgentCredentialOperationRepository $operationRepository = null
     ) {
         $resolvedAuthorizationReferences = $authorizationReferences ?? new InMemoryAuthorizationReferenceState();
         if (
@@ -64,7 +70,7 @@ final class InMemoryAgentRepository implements AgentRepository
         }
 
         $this->authorizationReferences = $resolvedAuthorizationReferences;
-        $this->contract = $operations->contract ?? new InMemoryAgentOperationContract($unitOfWork);
+        $this->contract = $operationRepository->contract ?? new InMemoryAgentOperationContract($unitOfWork);
     }
 
     public function getOperationContract(): AgentOperationContract
@@ -131,17 +137,21 @@ final class InMemoryAgentRepository implements AgentRepository
     {
         $this->beforeNameWrite?->__invoke();
         $this->getOperationContract()->assertCompatible();
-        if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
+        if (
+            $this->operationRepository === null || !$this->operationRepository->participatesIn(
+                $this->unitOfWork
+            )
+        ) {
             throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
         }
 
         $current = $this->getById($id);
         if ($current === null || $current->getState() !== AgentState::ACTIVE) {
-            throw new AgentUpdateException('The Agent is unavailable for a name update.');
+            throw new AgentUnavailableException('The Agent is unavailable for a name update.');
         }
 
         $matches = array_filter(
-            $this->operations->operations,
+            $this->operationRepository->operations,
             static function (AgentCredentialOperation $operation) use ($current): bool {
                 $issuance = $operation->getIssuance();
 
@@ -186,11 +196,15 @@ final class InMemoryAgentRepository implements AgentRepository
                 continue;
             }
 
-            if ($this->operations === null || !$this->operations->participatesIn($this->unitOfWork)) {
+            if (
+                $this->operationRepository === null || !$this->operationRepository->participatesIn(
+                    $this->unitOfWork
+                )
+            ) {
                 throw new AgentOperationRejectedException(AgentOperationFailure::UNAVAILABLE);
             }
 
-            $this->operations->retireCredential($expected, $replacement);
+            $this->operationRepository->retireCredential($expected, $replacement);
 
             $this->agents[$index] = $replacement;
             $this->authorizationReferences->retainAgent($replacement);

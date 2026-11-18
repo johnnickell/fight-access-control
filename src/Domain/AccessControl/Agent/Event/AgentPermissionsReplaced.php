@@ -32,6 +32,11 @@ final readonly class AgentPermissionsReplaced implements Event
         private int $permissionAssignmentRevision,
         private DateTimeImmutable $replacedAt
     ) {
+        if ($permissionAssignmentRevision < 1) {
+            throw new DomainException('Agent Permission events require a positive revision.');
+        }
+
+        self::assertPermissionIds($permissionIds);
     }
 
     /** @inheritDoc */
@@ -45,19 +50,40 @@ final readonly class AgentPermissionsReplaced implements Event
             }
         }
 
+        if (
+            !is_string($data['actor_id']) || !is_string($data['agent_id']) || !is_string($data['replaced_at'])
+            || !is_int($data['permission_assignment_revision'])
+            || !is_array($data['permission_ids']) || !array_is_list($data['permission_ids'])
+        ) {
+            throw new DomainException('Agent Permission events require string fields, an integer and a list.');
+        }
+
+        $permissionIds = [];
+        foreach ($data['permission_ids'] as $id) {
+            if (!is_string($id)) {
+                throw new DomainException('Agent Permission identities must be strings.');
+            }
+
+            $permissionIds[] = PermissionId::fromString($id);
+        }
+
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            AgentId::fromString((string) $data['agent_id']),
-            array_map(
-                static fn(mixed $id): PermissionId => PermissionId::fromString((string) $id),
-                (array) $data['permission_ids']
-            ),
-            (int) $data['permission_assignment_revision'],
-            new DateTimeImmutable((string) $data['replaced_at'])
+            UserId::fromString($data['actor_id']),
+            AgentId::fromString($data['agent_id']),
+            $permissionIds,
+            $data['permission_assignment_revision'],
+            AgentEventTime::fromString($data['replaced_at'])
         );
     }
 
-    /** @inheritDoc */
+    /**
+     * Returns the canonical event payload
+     *
+     * @return array{
+     *     actor_id: string, agent_id: string, permission_ids: list<string>,
+     *     permission_assignment_revision: int, replaced_at: string
+     * }
+     */
     public function toArray(): array
     {
         return [
@@ -112,5 +138,20 @@ final readonly class AgentPermissionsReplaced implements Event
     public function getReplacedAt(): DateTimeImmutable
     {
         return $this->replacedAt;
+    }
+
+    /**
+     * Validates the native array boundary without relying on erased collection annotations
+     *
+     * @param array<array-key, mixed> $permissionIds
+     */
+    private static function assertPermissionIds(array $permissionIds): void
+    {
+        if (
+            !array_is_list($permissionIds)
+            || !array_all($permissionIds, static fn(mixed $id): bool => $id instanceof PermissionId)
+        ) {
+            throw new DomainException('Agent Permission identities must be a list of PermissionId values.');
+        }
     }
 }

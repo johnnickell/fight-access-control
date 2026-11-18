@@ -11,11 +11,14 @@ shim remains. This is package behavior, not release, consumer qualification, enr
 not an Agent type or a selectable runtime mode. Marker `1` is unsupported, as is any unknown marker. Storage and
 destination contract markers remain `1`; they describe different contracts.
 
-The Domain owner `AgentOperationCanonicalization::name()` trims a fixed set at the edges: NUL, U+0009–000D,
+The single Domain name owner `AgentName::fromString()` trims a fixed set at the edges: NUL, U+0009–000D,
 U+0020, U+0085, U+00A0, U+1680, U+2000–200A, U+2028, U+2029, U+202F, U+205F and U+3000. This supports names pasted
 with Unicode whitespace without depending on a changing Unicode property database. The normalized name must be
 nonempty UTF-8 and at most 120 Unicode code points. Case and internal whitespace are preserved; U+200B/U+FEFF are
-not trimmed and no NFC conversion is performed. New provisioning binds and stores the same normalized Agent name.
+not trimmed and no NFC conversion is performed. Provisioning and rename both consume this value; canonicalization
+serializes it rather than owning another algorithm. New provisioning binds and stores the same normalized Agent name.
+TASK-00113 intentionally changes rename from PHP `trim` to this rule; provisioning marker **2** and existing valid
+request bytes remain unchanged. No compatibility helper, normalization flag or version mode is supplied.
 
 Request construction bounds raw UTF-8 input to 4096 bytes. New-work admission retains its 512-byte default and
 optional validated override. A retained retry bypasses new-work capacity/raw-name admission limits, not current
@@ -77,7 +80,7 @@ of version upgrades; [TASK-00058](../planning/tasks/00058-TASK.md) retains resto
 
 ## M3 executable evidence
 
-The consumer-bindable [AgentCanonicalConformance](../tests/Application/AccessControl/Agent/Security/AgentCanonicalConformance.php)
+The consumer-bindable [AgentCanonicalConformance](../tests/Application/AccessControl/Agent/Credential/AgentCanonicalConformance.php)
 uses `DeliveryConformanceFixture & AgentCanonicalFixture` with actual public services. Bind ports to real adapters,
 expire delegation through its authority writer, and inject unsupported markers/corrupt requests without changing
 other state. Restart must discard process composition while preserving durable operation/sink/authority state.
@@ -97,4 +100,5 @@ Independently observe records, Agent state, audits, counters and sink order; do 
 The reference runner is `InMemoryAgentCanonicalConformanceTest`. It executes actual delivery, revocation, expiry
 and cleanup, then reconstructs services over modeled persisted adapters. It is not a real database/process restart
 or qualification of consumer concurrency, sink cryptography or activation/use. Existing issuance and delivery suites
-retain publication warnings, uncertainty, capacity and recovery proof. No cross-version fixture matrix is needed.
+retain confirmed-commit publication containment, execution uncertainty, capacity and recovery proof under
+TASK-00182's void Commands and authorized outcome Queries, without returned/reconstructed warnings. No cross-version fixture matrix is needed.

@@ -8,8 +8,11 @@ there is no legacy mode or adoption transition. The [single canonical contract](
 
 ## Composition and persisted meaning
 
-Both `AgentRepository` and `AgentOperationRepository` now extend Domain
-`AgentOperationContractRepository`. Implement `getOperationContract(): AgentOperationContract` against one
+`AgentRepository`, `AgentCredentialOperationRepository` and the independent secret-free
+`AgentCredentialOperationReadRepository` extend Domain `AgentOperationContractRepository`, now under
+`Domain\AccessControl\AgentCredentialOperation`. The read repository retains cohort observation for operational
+selection/count checks without material-bearing lookup or write APIs; status still grants no writer admission.
+See the [ownership map](agent-integration.md#operation-ownership-and-readwrite-composition-unreleased). Implement `getOperationContract(): AgentOperationContract` against one
 shared authoritative cohort record, qualified against the **actual local composition**. Do not synthesize a current
 record when storage is absent, copy a startup-ready boolean, or infer compatibility from implemented PHP interfaces.
 
@@ -53,6 +56,10 @@ physical rollback or qualify consumer storage tools.
 | `ordered-sink-v1` | Server-registered fixed sinks, immutable exact-tuple staging, verified receipts, global delivery identities, persistent high-water/deduplication and inert late effects |
 | `material-maintenance-v1` | Authorized rewrap/expiry, shared key-reference admission, exact-tuple inert-entry cleanup and durable cleanup evidence |
 
+The Domain snapshot retains generation/authority evidence, not operational qualification machinery. Relocating
+it does not add a caller Boolean, optional preflight or entity readiness flag. Every direct writer still enforces
+this evidence under the transaction-duration cohort fence.
+
 The repository adapter's composition qualification must derive this intersection from the persisted qualified profile
 and its injected participants, not from the caller or arbitrary flags. Consumers may implement that check through their
 composition root; the package supplies no production adapter or universal reflection-based capability detector.
@@ -72,12 +79,12 @@ is not a future authorization grant. Use a consistent global lock order; never s
 
 | Boundary / actual package path | Guard and required participation |
 | --- | --- |
-| `AgentProvisioningService::provision`, `AgentCredentialRotationService::rotate` | Check both repositories before current authorization, lookup or generation in every transaction/retry. Retained-key resolution still precedes new-work capacity; only an absent key reaches new-work admission using the fixed canonical contract. |
+| `ProvisionAgentHandler::handle`, `RotateAgentCredentialHandler::handle` | Check both repositories before current authorization, lookup or generation in every transaction/retry. Retained-key resolution still precedes new-work capacity; only an absent key reaches new-work admission using the fixed canonical contract. |
 | `AgentRepository::add`, `replace`, `replacePermissionAssignments` | Enforce the cohort on direct writes too, with unconditional correlation/cancellation and no raw-return fallback. Agent/operation/audit state remains one transaction. |
 | `AgentRepository::rename`, `UpdateAgentHandler` | Apply [name-only intent](agent-name-updates.md) to current ACTIVE state under the shared cohort/Agent fence, including no-ops and direct calls. Preserve exact operation correlation and all unrelated authority; no retirement, issuance, keys/sinks or capacity admission. |
 | `AgentCredentialLifecycleService::revoke` | Guard before loading/mutating authority; original cancellation/audit and post-commit publication/rethrow behavior are unchanged. There is no alternate authority mode. |
 | Grant/revoke/replace Agent Permission handlers and their coordinator | Guard before target lookup/transition, including desired-state no-ops. Current ADMIN_SAFE checks, expected revisions and consumer caller policy still apply. |
-| `AgentOperationRepository::reserveDestinationWrite`, `add`, `retireCredential` | Enforce the cohort before reservations, correlation/material creation and lifecycle cancellation. No external direct caller may omit it. |
+| `AgentCredentialOperationRepository::reserveDestinationWrite`, `add`, `retireCredential` | Enforce the cohort before reservations, correlation/material creation and lifecycle cancellation. No external direct caller may omit it. |
 | `AgentCredentialDeliveryService` and `replaceDelivery` | Fresh compatible same-cohort transaction for claim, admission and outcome, including material-free/recorded outcomes. Recheck compatibility before outside-transaction receipt lookup/materialization. |
 | `ListDueAgentDeliveriesHandler`, `AgentDeliveryRecoveryService` | Discovery checks compatibility after initial current discovery authorization. Each subsequent delivery performs its own fenced checks; selection is not admission. |
 | `AgentDeliveryMaintenanceService`, `replaceMaintenance` | Guard each rewrap/expiry/cleanup-admission/cleanup-ack transaction. Rewrap and key references stay fenced; check compatibility again before outside-transaction cleanup. |
@@ -138,12 +145,13 @@ applies to real runtime cohort replacement and existing authority, not a require
 
 Previous-contract writers, historical migrations and automatic compatibility bridges are unsupported. Unsupported
 cohorts remain unavailable rather than falling back to raw issuance, unknown canonical rules or secret disclosure.
-Original publication-warning scope (provision/rotation only), finite bounds, capacity-preserved authorized recovery,
-separate delivery/activation/use outcomes and current policy are unchanged.
+Confirmed-commit publication containment remains scoped to provision/rotation only; TASK-00182 removes returned
+warnings in favor of void Commands and authorized outcome Queries. Finite bounds, capacity-preserved recovery,
+separate delivery/activation/use outcomes and current policy remain unchanged.
 
 ## Executable evidence and consumer obligations
 
-`tests/Application/AccessControl/Agent/Security/AgentCohortConformance.php` composes actual package services through
+`tests/Application/AccessControl/Agent/Credential/AgentCohortConformance.php` composes actual package services through
 `DeliveryConformanceFixture & AgentCohortFixture`. A consumer binds its real ports and persisted observations, supplies
 `breakCohort()` by changing actual storage/composition, and `switchCohort()` through its conflicting writer fence.
 Do not emulate failure by returning canned Application results. `restart()` must discard process-local readiness while

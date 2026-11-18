@@ -6,15 +6,25 @@ namespace Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Command
 
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeCancelled;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeAdministrationAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeCancellationException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -40,10 +50,10 @@ final readonly class CancelEmailChangeHandler implements CommandHandler
         private UserRepository $userRepository,
         private EmailChangeGrantRepository $emailChangeGrantRepository,
         private EmailChangeAdministrationAuthorization $emailChangeAdministrationAuthorization,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private Clock $clock,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -64,48 +74,93 @@ final readonly class CancelEmailChangeHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): EmailChangeCancelled {
+            /** @var EmailChangeCancelled $event */
+            $event = $this->unitOfWork->commitTransactional(function () use (
+                $command,
+                $commandMessage
+            ): EmailChangeCancelled {
                 $administrative = !$command->getActorId()->equals($command->getUserId());
                 if ($administrative) {
-                    $this->emailChangeAdministrationAuthorization->assertCanManageEmailChange(
-                        $command->getActorId(),
-                        $command->getUserId()
-                    );
+                    try {
+                        $this->emailChangeAdministrationAuthorization->assertCanManageEmailChange(
+                            $command->getActorId(),
+                            $command->getUserId()
+                        );
+                    } catch (EmailChangeAdministrationAuthorizationException $exception) {
+                        throw new PermissionDenied('Email change administration denied.', previous: $exception);
+                    }
                 }
 
                 $user = $this->userRepository->getById($command->getUserId());
+                if ($user instanceof User && !$user->getId()->equals($command->getUserId())) {
+                    throw new LogicException('The User repository returned another identity.');
+                }
+
                 if (!$user instanceof User) {
-                    throw new EmailChangeCancellationException('The active user was not found.');
+                    throw new ResourceNotFound('The active user was not found.');
                 }
 
                 $pendingEmailChange = $user->getPendingEmailChange();
                 $emailChangeGrant = $this->emailChangeGrantRepository->getLatestByUserId($user->getId());
                 if (
+                    $emailChangeGrant instanceof EmailChangeGrant
+                    && !$emailChangeGrant->getUserId()->equals($user->getId())
+                ) {
+                    throw new LogicException("The credential repository returned another User's generation.");
+                }
+
+                if (
                     !$pendingEmailChange instanceof EmailAddress
                     || !$emailChangeGrant instanceof EmailChangeGrant
+                    || !$emailChangeGrant->getId()->equals($command->getEmailChangeGrantId())
                     || !$emailChangeGrant->isIssued()
-                    || $emailChangeGrant->getDelivery()->getEmail()->canonical() !== $pendingEmailChange->canonical()
                 ) {
-                    throw new EmailChangeCancellationException('The user has no cancellable email change.');
+                    throw new StateConflict('The user has no cancellable email change.');
+                }
+
+                if (
+                    !$emailChangeGrant->matchesReservation(
+                        $user->getId(),
+                        $pendingEmailChange,
+                        $user->getEmailChangeReservationRevision()
+                    )
+                ) {
+                    throw new LogicException('The email-change authority has no matching reservation.');
                 }
 
                 $cancelledAt = $this->clock->now();
                 $replacementUser = clone $user;
-                $replacementUser->cancelEmailChange($cancelledAt);
+                try {
+                    $replacementUser->cancelEmailChange($cancelledAt);
+                } catch (EmailChangeCancellationException $emailChangeCancellationException) {
+                    throw new StateConflict(
+                        'The email change cannot be cancelled.',
+                        previous: $emailChangeCancellationException
+                    );
+                }
+
                 if (!$this->userRepository->replaceEmailChangeReservation($user, $replacementUser)) {
-                    throw new LogicException('The email-change reservation changed concurrently.');
+                    throw new StateConflict('The email-change reservation changed concurrently.');
                 }
 
                 $revokedGrant = $emailChangeGrant->revoke($cancelledAt);
                 if (!$this->emailChangeGrantRepository->replace($emailChangeGrant, $revokedGrant)) {
-                    throw new LogicException('Email-change authority changed concurrently.');
+                    throw new StateConflict('Email-change authority changed concurrently.');
                 }
 
-                if ($administrative) {
+                if ($this->auditEvidenceRepository !== null) {
                     $this->auditEvidenceRepository->add(AuditEvidence::record(
-                        $command->getActorId()->toString(),
-                        'user.email_change_administratively_cancelled',
-                        $user->getId()
+                        $command->getActorId(),
+                        new AuditSubject($user->getId()),
+                        AuditAction::EMAIL_CHANGE_CANCELLED,
+                        $cancelledAt,
+                        new AuditUserOutcome(
+                            AuditUserRevisions::fromUser($user),
+                            AuditUserRevisions::fromUser($replacementUser),
+                            AuditGrantState::fromGrant($emailChangeGrant),
+                            AuditGrantState::fromGrant($revokedGrant)
+                        ),
+                        new AuditCorrelation($commandMessage->id(), null)
                     ));
                 }
 

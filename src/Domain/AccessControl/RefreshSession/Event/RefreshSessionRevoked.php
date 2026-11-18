@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\RefreshSession\Event;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
@@ -36,21 +37,23 @@ final readonly class RefreshSessionRevoked implements Event
     public static function fromArray(array $data): static
     {
         foreach (['actor_id', 'user_id', 'refresh_session_id', 'revoked_at'] as $key) {
-            if (!array_key_exists($key, $data)) {
-                throw new DomainException(sprintf('Missing required key "%s" in data array', $key));
+            if (!array_key_exists($key, $data) || !is_string($data[$key])) {
+                throw new DomainException(sprintf('Missing or invalid string "%s" in data array', $key));
             }
         }
 
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            UserId::fromString((string) $data['user_id']),
-            RefreshSessionId::fromString((string) $data['refresh_session_id']),
-            new DateTimeImmutable((string) $data['revoked_at'])
+            UserId::fromString($data['actor_id']),
+            UserId::fromString($data['user_id']),
+            RefreshSessionId::fromString($data['refresh_session_id']),
+            CredentialDeliveryTimestamp::fromString($data['revoked_at'])->toDateTimeImmutable()
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical revocation fact
+     *
+     * @phpstan-return array{actor_id: string, user_id: string, refresh_session_id: string, revoked_at: string}
      */
     public function toArray(): array
     {

@@ -40,16 +40,27 @@ final readonly class AgentNameChanged implements Event
             }
         }
 
+        if (
+            !is_array($data['initiator']) || !is_string($data['agent_id'])
+            || !is_string($data['name']) || !is_string($data['changed_at'])
+        ) {
+            throw new DomainException('Agent name events require typed provenance and string fields.');
+        }
+
         return new static(
             AgentUpdateInitiator::fromArray($data['initiator']),
-            AgentId::fromString((string) $data['agent_id']),
-            AgentName::fromString((string) $data['name']),
-            new DateTimeImmutable((string) $data['changed_at'])
+            AgentId::fromString($data['agent_id']),
+            AgentName::fromString($data['name']),
+            AgentEventTime::fromString($data['changed_at'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical event payload
+     *
+     * @return array{
+     *     initiator: array{type: 'user'|'agent', id: string}, agent_id: string, name: string, changed_at: string
+     * }
      */
     public function toArray(): array
     {

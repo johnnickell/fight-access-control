@@ -7,14 +7,20 @@ namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\Service\PasswordResetRevocationService;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\User\Command\DeleteUser;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserDeleted;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
-use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -39,10 +45,10 @@ final readonly class DeleteUserHandler implements CommandHandler
         private UserRepository $userRepository,
         private SessionRevocationService $sessionRevocationService,
         private Clock $clock,
-        private AuditEvidenceRepository $auditEvidenceRepository,
         private TransactionalUnitOfWork $unitOfWork,
         private EventDispatcher $eventDispatcher,
-        private PasswordResetGrantRepository $passwordResetGrantRepository
+        private PasswordResetGrantRepository $passwordResetGrantRepository,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -63,17 +69,27 @@ final readonly class DeleteUserHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
-            $event = $this->unitOfWork->commitTransactional(function () use ($command): UserDeleted {
+            /** @var UserDeleted $event */
+            $event = $this->unitOfWork->commitTransactional(function () use ($command, $commandMessage): UserDeleted {
                 $user = $this->userRepository->getById($command->getUserId());
-                if (!$user instanceof User) {
-                    throw new UserLifecycleException('The user cannot be deleted.');
+                if ($user === null) {
+                    throw new ResourceNotFound('The user cannot be deleted.');
+                }
+
+                if (!$user->getId()->equals($command->getUserId())) {
+                    throw new LogicException('The User repository returned an unrelated identity.');
                 }
 
                 $now = $this->clock->now();
                 $replacementUser = clone $user;
-                $replacementUser->delete($now);
+                try {
+                    $replacementUser->delete($now);
+                } catch (UserLifecycleException $userLifecycleException) {
+                    throw new StateConflict('The user cannot be deleted.', previous: $userLifecycleException);
+                }
+
                 if (!$this->userRepository->replaceLifecycleState($user, $replacementUser)) {
-                    throw new LogicException('The user lifecycle state changed concurrently.');
+                    throw new StateConflict('The user lifecycle state changed concurrently.');
                 }
 
                 new PasswordResetRevocationService($this->passwordResetGrantRepository)->revokeFor(
@@ -85,10 +101,16 @@ final readonly class DeleteUserHandler implements CommandHandler
                     $now
                 );
 
-                $this->auditEvidenceRepository->add(AuditEvidence::record(
-                    $command->getActorId()->toString(),
-                    'user.deleted',
-                    $command->getUserId()
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                    $command->getActorId(),
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::USER_DELETED,
+                    $now,
+                    new AuditUserOutcome(
+                        AuditUserRevisions::fromUser($user),
+                        AuditUserRevisions::fromUser($replacementUser)
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
                 ));
 
                 return new UserDeleted($command->getActorId(), $command->getUserId());

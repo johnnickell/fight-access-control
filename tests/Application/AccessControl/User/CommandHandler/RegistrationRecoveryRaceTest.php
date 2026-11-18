@@ -14,14 +14,13 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RestoreUse
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ResendInvitationDelivery;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\ActivationDeliveryNotRetryableException;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\Command\DeleteUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryException;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\UserLifecycleException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\AuthenticationRequired;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
@@ -32,7 +31,6 @@ use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Reposi
 use Fight\Test\AccessControl\Application\AccessControl\RefreshSession\Repository\InMemoryRefreshSessionRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -63,7 +61,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                     CommandMessage::create($fixture->command($email))
                 );
                 $resend = fn() => $other->resend()->handle(CommandMessage::create(new ResendInvitationDelivery(
-                    'administrator',
+                    $fixture->actorId,
                     $fixture->initialUser->getId()
                 )));
                 $loser = new Fiber($recoveryWins ? $resend : $recovery);
@@ -74,16 +72,16 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $loser->resume();
                     self::fail('A stale replacement overwrote the winner.');
-                } catch (LogicException | RegistrationRecoveryException) {
+                } catch (StateConflict) {
                     self::assertSame($winner, $fixture->current());
-                    self::assertCount(2, $fixture->grants->all());
+                    self::assertCount(2, $fixture->activationGrantRepository->all());
                     self::assertSame(ActivationOrigin::REGISTRATION, $winner->getOrigin());
                     self::assertSame(
                         $recoveryWins ? strtolower($email) : 'alice@example.test',
-                        $fixture->users->all()[0]->getEmail()->canonical()
+                        $fixture->userRepository->all()[0]->getEmail()->canonical()
                     );
-                    self::assertCount($recoveryWins ? 1 : 0, $fixture->audit->all());
-                    self::assertCount($recoveryWins ? 0 : 1, $other->audit->all());
+                    self::assertCount($recoveryWins ? 1 : 0, $fixture->auditEvidenceRepository->all());
+                    self::assertCount($recoveryWins ? 0 : 1, $other->auditEvidenceRepository->all());
                     $this->assertRoles($fixture);
                 }
             }
@@ -114,12 +112,15 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $loser->resume();
                     self::fail('The stale second recovery replaced the winner.');
-                } catch (RegistrationRecoveryException) {
+                } catch (StateConflict) {
                     self::assertSame($winner, $fixture->current());
-                    self::assertSame(strtolower($winnerEmail), $fixture->users->all()[0]->getEmail()->canonical());
-                    self::assertCount(2, $fixture->grants->all());
-                    self::assertCount(1, $fixture->audit->all());
-                    self::assertSame([], $paused->audit->all());
+                    self::assertSame(
+                        strtolower($winnerEmail),
+                        $fixture->userRepository->all()[0]->getEmail()->canonical()
+                    );
+                    self::assertCount(2, $fixture->activationGrantRepository->all());
+                    self::assertCount(1, $fixture->auditEvidenceRepository->all());
+                    self::assertSame([], $paused->auditEvidenceRepository->all());
                     $this->assertRoles($fixture);
                 }
             }
@@ -166,14 +167,14 @@ final class RegistrationRecoveryRaceTest extends TestCase
             try {
                 $loser->resume();
                 self::fail('The stale activation/recovery won.');
-            } catch (LogicException | RegistrationRecoveryException) {
+            } catch (StateConflict) {
                 self::assertSame($winner, $fixture->current());
                 self::assertSame(
                     $recoveryWins ? UserState::PENDING_ACTIVATION : UserState::ACTIVE,
-                    $fixture->users->all()[0]->getState()
+                    $fixture->userRepository->all()[0]->getState()
                 );
-                self::assertSame($recoveryWins ? 2 : 1, count($fixture->grants->all()));
-                self::assertSame([], $paused->audit->all());
+                self::assertSame($recoveryWins ? 2 : 1, count($fixture->activationGrantRepository->all()));
+                self::assertSame([], $paused->auditEvidenceRepository->all());
                 $this->assertRoles($fixture);
             }
         }
@@ -186,7 +187,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 'long-new-password'
             );
             self::fail('Expired activation won before reissue.');
-        } catch (LogicException) {
+        } catch (AuthenticationRequired) {
             $fixture->handler('2030-01-08T00:00:00Z')->handle(CommandMessage::create(
                 $fixture->command('alice@example.test')
             ));
@@ -201,7 +202,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
             $fixture = new RegistrationRecoveryFixture();
             $other = $fixture->connection();
             $reserved = UserFixture::withState('other@example.test', UserState::ACTIVE);
-            $fixture->users->add($reserved);
+            $fixture->userRepository->add($reserved);
             $reservation = clone $reserved;
             $reservation->requestEmailChange(
                 EmailAddress::fromString('corrected@example.test'),
@@ -211,9 +212,9 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 // Independent address writer retained a pre-recovery snapshot.
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));
                 self::assertFalse($other->unitOfWork->commitTransactional(
-                    fn(): bool => $other->users->replaceEmailChangeReservation($reserved, $reservation)
+                    fn(): bool => $other->userRepository->replaceEmailChangeReservation($reserved, $reservation)
                 ));
-                self::assertNull($other->users->getById($reserved->getId())?->getPendingEmailChange());
+                self::assertNull($other->userRepository->getById($reserved->getId())?->getPendingEmailChange());
             } else {
                 $paused = null;
                 $paused = $fixture->connection(beforeRecovery: static function () use (&$paused): void {
@@ -224,17 +225,17 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 $loser->start();
                 self::assertTrue($loser->isSuspended());
                 self::assertTrue($other->unitOfWork->commitTransactional(
-                    fn(): bool => $other->users->replaceEmailChangeReservation($reserved, $reservation)
+                    fn(): bool => $other->userRepository->replaceEmailChangeReservation($reserved, $reservation)
                 ));
                 try {
                     $loser->resume();
                     self::fail('Recovery stole a committed destination reservation.');
-                } catch (RegistrationRecoveryException) {
+                } catch (StateConflict) {
                     self::assertEquals($fixture->initial, $fixture->current());
-                    self::assertSame([], $paused->audit->all());
+                    self::assertSame([], $paused->auditEvidenceRepository->all());
                     self::assertSame(
                         'corrected@example.test',
-                        $other->users->getById($reserved->getId())?->getPendingEmailChange()?->canonical()
+                        $other->userRepository->getById($reserved->getId())?->getPendingEmailChange()?->canonical()
                     );
                 }
             }
@@ -251,28 +252,27 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 $other = $fixture->connection();
                 $fixture->unitOfWork->beforeCommit = function () use ($fixture, $other): void {
                     $other->unitOfWork->commitTransactional(function () use ($fixture, $other): void {
-                        $current = $other->users->all()[0];
+                        $current = $other->userRepository->all()[0];
                         $activate = clone $current;
                         $activate->activate(
                             PasswordHash::fromString(password_hash('test-password', PASSWORD_BCRYPT)),
                             new DateTimeImmutable('2030-01-08Z')
                         );
-                        $activate->advanceAuthenticationAuthorityRevision();
-                        self::assertFalse($other->users->replaceAuthenticationAuthority($current, $activate));
+                        self::assertFalse($other->userRepository->replaceAuthenticationAuthority($current, $activate));
                         $roles = clone $current;
                         $roles->removeRole(
                             $fixture->registration->reader->getId(),
                             new DateTimeImmutable('2030-01-08Z')
                         );
-                        self::assertFalse($other->users->replaceRoleAssignments($current, $roles));
+                        self::assertFalse($other->userRepository->replaceRoleAssignments($current, $roles));
                         $correct = clone $current;
                         $correct->correctPendingInvitationEmail(
                             EmailAddress::fromString('late@example.test'),
                             new DateTimeImmutable('2030-01-08Z')
                         );
-                        self::assertFalse($other->users->replacePendingInvitationEmail($current, $correct));
+                        self::assertFalse($other->userRepository->replacePendingInvitationEmail($current, $correct));
                         $grant = $other->current();
-                        self::assertFalse($other->grants->replace(
+                        self::assertFalse($other->activationGrantRepository->replace(
                             $grant,
                             $grant->revoke(new DateTimeImmutable('2030-01-08Z'))
                         ));
@@ -289,20 +289,22 @@ final class RegistrationRecoveryRaceTest extends TestCase
                     self::assertSame('Injected transaction failure.', $caught->getMessage());
                 }
 
-                self::assertCount($rollback ? 1 : 2, $fixture->grants->all());
-                self::assertCount($rollback ? 0 : 1, $fixture->audit->all());
+                self::assertCount($rollback ? 1 : 2, $fixture->activationGrantRepository->all());
+                self::assertCount($rollback ? 0 : 1, $fixture->auditEvidenceRepository->all());
                 $this->assertRoles($fixture);
                 if ($rollback) {
                     self::assertEquals($fixture->initial, $fixture->current());
-                    self::assertEquals($fixture->initialUser, $fixture->users->all()[0]);
+                    self::assertEquals($fixture->initialUser, $fixture->userRepository->all()[0]);
                 }
 
                 // Completion, including rollback, releases both fences for later valid work.
                 $grant = $other->current();
-                self::assertTrue($other->unitOfWork->commitTransactional(fn(): bool => $other->grants->replace(
-                    $grant,
-                    $grant->revoke(new DateTimeImmutable('2030-01-08Z'))
-                )));
+                self::assertTrue(
+                    $other->unitOfWork->commitTransactional(fn(): bool => $other->activationGrantRepository->replace(
+                        $grant,
+                        $grant->revoke(new DateTimeImmutable('2030-01-08Z'))
+                    ))
+                );
             }
         }
     }
@@ -324,7 +326,7 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $fixture->worker($provider)->handle(CommandMessage::create($fixture->delivery($fixture->initial)));
                     self::assertFalse($recoveryFirst);
-                } catch (ActivationDeliveryNotRetryableException) {
+                } catch (StateConflict) {
                     self::assertTrue($recoveryFirst);
                 }
 
@@ -333,12 +335,12 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 }
 
                 self::assertCount(1, $provider->invocations());
-                self::assertCount(2, $fixture->grants->all());
+                self::assertCount(2, $fixture->activationGrantRepository->all());
                 self::assertSame(ActivationOrigin::REGISTRATION, $fixture->current()->getOrigin());
                 self::assertSame(0, $fixture->current()->getRevision());
                 self::assertSame(CredentialDeliveryStatus::PENDING, $fixture->current()->getDelivery()->getStatus());
-                self::assertTrue($fixture->grants->all()[0]->isRevoked());
-                self::assertNull($fixture->grants->all()[0]->getDelivery()->getEncryptedMaterial());
+                self::assertTrue($fixture->activationGrantRepository->all()[0]->isRevoked());
+                self::assertNull($fixture->activationGrantRepository->all()[0]->getDelivery()->getEncryptedMaterial());
                 $this->assertRoles($fixture);
             }
         }
@@ -348,15 +350,15 @@ final class RegistrationRecoveryRaceTest extends TestCase
     {
         foreach ([false, true] as $recoveryFirst) {
             $fixture = new RegistrationRecoveryFixture();
-            $sessions = new InMemoryRefreshSessionRepository($fixture->unitOfWork);
+            $refreshSessionRepository = new InMemoryRefreshSessionRepository($fixture->unitOfWork);
             $delete = new DeleteUserHandler(
-                $fixture->users,
-                new SessionRevocationService($sessions),
+                $fixture->userRepository,
+                new SessionRevocationService($refreshSessionRepository),
                 new FixedClock('2030-01-02T00:00:00Z'),
-                $fixture->audit,
                 $fixture->unitOfWork,
                 new InMemoryEventDispatcher(),
-                new InMemoryPasswordResetGrants($fixture->unitOfWork)
+                new InMemoryPasswordResetGrants($fixture->unitOfWork),
+                $fixture->auditEvidenceRepository
             );
             if ($recoveryFirst) {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command()));
@@ -368,8 +370,8 @@ final class RegistrationRecoveryRaceTest extends TestCase
                     $fixture->initialUser->getId()
                 )));
                 self::fail('Pending deletion became a new allowed lifecycle transition.');
-            } catch (UserLifecycleException) {
-                self::assertSame(UserState::PENDING_ACTIVATION, $fixture->users->all()[0]->getState());
+            } catch (StateConflict) {
+                self::assertSame(UserState::PENDING_ACTIVATION, $fixture->userRepository->all()[0]->getState());
             }
 
             if (!$recoveryFirst) {
@@ -397,14 +399,14 @@ final class RegistrationRecoveryRaceTest extends TestCase
 
             $delete->handle(CommandMessage::create(new DeleteUser($fixture->actorId, $fixture->initialUser->getId())));
             new RestoreUserHandler(
-                $fixture->users,
-                $fixture->grants,
+                $fixture->userRepository,
+                $fixture->activationGrantRepository,
                 new FixedCredentialGenerator('restored-private-credential'),
                 new PrefixInvitationDeliveryCipher(),
                 new FixedClock('2030-01-02T00:00:02Z'),
-                $fixture->audit,
                 $fixture->unitOfWork,
-                new InMemoryEventDispatcher()
+                new InMemoryEventDispatcher(),
+                $fixture->auditEvidenceRepository
             )->handle(CommandMessage::create(new RestoreUser(
                 $fixture->actorId,
                 $fixture->initialUser->getId(),
@@ -415,21 +417,21 @@ final class RegistrationRecoveryRaceTest extends TestCase
                 try {
                     $loser->resume();
                     self::fail('Stale recovery overwrote a restored private invitation.');
-                } catch (RegistrationRecoveryException) {
+                } catch (StateConflict) {
                     self::assertSame($winner, $fixture->current());
-                    self::assertSame([], $paused->audit->all());
+                    self::assertSame([], $paused->auditEvidenceRepository->all());
                 }
             }
 
             self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $winner->getOrigin());
-            self::assertSame(UserState::PENDING_ACTIVATION, $fixture->users->all()[0]->getState());
+            self::assertSame(UserState::PENDING_ACTIVATION, $fixture->userRepository->all()[0]->getState());
             $this->assertRoles($fixture);
             try {
                 $fixture->handler()->handle(CommandMessage::create($fixture->command(
                     expected: $winner->getDelivery()->getId()
                 )));
                 self::fail('Restored private work became registration recovery.');
-            } catch (RegistrationRecoveryException) {
+            } catch (StateConflict) {
                 self::assertSame($winner, $fixture->current());
             }
         }
@@ -437,10 +439,13 @@ final class RegistrationRecoveryRaceTest extends TestCase
 
     private function assertRoles(RegistrationRecoveryFixture $fixture): void
     {
-        self::assertEqualsCanonicalizing($fixture->initialUser->getRoleIds(), $fixture->users->all()[0]->getRoleIds());
+        self::assertEqualsCanonicalizing(
+            $fixture->initialUser->getRoleIds(),
+            $fixture->userRepository->all()[0]->getRoleIds()
+        );
         self::assertSame(
             $fixture->initialUser->getAuthorizationAssignmentRevision(),
-            $fixture->users->all()[0]->getAuthorizationAssignmentRevision()
+            $fixture->userRepository->all()[0]->getAuthorizationAssignmentRevision()
         );
     }
 }

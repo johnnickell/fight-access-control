@@ -43,12 +43,13 @@ def frontmatter(path: Path) -> dict[str, str]:
     except ValueError as exception:
         raise ValueError("unterminated frontmatter") from exception
 
-    return {
-        key.strip(): value.strip()
-        for line in block.strip().splitlines()
-        if ":" in line
-        for key, value in [line.split(":", 1)]
-    }
+    fields = {}
+    for line in block.strip().splitlines():
+        key, separator, value = line.partition(":")
+        if not separator or key.strip() in fields:
+            raise ValueError("invalid or duplicate frontmatter field")
+        fields[key.strip()] = value.strip()
+    return fields
 
 
 def load_records(errors: list[str]) -> dict[str, Record]:
@@ -395,8 +396,10 @@ def complete_parents(records: dict) -> dict[Path, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--write", action="store_true", help="rewrite deterministic planning projections")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--write", action="store_true", help="offline projection refresh")
     args = parser.parse_args()
+    writing = args.write
     errors: list[str] = []
     records = load_records(errors)
     archived_records = load_archived_records(errors)
@@ -428,7 +431,7 @@ def main() -> int:
         else:
             views[path] = text
     stale = [path.relative_to(ROOT) for path, rendered in views.items() if path.read_text(encoding="utf-8") != rendered]
-    if args.write:
+    if writing:
         for path, rendered in views.items():
             if path.read_text(encoding="utf-8") != rendered:
                 path.write_text(rendered, encoding="utf-8")
@@ -442,7 +445,7 @@ def main() -> int:
         return 1
 
     active = sum(record.fields["status"] not in TERMINAL for record in records.values())
-    action = "Updated" if args.write else "Validated"
+    action = "Updated" if writing else "Validated"
     print(f"Planning {action.lower()}: {len(records)} records, {active} active")
     return 0
 

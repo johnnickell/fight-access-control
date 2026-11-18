@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+use Fight\AccessControl\Application\AccessControl\Authorization\Attribute\RequiresPermission;
+
+return [
+    'malformed name' => new class {
+        #[RequiresPermission('DUPLICATE')]
+        #[RequiresPermission('duplicate')]
+        public function execute(): void {}
+    }::class,
+    'unknown named argument' => new class {
+        #[RequiresPermission('DUPLICATE')]
+        #[RequiresPermission(name: 'DUPLICATE', unknown: true)]
+        public function execute(): void {}
+    }::class,
+    'wrong type' => new class {
+        #[RequiresPermission('DUPLICATE')]
+        #[RequiresPermission([])]
+        public function execute(): void {}
+    }::class,
+    'missing name' => new class {
+        #[RequiresPermission('DUPLICATE')]
+        #[RequiresPermission()]
+        public function execute(): void {}
+    }::class,
+    'extra positional argument' => new class {
+        #[RequiresPermission('DUPLICATE')]
+        #[RequiresPermission('DUPLICATE', 'ignored')]
+        public function execute(): void {}
+    }::class
+];

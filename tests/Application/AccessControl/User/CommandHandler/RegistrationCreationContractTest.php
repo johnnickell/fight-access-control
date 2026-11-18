@@ -39,9 +39,9 @@ final class RegistrationCreationContractTest extends TestCase
             }
 
             self::assertFalse($fixture->unitOfWork->commitTransactional(
-                fn(): bool => $fixture->users->addWithRoleAssignments($user, $expected)
+                fn(): bool => $fixture->userRepository->addWithRoleAssignments($user, $expected)
             ));
-            self::assertSame([], $fixture->users->all());
+            self::assertSame([], $fixture->userRepository->all());
         }
     }
 
@@ -53,9 +53,9 @@ final class RegistrationCreationContractTest extends TestCase
         $user = User::invite($command->getUserId(), $command->getEmail(), $at);
         $user->assignRole($fixture->member->getId(), $at);
         self::assertTrue($fixture->unitOfWork->commitTransactional(
-            fn(): bool => $fixture->users->addWithRoleAssignments($user, [clone $fixture->member])
+            fn(): bool => $fixture->userRepository->addWithRoleAssignments($user, [clone $fixture->member])
         ));
-        self::assertSame([$user], $fixture->users->all());
+        self::assertSame([$user], $fixture->userRepository->all());
     }
 
     public function test_plain_add_cannot_bypass_initial_role_reference_validation(): void
@@ -65,12 +65,12 @@ final class RegistrationCreationContractTest extends TestCase
         $at = new DateTimeImmutable('2030-01-01T00:00:00Z');
         $user = User::invite($command->getUserId(), $command->getEmail(), $at);
         $user->assignRole($fixture->member->getId(), $at);
-        self::assertTrue($fixture->roles->remove($fixture->member));
+        self::assertTrue($fixture->roleRepository->remove($fixture->member));
         $this->expectException(RuntimeException::class);
         try {
-            $fixture->unitOfWork->commitTransactional(fn() => $fixture->users->add($user));
+            $fixture->unitOfWork->commitTransactional(fn() => $fixture->userRepository->add($user));
         } finally {
-            self::assertSame([], $fixture->users->all());
+            self::assertSame([], $fixture->userRepository->all());
         }
     }
 
@@ -85,15 +85,15 @@ final class RegistrationCreationContractTest extends TestCase
         $user->assignRole($fixture->member->getId(), $at);
         $this->expectException(RuntimeException::class);
         try {
-            $fixture->unitOfWork->commitTransactional(fn(): bool => $fixture->users->addWithRoleAssignments(
+            $fixture->unitOfWork->commitTransactional(fn(): bool => $fixture->userRepository->addWithRoleAssignments(
                 $user,
                 [$fixture->member]
             ));
         } finally {
-            self::assertCount(1, $fixture->users->all());
-            self::assertSame($command->getEmail(), $fixture->users->all()[0]->getEmail());
-            self::assertCount(1, $fixture->grants->all());
-            self::assertCount(1, $fixture->audit->all());
+            self::assertCount(1, $fixture->userRepository->all());
+            self::assertSame($command->getEmail(), $fixture->userRepository->all()[0]->getEmail());
+            self::assertCount(1, $fixture->activationGrantRepository->all());
+            self::assertCount(1, $fixture->auditEvidenceRepository->all());
         }
     }
 }

@@ -15,7 +15,10 @@ use OpenApi\Attributes as OA;
     schema: 'Consumer.CredentialDelivery',
     type: 'object',
     properties: [
-        new OA\Property(property: 'invitation', ref: '#/components/schemas/Fight.AccessControl.InvitationDeliveryStatus'),
+        new OA\Property(
+            property: 'invitation',
+            ref: '#/components/schemas/Fight.AccessControl.InvitationDeliveryStatus'
+        ),
         new OA\Property(property: 'delivery', ref: '#/components/schemas/Fight.AccessControl.CredentialDeliveryStatus'),
         new OA\Property(property: 'due', ref: '#/components/schemas/Fight.AccessControl.DueCredentialDeliveries')
     ]

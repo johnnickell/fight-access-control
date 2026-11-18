@@ -8,6 +8,13 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\ExpireInvitationDelivery;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryExpired;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantOutcome;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditSubject;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -31,7 +38,8 @@ final readonly class ExpireInvitationDeliveryHandler implements CommandHandler
     public function __construct(
         private ActivationGrantRepository $activationGrantRepository,
         private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null
     ) {
     }
 
@@ -52,12 +60,25 @@ final readonly class ExpireInvitationDeliveryHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         try {
+            /** @var ?InvitationDeliveryExpired $successEvent */
             $successEvent = $this->unitOfWork->commitTransactional(function () use (
-                $command
+                $command,
+                $commandMessage
             ): ?InvitationDeliveryExpired {
                 $activationGrant = $this->activationGrantRepository->getByDeliveryId(
                     $command->getActivationDeliveryId()
                 );
+                if (
+                    $activationGrant instanceof ActivationGrant
+                    && (!$activationGrant->getDelivery()->getId()->equals($command->getActivationDeliveryId())
+                        || !$activationGrant->ownsDelivery(
+                            $command->getActivationDeliveryId(),
+                            $activationGrant->getUserId()
+                        ))
+                ) {
+                    throw new LogicException('The credential repository returned another delivery.');
+                }
+
                 if (
                     !$activationGrant instanceof ActivationGrant
                     || !$activationGrant->getUserId()->equals($command->getUserId())
@@ -66,16 +87,16 @@ final readonly class ExpireInvitationDeliveryHandler implements CommandHandler
                 }
 
                 $latest = $this->activationGrantRepository->getLatestByUserId($command->getUserId());
+                if ($latest instanceof ActivationGrant && !$latest->getUserId()->equals($command->getUserId())) {
+                    throw new LogicException("The credential repository returned another User's generation.");
+                }
+
                 if (
                     !$latest instanceof ActivationGrant
                     || !$latest->getId()->equals($activationGrant->getId())
                     || !$activationGrant->isIssued()
                 ) {
                     return null;
-                }
-
-                if (!$activationGrant->ownsDelivery($command->getActivationDeliveryId(), $command->getUserId())) {
-                    throw new LogicException('The expired invitation delivery ownership is inconsistent.');
                 }
 
                 $expiredGrant = $activationGrant->expireDeliveryAt($command->getOccurredAt());
@@ -86,6 +107,19 @@ final readonly class ExpireInvitationDeliveryHandler implements CommandHandler
                 if (!$this->activationGrantRepository->replace($activationGrant, $expiredGrant)) {
                     return null;
                 }
+
+                $this->auditEvidenceRepository?->add(AuditEvidence::record(
+                    $command->getActorId(),
+                    new AuditSubject($command->getUserId()),
+                    AuditAction::INVITATION_DELIVERY_EXPIRED,
+                    $command->getOccurredAt(),
+                    new AuditGrantOutcome(
+                        AuditGrantState::fromGrant($activationGrant),
+                        AuditGrantState::fromGrant($expiredGrant),
+                        $expiredGrant->getDelivery()->getStatus()
+                    ),
+                    new AuditCorrelation($commandMessage->id(), null)
+                ));
 
                 return new InvitationDeliveryExpired(
                     $command->getActorId(),

@@ -46,7 +46,9 @@ final readonly class FeaturePermissionChanged implements Event
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical event payload
+     *
+     * @return array{feature_id: string, permission_id: string, revision: int}
      */
     public function toArray(): array
     {

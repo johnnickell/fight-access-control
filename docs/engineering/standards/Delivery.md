@@ -24,7 +24,11 @@ Where the target actually needs shared application infrastructure, use the share
 documented enrollment and worktree procedures. AccessControl's isolated package Docker wrappers require no
 application enrollment, webserver or database; do not import provider runtime prerequisites. Integration wiring, DNS, routes, certificates and shared services belong to that project. The consuming project profile points to the operator contract; skills do not invent NGINX or `/etc/hosts` management. Verify enrollment and actual worktree support. If unavailable, record the gap and continue independent work; obtain the missing runtime decision before claiming UI/API proof. Never treat another project's successful enrollment as evidence for this one.
 
-Keep TASK environments alive through review unless John requests otherwise. After verified landing and local synchronization, clean only proven TASK-owned resources through their owning tooling. Preserve shared services and other branches/worktrees. Ambiguous ownership blocks only that cleanup; report retained resources.
+Keep TASK environments alive through review unless John requests otherwise. Authorized Land must retire eligible
+TASK-owned resources under the [bound target and qualified retirement contract](../../../planning/agents/project-profile.md#integrated-delivery-and-resource-retirement).
+Publication, document synchronization and cleanup remain separate obligations; a hold is incomplete cleanup.
+Verified merged cleanup-only needs no metadata correction PR. Preserve active/dirty/shared resources, evidence
+and durable data; resume only missing ownership-proven effects with postconditions.
 
 ## Git and PR identity
 

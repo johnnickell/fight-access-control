@@ -1,15 +1,35 @@
 # Operation outcomes
 
-The current package contract separates business persistence, required audit, notification and consumer presentation.
-Commands and synchronous authentication methods retain their established authorization and transaction boundaries.
-Queries remain read-only. This composition is included in the [v0.8.0 release preparation](release-0.8.0.md), not
-published v0.7.0; the overview separates package acceptance from publication and consumer qualification.
+The current package contract separates business persistence, configured atomic audit, notification and consumer presentation.
+[v0.8.0](release-0.8.0.md) records the outcome composition published in that release, not the authorization
+change below. Its overview distinguishes package publication from consumer qualification.
+
+**Unreleased authorization change:** Consumers admit invitation correction and registration recovery at entry;
+their handlers enforce business state and transaction boundaries without checking permission again. See the
+[lifecycle contracts](user-lifecycle-contracts.md). Other commands and synchronous authentication methods retain
+their own authorization and transaction boundaries. Queries remain read-only.
+Unreleased [User/session type validation](user-session-type-contracts.md) preserves these outcomes and fences;
+shape validation is not authorization, diagnostic sanitization or consumer persistence qualification.
+
+The [current audit outcome matrix](audit-outcome-coverage.md) reconciles every handler and related sensitive/worker
+entry, including all family suppliers and the ordinary Role/conformance bindings. **Unreleased:** audit storage is
+optional and nullable for every covered writer, including formerly mandatory writers. `RequestEmailChangeHandler`
+and `EmailChangeConfirmation` take `auditEvidenceRepository` immediately before the final nullable
+`emailChangeTransitionParticipant` argument. The two are independently optional; to enable participation without
+audit, pass `null` for audit or bind the participant by name. See
+[atomic email-change notification intent](credential-delivery.md#atomic-email-change-notification-intent-unreleased).
+Omitting audit or passing `null` disables durable audit evidence only. Configured audit writes are required inside
+the mutation transaction; failure aborts staged work. Mixed per-owner composition is intentional. Later opt-in
+never backfills history or manufactures evidence during validated no-change/original-key resolution. Existing
+required actors, authorization, coupled writes, reference/cohort/restoration fences and recovery remain mandatory
+independently of audit. Historical releases retain their
+original mandatory-audit contract; they are not documentation of this breaking current composition.
 
 ## Notifications and callers
 
 Package-produced failure notifications use operation-specific constant text with the original safe Command or
-allowlisted context. Synchronous `AuthenticationService` methods emit `RedactedCommandFailed` and never serialize
-passwords or credentials as Commands. Existing expiry notifications retain their constant cleanup text. Do not parse
+allowlisted context. The [direct synchronous User capabilities](user-authentication.md) emit `RedactedCommandFailed`
+with their current owner class/method and never serialize passwords or credentials as Commands. Existing expiry notifications retain their constant cleanup text. Do not parse
 notification text for transport decisions or treat a notification as a durable outcome receipt.
 
 Failure notification is best effort. A notification fault cannot replace the operation's primary throwable.
@@ -18,13 +38,20 @@ notification policy**: consumers must separately sanitize responses and logs and
 
 ## Persistence and publication
 
-- Confirmed pre-commit failures roll back staged mutation and required audit, with no success event.
+- Confirmed pre-commit failures roll back staged mutation and configured audit, with no success event.
 - Success events publish only after confirmed commit. A subsequent publisher or synchronous subscriber fault still
   throws; it does not undo the committed state or acknowledge success to the caller.
 - Lost commit acknowledgement is not proof of rollback. Reconcile using authoritative current state under current
-  authorization rather than inferring outcomes from events or blindly replaying a command.
-- The sole committed-result publication-warning exception remains recoverable Agent provision and rotation. Their
-  typed warning does not apply to revocation, authentication or other handlers; see
+  authorization rather than inferring outcomes from events or blindly replaying a command. For
+  [email-change cancellation](credential-delivery.md#cancel-the-exact-email-change-request-unreleased), retain
+  the reviewed request ID and observe that exact generation plus authorized User state or enabled audit as
+  applicable. Neither absence nor a successor proves how the original attempt ended. Do not retarget a retry;
+  a conflict is not proof that the original attempt succeeded.
+- The confirmed-commit publication-containment exception remains recoverable Agent provision and rotation.
+  TASK-00182's unreleased void Commands complete even if both publishers fail; independent authorized Queries expose
+  original issuance/dispositions, with no returned or reconstructed warning. Lost acknowledgement throws safe
+  execution uncertainty, not success or rollback. This exception does not apply to revocation, authentication or
+  other handlers; see
   [issuance](agent-provisioning-operations.md) and [rotation](agent-rotation-operations.md).
 
 ## Consumer composition
@@ -34,6 +61,51 @@ sanitation independent of subscriptions. Optional synchronous delivery subscribe
 worker fault may therefore propagate through the original request even though issuance is durable. Read current
 [delivery status and due work](credential-delivery.md), retain exact generation identities, and keep provider retry
 classification distinct from outer operation failure notification. No outbox or guaranteed event replay is supplied.
+
+## Account lifecycle failures (Unreleased)
+
+The eight [User lifecycle handlers](user-lifecycle-contracts.md) expose intentional Common Application outcomes
+for absence, state conflict and explicit recovery preconditions. For invitation correction and registration
+recovery, consumer entries own target denial: they check the actual caller's current operation permission and
+exact target and deny unauthorized requests before trusted dispatch. The handlers do not repeat that check.
+
+Wrong identities, broken configuration and unknown faults remain internal. Domain stays independent; no blanket
+transaction-wide exception translation, result DTO, new no-op event or changed uncertainty/publication policy
+is introduced.
+
+## User authentication transitions (Unreleased)
+
+User owns complete business transitions: `activate()`, `changePassword()`, `resetPassword()` and
+`confirmEmailChange()` each advance `authenticationAuthorityRevision` exactly once. Activation preserves
+`authenticationVersion`; password change/reset and confirmed email advance it once. Lifecycle semantics remain
+separate: disable/delete advance the security version, while enable/restore preserve it; none adds a login revision.
+
+After credential verification and throttle admission, `UserAuthentication::login()` calls
+`recordSuccessfulLogin($authenticatedAt, $rehashedPassword)` on a cloned User. The optional hash is present only
+when the verified password needs rehash. Both forms advance the persistence revision once without changing the
+security version or recovery authority. A rehash updates password/update metadata; a no-rehash login preserves it.
+The transition requires an active identity with an established password; it does not itself verify a raw password,
+check a throttle, persist a session or grant authentication outside the use case.
+
+For example, an existing password-change transaction now constructs its complete successor with:
+
+```php
+$replacementUser = clone $user;
+$replacementUser->changePassword($passwordHash, $changedAt);
+```
+
+Persist that successor through the existing `UserRepository::replaceAuthenticationAuthority()` inside the same
+Unit of Work as recovery cancellation, session revocation and configured audit. Do not separately increment a revision.
+Login and activation still require `replaceAuthenticationAuthorityAndAddRefreshSession()`; email confirmation retains
+its dedicated full-state replacement. Aggregate encapsulation does not replace complete expected-state CAS,
+exact-one revision validation, coupled session insertion, single-use grants or transaction-duration fences.
+
+This is a breaking pre-v1 PHP API change: update callers directly to the complete transition. The standalone
+revision increment and standalone password-rehash APIs are removed, without compatibility aliases. Persist/hydrate
+actual current counters, never reconstruct them from lifecycle state or add a second activation bump. Safe token
+results, sensitive synchronous inputs, redacted failure evidence and pre-/post-commit outcomes above are unchanged.
+Package tests use controlled repositories and modeled races; consumers still qualify their actual database, crypto,
+shared connections and concurrent writers independently. No new grant, event or exactly-once promise is introduced.
 
 ## Recovery composition
 
@@ -59,8 +131,8 @@ Implement mandatory `UserRepository::validateRecoveryAuthority(expectedUser)` ag
 state. Successful validation holds the same per-User fence as every User and password-reset grant writer through
 transaction completion, even without a User mutation. Issuance validates the requested canonical identity under
 that fence before persisting a pristine matching generation. Redemption couples validation, consumption, User
-replacement, session revocation and required audit. Authority-changing operations couple cancellation and User
-mutation with their existing audit; failure rolls back both. No cancellation is deferred until after commit.
+replacement, session revocation and configured audit. Authority-changing operations couple cancellation and User
+mutation with enabled evidence; configured write failure rolls back both. No cancellation is deferred until after commit.
 
 Use one real connection/Unit of Work and a consistent **User-before-grant** lock order. All authentication, lifecycle,
 email, Role, direct repository, issuance, replacement, revocation, cleanup and worker writers participate. A prior
@@ -71,8 +143,11 @@ Direct grant issuance and claim/outcome persistence cannot bypass current eligib
 Current constructor composition requires:
 
 - `DeliverPasswordResetHandler`: append the shared `UserRepository` after the dispatcher.
-- `DisableUserHandler` and `DeleteUserHandler`: append the shared `PasswordResetGrantRepository` after the dispatcher.
-- `AuthenticationService` and `RequestPasswordResetHandler`: retain their existing shared User/grant/audit composition.
+- `DisableUserHandler` and `DeleteUserHandler`: the shared `PasswordResetGrantRepository` follows the dispatcher;
+  Unreleased TASK-00123 moves optional nullable `AuditEvidenceRepository` to the final argument.
+- `PasswordManagement`, `EmailChangeConfirmation` and `RequestPasswordResetHandler`: retain shared User/reset-grant/
+  audit composition. Their [direct constructors](user-authentication.md#explicit-composition) need no unrelated
+  activation, login or token ports.
 
 The reset worker validates current User authority in its claim and outcome transactions. Decryption and the provider
 call remain outside transactions. An admitted invocation can arrive late externally; its outcome cannot restore
@@ -112,9 +187,28 @@ Agent assignments and stored Features do not reference them. Managed Roles being
 their memberships within the complete policy; custom Role and Agent assignments are not implicitly stripped.
 Repository outages propagate, never become reference absence. Preview writes, commits and publishes nothing.
 
+The shared planner validates exact ID/name lookups and complete managed/reference batches before using them.
+Batches must be lists of the promised aggregate, without repeated IDs/names; managed inventories contain only managed
+records and containing-Permission reads contain that exact Permission ID. Invalid repository relationships throw
+internal `UnexpectedValueException`, not a plan or ordinary refusal. Native return violations and unknown faults
+propagate unchanged. These checks establish no atomic snapshot across separate reads.
+
+Known planner policy refusals now throw Common Application `RuleViolation` (safe generic HTTP 422 through Common's
+opt-in safe middleware), rather than Domain `ManagedPolicyDefinitionException`. The latter still owns malformed
+policy construction/decoding in Domain and is not blanket-translated. Update catches for planner/preview/apply
+refusals directly; do not map arbitrary Domain/programmer/provider faults to rule rejection. Reserved-identity
+inconsistency remains internal. No private exception text belongs in public responses.
+
 For example, preview the complete desired `ManagedPolicy` through `PreviewManagedPolicy`, then dispatch
 `ReconcileManagedPolicy` with that same value. Preview is a snapshot, **not a reservation or authorization**. Apply
-replans inside its Unit of Work and still calls `PermissionRepository::remove(expectedPermission)` for every removal.
+replans inside its Unit of Work, checks each subsequently reread identity before mutation and still calls
+`PermissionRepository::remove(expectedPermission)` for every removal. Known final false/missing-state outcomes
+throw Common Application `StateConflict`; wrong identities, contradictory ownership and unknown faults remain internal.
+Every `UNCHANGED` Permission/Role also goes through a final `replace(expected, expected)` fence without a write,
+timestamp/revision advance or invented item change. It must still match the desired definition. Role no-op validation
+includes complete membership and current Permission eligibility, not just a prior planning read. Permission adapters
+must implement the complete expected-state comparison and transaction-duration no-op fence too. The policy-level
+`ManagedPolicyReconciled` fact remains the existing post-commit summary, including an all-unchanged/empty policy.
 Every Role, Agent and Feature reference-changing writer, including direct writes and validated no-ops, shares that
 transaction-duration reference fence and actual connection with removal. A prior read or ORM snapshot cannot replace
 final expected-state and reference validation. A reference winner rejects removal; a removal winner rejects a later
@@ -130,6 +224,66 @@ The package's public-handler and controlled reference-writer scenarios exercise 
 ordered outcomes, late final-boundary conflicts, rollback, eligible retry and publication faults. They do not qualify
 SQL isolation, real adapter locks or independent processes. Qualify those against the actual shared transaction,
 including both concurrent winner orders, expected-state conflicts, rollback and indeterminate commit outcomes.
+
+### Optional atomic reconciliation audit (Unreleased)
+
+`ReconcileManagedPolicyHandler` accepts an optional last nullable `AuditEvidenceRepository`. Omitted/null intentionally
+means no durable audit. With storage configured, each meaningful Role/Permission creation, reconciliation or removal
+inserts one record inside the same complete policy transaction, after the authoritative repository mutation and before
+commit. The shared planner and preview remain read-only. Features only guard Permission removal; they gain no records.
+
+Trusted callers pass the originating `UserId`, `AgentId`, `SystemId` or `AnonymousId` through the Command's optional
+`actorId`. Canonical payloads include nullable `actor_kind` and `actor_id`; supply both values together or neither.
+Missing origin rejects enabled changed work before its first audited mutation. Disabled and purely unchanged passes
+need no new audit-only actor. Workers retain the originating identity, never infer it from labels or replace it with a
+worker/system identity. Attribution grants no entry, target or reconciliation authority.
+
+```php
+$handler = new ReconcileManagedPolicyHandler(
+    permissionRepository: $permissionRepository,
+    roleRepository: $roleRepository,
+    managedPolicyPlanner: $managedPolicyPlanner,
+    unitOfWork: $unitOfWork,
+    eventDispatcher: $eventDispatcher,
+    clock: $clock,
+    auditEvidenceRepository: $auditEvidenceRepository,
+);
+$commandBus->execute(new ReconcileManagedPolicy(policy: $policy, actorId: $originatingActorId));
+```
+
+Bind this handler through its existing Command registration. All repositories, final reference/tier fences and the
+Unit of Work must join the actual same connection/transaction, not merely report an active transaction. Evidence uses
+one trusted reconciliation time shared with changed state and the success Event, unique record IDs and the incoming
+message ID. Correlation is not a replay/deduplication guarantee. No Event subscriber or transaction decorator is needed.
+
+Managed Role actions are `managed_role.created`, `managed_role.reconciled` and `managed_role.removed`.
+`AuditManagedRoleOutcome` retains complete Role incarnation/revisions and typed before/after Permission memberships.
+Names, policy snapshots and arbitrary context are omitted; revisions establish even name-only transitions. Permission
+actions reuse `permission.created`, `permission.reconciled`, `permission.removed` and admitted `AuditPermissionOutcome`
+name/tier/managed facts, never invented revisions. Creation has no predecessor; removal has no successor. Unchanged
+items, including a planned reconciliation that is already converged when reread, add no mutation record. Existing
+no-change final fences and `ManagedPolicyReconciled` publication, even for empty/unchanged plans, remain intact.
+
+Configured audit failure or any later reference/tier/CAS/commit loss rolls back the entire staged batch and evidence.
+A lost commit acknowledgement remains uncertain, not proof of rollback or permission for replay/backfill. Ordinary
+post-commit publication failure still throws the primary fault and leaves committed evidence intact, even if failure
+notification also fails. Consumers must protect evidence access and rethrown diagnostics. Opt-in requires current
+mapping/schema support and actual shared-connection, both-winner race and uncertainty qualification; package fixtures
+do not qualify production adapters, entry policy, other writers or deployment. No compatibility reader or backfill
+is provided.
+
+### Serialized policy types (Unreleased)
+
+`ManagedPolicy::fromArray()` and its preview/reconcile messages validate dynamic decoded input: `permissions`,
+`roles` and `referenced_permission_ids` are lists, definition items are arrays, and IDs/names/tiers are strings.
+Role definition `permission_ids` is a list of strings. Values are not obtained by casting objects/scalars into the
+current shape. Typed PHP constructors retain their existing list-of-value preconditions. Valid wire payloads,
+managed membership and tier rules are unchanged; update malformed producers without compatibility defaults.
+
+`ManagedPolicyPlan::toArray()` and `ManagedPolicyReconciled::getPlan()` expose exact static item shapes:
+Permission items contain `id`, `name`, `tier`, `action`; Role items contain `id`, `name`, `permission_ids`, `action`.
+The Event retains runtime validation of dynamic plan input and requires a nonempty string `occurred_at` when decoded.
+Richer annotations do not turn preview, an Event or a principal snapshot into a reservation or authorization.
 
 ## Role revision composition
 

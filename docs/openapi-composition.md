@@ -10,6 +10,10 @@ anchors:
 require __DIR__.'/vendor/johnnickell/fight-access-control/openapi/bootstrap.php';
 ```
 
+The component's stable `Fight.AccessControl.` name and validation shape are public package API even though scanning
+is opt-in. Component keys need not match PHP class names. The non-autoloaded `openapi/` metadata/bootstrap belongs
+to consumer generator composition, not Domain/Application or a package-owned document.
+
 For a disposable local proof, create a consumer anchor containing `#[OA\OpenApi]`
 and one consumer schema, require the bootstrap above, and scan both files:
 
@@ -36,6 +40,13 @@ plus planning integrity and the complete package gate. It requires a clean check
 and command logs under ignored `.runs/`. Certification does not merge, tag, push,
 or publish anything.
 
+The [current declaration-to-component map](public-payload-catalog.md) accounts for every public Command/Query,
+safe result, synchronous User payload and deliberate non-wire boundary. The default `PublicPayloadContractTest`
+validates real canonical round trips and explicit safe consumer projections against generated OpenAPI 3.1 using
+Opis JSON Schema 2020-12 (development-only). Validator defaults are disabled: a documented default cannot hide a
+missing required canonical field. Invalid values exercise required/null branches, typed elements, references,
+formats, enums/bounds and browser/portable separation. FeatureFlag retains independent native executable coverage.
+
 The catalog uses canonical snake-case `toArray()` keys. UUID identifiers use
 `uuid`; `*_at` values use `date-time`; paginated administrative results have `page`, `per_page`,
 `total_pages`, `total_records`, and typed `records`.
@@ -55,14 +66,16 @@ suite. Existing activation/password-setting schemas remain unchanged; credential
 
 `Fight.AccessControl.UpdateAgent` describes required `initiator`, UUID `agent_id` and raw `name`.
 `Fight.AccessControl.AgentUpdateInitiator` describes required `type` (`user` or `agent`) and UUID `id`; provenance
-is not authorization. The handler validates trim-normalized name length, so the raw-string schema introduces no
-conflicting `maxLength`. Generated default-suite tests compare both schemas with actual messages and the owning
-principal-type enum. See [name update composition](agent-name-updates.md) for mandatory persistence fences, void
+is not authorization. `AgentName` owns the same fixed Unicode-edge-plus-NUL trim and nonempty UTF-8/120-code-point
+rule for provisioning and rename, so the raw-string schema introduces no conflicting `maxLength`. Generated
+default-suite tests compare both schemas with actual messages and the owning principal-type enum. See [name update composition](agent-name-updates.md) for mandatory persistence fences, void
 synchronous dispatch and post-commit facts. These additive components create no Tool, endpoint or handler result.
 
 ### Feature provisioning (v0.5.0)
 
-`Fight.AccessControl.ProvisionFeatures` describes the required nullable `default_permission_name` string. This is
+`Fight.AccessControl.ProvisionFeatures` describes the required nullable `default_permission_name` string and paired
+nullable `actor_kind`/`actor_id` provenance. Non-null pairs preserve User/Agent/System/Anonymous kind; the latter two
+require fixed nil IDs. See [current provisioning composition](feature-provisioning.md#optional-atomic-audit-unreleased). This is
 raw consumer configuration: a missing Feature requires a canonical resolvable Permission name, but a no-creation
 pass ignores unused configuration. The schema therefore adds no name-pattern constraint. Candidate references come
 from consumer-composed discovery, not an HTTP payload or serialized scanner. See [atomic provisioning](feature-provisioning.md).
@@ -81,21 +94,24 @@ over HTTP. All names below have the `Fight.AccessControl.` prefix:
 | Component | Canonical value |
 | --- | --- |
 | `ActivationOrigin` (v0.7.0) | String enum `private_invitation` or `registration`; stored activation journey for consumer template selection, not caller authority |
-| `DeliverPasswordReset` | `actor_id` (an arbitrary string, including worker provenance), UUID `user_id` and `password_reset_delivery_id` |
+| `DeliverPasswordReset` | required `actor_kind` (`user`, `agent`, `system`, `anonymous`), UUID `actor_id`, `user_id` and `password_reset_delivery_id`; system/anonymous use fixed nil, never missing-origin fallback |
 | `FindCredentialDeliveryStatus` | `purpose` (`activation`, `password_reset`, `email_change`) and nonempty UUID `delivery_id` |
 | `FindDueCredentialDeliveries` | `at` (`date-time`, including fractional seconds) and positive integer `limit`; no default or upper bound is imposed |
-| `CredentialDeliveryStatus` | `CredentialDeliveryStatusView`: purpose, delivery/User IDs, revision, status, due/expiry times, attempt count and nullable attempt/outcome/failure history |
+| `CredentialDeliveryStatus` | Found `CredentialDeliveryStatusView`: purpose, delivery/User IDs, revision, status, due/expiry times, attempt count and nullable attempt/outcome/failure history. Required `email_change_grant_id` is the exact request UUID for `email_change` and `null` for `activation` or `password_reset`. It is distinct from `delivery_id`. |
+| `CredentialDeliveryAbsent` (Unreleased) | Explicit optional absence object: required `state: absent`, not a rollback or authority claim |
+| `CredentialDeliveryStatusResult` / `InvitationDeliveryStatusResult` (Unreleased) | Exactly one of the corresponding found status object or `CredentialDeliveryAbsent`; no nullable result |
+| `InvitationDeliveryStatus` (Unreleased) | Found invitation state with User, status, expiry, exact activation delivery ID and required recorded `origin` |
 | `DueCredentialDelivery` | Purpose, delivery/User IDs, due time, revision and status |
 | `DueCredentialDeliveries` | An unpaginated array of `DueCredentialDelivery`; an empty array is valid |
 | `FindExpiredCredentialDeliveries` | Explicit fractional `at` and required integer `limit` 1–100; runner guidance 50, no constructor default |
 | `ExpiredCredentialDelivery` | Purpose, exact delivery/User IDs, required nullable `email_change_grant_id`, fractional expiry instant, nonnegative revision and safe delivery status |
 | `ExpiredCredentialDeliveries` | Unpaginated array of exact expired work, maximum 100 items; empty is valid |
-| `ExpireInvitationDelivery` / `InvitationDeliveryExpired` | String actor provenance, User/activation delivery UUIDs and fractional occurrence time |
-| `ExpirePasswordResetDelivery` / `PasswordResetDeliveryExpired` | String actor provenance, User/password-reset delivery UUIDs and fractional occurrence time |
-| `ExpireEmailChange` / `EmailChangeExpired` | String actor provenance, User/email grant UUIDs and fractional occurrence time |
+| `ExpireInvitationDelivery` / `InvitationDeliveryExpired` | Required typed actor kind/UUID provenance, User/activation delivery UUIDs and fractional occurrence time |
+| `ExpirePasswordResetDelivery` / `PasswordResetDeliveryExpired` | Typed `actor_kind` plus actor UUID, User/password-reset delivery UUIDs and fractional occurrence time |
+| `ExpireEmailChange` / `EmailChangeExpired` | Required typed `actor_kind` plus UUID `actor_id`, User/email-change grant UUIDs and fractional occurrence time; both shapes use the same expiry contract |
 
 The v0.7.0 `ActivationOrigin` component is a standalone scalar contract. It does not add an origin input to
-Commands or fields to due/status Views. `CredentialDeliveryInvocation` remains sensitive and non-serializable, with
+Commands or fields to due Views. The Unreleased invitation status View now separately exposes recorded `origin`. `CredentialDeliveryInvocation` remains sensitive and non-serializable, with
 no OpenAPI payload schema; consumers use its required typed origin in provider code. See the
 [current activation-origin composition](credential-delivery.md#activation-origin-v070) for required grant
 persistence/CAS and provider changes. Generated default-suite tests compare the component with the owning enum's
@@ -103,20 +119,23 @@ serialized round trips; this does not qualify consumer template composition.
 
 All canonical fields are required, including `last_attempt_at`, `last_outcome_at` and `last_failure`, whose values
 may be null. Non-null `last_failure` is only `retryable_provider`, `unexpected_provider` or `permanent_provider`;
-arbitrary provider details are not exposed. Attempt counts start at zero. Revisions retain the integer value
-supplied by the owning snapshot without adding a schema-only bound. The generic status Query checks a nonempty
+arbitrary provider details are not exposed. Attempt counts start at zero. Revisions retain the nonnegative integer value
+validated by the owning snapshot. The generic status Query checks a nonempty
 string; its handler resolves a purpose-specific UUID, consistent with the catalog's identifier convention.
 
-`InvitationDeliveryStatus`, `CredentialDeliveryStatus` and `DueCredentialDelivery` use exactly `pending`, `claimed`,
-`retry_pending`, `delivered`, `permanent_failure`, `expired` and `invalidated`. The obsolete `failed` and `confirmed`
-values are no longer admitted. These safe results describe no credential, ciphertext, destination email, or claim
+`InvitationDeliveryStatus` and `CredentialDeliveryStatus` use exactly `pending`, `claimed`, `retry_pending`,
+`delivered`, `permanent_failure`, `expired` and `invalidated`. `DueCredentialDelivery` admits only `pending`, `claimed`
+and `retry_pending`; terminal states are not due-work values. The obsolete `failed` and `confirmed` values are no longer
+admitted. These safe results describe no credential, ciphertext, destination email, or claim
 token. The status View component intentionally omits the PHP `View` suffix, like the existing invitation component.
 
-`JSend.Success.InvitationDeliveryStatus` keeps its existing reference. Optional
-`JSend.Success.CredentialDeliveryStatus` describes a found status result and `JSend.Success.DueCredentialDeliveries`
-wraps the array directly, without ResultSet pagination. The status handler may return null for an absent generation;
-consumers own absence mapping rather than receiving a package-defined HTTP response. Schemas grant no access:
-consumer entry-point authorization, routes, HTTP status codes and delivery invocation remain unchanged.
+Unreleased `JSend.Success.InvitationDeliveryStatus` and `JSend.Success.CredentialDeliveryStatus` reference their
+explicit `*StatusResult` unions. Found objects retain their status fields; absent objects are `{"state":"absent"}`.
+Update nullable callers, invitation View construction (`ActivationOrigin` required) and generated clients directly;
+no nullable facade or legacy schema mode is provided. Internal correlation/storage faults are not success/absence.
+`JSend.Success.DueCredentialDeliveries` still wraps the array directly, without ResultSet pagination. Consumers own
+HTTP/absence presentation rather than receiving a package-defined endpoint or status code. Schemas grant no access:
+consumer entry-point authorization and delivery invocation remain unchanged.
 
 The v0.5.0 `JSend.Success.ExpiredCredentialDeliveries` likewise wraps its array directly. Expiry facts reference
 exact command-shaped payload components; this adds no endpoint or event-replay guarantee. The email grant identity
@@ -147,8 +166,9 @@ key-retirement permission. `AgentMaintenanceResult` mirrors the safe backed resu
 Generated Agent discovery/maintenance schema integration tests run in the default PHPUnit/build pipeline without
 contributing incidental Domain/Application execution to statement coverage. Release certification remains separate.
 
-Use `Authentication.BrowserResponse` for browser JSON: it has no refresh token,
-so the consumer may issue that credential only in an `HttpOnly` cookie. Use
+Use `Authentication.BrowserResponse` for browser JSON: it has no refresh token and rejects extra fields,
+so the consumer may issue that credential only in an `HttpOnly` cookie. `TokenSet` itself remains non-serializable;
+explicitly project its getters into the selected safe transport profile. Use
 `Authentication.TokenSet` for an explicit portable body-token profile; it includes
 the required `refresh_token`, with no example. Request-only passwords and
 credentials are write-only and intentionally have no examples.

@@ -7,7 +7,7 @@ namespace Fight\AccessControl\Domain\AccessControl\Agent;
 use Closure;
 use DateTimeImmutable;
 use Exception;
-use Fight\AccessControl\Domain\AccessControl\Agent\Operation\AgentOperationContractRepository;
+use Fight\AccessControl\Domain\AccessControl\AgentCredentialOperation\AgentOperationContractRepository;
 use Fight\AccessControl\Domain\AccessControl\Permission\Permission;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\Common\Domain\Repository\Pagination;
@@ -21,11 +21,18 @@ use SensitiveParameter;
  * Every add, name, lifecycle and Permission write, including direct calls, validates getOperationContract()
  * before effects and holds its shared cohort fence through transaction completion.
  * Missing/incompatible composition rejects with sanitized UNAVAILABLE.
+ * Continuation admission additionally coordinates these writer fences with current Permission definitions and
+ * consumer scope through a qualified composite fence held through the bounded protected action. Reads within that
+ * fence must observe authoritative post-acquisition state, not a cached principal, identity map or stale replica.
+ * Direct writers, deletion and restoration must participate; separate sequential reads alone are not admission.
  */
 interface AgentRepository extends AgentOperationContractRepository
 {
     /**
      * Retrieves an Agent by its stable identifier
+     *
+     * Return only the exact requested identity or authoritative absence. Wrong identities and failed reads are
+     * contract/storage faults, never absence or evidence of a changed credential predecessor.
      *
      * @throws Exception When an error occurs
      */
@@ -65,7 +72,10 @@ interface AgentRepository extends AgentOperationContractRepository
      * now exactly once and apply Agent::rename(name, now()). The callback supplies trusted current time only; do not
      * invoke it before admission or reuse a timestamp sampled before waiting for the fence. Return the exact persisted
      * updatedAt for a real change, or null only for an unchanged normalized name on a still ACTIVE target.
-     * Missing/inactive targets throw AgentUpdateException; missing/inconsistent correlation or unsupported transaction
+     * Missing/inactive targets throw AgentUnavailableException.
+     * Backdated changes throw AgentNameUpdateConflictException.
+     * Repository implementations must reject unrelated returned identities as internal faults before mutation or no-op.
+     * Missing/inconsistent correlation or unsupported transaction
      * participation throws sanitized AgentOperationRejectedException. Never return null
      * for missing, inactive or unavailable authority. Storage failures throw and abort the enclosing transaction.
      *
@@ -92,7 +102,8 @@ interface AgentRepository extends AgentOperationContractRepository
      * changes use replacePermissionAssignments(), which must share the credential fence.
      *
      * Require the package-owned transaction and same-connection operation persistence for every predecessor.
-     * Invoke AgentOperationRepository::retireCredential(expected, replacement) before persisting the successor,
+     * Invoke AgentCredentialOperationRepository::retireCredential(expected, replacement) before persisting
+     * the successor,
      * under the shared Agent/credential, original operation/delivery and destination/authority fences. Hold all fences
      * through commit; no direct caller or repository replacement may bypass cancellation. Missing correlation or
      * unsupported participation throws a sanitized AgentOperationRejectedException and aborts the entire transaction.

@@ -7,8 +7,8 @@ certify a consumer deployment. An OFF Feature is valid preparation; it is not av
 
 ## Consumer composition
 
-Use native, method-only, nonrepeatable `#[FeatureFlag('name')]` declarations and explicit registration for other
-checks. The consumer scans the exact **candidate** code, instantiates every Attribute to validate it, merges all
+Use native repeated class/method `#[FeatureFlag('name')]` declarations with cumulative parent/overridden-method
+requirements and explicit registration for other checks (TASK-00170, unreleased). The consumer scans the exact **candidate** code, instantiates every Attribute to validate it, merges all
 references and attests completeness through `FeatureDiscoveryResult::complete(CANDIDATE, $references)`. A complete
 empty inventory is distinct from failed/incomplete discovery. See [declarations](feature-references.md). Supply the
 same consumer-composed `FeatureReferenceDiscovery`, `FeatureRepository` and `PermissionRepository` contracts used
@@ -18,12 +18,17 @@ snapshots. Do not substitute a provisioning result or event for validation.
 
 ```php
 use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\ValidateFeaturePreparationHandler;
+use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationResult;
 use Fight\AccessControl\Domain\AccessControl\Feature\Query\ValidateFeaturePreparation;
-use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
+use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 
 // Consumer-owned candidate discovery and authoritative repository implementations.
 $handler = new ValidateFeaturePreparationHandler($candidateDiscovery, $featureRepository, $permissionRepository);
-$result = $handler->handle(QueryMessage::create(new ValidateFeaturePreparation()));
+$router = new InMemoryQueryRouter();
+$router->registerHandler($handler::queryRegistration(), $handler);
+/** @var FeaturePreparationResult $result */
+$result = new RoutingQueryBus($router)->fetch(new ValidateFeaturePreparation());
 if (!$result->isPrepared()) {
     // Block activation and surface safe diagnostics to authorized operators.
     $issues = $result->getIssues();
@@ -42,11 +47,39 @@ broken binding. The handler visits all distinct discovered names without default
 Failed/incomplete or wrong-scope discovery throws `FeatureDiscoveryException`; a scanner may also throw. Invalid
 persisted definitions are reported as `invalid_definition`: repository adapters must surface malformed hydrated
 Feature/Permission definitions as `FeatureStateException`, not null, while preserving the affected reference name.
-A repository returning a mismatched Feature name or Permission ID is also invalid. Operational repository failures
-propagate, not become a successful result or a missing-record diagnostic. Protect arbitrary infrastructure error
+A repository returning a mismatched Feature name or Permission ID instead throws an internal
+`UnexpectedValueException`; it cannot yield a successful diagnostic report. Native return violations and unknown
+repository/programmer failures propagate, not become successful results or missing-record diagnostics. Protect arbitrary infrastructure error
 messages in consumer presentation/logging; only configuration issue fields are intended for safe diagnostics.
 Neither a failed query nor an invalid result authorizes activation. The consumer authorizes setup/read entry points,
 retries only after fixing the failure and rereads the target catalog.
+
+## Precise preparation output (unreleased)
+
+`FeaturePreparationResult` always projects issues as an ordered list, including when PHP callers supply named
+variadic issues. `getIssues()` returns `list<FeaturePreparationIssue>`; the `issues` field in `toArray()` is a list of exact
+`{name: string, problem: 'missing_feature'|'broken_binding'|'invalid_definition'}` shapes, never an object keyed
+by PHP argument names. `FeaturePreparationIssue` exposes the same closed problem union. Empty results and
+ordinary positional construction remain unchanged, and the shipped OpenAPI array/enum metadata already agrees.
+
+```php
+use Fight\AccessControl\Domain\AccessControl\Feature\FeatureName;
+use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationIssue;
+use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationProblem;
+use Fight\AccessControl\Domain\AccessControl\Feature\Query\FeaturePreparationResult;
+
+$issue = new FeaturePreparationIssue(FeatureName::fromString('checkout'), FeaturePreparationProblem::MISSING_FEATURE);
+$result = new FeaturePreparationResult(checkout: $issue);
+// getIssues() is [$issue]; serialized issues is [{"name":"checkout","problem":"missing_feature"}].
+```
+
+TASK-00135 preserves these issue/result shapes while separating wrong repository identities from admitted
+malformed-definition diagnostics. Real configured fetch/serialized dispatch and safe-error composition are covered
+at the package boundary: intentional issues remain result data, while internal faults produce generic server errors.
+Consumer callers must stop treating identity faults as `invalid_definition` and protect rethrown diagnostics.
+
+TASK-00120 adds executable named-argument/JSON regression and exact static shape/callback proof. This is a Domain
+contract correction, not scanner, deployment or action-authorization qualification.
 
 ## Preparation sequence and limits
 

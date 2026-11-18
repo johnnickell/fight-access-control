@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
+
+return [
+    new class {
+        #[FeatureFlag('duplicate')]
+        #[FeatureFlag('Duplicate')]
+        public function execute(): void {}
+    }::class,
+    new class {
+        #[FeatureFlag('duplicate')]
+        #[FeatureFlag(name: 'duplicate', unknown: true)]
+        public function execute(): void {}
+    }::class,
+    new class {
+        #[FeatureFlag('duplicate')]
+        #[FeatureFlag([])]
+        public function execute(): void {}
+    }::class,
+    new class {
+        #[FeatureFlag('duplicate')]
+        #[FeatureFlag()]
+        public function execute(): void {}
+    }::class,
+    new class {
+        #[FeatureFlag('duplicate')]
+        #[FeatureFlag('duplicate', 'ignored')]
+        public function execute(): void {}
+    }::class
+];

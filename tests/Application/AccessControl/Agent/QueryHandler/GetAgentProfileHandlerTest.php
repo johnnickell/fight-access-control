@@ -14,6 +14,7 @@ use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\AgentProfileView;
 use Fight\AccessControl\Domain\AccessControl\Agent\Query\GetAgentProfile;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -28,9 +29,12 @@ final class GetAgentProfileHandlerTest extends TestCase
     {
         $agent = $this->agent();
         $renamed = $agent->rename(AgentName::fromString('Renamed worker'), new DateTimeImmutable('2026-01-03'));
-        $agents = $this->readOnlyRepository();
-        $agents->expects(self::exactly(2))->method('getById')->with($agent->getId())->willReturn($agent, $renamed);
-        $handler = new GetAgentProfileHandler($agents);
+        $agentRepository = $this->readOnlyRepository();
+        $agentRepository->expects(self::exactly(2))
+            ->method('getById')
+            ->with($agent->getId())
+            ->willReturn($agent, $renamed);
+        $handler = new GetAgentProfileHandler($agentRepository);
         $message = QueryMessage::create(new GetAgentProfile($agent->getId()));
 
         self::assertInstanceOf(QueryHandler::class, $handler);
@@ -58,25 +62,39 @@ final class GetAgentProfileHandlerTest extends TestCase
     {
         $agent = $this->agent();
         $revoked = $agent->revoke(new DateTimeImmutable('2026-01-03'));
-        $agents = $this->readOnlyRepository();
-        $agents->expects(self::exactly(3))
+        $agentRepository = $this->readOnlyRepository();
+        $agentRepository->expects(self::exactly(3))
             ->method('getById')
             ->with($agent->getId())
             ->willReturn($agent, $revoked, null);
-        $handler = new GetAgentProfileHandler($agents);
+        $handler = new GetAgentProfileHandler($agentRepository);
         $message = QueryMessage::create(new GetAgentProfile($agent->getId()));
 
         self::assertInstanceOf(AgentProfileView::class, $handler->handle($message));
-        self::assertNull($handler->handle($message));
-        self::assertNull($handler->handle($message));
+        $failures = [];
+        for ($i = 0; $i < 2; ++$i) {
+            try {
+                $handler->handle($message);
+                self::fail('An unavailable profile must not return success.');
+            } catch (ResourceNotFound $resourceNotFound) {
+                $failures[] = [
+                    $resourceNotFound::class,
+                    $resourceNotFound->getMessage(),
+                    $resourceNotFound->getCode(),
+                    $resourceNotFound->getPrevious()
+                ];
+            }
+        }
+
+        self::assertSame($failures[0], $failures[1]);
     }
 
     public function test_repository_failure_propagates_instead_of_becoming_absence_or_a_cached_result(): void
     {
         $agent = $this->agent();
         $failure = new RuntimeException('Storage unavailable');
-        $agents = $this->readOnlyRepository();
-        $agents->expects(self::exactly(2))->method('getById')->with($agent->getId())->willReturnCallback(
+        $agentRepository = $this->readOnlyRepository();
+        $agentRepository->expects(self::exactly(2))->method('getById')->with($agent->getId())->willReturnCallback(
             static function () use (&$agent, $failure): Agent {
                 if ($agent === null) {
                     throw $failure;
@@ -88,7 +106,7 @@ final class GetAgentProfileHandlerTest extends TestCase
                 return $current;
             }
         );
-        $handler = new GetAgentProfileHandler($agents);
+        $handler = new GetAgentProfileHandler($agentRepository);
         $message = QueryMessage::create(new GetAgentProfile($agent->getId()));
         self::assertInstanceOf(AgentProfileView::class, $handler->handle($message));
 
@@ -102,7 +120,7 @@ final class GetAgentProfileHandlerTest extends TestCase
 
     private function readOnlyRepository(): AgentRepository&MockObject
     {
-        $agents = $this->createMock(AgentRepository::class);
+        $agentRepository = $this->createMock(AgentRepository::class);
         foreach (
             [
                 'add',
@@ -116,10 +134,10 @@ final class GetAgentProfileHandlerTest extends TestCase
                 'hasPermissionAssignment'
             ] as $method
         ) {
-            $agents->expects(self::never())->method($method);
+            $agentRepository->expects(self::never())->method($method);
         }
 
-        return $agents;
+        return $agentRepository;
     }
 
     private function agent(): Agent

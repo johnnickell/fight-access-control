@@ -226,7 +226,7 @@ class ActivationGrant
     /**
      * Uses usable activation authority
      */
-    public function consume(DateTimeImmutable $at): self
+    public function consume(DateTimeImmutable $at): static
     {
         if (!$this->isUsableAt($at)) {
             throw new ActivationGrantException('The activation grant is no longer usable.');
@@ -248,7 +248,7 @@ class ActivationGrant
     /**
      * Revokes issued authority and destroys delivery ciphertext
      */
-    public function revoke(DateTimeImmutable $at): self
+    public function revoke(DateTimeImmutable $at): static
     {
         if (!$this->isIssued()) {
             throw new ActivationGrantException('The activation grant is no longer issued.');
@@ -274,7 +274,7 @@ class ActivationGrant
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $claimedAt,
         DateTimeImmutable $leaseUntil
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->claim($claimToken, $claimedAt, $leaseUntil));
     }
 
@@ -284,7 +284,7 @@ class ActivationGrant
     public function confirmDelivery(
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $occurredAt
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->confirm($claimToken, $occurredAt));
     }
 
@@ -295,7 +295,7 @@ class ActivationGrant
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $occurredAt,
         CredentialDeliveryFailure $failure
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->fail($claimToken, $occurredAt, $failure));
     }
 
@@ -305,14 +305,14 @@ class ActivationGrant
     public function failDeliveryPermanently(
         CredentialDeliveryClaimToken $claimToken,
         DateTimeImmutable $occurredAt
-    ): self {
+    ): static {
         return $this->withDelivery($this->delivery->failPermanently($claimToken, $occurredAt));
     }
 
     /**
      * Transitions failed owned delivery work back to pending for a later claim
      */
-    public function requestDeliveryRetry(): self
+    public function requestDeliveryRetry(): static
     {
         try {
             return $this->withDelivery($this->delivery->requestRetry());
@@ -327,7 +327,7 @@ class ActivationGrant
     /**
      * Marks the owned delivery at its terminal boundary
      */
-    public function expireDeliveryAt(DateTimeImmutable $occurredAt): self
+    public function expireDeliveryAt(DateTimeImmutable $occurredAt): static
     {
         return $this->withDelivery($this->delivery->expireAt($occurredAt));
     }
@@ -343,7 +343,7 @@ class ActivationGrant
     /**
      * Replaces only the owned delivery within this generation
      */
-    private function withDelivery(ActivationDelivery $delivery): self
+    private function withDelivery(ActivationDelivery $delivery): static
     {
         if (
             $delivery->getId()->equals($this->delivery->getId())

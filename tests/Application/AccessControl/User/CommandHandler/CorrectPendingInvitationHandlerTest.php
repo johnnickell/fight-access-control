@@ -9,20 +9,21 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\CorrectPen
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\InvitationAdministrationAuthorizationException;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
 use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingInvitationCorrected;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
+use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repository\InMemoryActivationGrantRepository;
-use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service as ActivationService;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
@@ -31,7 +32,6 @@ use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -47,14 +47,14 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     public function test_authorized_correction_atomically_replaces_identity_authority_delivery_and_audit(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = User::invite(
             UserId::generate(),
             EmailAddress::fromString('old@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $users->add($user);
-        $activationGrants = new InMemoryActivationGrantRepository($unitOfWork);
+        $userRepository->add($user);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
         $predecessor = ActivationGrant::issue(
             ActivationOrigin::PRIVATE_INVITATION,
             $user->getId(),
@@ -64,23 +64,23 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             $user->getEmail(),
             'ciphertext:activate-old'
         );
-        self::assertTrue($activationGrants->add($predecessor));
-        $authorization = new ActivationService\FixedInvitationAdministrationAuthorization(true);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher(static function () use ($audit, $unitOfWork): void {
-            self::assertCount(1, $audit->all());
-            self::assertTrue($unitOfWork->transactionCompleted);
-        });
+        self::assertTrue($activationGrantRepository->add($predecessor));
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $eventDispatcher = new InMemoryEventDispatcher(
+            static function () use ($auditEvidenceRepository, $unitOfWork): void {
+                self::assertCount(1, $auditEvidenceRepository->all());
+                self::assertTrue($unitOfWork->transactionCompleted);
+            }
+        );
         $handler = new CorrectPendingInvitationHandler(
-            $users,
-            $activationGrants,
-            $authorization,
-            $audit,
+            $userRepository,
+            $activationGrantRepository,
             $unitOfWork,
             new FixedCredentialGenerator('activate-new'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2026-08-22T13:00:00+00:00'),
-            $events
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
         $actorId = UserId::generate();
 
@@ -90,42 +90,48 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             EmailAddress::fromString('Corrected@Example.test')
         )));
 
-        self::assertNull($users->getByEmail(EmailAddress::fromString('old@example.test')));
+        self::assertNull($userRepository->getByEmail(EmailAddress::fromString('old@example.test')));
         self::assertSame(
             'corrected@example.test',
-            $users->getById($user->getId())?->getEmail()->canonical()
+            $userRepository->getById($user->getId())?->getEmail()->canonical()
         );
-        self::assertCount(2, $activationGrants->all());
-        self::assertTrue($activationGrants->all()[0]->isRevoked());
-        self::assertTrue($activationGrants->all()[0]->matchesCredential(
+        self::assertCount(2, $activationGrantRepository->all());
+        self::assertTrue($activationGrantRepository->all()[0]->isRevoked());
+        self::assertTrue($activationGrantRepository->all()[0]->matchesCredential(
             ActivationCredential::fromString('activate-old')
         ));
-        self::assertFalse($activationGrants->all()[0]->isUsableAt(
+        self::assertFalse($activationGrantRepository->all()[0]->isUsableAt(
             new DateTimeImmutable('2026-08-22T13:00:01+00:00')
         ));
-        self::assertFalse($activationGrants->all()[0]->getDelivery()->isRetryable());
-        self::assertTrue($activationGrants->all()[1]->isIssued());
-        self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $activationGrants->all()[1]->getOrigin());
-        self::assertTrue($activationGrants->all()[1]->matchesCredential(
+        self::assertFalse($activationGrantRepository->all()[0]->getDelivery()->isRetryable());
+        self::assertTrue($activationGrantRepository->all()[1]->isIssued());
+        self::assertSame(ActivationOrigin::PRIVATE_INVITATION, $activationGrantRepository->all()[1]->getOrigin());
+        self::assertTrue($activationGrantRepository->all()[1]->matchesCredential(
             ActivationCredential::fromString('activate-new')
         ));
         self::assertSame(
             'corrected@example.test',
-            $activationGrants->all()[1]->getDelivery()->getEmail()->canonical()
+            $activationGrantRepository->all()[1]->getDelivery()->getEmail()->canonical()
         );
         self::assertSame(
             'ciphertext:activate-new',
-            $activationGrants->all()[1]->getDelivery()->getEncryptedMaterial()?->reveal()
+            $activationGrantRepository->all()[1]->getDelivery()->getEncryptedMaterial()?->reveal()
         );
-        self::assertSame(1, $authorization->calls());
-        self::assertSame($actorId, $authorization->lastActorId());
-        self::assertSame($user->getId(), $authorization->lastUserId());
-        self::assertSame('user.pending_invitation_corrected', $audit->all()[0]->action());
-        self::assertSame($actorId->toString(), $audit->all()[0]->actorId());
-        self::assertSame($user->getId(), $audit->all()[0]->subjectId());
-        self::assertSame([], $audit->all()[0]->context());
-        self::assertCount(1, $events->events());
-        self::assertInstanceOf(PendingInvitationCorrected::class, $events->events()[0]);
+        $audit = $auditEvidenceRepository->all()[0];
+        self::assertSame(AuditAction::USER_PENDING_INVITATION_CORRECTED, $audit->action());
+        self::assertSame($actorId, $audit->actorId());
+        self::assertSame($user->getId(), $audit->getSubject()->getId());
+        self::assertEquals(new DateTimeImmutable('2026-08-22T13:00:00+00:00'), $audit->getOccurredAt());
+        $facts = $audit->getFacts();
+        self::assertInstanceOf(AuditUserOutcome::class, $facts);
+        self::assertEquals(AuditGrantState::fromGrant($predecessor), $facts->getGrantBefore());
+        self::assertEquals(
+            AuditGrantState::fromGrant($activationGrantRepository->all()[0]),
+            $facts->getReplacedPredecessor()
+        );
+        self::assertEquals(AuditGrantState::fromGrant($activationGrantRepository->all()[1]), $facts->getGrantAfter());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(PendingInvitationCorrected::class, $eventDispatcher->events()[0]);
     }
 
     public function test_the_command_and_success_event_round_trip_without_secret_material(): void
@@ -196,44 +202,11 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         self::addToAssertionCount(7);
     }
 
-    public function test_unauthorized_correction_fails_before_read_or_mutation(): void
-    {
-        $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
-        $user = User::invite(
-            UserId::generate(),
-            EmailAddress::fromString('old@example.test'),
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
-        );
-        $users->add($user);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        $authorization = new ActivationService\FixedInvitationAdministrationAuthorization(false);
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $events = new InMemoryEventDispatcher();
-
-        $this->expectException(InvitationAdministrationAuthorizationException::class);
-        try {
-            $this->handler($users, $grants, $authorization, $audit, $unitOfWork, $events)->handle(
-                CommandMessage::create(new CorrectPendingInvitation(
-                    UserId::generate(),
-                    $user->getId(),
-                    EmailAddress::fromString('corrected@example.test')
-                ))
-            );
-        } finally {
-            self::assertSame('old@example.test', $users->getById($user->getId())?->getEmail()->canonical());
-            self::assertSame([], $grants->all());
-            self::assertSame([], $audit->all());
-            self::assertSame(1, $authorization->calls());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
-        }
-    }
-
     public function test_active_and_same_address_users_cannot_be_corrected(): void
     {
         foreach ([UserState::ACTIVE, UserState::PENDING_ACTIVATION] as $state) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
             $user = User::invite(
                 UserId::generate(),
                 EmailAddress::fromString('old@example.test'),
@@ -243,19 +216,18 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
                 $user = UserFixture::withState('old@example.test', UserState::ACTIVE);
             }
 
-            $users->add($user);
-            $grants = new InMemoryActivationGrantRepository($unitOfWork);
-            self::assertTrue($grants->add($this->grant($user)));
-            $events = new InMemoryEventDispatcher();
+            $userRepository->add($user);
+            $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+            self::assertTrue($activationGrantRepository->add($this->grant($user)));
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             try {
                 $this->handler(
-                    $users,
-                    $grants,
-                    new ActivationService\FixedInvitationAdministrationAuthorization(true),
+                    $userRepository,
+                    $activationGrantRepository,
                     new InMemoryAuditEvidenceRepository($unitOfWork),
                     $unitOfWork,
-                    $events
+                    $eventDispatcher
                 )->handle(CommandMessage::create(new CorrectPendingInvitation(
                     UserId::generate(),
                     $user->getId(),
@@ -264,10 +236,13 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
                     )
                 )));
                 self::fail('An ineligible pending invitation was corrected.');
-            } catch (PendingInvitationCorrectionException) {
-                self::assertSame('old@example.test', $users->getById($user->getId())?->getEmail()->canonical());
-                self::assertTrue($grants->all()[0]->isIssued());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            } catch (StateConflict) {
+                self::assertSame(
+                    'old@example.test',
+                    $userRepository->getById($user->getId())?->getEmail()->canonical()
+                );
+                self::assertTrue($activationGrantRepository->all()[0]->isIssued());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -276,15 +251,15 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     {
         foreach ([false, true] as $liveReservation) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
             $target = User::invite(
                 UserId::generate(),
                 EmailAddress::fromString('old@example.test'),
                 new DateTimeImmutable('2026-01-01T00:00:00+00:00')
             );
             $reserved = UserFixture::withState('claimed@example.test', UserState::ACTIVE);
-            $users->add($target);
-            $users->add($reserved);
+            $userRepository->add($target);
+            $userRepository->add($reserved);
             $destination = 'claimed@example.test';
             if ($liveReservation) {
                 $destination = 'reserved@example.test';
@@ -293,31 +268,33 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
                     EmailAddress::fromString($destination),
                     new DateTimeImmutable('2026-01-01T00:00:00+00:00')
                 );
-                self::assertTrue($users->replaceEmailChangeReservation($reserved, $replacement));
+                self::assertTrue($userRepository->replaceEmailChangeReservation($reserved, $replacement));
             }
 
-            $grants = new InMemoryActivationGrantRepository($unitOfWork);
-            self::assertTrue($grants->add($this->grant($target)));
-            $events = new InMemoryEventDispatcher();
+            $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+            self::assertTrue($activationGrantRepository->add($this->grant($target)));
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             try {
                 $this->handler(
-                    $users,
-                    $grants,
-                    new ActivationService\FixedInvitationAdministrationAuthorization(true),
+                    $userRepository,
+                    $activationGrantRepository,
                     new InMemoryAuditEvidenceRepository($unitOfWork),
                     $unitOfWork,
-                    $events
+                    $eventDispatcher
                 )->handle(CommandMessage::create(new CorrectPendingInvitation(
                     UserId::generate(),
                     $target->getId(),
                     EmailAddress::fromString($destination)
                 )));
                 self::fail('A claimed invitation destination was accepted.');
-            } catch (LogicException) {
-                self::assertSame('old@example.test', $users->getById($target->getId())?->getEmail()->canonical());
-                self::assertTrue($grants->all()[0]->isIssued());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            } catch (StateConflict) {
+                self::assertSame(
+                    'old@example.test',
+                    $userRepository->getById($target->getId())?->getEmail()->canonical()
+                );
+                self::assertTrue($activationGrantRepository->all()[0]->isIssued());
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -326,48 +303,50 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     {
         foreach (['missing', 'terminal', 'mismatched'] as $condition) {
             $unitOfWork = new InMemoryUnitOfWork();
-            $users = new InMemoryUserRepository($unitOfWork);
+            $userRepository = new InMemoryUserRepository($unitOfWork);
             $user = User::invite(
                 UserId::generate(),
                 EmailAddress::fromString('old@example.test'),
                 new DateTimeImmutable('2026-01-01T00:00:00+00:00')
             );
-            $users->add($user);
-            $grants = new InMemoryActivationGrantRepository($unitOfWork);
+            $userRepository->add($user);
+            $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
             if ($condition !== 'missing') {
                 $grant = $this->grant($user);
                 if ($condition === 'mismatched') {
                     $grant = $this->grant($user, 'different@example.test');
                 }
 
-                self::assertTrue($grants->add($grant));
+                self::assertTrue($activationGrantRepository->add($grant));
                 if ($condition === 'terminal') {
-                    self::assertTrue($grants->replace(
+                    self::assertTrue($activationGrantRepository->replace(
                         $grant,
                         $grant->revoke(new DateTimeImmutable('2026-08-22T13:00:00+00:00'))
                     ));
                 }
             }
 
-            $events = new InMemoryEventDispatcher();
+            $eventDispatcher = new InMemoryEventDispatcher();
 
             try {
                 $this->handler(
-                    $users,
-                    $grants,
-                    new ActivationService\FixedInvitationAdministrationAuthorization(true),
+                    $userRepository,
+                    $activationGrantRepository,
                     new InMemoryAuditEvidenceRepository($unitOfWork),
                     $unitOfWork,
-                    $events
+                    $eventDispatcher
                 )->handle(CommandMessage::create(new CorrectPendingInvitation(
                     UserId::generate(),
                     $user->getId(),
                     EmailAddress::fromString('corrected@example.test')
                 )));
                 self::fail('Invalid predecessor authority was accepted.');
-            } catch (PendingInvitationCorrectionException) {
-                self::assertSame('old@example.test', $users->getById($user->getId())?->getEmail()->canonical());
-                self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            } catch (StateConflict) {
+                self::assertSame(
+                    'old@example.test',
+                    $userRepository->getById($user->getId())?->getEmail()->canonical()
+                );
+                self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             }
         }
     }
@@ -375,104 +354,103 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     public function test_a_stale_predecessor_cas_rolls_back_the_email_replacement(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = User::invite(
             UserId::generate(),
             EmailAddress::fromString('old@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $users->add($user);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork, replaceWithSuccessorSucceeds: false);
-        self::assertTrue($grants->add($this->grant($user)));
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $activationGrantRepository = new InMemoryActivationGrantRepository(
+            $unitOfWork,
+            replaceWithSuccessorSucceeds: false
+        );
+        self::assertTrue($activationGrantRepository->add($this->grant($user)));
+        $eventDispatcher = new InMemoryEventDispatcher();
 
-        $this->expectException(LogicException::class);
+        $this->expectException(StateConflict::class);
         try {
             $this->handler(
-                $users,
-                $grants,
-                new ActivationService\FixedInvitationAdministrationAuthorization(true),
+                $userRepository,
+                $activationGrantRepository,
                 new InMemoryAuditEvidenceRepository($unitOfWork),
                 $unitOfWork,
-                $events
+                $eventDispatcher
             )->handle(CommandMessage::create(new CorrectPendingInvitation(
                 UserId::generate(),
                 $user->getId(),
                 EmailAddress::fromString('corrected@example.test')
             )));
         } finally {
-            self::assertSame('old@example.test', $users->getById($user->getId())?->getEmail()->canonical());
-            self::assertCount(1, $grants->all());
-            self::assertTrue($grants->all()[0]->isIssued());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame('old@example.test', $userRepository->getById($user->getId())?->getEmail()->canonical());
+            self::assertCount(1, $activationGrantRepository->all());
+            self::assertTrue($activationGrantRepository->all()[0]->isIssued());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
     }
 
     public function test_late_audit_failure_rolls_back_email_grants_delivery_and_evidence(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = User::invite(
             UserId::generate(),
             EmailAddress::fromString('old@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $users->add($user);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        self::assertTrue($grants->add($this->grant($user)));
-        $audit = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        self::assertTrue($activationGrantRepository->add($this->grant($user)));
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
+        $eventDispatcher = new InMemoryEventDispatcher();
 
         $this->expectException(RuntimeException::class);
         try {
             $this->handler(
-                $users,
-                $grants,
-                new ActivationService\FixedInvitationAdministrationAuthorization(true),
-                $audit,
+                $userRepository,
+                $activationGrantRepository,
+                $auditEvidenceRepository,
                 $unitOfWork,
-                $events
+                $eventDispatcher
             )->handle(CommandMessage::create(new CorrectPendingInvitation(
                 UserId::generate(),
                 $user->getId(),
                 EmailAddress::fromString('corrected@example.test')
             )));
         } finally {
-            self::assertSame('old@example.test', $users->getById($user->getId())?->getEmail()->canonical());
-            self::assertCount(1, $grants->all());
-            self::assertTrue($grants->all()[0]->isIssued());
-            self::assertTrue($grants->all()[0]->getDelivery()->isRetryable());
+            self::assertSame('old@example.test', $userRepository->getById($user->getId())?->getEmail()->canonical());
+            self::assertCount(1, $activationGrantRepository->all());
+            self::assertTrue($activationGrantRepository->all()[0]->isIssued());
+            self::assertTrue($activationGrantRepository->all()[0]->getDelivery()->isRetryable());
             self::assertSame(
                 'ciphertext:activate-old',
-                $grants->all()[0]->getDelivery()->getEncryptedMaterial()?->reveal()
+                $activationGrantRepository->all()[0]->getDelivery()->getEncryptedMaterial()?->reveal()
             );
-            self::assertSame([], $audit->all());
-            self::assertInstanceOf(CommandFailedEvent::class, $events->events()[0]);
+            self::assertSame([], $auditEvidenceRepository->all());
+            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
             self::assertSame(
                 'Pending invitation correction failed.',
-                $events->events()[0]->getErrorMessage()
+                $eventDispatcher->events()[0]->getErrorMessage()
             );
         }
     }
 
     private function handler(
-        InMemoryUserRepository $users,
-        InMemoryActivationGrantRepository $grants,
-        ActivationService\FixedInvitationAdministrationAuthorization $authorization,
-        InMemoryAuditEvidenceRepository $audit,
+        InMemoryUserRepository $userRepository,
+        InMemoryActivationGrantRepository $activationGrantRepository,
+        InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
-        InMemoryEventDispatcher $events
+        InMemoryEventDispatcher $eventDispatcher
     ): CorrectPendingInvitationHandler {
         return new CorrectPendingInvitationHandler(
-            $users,
-            $grants,
-            $authorization,
-            $audit,
+            $userRepository,
+            $activationGrantRepository,
             $unitOfWork,
             new FixedCredentialGenerator('activate-new'),
             new PrefixInvitationDeliveryCipher(),
             new FixedClock('2026-08-22T13:00:00+00:00'),
-            $events
+            $eventDispatcher,
+            $auditEvidenceRepository
         );
     }
 
@@ -492,30 +470,29 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     private function successfulEvent(): PendingInvitationCorrected
     {
         $unitOfWork = new InMemoryUnitOfWork();
-        $users = new InMemoryUserRepository($unitOfWork);
+        $userRepository = new InMemoryUserRepository($unitOfWork);
         $user = User::invite(
             UserId::generate(),
             EmailAddress::fromString('old@example.test'),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
-        $users->add($user);
-        $grants = new InMemoryActivationGrantRepository($unitOfWork);
-        self::assertTrue($grants->add($this->grant($user)));
-        $events = new InMemoryEventDispatcher();
+        $userRepository->add($user);
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        self::assertTrue($activationGrantRepository->add($this->grant($user)));
+        $eventDispatcher = new InMemoryEventDispatcher();
         $this->handler(
-            $users,
-            $grants,
-            new ActivationService\FixedInvitationAdministrationAuthorization(true),
+            $userRepository,
+            $activationGrantRepository,
             new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
-            $events
+            $eventDispatcher
         )->handle(CommandMessage::create(new CorrectPendingInvitation(
             UserId::generate(),
             $user->getId(),
             EmailAddress::fromString('corrected@example.test')
         )));
 
-        $event = $events->events()[0];
+        $event = $eventDispatcher->events()[0];
         self::assertInstanceOf(PendingInvitationCorrected::class, $event);
 
         return $event;

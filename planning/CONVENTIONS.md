@@ -72,6 +72,21 @@ binding owns invocation authority, target substitutions and evidence locations.
 This repository's durable planning model is **EPIC → TICKET → TASK**. It is the local authority for planning
 structure, lifecycle, generated views, Wayfinder continuity, and the explicit archive operation.
 
+## Publication closeout
+
+Land closes independently accepted TASKs, eligible parents and applicable current Board/Roadmap/README/context
+handoffs during delivery under [the project profile](agents/project-profile.md#integrated-delivery-and-resource-retirement).
+Validate the exact live own PR/default/base/head and remote candidate; missing or contradictory evidence holds
+the affected action. Keep live delivery/cleanup results in the durable ignored receipt and actual PR, not a
+tracked marker/table or persistent pending-merge queue. Human merge remains separate; no routine post-merge
+planning maintenance or remote-head deletion. Historical acceptance/publication checkpoints and independent
+reports remain evidence, not current instructions. A TASK's `pr` is publication history, not live merge proof.
+
+`./bin/planning-check` and `--write` stay offline. Routing does not scan historical PRs or dispatch delivery.
+Land completes eligible owned local Git/Docker/storage retirement with preserved creation provenance, fresh
+identity/all-consumer qualification and verified absence/preservation; unknown/shared/durable resources hold.
+No force/prune, shared shutdown, suppressed cleanup errors or guessed success.
+
 ## Directory Structure
 
     planning/

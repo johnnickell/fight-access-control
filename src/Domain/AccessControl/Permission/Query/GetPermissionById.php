@@ -33,11 +33,17 @@ final readonly class GetPermissionById implements Query
             throw new DomainException('Missing required key "permission_id" in data array');
         }
 
-        return new static(PermissionId::fromString((string) $data['permission_id']));
+        if (!is_string($data['permission_id'])) {
+            throw new DomainException('The permission_id must be a string.');
+        }
+
+        return new static(PermissionId::fromString($data['permission_id']));
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical query payload
+     *
+     * @return array{permission_id: string}
      */
     public function toArray(): array
     {

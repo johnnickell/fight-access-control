@@ -41,16 +41,30 @@ final readonly class RevokeSession implements Command
             }
         }
 
+        foreach (['actor_id', 'current_session_id', 'target_session_id'] as $key) {
+            if (!is_string($data[$key])) {
+                throw new DomainException(sprintf('Invalid string "%s" in session revocation data', $key));
+            }
+        }
+
+        if ($data['reason'] !== null && !is_string($data['reason'])) {
+            throw new DomainException('The revocation reason must be a string or null.');
+        }
+
         return new static(
-            UserId::fromString((string) $data['actor_id']),
-            RefreshSessionId::fromString((string) $data['current_session_id']),
-            RefreshSessionId::fromString((string) $data['target_session_id']),
-            $data['reason'] === null ? null : SessionRevocationReason::fromString((string) $data['reason'])
+            UserId::fromString($data['actor_id']),
+            RefreshSessionId::fromString($data['current_session_id']),
+            RefreshSessionId::fromString($data['target_session_id']),
+            $data['reason'] === null ? null : SessionRevocationReason::fromString($data['reason'])
         );
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical session-revocation payload
+     *
+     * @phpstan-return array{
+     *     actor_id: string, current_session_id: string, target_session_id: string, reason: string|null
+     * }
      */
     public function toArray(): array
     {

@@ -4,12 +4,67 @@
 [protected delivery](agent-credential-delivery.md), [retirement](agent-credential-retirement.md) and
 [recovery](agent-delivery-recovery.md) paths. The package owns maintenance transitions, expected-state obligations,
 read contracts and coordination. Consumers own authorization, actual encryption, keys, database indexes/fences and
-protected sinks. This is not a key vault, plaintext retrieval API, physical key-destruction command or supported
+protected sinks. The unreleased [worker contracts](agent-worker-contracts.md) refine exact failure/provider ownership
+and known local transaction-result annotations without changing the maintenance protocol. This is not a key vault,
+plaintext retrieval API, physical key-destruction command or supported
 partial deployment. Mandatory [cohort guards](agent-operation-cohorts.md) fence maintenance transactions and bind
 cleanup authority to the persisted generation. [Package restoration](agent-restoration-safety.md) is implemented;
 [real consumer qualification](agent-operation-evidence.md#consumer-gap-register) and release remain separate.
 
+## Optional atomic maintenance audit (Unreleased)
+
+All three methods accept a final optional `UserId|AgentId|SystemId|null $actorId = null`. Supply the real
+originating User/Agent for delegated work, or explicit fixed-nil `SystemId::generate()` for genuinely autonomous
+maintenance. Never derive it from the target Agent, operation scope or authorization epoch. Attribution grants
+no maintenance, delivery, cleanup or physical-key authority.
+
+The constructor accepts optional last `?AuditEvidenceRepository $auditEvidenceRepository = null`, after policy.
+Omitted/null intentionally disables durable audit. Enabled meaningful work requires provenance before mutation
+or external cleanup admission; configured failure cannot silently disable audit. Disabled and pure no-change
+execution need no newly added audit-only actor. Existing business authorization still applies.
+
+```php
+$maintenance = new AgentDeliveryMaintenanceService(
+    $operationRepository,
+    $maintenanceAuthorization,
+    $rewrapper,
+    $cleanup,
+    $clock,
+    $unitOfWork,
+    auditEvidenceRepository: $auditEvidenceRepository
+);
+$maintenance->expire($originalKey, $historicalDestination, $deliveryId, SystemId::generate());
+```
+
+Enabled `agent.material_rewrapped`, `agent.material_failed`, `agent.material_expired` and `agent.sink_cleaned`
+records explicitly join the **actual outcome transaction/connection**. `AuditAgentMaintenanceOutcome` contains
+only typed original credential/delivery relationships, actual consecutive operation revisions, validated wrapping
+version labels and retained typed failure classification. The Agent subject and complete original scoped operation
+key preserve correlation without serializing issuance, ciphertext, receipts or requests. Occurrence time is the
+trusted time used for the outcome, not original issuance/message time. No credential or Permission revision is
+invented. Evidence identity is unique, not a generic replay key, and evidence is not automatically public/log-safe.
+
+Rewrap and permanent source-loss evidence share their bounded fenced write. Expiry, including the early rewrap
+branch, records one real removal at original retention without requiring target-key admission. Same-target,
+no-copy, unexpired, transient and helper/no-change work adds none; later opt-in never backfills history.
+Cleanup admission and external exact-tuple removal add no evidence. Only a newly persisted acknowledgement records
+cleanup in the separate reauthorized acknowledgement transaction. Audit failure rolls back that acknowledgement
+and its evidence, **not sink erasure**. Lost responses and either uncertain commit outcome retain same-tuple retry,
+tombstones, receipt/order history and no-recreation protection. Already acknowledged cleanup adds no record.
+Trusted authority time is checked again after audit work; all existing cohort/reference/CAS/lifecycle fences remain.
+
+**Pre-v1 consumer obligation:** opt in per maintenance owner, map the new action/facts and typed actors on the
+same real connection, and qualify rollback, uncertainty, races and external sink recovery. No Event, audit Query,
+production adapter, migration/backfill, key destruction or activation/use authority is added. Package tests are
+modeled proof, not qualification of actual consumer storage, locks, cryptography, sinks or restoration.
+
 ## Public composition
+
+Domain maintenance policy/work/key-version values and Application maintenance coordination/ports now belong to
+`AccessControl\AgentCredentialOperation\Maintenance`. The maintenance selection and key-accounting handlers
+live under its Application `QueryHandler` and require only `AgentCredentialOperationReadRepository`, maintenance
+authorization and Clock. They have no material-bearing/write/UoW API. Actual maintenance writes retain the
+separate aggregate-named write repository and UoW below; all existing expected-state and key-reference fences apply.
 
 `AgentDeliveryMaintenanceService` exposes three synchronous operations, each taking the original `AgentOperationKey`,
 `AgentCredentialDestination` and global `AgentDeliveryId`:
@@ -21,12 +76,14 @@ cleanup authority to the persisted generation. [Package restoration](agent-resto
 - `cleanup(...)` removes terminal inert sink material, including tombstoning a delivery whose admitted call has not
   arrived yet. It never deletes operation correlation or permits reuse of an old operation key.
 
-Inject `AgentOperationRepository`, `AgentMaintenanceAuthorization`, `AgentDeliveryRewrapper`,
-`AgentCredentialCleanup`, trusted `Clock`, shared `TransactionalUnitOfWork` and optional `AgentMaintenancePolicy`.
+Inject `AgentCredentialOperationRepository`, `AgentMaintenanceAuthorization`, `AgentDeliveryRewrapper`,
+`AgentCredentialCleanup`, trusted `Clock`, shared `TransactionalUnitOfWork`, optional `AgentMaintenancePolicy`
+and optional last nullable audit repository.
 No production implementation of these consumer capabilities is included. Repository and authorization must
 participate on the package transaction's connection; unsupported participation or an outer/nested transaction fails
 closed. No new event is required: persisted state is the maintenance outcome, not an issuance/delivery fact.
-AuthenticationService, revocation publication and the scoped issuance publication-warning exception are unchanged.
+Synchronous User capabilities and revocation publication are unchanged. TASK-00182's void issuance Commands retain
+scoped confirmed-commit publication containment without returned or reconstructed warnings.
 
 `AgentMaintenanceResult` returns only:
 
@@ -38,7 +95,7 @@ AuthenticationService, revocation publication and the scoped issuance publicatio
 | `cleaned` | Confirmed sink erasure/tombstone acknowledgement, or an already acknowledged cleanup. Not delivery, activation or use authority. |
 | `unchanged` | No applicable transition: same wrapping version, no copy, unexpired material or ineligible cleanup. Not proof of key health or successful delivery. |
 | `retryable` | Typed transient key/sink failure or unsupported cleanup capability. State is not acknowledged; unsupported capability requires adapter correction, not blind retries. |
-| `rejected` | Authorization, version, exact binding, deadline or expected-state conflict. No existence detail is disclosed. |
+| `rejected` | Authorization, version, exact binding (including cleanup binding refusal), deadline or expected-state conflict. No existence detail is disclosed. |
 | `unavailable` | Unclassified dependency/storage failure; original state remains recoverable unless commit is uncertain. |
 | `indeterminate` | Callback completed but commit did not confirm. Neither rollback nor external completion is inferred. |
 
@@ -57,7 +114,8 @@ additional human approval or mandatory manual limits configuration.
 
 `AgentMaintenanceAuthorization::authorize()` runs before lookup with null issuance, then again for the exact original
 issuance. It holds transaction-duration authority, operation/lifecycle, historical-destination and key-reference
-fences and returns an opaque worker/revision epoch plus earliest delegation expiry. Revoke/regrant advances the
+fences and returns an opaque worker/revision epoch plus earliest delegation expiry. The worker checks the returned
+deadline before the concealed lookup, and again before effects; a slow authorization cannot extend it. Revoke/regrant advances the
 epoch; clock rollback must not extend authority. A target key additionally requires explicit rewrap authority and
 open write admission. No cached external allow or nested authorization transaction is supported.
 
@@ -91,7 +149,9 @@ Use sanitized `AgentDeliveryFailedException` classifications:
 - `KEY_RETIRED`: permanent loss of the original source key, not planned removal of a target key. Remove the copy and
   record terminal failure for explicit reconciliation.
 - `CORRUPT_MATERIAL`: changed/swapped ciphertext or associated data. Remove the copy and record terminal failure.
-- Unclassified faults remain unavailable with rollback, never terminal success or an arbitrary provider message.
+- Unclassified or out-of-contract provider faults remain unavailable with rollback, never terminal success or an
+  arbitrary provider message. Key providers do not supply operation-authorization intent; sink providers do not
+  supply delivery-key-loss/integrity intent. Only the relevant provider's documented classifications are adopted.
 
 Known-active Agents may require a separately authorized new rotation; ambiguous historical provision requires
 explicit reconciliation. Never auto-provision/rotate, decrypt the authentication envelope as delivery fallback,
@@ -101,7 +161,8 @@ receipt/status recovery exists; later sink loss does not recreate a secret-read 
 `CountAgentDeliveryKeyReferences` and its handler return a nonnegative **global diagnostic count**, after current
 accounting authority both before and after the read. The repository counts every retained delivery copy across
 scopes, keyset pages, dispositions, claims, obsolete reservations and unknown canonical versions. It projects only
-reference metadata, not ciphertext. Storage failure is unavailable, never zero. A work page or per-scope count is
+reference metadata, not ciphertext. Deliberately classified storage unavailability retains its operation reason;
+unclassified faults/negative results now raise safe internal `AgentOperationReadFailed`, never zero. A work page or per-scope count is
 not a retirement account.
 
 **A zero snapshot never authorizes physical key destruction.** The consumer retirement protocol must:
@@ -123,8 +184,11 @@ not a retirement account.
 
 `ListAgentDeliveryMaintenance` is an immutable Query with canonical `fromArray()`/`toArray()` and named getters.
 All canonical fields, including nullable `after`, are required on deserialization. The constructor supplies defaults.
-Its handler reads one secret-free page of `AgentOperationView` values, checks scope authority before/after selection
+Its handler returns one secret-free page of `AgentOperationView` values, checks scope authority before/after selection
 and each target before disclosure, and rejects oversized, duplicate/out-of-order, foreign-scope or unsupported views.
+Internally the read repository now supplies `AgentDeliveryWorkView` metadata for exact material/cleanup predicate,
+pinned retention/grace and binding validation. See the unreleased [Query contracts](agent-query-contracts.md);
+no selection metadata is added to public status output, and a malformed page is an internal fault, not caller denial.
 Reads take no claims, commit nothing, dispatch no events and load no material.
 
 - `work = material` selects **all retained copies**, including obsolete reservations. Call `expire()` for expiry-only
@@ -205,13 +269,16 @@ reusable integrated conformance; these obligations do not claim a real database/
 
 Package evidence:
 
-- [Domain tests](../tests/Domain/AccessControl/Agent/AgentMaintenanceTest.php): finite defaults/overrides, canonical
+- [Domain tests](../tests/Domain/AccessControl/AgentCredentialOperation/AgentMaintenanceTest.php): finite defaults/overrides, canonical
   Query round trips/rejection, expiry and invalid transitions, tombstone/history preservation.
-- [Maintenance service tests](../tests/Application/AccessControl/Agent/Security/AgentDeliveryMaintenanceServiceTest.php):
+- [Maintenance service tests](../tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentDeliveryMaintenanceServiceTest.php):
   actual provision/delivery/revocation paths, retry history and original-byte recovery, transient/permanent/corrupt
   outcomes, stale writes, key admission fences, capacity isolation, both outcomes of uncertain commits, outside-
   transaction cleanup, replay, current delivered protection, authorization/time/ABA and safe rollback.
-- [Read tests](../tests/Application/AccessControl/Agent/QueryHandler/AgentMaintenanceQueryTest.php): multiple bounded
+- [Optional audit tests](../tests/Application/AccessControl/AgentCredentialOperation/Maintenance/AgentMaintenanceAuditTest.php):
+  explicit autonomous/delegated provenance, exact time/revisions/relationships, no-change, state/evidence rollback,
+  both uncertain outcomes, sink-response loss, audit failure after erasure and fenced losing writers.
+- [Read tests](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/AgentMaintenanceQueryTest.php): multiple bounded
   pages past obsolete reservations, all-scope accounting including unknown versions, target/scope rechecks, no query
   mutation/material access and safe failure. [Generated schemas](../tests/OpenApi/AgentDeliveryComponentsTest.php)
   compare the opt-in public maintenance components with canonical messages, enums and bounds in the normal suite.

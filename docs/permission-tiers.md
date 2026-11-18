@@ -19,7 +19,11 @@ managed Super Admin Role can hold protected Permissions. Agents have direct `ADM
 The consumer builder protects every custom-Role lifecycle, User Role assignment and Agent Permission command entry
 point, including CLI, workers, direct bus and no-ops. Actor IDs are provenance, not authority. Last-admin safeguards,
 caller/target policy and recovery belong to that builder; the retired actor-only authorization ports are not supplied.
-Ownership-sensitive package authorization for sessions, email changes and invitation correction remains distinct.
+For invitation correction and registration recovery, every consumer entry, including CLI and workers, authenticates
+its actual caller and checks current operation permission and exact target before dispatch to the trusted bus.
+Actor IDs and audit provenance confer no authority. The handlers do not repeat the permission check; their
+business-state and writer fences remain. Separate ownership-sensitive package authorization for sessions and
+email changes is unchanged. See [User lifecycle contracts](user-lifecycle-contracts.md).
 A Super Admin caller cannot bypass the package's `ADMIN_SAFE` restriction for custom-Role grants or direct Agents.
 Custom Role rename/remove additionally require the revision of the displayed state; see
 [Role caller revisions](role-revisions.md). A fresh token bypasses neither these guards nor consumer authorization.
@@ -47,3 +51,10 @@ for current wiring, rollback and outcome handling. Consumer repositories must qu
 independent writer races; modeled package tests are not PostgreSQL qualification.
 The managed Super Admin Role can be assigned to a pending User for bootstrap; only active Users authenticate.
 Assignments/removals preserve expected revisions, reference checks, desired-state no-ops and post-commit events.
+The unreleased [Role and User membership contracts](role-membership-contracts.md) distinguish deliberate absence,
+rule refusal, failed caller expectations and state conflicts from wrong identities and unknown internal faults.
+Role Permission no-ops also fence the complete Role snapshot without writing. Their
+[optional audit storage](role-membership-contracts.md#optional-role-permission-audit-composition) does not change
+eligibility or add an audit-only permission check: existing allowed revocations, including removal of an existing
+protected membership, remain allowed. Meaningful enabled evidence describes the Role relationship, not a Permission
+mutation; no-change retains its fences without evidence.

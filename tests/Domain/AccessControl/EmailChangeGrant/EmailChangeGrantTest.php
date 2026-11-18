@@ -13,6 +13,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredent
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDelivery;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeGrantException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\Common\Domain\Exception\DomainException;
@@ -57,7 +58,8 @@ final class EmailChangeGrantTest extends TestCase
             new DateTimeImmutable('2026-08-22T13:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
             'ciphertext:change-once',
-            1
+            1,
+            new EmailChangeRequestOrigin($userId, EmailAddress::fromString('old@example.test'))
         );
 
         self::assertSame($userId, $grant->getUserId());
@@ -76,15 +78,17 @@ final class EmailChangeGrantTest extends TestCase
 
     public function test_expiry_must_follow_issuance(): void
     {
+        $userId = UserId::generate();
         $this->expectException(EmailChangeGrantException::class);
         EmailChangeGrant::issue(
-            UserId::generate(),
+            $userId,
             EmailChangeCredential::fromString('change-once'),
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             new DateTimeImmutable('2026-08-22T12:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
             'ciphertext:change-once',
-            1
+            1,
+            new EmailChangeRequestOrigin($userId, EmailAddress::fromString('old@example.test'))
         );
     }
 
@@ -220,14 +224,17 @@ final class EmailChangeGrantTest extends TestCase
 
     private function grant(int $reservationRevision = 1): EmailChangeGrant
     {
+        $userId = UserId::generate();
+
         return EmailChangeGrant::issue(
-            UserId::generate(),
+            $userId,
             EmailChangeCredential::fromString('change-once'),
             new DateTimeImmutable('2026-08-22T12:00:00Z'),
             new DateTimeImmutable('2026-08-22T13:00:00Z'),
             EmailAddress::fromString('new@example.test'),
             'ciphertext:change-once',
-            $reservationRevision
+            $reservationRevision,
+            new EmailChangeRequestOrigin($userId, EmailAddress::fromString('old@example.test'))
         );
     }
 }

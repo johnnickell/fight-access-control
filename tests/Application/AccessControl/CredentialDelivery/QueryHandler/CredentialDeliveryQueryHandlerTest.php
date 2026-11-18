@@ -11,11 +11,13 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredentia
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryAbsent;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindCredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindDueCredentialDeliveries;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
@@ -123,6 +125,9 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
             self::assertSame($grant->purpose(), $view->getPurpose());
             self::assertSame($grant->getDelivery()->getId()->toString(), $view->getDeliveryId());
             self::assertTrue($grant->getUserId()->equals($view->getUserId()));
+            $requestId = $grant === $emailChange ? $emailChange->getId() : null;
+            self::assertEquals($requestId, $view->getEmailChangeGrantId());
+            self::assertSame($requestId?->toString(), $view->toArray()['email_change_grant_id']);
             self::assertSame(0, $view->getRevision());
             self::assertSame(CredentialDeliveryStatus::PENDING, $view->getStatus());
             self::assertEquals($grant->getDelivery()->getDueAt(), $view->getDueAt());
@@ -137,10 +142,9 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
         }
 
         self::assertSame(FindCredentialDeliveryStatus::class, $handler::queryRegistration());
-        self::assertNull($handler->handle(QueryMessage::create(new FindCredentialDeliveryStatus(
-            'activation',
-            $emailChange->getDelivery()->getId()->toString()
-        ))));
+        self::assertInstanceOf(CredentialDeliveryAbsent::class, $handler->handle(QueryMessage::create(
+            new FindCredentialDeliveryStatus('activation', $emailChange->getDelivery()->getId()->toString())
+        )));
     }
 
     public function test_queries_reject_missing_unsupported_or_unbounded_input(): void
@@ -169,6 +173,7 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
         $issuedAt ??= new DateTimeImmutable('2026-08-23T11:00:00+00:00');
         $expiresAt = new DateTimeImmutable('2026-08-23T12:00:00+00:00');
         $email = EmailAddress::fromString('alice@example.test');
+        $emailChangeUserId = UserId::generate();
 
         return [
             ActivationGrant::issue(
@@ -190,13 +195,14 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
                 new RecoveryAuthority(1, 0)
             ),
             EmailChangeGrant::issue(
-                UserId::generate(),
+                $emailChangeUserId,
                 EmailChangeCredential::fromString('change'),
                 $issuedAt,
                 $expiresAt,
                 $email,
                 'ciphertext:change',
-                1
+                1,
+                new EmailChangeRequestOrigin($emailChangeUserId, EmailAddress::fromString('old@example.test'))
             )
         ];
     }

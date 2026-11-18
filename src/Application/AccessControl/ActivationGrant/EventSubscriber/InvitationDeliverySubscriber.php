@@ -8,6 +8,7 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryI
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryResent;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\InvitationDeliveryRetryRequested;
+use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserInvited;
 use Fight\AccessControl\Domain\AccessControl\User\Event\UserRegistered;
@@ -83,7 +84,7 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
         /** @var PendingRegistrationRecovered $event */
         $event = $eventMessage->payload();
         $this->commandBus->execute(new DeliverUserInvitation(
-            $event->getActorId()->toString(),
+            $event->getActorId(),
             $event->getUserId(),
             $event->getActivationDeliveryId()
         ));
@@ -111,7 +112,7 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
         /** @var UserRegistered $event */
         $event = $eventMessage->payload();
         $this->commandBus->execute(new DeliverUserInvitation(
-            'registration',
+            AnonymousId::generate(),
             $event->getUserId(),
             $event->getActivationDeliveryId()
         ));
@@ -130,7 +131,7 @@ final readonly class InvitationDeliverySubscriber implements EventSubscriber
         }
 
         $this->commandBus->execute(new DeliverUserInvitation(
-            $event->getActorId()->toString(),
+            $event->getActorId(),
             $event->getUserId(),
             $activationDeliveryId
         ));

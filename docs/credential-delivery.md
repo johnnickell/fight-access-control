@@ -4,11 +4,350 @@ Invitation, password-reset and email-change grants own recoverable, provider-neu
 pre-v1 contract is supported under [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md). There is no
 historical signature, row conversion or migration/backfill obligation. Consumer adapters and runtime remain separate.
 
+## Request and worker contracts (Unreleased)
+
+The eleven human request/delivery/retry/resend/cancellation/expiry handlers remain registered **void** Commands.
+Consumers protect every worker and alternate entry point; actor IDs, stored origin and status are not grants.
+Unknown/ineligible password-reset requests still complete without work or an existence signal. Ordinary stale,
+early or terminal expiry dispatch remains a no-op; email expiry still releases only its exact reservation in every
+supported account state. No new Query/subscriber/admission policy is introduced. Invitation audit composition is
+explicitly optional as described below, as are password-reset request/delivery/expiry and email-change
+request/cancellation/delivery/expiry audit.
+
+Use Common Application `StateConflict` for known request/state/CAS/claim/lease refusals and invitation retry/resend
+refusals. Email request/cancellation use `ResourceNotFound` for an absent requested User and `PermissionDenied`
+for the authorization port's declared administrative denial. Domain transition exceptions remain inward; handlers
+translate only the specific transition/authorization call they own. They do not classify by diagnostic text or
+wrap repository, clock, transaction, audit or publication faults as ordinary refusals. Broken lookup identity,
+delivery correlation and unchanged-revision claim promises are internal faults, not missing work or retry success.
+Update catches directly; no old exception facade or compatibility mode is supplied. These are breaking pre-v1 PHP
+caller-contract changes, not a selected release/version.
+
+Claims and outcomes still use separate transactions with complete-state CAS. Password reset validates current
+User recovery authority before grant access in both phases. The owned callback results are locally annotated with
+their actual Event/ID/nullable result; native UoW remains mixed, with no replacement wrapper or generic prerequisite.
+At outcome, an unchanged revision must still describe the exact committed claim. Decryption and provider calls
+remain outside transactions: their throwables deliberately become secret-free `UNEXPECTED_PROVIDER` retry outcomes.
+Clock faults are internal; an expired claim is a conflict, not a newly manufactured provider failure. Real revision,
+generation, authority or lease changes cannot acknowledge a successor or revive cancelled work. Late external mail
+and lost acknowledgements retain at-least-once identity/recovery semantics, never exactly-once delivery.
+
+Cancellation matches the grant's exact User/destination/reservation revision, not email equality alone. The reset
+revocation helper validates its requested User before issued/terminal decisions and retains the caller-owned User
+fence/transaction; its lifecycle/password/confirmation callers retain their own synchronous failure policies.
+Confirmed state remains authoritative when post-commit publication throws. Failure notifications keep constant safe
+text and cannot replace the primary fault; consumers must still sanitize rethrown diagnostics.
+
+Provider outcomes remain the three-case enum. Internal attempt results have only four factory combinations:
+delivered/null, retryable/RETRYABLE_PROVIDER, permanent/PERMANENT_PROVIDER and retryable/UNEXPECTED_PROVIDER.
+Invocation purpose is restricted to activation/password_reset/email_change, with stored activation origin only for
+activation. The opaque stable delivery ID is not newly restricted to UUID syntax. Invocation material stays redacted
+and non-serializable (`__serialize(): never`). Cipher implementations must mark raw plaintext parameters sensitive;
+PHP does not inherit the interface's parameter attribute. Keys, provider mechanisms and concrete trace/log safety
+remain consumer-owned and require separate qualification.
+
+`HumanCredentialContractTest`, `HumanCredentialCompositionTest` and the existing family/recovery/expiry/failure
+suites exercise these boundaries. Static fixtures and focused level-8 analysis qualify the owned contracts, not
+Common generic bus inference. Actual tagged minimum/ordinary routing and safe HTTP composition are recorded in
+TASK-00138's ignored Work evidence; HTTP maps deliberate 403/404/409 intent and keeps unknown/internal faults 500.
+MCP/OAuth mapping and real consumer storage/provider/worker qualification remain separate.
+
+## Atomic email-change notification intent (Unreleased)
+
+`RequestEmailChangeHandler` (through the registered Command) and `EmailChangeConfirmation::confirmEmail()`
+accept an optional `emailChangeTransitionParticipant: $participant` constructor argument. Bind the consumer's
+implementation of `EmailChangeTransitionParticipant` to **both** use cases when both notices are required.
+Each owner is configured separately. Omitted or explicit `null` performs no consumer intent write and promises
+no durable request/completion notice; it still performs the normal package transition and configured audit.
+No notification infrastructure is required for package-only composition.
+
+```text
+Request Command / synchronous confirmation
+    |
+    v
+AccessControl transaction owner (one actual connection and UoW)
+    |---> stage fenced User + grant/delivery writes (+ reset/session invalidation on confirmation)
+    |---> configured consumer stages protected notification intent on that same transaction
+    |---> stage enabled audit
+    `---> commit; only after acknowledgement, publish existing success Event
+
+Consumer delivery and recovery use committed intent, outside this flow.
+```
+
+`stage(EmailChangeTransition $transition)` runs after the business writes and their fences succeed, before enabled
+audit and commit. The consumer writer must use the actual active connection and unit of work used by the package
+repositories and enabled audit. Merely injecting the same abstraction, using the same database with another
+connection, or running a separate/nested transaction is not sufficient. The writer returns only after all required
+intent is staged, or throws an internal write fault. It must not publish, send mail, schedule external work, or
+commit independently. Consumers own intent storage, protected recipient handling, uniqueness, scheduling, templates,
+provider delivery and recovery. Verify actual rollback and commit with the consumer adapters before enabling the journey.
+
+The facts contain the target User ID, exact grant ID and accepted reservation revision, `REQUESTED` or `CONFIRMED`,
+the trusted reservation or confirmation time, and the original requester User ID and canonical old mailbox.
+On confirmation, stage means that valid purpose-bound credential proof was accepted; possession identifies no human.
+`confirmationActorId` is separately supplied trusted attribution (nullable when audit is off), never inferred from
+the target or original requester. Do not put these protected facts in public messages, safe Views, audit or logs.
+The participant receives no raw credential, digest, ciphertext, link or provider diagnostics.
+
+Persist/hydrate the required `EmailChangeRequestOrigin` on each `EmailChangeGrant`, even without participation:
+store its requester `UserId` and canonical old mailbox together with the immutable reservation revision and grant
+identity. `EmailChangeGrant::issue()` requires the origin after the reservation revision. Repository mappers must
+restore both origin fields and include them in complete expected-state comparison and same-generation preservation,
+including delivery and terminal revisions. Do not recover the old recipient from the current User, destination,
+audit record or timestamp. There is no historical hydration, default or backfill contract.
+
+Use exact `(grant ID, stage)` as the per-change intent identity in the consumer's storage scope, not email or time.
+At most one call is made per eligible owning attempt. Denied, stale, expired, duplicate/consumed and early CAS-losing
+attempts do not stage; a later transaction loss rolls back anything staged. A retry after **known** rollback must
+revalidate from current state; a fresh request attempt can allocate a new grant ID. Successive requests for the same
+address after terminalization have distinct IDs and reservation revisions. Acknowledgement loss is indeterminate:
+reconcile authoritative stored state and consumer intent, do not assume rollback, blindly repeat the business operation
+or enqueue afterward based on Events. Post-commit publication failure leaves state, intent and enabled audit committed.
+Neither committed intent nor success publication guarantees exactly-once sending. Cancellation/expiry are not participant
+stages. Participation does not change Command/Event payloads or delivery-provider boundaries.
+
+## Cancel the exact email-change request (Unreleased)
+
+Use `CancelEmailChange(actorId, userId, emailChangeGrantId)` for both self-service and administrative cancellation.
+The canonical payload requires UUID strings `actor_id`, `user_id` and `email_change_grant_id`. Do not substitute
+an email address, a delivery ID, or the latest request ID at dispatch or retry time.
+
+Keep the exact delivery ID associated with the request being reviewed (for example, from the committed
+`EmailChangeRequested` fact). Resolve it through `FindCredentialDeliveryStatus('email_change', deliveryId)`.
+The returned `CredentialDeliveryStatusView` adds the typed `getEmailChangeGrantId()` and serialized
+`email_change_grant_id` for that delivery's exact grant, including retained terminal history. For activation
+(invitation or self-registration) and password reset, this field is `null`. Direct `fromDelivery()` callers pass
+the corresponding ID explicitly for email change and `null` otherwise. There is no raw-grant or secret output.
+
+Authenticate the real caller and admit the status read for the exact request/target before exposing any result.
+Use a trusted delivery-to-target binding, not possession of an ID. If resolving a caller-supplied delivery ID
+inside a privileged boundary, verify the returned User against the authorized target before returning any data,
+without distinguishing foreign from unknown IDs. Independently authorize cancellation for the same target at
+entry; the package still checks cross-User administration. After these checks and matching the status View to the
+reviewed request, pass the raw Command to Common's `CommandBus::execute()`:
+
+```php
+$requestId = $status->getEmailChangeGrantId();
+if ($requestId !== null) {
+    $commandBus->execute(new CancelEmailChange($actorId, $targetUserId, $requestId));
+}
+```
+
+Delivery status is not confirmation authority, proof of a current reservation, or a cancellation receipt. The
+handler rechecks exact grant ID, issued state and reservation inside its transaction. Stale, foreign or terminal
+requests are refused without touching a successor, even at the same destination. Success preserves canonical
+email and atomically clears the matching reservation and revokes its grant and recoverable delivery material,
+with configured audit. It does not recall sent mail or change unrelated sessions or notification history.
+
+## Optional email-change audit composition (Unreleased)
+
+`RequestEmailChangeHandler`, `CancelEmailChangeHandler`, `DeliverEmailChangeHandler` and `ExpireEmailChangeHandler`
+accept optional `auditEvidenceRepository` storage. The request handler takes it before the optional participant.
+Omitted/null intentionally disables durable
+evidence; a supplied repository must join the User/grant repositories' actual transaction and connection and must
+not discard unsupported evidence. Audit storage failure aborts the required outcome transaction.
+
+Requests and cancellations record both self-service and authorized administrative outcomes using their existing
+required UserId actor. Cross-User authorization is unchanged. Their current action values are
+`user.email_change_requested` and `user.email_change_cancelled`, replacing administrative-only spellings directly.
+Request evidence retains an unchanged terminal predecessor when a fresh generation follows prior work.
+Delivery preserves the admitted User actor through its subscriber/Command, recording confirmed and committed failed
+outcomes, not the temporary claim or provider invocation. Claims and external sends remain separately committed;
+rolling back outcome evidence cannot unsend mail or erase the claim. Recovery uses the existing generation/lease rules.
+
+Expiry now uses direct `UserId|AgentId|SystemId|AnonymousId` provenance in Command and Event, with required
+`actor_kind` and UUID `actor_id` fields. There is no label reader or fallback identity. Deliberate autonomous cleanup
+passes `SystemId::generate()` explicitly; admitted work retains its actual origin. Identity grants no new authority.
+The existing actor requirement remains even with audit disabled. `user.email_change_expired` describes only the
+committed coupled reservation release and latest issued grant expiry, including inactive Users and material-free
+terminal delivery. The admitted occurrence time is retained; early/stale/terminal work creates no evidence, and
+CAS loss rolls back both sides. Typed User revisions and exact grant/delivery relationships contain no addresses,
+credentials, hashes, ciphertext, entities, provider payloads or diagnostic text. Every record uses the real incoming
+message ID and trusted outcome time. Post-commit notification failure still throws and leaves evidence committed;
+lost commit acknowledgment remains uncertainty, not proof of rollback or permission to retry blindly.
+
+Consumers update constructors, persisted action mapping and expiry Command/Event/schema handling directly under
+ADR 0011 and qualify their actual shared connection, mapping, workers and provider recovery. No backfill, new
+scheduler, permission, consumer implementation or release is supplied. Synchronous `confirmEmail` optional auditing
+belongs solely to TASK-00127; this slice does not claim that journey complete.
+
+## Explicit status and bounded discovery (Unreleased)
+
+`FindInvitationDeliveryStatus` returns `InvitationDeliveryStatusView|CredentialDeliveryAbsent`;
+`FindCredentialDeliveryStatus` returns `CredentialDeliveryStatusView|CredentialDeliveryAbsent`. Replace nullable
+handling directly: narrow on `CredentialDeliveryAbsent` (serialized `{"state":"absent"}`), otherwise consume the
+safe View. There is no nullable compatibility mode. The invitation View additionally requires `ActivationOrigin`
+and exposes `getOrigin()` / `origin`; supply the recorded grant origin to `fromWork()` or direct construction.
+
+Invitation reads require the exact requested User; credential reads require the exact purpose/delivery UUID.
+Both validate available grant/delivery ownership and expiry correlation. Retained terminal history remains present,
+not absent. A contradictory repository result is an internal fault; storage exceptions propagate unchanged.
+Absence proves neither rollback nor permission to issue, resend, redeem or disclose another generation. Consumers
+still protect every status/worker entry and sanitize errors; Common's opt-in safe HTTP boundary renders internal/
+unknown storage faults as generic server errors, not absence or diagnostic-derived not-found outcomes.
+
+Due/expired handlers validate each source's list, element family, admitted time, order, unique User/delivery IDs
+and individual maximum before merging. Invitation/reset expired work must retain recoverable delivery status;
+email expiry selects issued authority regardless of terminal delivery. Repository adapters still own latest/issued,
+material and applicable User-authority eligibility; the safe DTOs cannot prove those facts. No readbacks, locks,
+stronger cross-family snapshot or new lifecycle policy are added. Three valid source lists can exceed the final
+limit: merge by time instant, delivery ID and purpose, then select global top-N. Due limits remain positive with
+no new maximum; expired limits remain 1–100. Empty lists are ordinary success, never a substitute for failure.
+
+All four queries remain read-only and advisory: no claim, expiry, cleanup, admission, transaction, commit, audit
+or Events. Commands recheck final authority/state. `CredentialQueryContractTest` and
+`CredentialQueryCompositionTest` cover source rejection, terminal history, real Common registration/routing,
+serialized Query dispatch, safe-error distinction and unchanged persisted state. Static fixtures prove handler
+result unions/list elements and absence narrowing, not generic bus inference (TASK-00128's separate supplier).
+The installed tagged Common 1.4.1 supports these runtime contracts; minimum/ordinary lane and exact candidate
+verification belong to TASK-00133's local handoff, not consumer database/provider qualification.
+
+## Precise Domain type contracts (Unreleased)
+
+Human credential Commands, Queries and Events decode required fields without scalar or object coercion: identity,
+actor, email, purpose and timestamp payload fields must be strings, and discovery limits must be integers.
+The in-progress [audit contract replacement](audit-evidence.md) additionally requires `actor_kind` alongside
+`actor_id` on invitation delivery/resend/retry/expiry and reset delivery/expiry payloads and their affected Events. Direct
+UserId/AgentId/SystemId/AnonymousId values preserve the admitted origin; workers do not parse labels or substitute
+themselves. Deliberate public registration/reset-request subscribers establish AnonymousId. See the current
+[exact cancellation contract](#cancel-the-exact-email-change-request-unreleased) for the required request ID. TASK-00123 separately makes the
+eight account lifecycle handlers' final audit repository optional.
+Timestamp-bearing payloads require an explicit valid RFC3339 instant, never relative dates or calendar rollover.
+Canonical field names, nullability and existing timestamp output precision are unchanged. `fromArray()` remains a
+dynamic input boundary; exact `toArray()` shapes describe validated output, not unchecked input assertions.
+
+`DueCredentialDelivery` and `ExpiredCredentialDelivery` expose the union of the three purpose-specific delivery ID
+types rather than arbitrary `UniqueId`. Due-work construction validates the purpose/ID pair, nonnegative observed
+revision and pending/claimed/retry-pending status. Expired work retains its existing required email-grant ID only
+for email change; email authority may need cleanup even after delivery is terminal. Safe status projection rejects
+a mismatched purpose/delivery family or negative revision. The OpenAPI due-work status and revision bounds agree.
+These DTOs are advisory descriptions, not worker admission, current authority or proof of provider delivery.
+
+Grant transitions now declare `static` results, preserving the actual subtype through immutable replacements and
+no-ops. Consumer subclasses overriding these methods must preserve that covariant return contract. Update consumers
+that relied on coerced payload fields or fabricated discovery/status values directly; no compatibility mode is
+provided. Repositories still return aggregate-or-null and retain complete-state, generation and transaction fences.
+No Query absence/failure redesign, generic bus adoption, new recovery policy or consumer qualification is included.
+
+`HumanCredentialPayloadTest` covers every owned message decoder's current round trip and missing/wrong-type fields;
+`CredentialWorkIdentityTest` covers purpose/revision/status relationships. Existing grant, worker, repository,
+expiry/recovery and generated-schema suites remain preservation evidence. Detailed declaration/member dispositions
+and standalone positive/negative static probes belong to the canonical TASK-00116 Work evidence, not public logs.
+
+## Optional password-reset audit composition (Unreleased)
+
+`RequestPasswordResetHandler`, `DeliverPasswordResetHandler` and `ExpirePasswordResetDeliveryHandler` take an optional
+last `?AuditEvidenceRepository $auditEvidenceRepository = null`. Move the formerly third request/second delivery audit
+argument to the end. Omitted/null deliberately disables durable evidence; configured storage failures abort the staged
+outcome. Grant, User and evidence repositories must join the actual owning UoW connection, not independent transactions.
+
+```php
+$request = new RequestPasswordResetHandler(
+    $userRepository,
+    $passwordResetGrantRepository,
+    $unitOfWork,
+    $passwordResetCredentialGenerator,
+    $passwordResetDeliveryCipher,
+    $clock,
+    $eventDispatcher,
+    $auditEvidenceRepository, // Omit or pass null to disable durable audit.
+);
+$worker = new DeliverPasswordResetHandler(
+    $passwordResetGrantRepository,
+    $unitOfWork,
+    $passwordResetDeliveryCipher,
+    $credentialDeliveryProvider,
+    $clock,
+    $eventDispatcher,
+    $userRepository,
+    $auditEvidenceRepository,
+);
+$expiry = new ExpirePasswordResetDeliveryHandler(
+    $passwordResetGrantRepository,
+    $unitOfWork,
+    $eventDispatcher,
+    $auditEvidenceRepository,
+);
+```
+
+The public request deliberately establishes AnonymousId; it has no missing-principal fallback or new actor field.
+Unknown/inactive requests retain generic no-work behavior with no evidence. The request's subscriber carries that
+same anonymous origin to delivery; other trusted delivery callers supply their original typed actor explicitly.
+Existing delivery actor input remains required even when audit is disabled. Autonomous expiry supplies explicit
+SystemId; admitted User/Agent origins must not be replaced with a worker label. Expiry Command/Event now require
+`actor_kind` plus UUID `actor_id`; update current callers and storage directly, without an old string reader.
+
+Eligible issuance records User plus exact predecessor/cancelled predecessor/successor grant and delivery relationships.
+Delivery records only its committed confirmed/retryable/permanent-failure outcome, never its temporary claim. Expiry
+records `user.password_reset_delivery.expired` only after a successful exact-state replacement, with actual grant
+revisions and EXPIRED delivery status. It removes expired material, not grant authority or a completed password reset.
+Occurrence time is the owning request/outcome Clock sample or expiry's trusted admitted `occurredAt`; correlation is
+that real incoming message ID. Facts admit only finite status/failure values and typed relationships, not reasons,
+credentials, destinations, ciphertext, provider details or raw payloads. Evidence is not public/log response data.
+
+Keep User-before-grant authority validation, latest-generation/claim/lease fences, due time and full CAS unchanged.
+Absent/stale/early/terminal/failed-CAS expiry creates no record. Audit failure rolls back staged state/evidence, not an
+already committed claim or external send. Recover original work through existing lease/discovery rules. Unknown
+commit acknowledgement remains uncertain; post-commit notification failure still throws with evidence durable.
+No backfill, generic replay, transport, scheduler, consumer persistence or synchronous password-operation audit is
+added. Synchronous change/reset remains TASK-00127. Package modeled-state tests do not qualify real storage/provider
+transactions or deployment.
+
+## Optional invitation audit composition (Unreleased)
+
+All four invitation handlers take an optional last `?AuditEvidenceRepository $auditEvidenceRepository = null`.
+Update the formerly second repository argument on delivery/resend/retry directly; no compatibility constructor is
+provided. Expiry accepts the same final dependency. Omitted or explicit null intentionally provides no durable-audit
+guarantee. A configured repository is required persistence, never a best-effort sink. Join the grant repository's
+actual UoW connection/transaction, not an independent active transaction.
+
+```php
+$worker = new DeliverUserInvitationHandler(
+    $activationGrantRepository,
+    $unitOfWork,
+    $invitationDeliveryCipher,
+    $credentialDeliveryProvider,
+    $clock,
+    $eventDispatcher,
+    $auditEvidenceRepository,
+);
+$expiry = new ExpireInvitationDeliveryHandler(
+    $activationGrantRepository,
+    $unitOfWork,
+    $eventDispatcher,
+    $auditEvidenceRepository,
+);
+```
+
+Existing required originating actors remain required typed inputs even when audit is disabled. Expiry now also
+requires `UserId|AgentId|SystemId|AnonymousId`, serialized with both `actor_kind` and UUID `actor_id`; its Event has
+the same contract. Autonomous expiry deliberately supplies `SystemId::generate()`, not a worker label or a missing
+actor fallback. Authorized User/Agent requests keep that original identity through worker/subscriber execution.
+Actor identity, origin, correlation and delivery IDs confer no authorization. Protect alternate workers and buses.
+
+Evidence uses the shared typed User subject and grant/delivery before/after revisions, actual message correlation
+and trusted outcome time. Delivery records confirmed or committed classified failure outcomes; resend records the
+new generation plus its retained revoked predecessor; retry records the actual retry transition. Expiry records
+`user.invitation_delivery.expired` only after a successful expected-state replacement, at the Command's trusted
+admitted occurrence time. It does not expire activation authority. No evidence is added for temporary claims,
+unknown/stale/terminal/not-due expiry, failed CAS or other no-change branches. Both activation origins remain on
+the authoritative grant identified by the evidence and survive resend/retry/delivery/expiry; no origin is inferred
+from the transport or event. Evidence captures no recipient, credential, ciphertext or exception diagnostic.
+
+Claims still commit separately, provider calls remain outside transactions, and outcome state plus evidence commit
+together. Audit failure rolls back that staged outcome, **not** an already committed claim or external send. Retain
+lease/generation/receipt recovery and the stable provider idempotency identity. Lost commit acknowledgement remains
+uncertain; reconcile authoritative storage rather than assuming rollback or repeating an effect blindly. Ordinary
+post-commit publication failure still throws without erasing committed evidence. This adds no outbox, guaranteed
+notification/retry pipeline, rejected-attempt store or Agent issuance-warning behavior. Consumers separately qualify
+real storage/connection mapping, all-writer races, restart, provider effects and protected evidence access/retention.
+
 ## Composition and persistence
 
 Bind the three purpose-specific cipher capabilities (encryption and decryption), one `CredentialDeliveryProvider`,
 Domain grant repositories, audit and User repositories to the package's shared `TransactionalUnitOfWork` connection.
-Originating handlers atomically persist grant authority, encrypted delivery and audit before post-commit publication.
+Originating handlers atomically persist grant authority, encrypted delivery and configured required audit before
+post-commit publication. Invitation/account optionality is per handler, not a global repository binding.
 Do not independently commit one repository or bind participants to different transaction connections.
 
 Persist the complete delivery state: immutable delivery ID, owning User, canonical email, encrypted material, expiry,
@@ -57,7 +396,8 @@ Current consumer composition must change directly:
 
 Claims, typed outcomes, manual retry, scheduler discovery and lease takeover preserve the generation's stored origin.
 A fresh worker reconstructs it from authoritative storage, not the secret-free due/status DTOs. The protected
-latest invitation status additionally exposes `activation_delivery_id` for administrator recovery expectations.
+latest invitation status exposes `activation_delivery_id` and recorded `origin` for administrator inspection;
+both are advisory, not recovery or dispatch authority.
 Immediate direct dispatch and event-triggered dispatch use that same worker. Both origins are delivered
 outside transactions; provider success still does not activate the pending User.
 
@@ -120,8 +460,10 @@ mandatory creation-time Role fencing, as described in the [registration guide](u
 fact is routed by `InvitationDeliverySubscriber` using fixed `registration` source provenance, not an authenticated actor.
 The worker uses stored origin and the normal activation purpose. Registration/default Roles/grant/delivery/audit commit
 before any invocation. Pending User and Roles survive publication/provider faults; delivery does not activate the User.
-For administrator correction or expired-same-email fresh activation, register `RecoverPendingRegistrationHandler`
-and its exact-target `RegistrationRecoveryAuthorization` port. Its `PendingRegistrationRecovered` fact is also routed
+For administrator correction or expired-same-email fresh activation, register `RecoverPendingRegistrationHandler`.
+Consumer entries authenticate the caller and check operation permission and exact target before dispatch, for both
+registration recovery and private invitation correction. The handlers do not repeat that permission check.
+The `PendingRegistrationRecovered` fact is also routed
 by `InvitationDeliverySubscriber` after commit, retaining stored registration origin. Follow the
 [recovery guide](registration-recovery.md) for mandatory User no-op/correction fencing, expected-generation validation,
 rollback and uncertain-commit resolution. The table below lists delivery-worker registrations.
@@ -139,7 +481,9 @@ rollback and uncertain-commit resolution. The table below lists delivery-worker 
 | `FindCredentialDeliveryStatus` | `FindCredentialDeliveryStatusHandler` |
 
 Optional invitation/password-reset/email-change subscribers provide immediate post-commit dispatch, not guaranteed
-recovery. Schedule `FindDueCredentialDeliveries` with current time and a positive bound. Dispatch the returned purpose,
+recovery. Their complete [Event composition contract](delivery-event-contracts.md) records all eight static mappings,
+accepted local payload annotations, optional restoration, metadata separation and actual dispatcher failure semantics.
+Schedule `FindDueCredentialDeliveries` with current time and a positive bound. Dispatch the returned purpose,
 User ID and delivery ID through the matching direct command using the consumer's trusted audit identity. Never derive
 credentials or destinations from scheduler data. Authoritative latest generations only are returned, ordered by
 eligibility time then delivery ID: pending/due retries at due time and abandoned claims at lease expiry.
@@ -183,7 +527,7 @@ provider composition plus required persisted state.
 Inside the shared transaction, the handler reads the latest grant, then takes one fresh clock sample before mutation,
 complete-state CAS and audit. Only still-issued authority with `now < expiresAt` and material-bearing `RETRY_PENDING`
 delivery may retry. Exact expiry, including fractional/timezone-equivalent equality, rejects. Missing, consumed,
-revoked or ineligible delivery also rejects with public `ActivationDeliveryNotRetryableException` and constant text
+revoked or ineligible delivery also rejects with Common Application `StateConflict` and constant text
 `The activation delivery work is no longer retryable.` A lost CAS retains the same class and constant concurrent-change
 message. Map the exception class, not parsed text. Current `CommandFailedEvent` evidence retains the safe command
 with constant `Invitation delivery retry failed.` text; notification failure cannot mask the original throwable.

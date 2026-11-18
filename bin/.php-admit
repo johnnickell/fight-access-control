@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+DOCKER_BIN=docker
+PHP_IMAGE="$(./bin/runtime image-name php)"
+source ./bin/.php-runtime
+admit_php_runtime

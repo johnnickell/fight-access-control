@@ -30,6 +30,10 @@ final readonly class PasswordResetRevocationService
     public function revokeFor(UserId $userId, DateTimeImmutable $at): void
     {
         $grant = $this->passwordResetGrantRepository->getLatestByUserId($userId);
+        if ($grant instanceof PasswordResetGrant && !$grant->getUserId()->equals($userId)) {
+            throw new LogicException("The credential repository returned another User's generation.");
+        }
+
         if (!$grant instanceof PasswordResetGrant || !$grant->isIssued()) {
             return;
         }

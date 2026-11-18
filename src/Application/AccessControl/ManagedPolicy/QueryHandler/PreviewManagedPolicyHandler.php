@@ -9,6 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\ManagedPolicyPlan;
 use Fight\AccessControl\Domain\AccessControl\ManagedPolicy\Query\PreviewManagedPolicy;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
+use UnexpectedValueException;
 
 /**
  * Class PreviewManagedPolicyHandler
@@ -42,6 +43,9 @@ final readonly class PreviewManagedPolicyHandler implements QueryHandler
     {
         /** @var PreviewManagedPolicy $query */
         $query = $queryMessage->payload();
+        if (!is_a($query, self::queryRegistration())) {
+            throw new UnexpectedValueException('Unexpected managed-policy preview query.');
+        }
 
         return $this->managedPolicyPlanner->plan($query->getPolicy());
     }

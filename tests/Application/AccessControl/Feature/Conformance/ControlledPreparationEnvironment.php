@@ -7,8 +7,10 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Feature\Conformance
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\Feature\Attribute\FeatureFlag;
 use Fight\AccessControl\Application\AccessControl\Feature\CommandHandler\ProvisionFeaturesHandler;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceDiscovery;
+use Fight\AccessControl\Application\AccessControl\Feature\Discovery\FeatureReferenceScope;
 use Fight\AccessControl\Application\AccessControl\Feature\QueryHandler\ValidateFeaturePreparationHandler;
-use Fight\AccessControl\Application\AccessControl\Feature\Service\FeatureReferenceDiscovery;
+use Fight\AccessControl\Domain\AccessControl\Audit\SystemId;
 use Fight\AccessControl\Domain\AccessControl\Feature\Command\ProvisionFeatures;
 use Fight\AccessControl\Domain\AccessControl\Feature\Event\FeatureCreated;
 use Fight\AccessControl\Domain\AccessControl\Feature\Feature;
@@ -24,9 +26,10 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\Feature\Discovery\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Feature\Repository\InMemoryFeatureRepository;
-use Fight\Test\AccessControl\Application\AccessControl\Feature\Service\FixtureFeatureDiscovery;
 use Fight\Test\AccessControl\Application\AccessControl\Permission\Repository\InMemoryPermissionRepository;
+use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use RuntimeException;
 
@@ -37,22 +40,22 @@ final class ControlledPreparationEnvironment implements FeaturePreparationEnviro
 {
     private readonly InMemoryUnitOfWork $unitOfWork;
 
-    private readonly InMemoryFeatureRepository $features;
+    private readonly InMemoryFeatureRepository $featureRepository;
 
-    private readonly InMemoryPermissionRepository $permissions;
+    private readonly InMemoryPermissionRepository $permissionRepository;
 
     private FeatureReferenceDiscovery $discovery;
 
-    private InMemoryEventDispatcher $events;
+    private InMemoryEventDispatcher $eventDispatcher;
 
     public function __construct()
     {
         $this->unitOfWork = new InMemoryUnitOfWork();
-        $this->features = new InMemoryFeatureRepository($this->unitOfWork);
-        $this->permissions = new InMemoryPermissionRepository($this->unitOfWork);
-        $this->events = new InMemoryEventDispatcher();
+        $this->featureRepository = new InMemoryFeatureRepository($this->unitOfWork);
+        $this->permissionRepository = new InMemoryPermissionRepository($this->unitOfWork);
+        $this->eventDispatcher = new InMemoryEventDispatcher();
         foreach (['DEFAULT', 'OTHER'] as $name) {
-            $this->permissions->add(Permission::define(
+            $this->permissionRepository->add(Permission::define(
                 PermissionId::generate(),
                 PermissionName::fromString($name),
                 new DateTimeImmutable()
@@ -75,44 +78,54 @@ final class ControlledPreparationEnvironment implements FeaturePreparationEnviro
             };
         }
 
-        $this->discovery = new FixtureFeatureDiscovery($code, $registrations, static fn(): bool => $complete);
+        $this->discovery = new FixtureFeatureDiscovery(
+            FeatureReferenceScope::CANDIDATE,
+            $code,
+            $registrations,
+            static fn(): bool => $complete
+        );
     }
 
     public function provision(?string $default): void
     {
         new ProvisionFeaturesHandler(
             $this->discovery,
-            $this->features,
-            $this->permissions,
+            $this->featureRepository,
+            $this->permissionRepository,
+            new FixedClock('2026-01-01T00:00:00+00:00'),
             $this->unitOfWork,
-            $this->events
-        )->handle(CommandMessage::create(new ProvisionFeatures($default)));
+            $this->eventDispatcher
+        )->handle(CommandMessage::create(new ProvisionFeatures($default, SystemId::generate())));
     }
 
     public function validate(): FeaturePreparationResult
     {
-        return new ValidateFeaturePreparationHandler($this->discovery, $this->features, $this->permissions)
+        return new ValidateFeaturePreparationHandler(
+            $this->discovery,
+            $this->featureRepository,
+            $this->permissionRepository
+        )
             ->handle(QueryMessage::create(new ValidateFeaturePreparation()));
     }
 
     public function definition(string $name): ?Feature
     {
-        return $this->features->getByName(FeatureName::fromString($name));
+        return $this->featureRepository->getByName(FeatureName::fromString($name));
     }
 
     public function stored(string $name, FeatureStatus $status, string $permission): Feature
     {
-        $found = $this->permissions->getByName(PermissionName::fromString($permission));
+        $found = $this->permissionRepository->getByName(PermissionName::fromString($permission));
         $id = $found?->getId() ?? PermissionId::generate();
         $feature = Feature::reconstitute(FeatureId::generate(), FeatureName::fromString($name), $id, $status, 4);
-        $this->features->seed($feature);
+        $this->featureRepository->seed($feature);
 
         return $feature;
     }
 
     public function failNextInsertion(string $name): void
     {
-        $this->features->beforeAdd = static function (Feature $feature) use ($name): void {
+        $this->featureRepository->beforeAdd = static function (Feature $feature) use ($name): void {
             if ($feature->getName()->toString() === $name) {
                 throw new RuntimeException('Controlled insertion failure.');
             }
@@ -124,13 +137,13 @@ final class ControlledPreparationEnvironment implements FeaturePreparationEnviro
         $winner = Feature::reconstitute(
             FeatureId::generate(),
             FeatureName::fromString($name),
-            $this->permissions->getByName(PermissionName::fromString($permission))->getId(),
+            $this->permissionRepository->getByName(PermissionName::fromString($permission))->getId(),
             $status,
             5
         );
-        $this->features->beforeAdd = function (Feature $feature) use ($winner): void {
+        $this->featureRepository->beforeAdd = function (Feature $feature) use ($winner): void {
             if ($feature->getName()->equals($winner->getName())) {
-                $this->features->seed($winner);
+                $this->featureRepository->seed($winner);
             }
         };
 
@@ -139,13 +152,13 @@ final class ControlledPreparationEnvironment implements FeaturePreparationEnviro
 
     public function clearInsertionHook(): void
     {
-        $this->features->beforeAdd = null;
+        $this->featureRepository->beforeAdd = null;
     }
 
     public function failNextCreationPublication(): void
     {
         $failed = false;
-        $this->events = new InMemoryEventDispatcher(static function (Event $event) use (&$failed): void {
+        $this->eventDispatcher = new InMemoryEventDispatcher(static function (Event $event) use (&$failed): void {
             if (!$failed && $event instanceof FeatureCreated) {
                 $failed = true;
                 throw new RuntimeException('Controlled post-commit publication failure.');
@@ -155,6 +168,6 @@ final class ControlledPreparationEnvironment implements FeaturePreparationEnviro
 
     public function writes(): int
     {
-        return $this->features->writes;
+        return $this->featureRepository->writes;
     }
 }

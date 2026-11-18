@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryTimestamp;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Query\Query;
 
@@ -36,11 +37,17 @@ final readonly class FindDueCredentialDeliveries implements Query
             }
         }
 
-        return new static(new DateTimeImmutable((string) $data['at']), (int) $data['limit']);
+        if (!is_string($data['at']) || !is_int($data['limit'])) {
+            throw new DomainException('Invalid credential-delivery query data.');
+        }
+
+        return new static(CredentialDeliveryTimestamp::fromString($data['at'])->toDateTimeImmutable(), $data['limit']);
     }
 
     /**
-     * @inheritDoc
+     * Returns the canonical due-work query payload
+     *
+     * @phpstan-return array{at: string, limit: int}
      */
     public function toArray(): array
     {

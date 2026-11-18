@@ -71,6 +71,11 @@ final readonly class InMemoryRoleRepository implements RoleRepository
         });
     }
 
+    public function transactionIdentity(): ?InMemoryUnitOfWork
+    {
+        return $this->unitOfWork;
+    }
+
     public function getById(RoleId $id): ?Role
     {
         foreach ($this->state->roles as $role) {
@@ -205,6 +210,10 @@ final readonly class InMemoryRoleRepository implements RoleRepository
         foreach ($this->state->roles as $index => $role) {
             if (!$role->hasSameState($expected)) {
                 continue;
+            }
+
+            if ($expected->hasSameState($replacement)) {
+                return true;
             }
 
             $this->state->roles[$index] = $replacement;

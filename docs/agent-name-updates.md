@@ -12,8 +12,16 @@ The immutable command constructor is `UpdateAgent(AgentUpdateInitiator, AgentId,
 accepts a typed `UserId` or `AgentId`; its type is derived from that identifier, never a separately contradictory
 flag. Its canonical representation is `{type: "user"|"agent", id: UUID}`. The command's required canonical keys
 are `initiator`, `agent_id`, and `name`. `fromArray()` rejects missing required data and unknown initiator types.
-The input name remains raw in the command; the handler normalizes it with `AgentName::fromString()` (PHP `trim`,
-nonempty, at most 120 characters after trimming). Names are neither unique nor revision-checked.
+The input name remains raw in the command; the handler normalizes it with `AgentName::fromString()`, the same
+single owner used by provisioning. It trims the [fixed Unicode White_Space edge set plus NUL](agent-canonical-upgrades.md#supported-representation),
+requires nonempty UTF-8 and at most 120 code points after trimming, preserves case/internal whitespace and performs
+no NFC conversion. U+200B/U+FEFF are not trimmed. Names are neither unique nor revision-checked.
+
+**Intentional breaking pre-v1 rename change (TASK-00113):** rename previously used PHP `trim`. For example,
+`"\u{00A0}Worker\u{3000}"` now renames to `Worker`, and an input containing only those spaces is invalid. This is
+not behavior-preserving cleanup. Provisioning's current marker **2** and exact canonical request bytes are unchanged;
+retained operations keep their original requests and issuance even after rename. No alias, old-name mode or
+consumer migration is provided.
 
 **Provenance is not authorization.** Protect every dispatch entry point: HTTP, CLI, workers, direct bus calls and
 any direct repository access. Derive the initiator from trusted authenticated context, then apply consumer caller,
@@ -22,12 +30,13 @@ target and scope policy. Supplying a User or Agent ID does not prove authenticat
 authenticated principal, with distinct read/update Permissions through the reusable MCP availability boundary.
 
 Register `UpdateAgentHandler::commandRegistration()` with a **synchronous** Common CommandBus. Inject the Agent
-repository, Application Timing `Clock`, Common `TransactionalUnitOfWork` and `EventDispatcher`. The handler and bus
+repository, Application Timing `Clock`, Common `TransactionalUnitOfWork` and `EventDispatcher`, with an optional
+last nullable `AuditEvidenceRepository` as described below. The handler and bus
 return void. After successful dispatch, a consumer may acknowledge the target and validated command input:
 
 ```php
 $name = AgentName::fromString($command->getName());
-$bus->execute($command); // SynchronousCommandBus: returns only after the handler completes
+$synchronousCommandBus->execute($command); // Returns only after the handler completes
 $acknowledgement = ['agent_id' => $command->getAgentId()->toString(), 'name' => $name->toString()];
 ```
 
@@ -58,8 +67,11 @@ This is a mandatory name-intent capability, not a generic whole-Agent update. In
 2. Hold the current Agent/credential fence shared with lifecycle and Permission writers. Validate exactly one current
    persisted operation correlation; missing, ambiguous or inconsistent correlation fails closed. Do not load keys,
    invoke a sink, create issuance, retire a credential or apply new-operation capacity limits.
-3. Load authoritative current Agent state **under that fence**. Missing/inactive targets throw `AgentUpdateException`;
-   missing correlation or unsupported participation throws sanitized `AgentOperationRejectedException`. After current
+3. Load the exact requested Agent state **under that fence**; unrelated identities are internal faults.
+   Missing/inactive targets throw `AgentUnavailableException`; backdated changes throw `AgentNameUpdateConflictException`.
+   These Domain subtypes are translated by Application to deliberate absence/state conflict respectively; see
+   [administration contracts](agent-administration-contracts.md). Missing correlation or unsupported participation
+   throws sanitized `AgentOperationRejectedException`. After current
    state/correlation validation, invoke `$now()` exactly once and apply `Agent::rename($name, $now())` with that sample.
    The callback supplies only trusted current time; the handler passes `$clock->now(...)`, not a captured timestamp.
    Never sample before waiting for writer admission, retain the callback or invoke it outside this transaction.
@@ -100,6 +112,41 @@ warning exception for provision/rotation does **not** apply to rename. Uncertain
 reconcile from current authoritative state under current authorization, without claiming which concurrent request
 won from a missing event.
 
+## Optional atomic name-change audit (Unreleased)
+
+TASK-00156 adds a final `?AuditEvidenceRepository $auditEvidenceRepository = null` constructor argument.
+Omitting it or passing null intentionally disables durable audit; the required User/Agent initiator is unchanged.
+To enable it, supply an adapter sharing the Agent repository's actual connection and enclosing transaction:
+
+```php
+$handler = new UpdateAgentHandler(
+    agentRepository: $agentRepository,
+    clock: $clock,
+    unitOfWork: $unitOfWork,
+    eventDispatcher: $eventDispatcher,
+    auditEvidenceRepository: $auditEvidenceRepository,
+);
+```
+
+After `rename()` returns a real persisted change, the handler explicitly adds `agent.name_changed` evidence before
+commit. It uses `AgentUpdateInitiator::getId()` directly, a typed Agent subject, a fresh evidence ID, the incoming
+message ID and **the exact repository-returned changedAt**. `AuditAgentNameOutcome` admits only
+`{name_changed: true}`: no raw old/new name, message payload, credential/issuance snapshot, synthetic name revision
+or unrelated assignment revision. Names have no field-specific safety admission and are deliberately excluded.
+No extra read or clock sample is needed. Attribution does not authenticate the caller or widen admission.
+
+Normalized active/admitted no-op produces no evidence, timestamp change or success fact. Missing/revoked targets
+and invalid input retain their failures; disabled auditing changes none of the existing writer fences. Enabled
+storage failure aborts staged name and evidence together and preserves the primary throwable, even if failure
+notification also fails. Lost commit acknowledgement remains uncertain. Confirmed commit followed by publication
+failure leaves **both** name and evidence committed but still prevents success acknowledgement. Retrying an already
+satisfied name neither duplicates evidence nor recreates lost publication/backfills history.
+
+This adds a pre-v1 persisted action/facts contract: enabled consumer mappings must support it without silently
+discarding unsupported evidence. Qualify the actual shared connection, all-writer fences, storage and access/retention
+policy before opt-in. Evidence is not automatically public/log data. No schema migration, fallback actor, new
+permission or reliable event-delivery mechanism is supplied. See [typed evidence](audit-evidence.md).
+
 ## Evidence and consumer qualification
 
 - `AgentRenameTest`: name-only immutable transition, inactive/no-op/backdated behavior, typed identity equality,
@@ -111,6 +158,14 @@ won from a missing event.
   and publishes the exact persisted fractional timestamp. Revocation defeats real and no-op attempts. Stale whole-Agent
   writes reject after rename. Later no-ops leave the timestamp intact; direct writes reject a genuinely backdating clock.
   Direct modeled writes deny missing/ambiguous correlation, missing transaction and restoration admission before sampling.
+  Enabled/disabled User and Agent origins retain exact persisted fractional time/correlation and name-only authority.
+  Shared modeled audit state proves rollback on audit failure, both uncertain-commit outcomes, committed evidence after
+  publication faults and no duplicate evidence on satisfied retry. Competing writers preserve current authority;
+  evidence records only the resumed rename's actual time, never stale authority snapshots.
+- `AuditAgentNameOutcomeTest`: complete current evidence round trips, unique identities and bounded facts; rejects
+  payload/revision fields, unconfirmed changes, mismatched subjects/actions and System/Anonymous rename attribution.
+- `AgentProfileToolsTest`: real routed principal-only Tool rename/no-op preserves identical acknowledgements and one
+  typed Agent audit record; publication faults expose no success while name and evidence remain committed.
 - `AgentNameComponentsTest`: generated additive `Fight.AccessControl.UpdateAgent` and `AgentUpdateInitiator` schemas
   match actual serialized values and the owning principal-type enum, without a schema-only raw-name length limit.
 

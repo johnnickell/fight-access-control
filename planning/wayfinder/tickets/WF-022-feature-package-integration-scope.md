@@ -23,7 +23,7 @@ with actual application UI, adapters, and CMS migration planned separately?
 ## Required evidence
 
 - The inspected [project profile](../../agents/project-profile.md), [README](../../../README.md), and
-  [CONTEXT](../../../CONTEXT.md) restrict production code to Domain/Application. Consumers own persistence,
+  [historical CONTEXT](../../../CONTEXT.historical.md) restrict production code to Domain/Application. Consumers own persistence,
   transport, framework composition, UI, runtime, and entry-point authorization.
 - [Composer](../../../composer.json) autoloads only Domain/Application production namespaces and has no production
   framework dependency. [Deptrac](../../../deptrac.yaml) allows Application to depend on Domain, public Common

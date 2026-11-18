@@ -11,6 +11,8 @@ use Fight\Common\Domain\Messaging\Query\Query;
  * Class PreviewManagedPolicy
  *
  * Requests a deterministic dry-run of managed authorization definitions.
+ *
+ * @phpstan-import-type SerializedPolicy from ManagedPolicy
  */
 final readonly class PreviewManagedPolicy implements Query
 {
@@ -37,7 +39,11 @@ final readonly class PreviewManagedPolicy implements Query
         return $this->policy;
     }
 
-    /** @inheritDoc */
+    /**
+     * Returns the canonical query payload
+     *
+     * @phpstan-return SerializedPolicy
+     */
     public function toArray(): array
     {
         return $this->policy->toArray();

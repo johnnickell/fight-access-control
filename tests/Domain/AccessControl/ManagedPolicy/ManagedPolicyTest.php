@@ -53,7 +53,10 @@ final class ManagedPolicyTest extends TestCase
         self::assertSame($policy, $preview->getPolicy());
         self::assertSame($policy, $reconcile->getPolicy());
         self::assertSame($policy->toArray(), $preview->toArray());
-        self::assertSame($policy->toArray(), $reconcile->toArray());
+        self::assertSame(
+            [...$policy->toArray(), 'actor_kind' => null, 'actor_id' => null],
+            $reconcile->toArray()
+        );
         self::assertEquals($preview, PreviewManagedPolicy::fromArray($preview->toArray()));
         self::assertEquals($reconcile, ReconcileManagedPolicy::fromArray($reconcile->toArray()));
     }

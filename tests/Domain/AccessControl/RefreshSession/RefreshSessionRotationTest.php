@@ -6,6 +6,7 @@ namespace Fight\Test\AccessControl\Domain\AccessControl\RefreshSession;
 
 use DateInterval;
 use DateTimeImmutable;
+use ErrorException;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
@@ -91,6 +92,43 @@ final class RefreshSessionRotationTest extends TestCase
         self::assertSame($session->getCredentialDigest(), $revoked->getCredentialDigest());
     }
 
+    public function test_that_an_unrotated_session_has_no_conflict_eligible_credential_without_diagnostics(): void
+    {
+        $currentCredential = RefreshCredential::fromString(self::CURRENT_CREDENTIAL);
+        $unrelatedCredential = RefreshCredential::fromString(self::ROTATED_CREDENTIAL);
+        $createdAt = new DateTimeImmutable('2026-08-19T11:00:00+00:00');
+        $session = RefreshSession::start(
+            RefreshSessionId::generate(),
+            UserId::generate(),
+            $currentCredential,
+            $createdAt,
+            new DateTimeImmutable('2026-08-20T11:00:00+00:00'),
+            new DateTimeImmutable('2026-08-21T11:00:00+00:00'),
+            1,
+            false
+        );
+
+        set_error_handler(static function (int $severity, string $message, string $file, int $line): never {
+            throw new ErrorException($message, 0, $severity, $file, $line);
+        });
+        try {
+            foreach ([$currentCredential, $unrelatedCredential] as $credential) {
+                self::assertFalse($session->matchesMostRecentlyUsedCredentialWithin(
+                    $credential,
+                    $createdAt,
+                    new DateInterval('PT5S')
+                ));
+            }
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertTrue($session->matchesCredential($currentCredential));
+        self::assertFalse($session->matchesUsedCredential($currentCredential));
+        self::assertFalse($session->matchesUsedCredential($unrelatedCredential));
+        self::assertSame(0, $session->getRevision());
+    }
+
     public function test_that_rotation_retains_used_digests_but_only_the_latest_is_conflict_eligible(): void
     {
         $session = RefreshSession::start(
@@ -128,6 +166,26 @@ final class RefreshSessionRotationTest extends TestCase
         ));
         self::assertTrue($secondRotation->matchesMostRecentlyUsedCredentialWithin(
             $rotatedCredential,
+            new DateTimeImmutable('2026-08-19T12:00:01+00:00'),
+            new DateInterval('PT5S')
+        ));
+        self::assertFalse($secondRotation->matchesMostRecentlyUsedCredentialWithin(
+            $rotatedCredential,
+            new DateTimeImmutable('2026-08-19T11:59:59.999999+00:00'),
+            new DateInterval('PT5S')
+        ));
+        self::assertTrue($secondRotation->matchesMostRecentlyUsedCredentialWithin(
+            $rotatedCredential,
+            new DateTimeImmutable('2026-08-19T12:00:00+00:00'),
+            new DateInterval('PT5S')
+        ));
+        self::assertTrue($secondRotation->matchesMostRecentlyUsedCredentialWithin(
+            $rotatedCredential,
+            new DateTimeImmutable('2026-08-19T12:00:04.999999+00:00'),
+            new DateInterval('PT5S')
+        ));
+        self::assertFalse($secondRotation->matchesMostRecentlyUsedCredentialWithin(
+            RefreshCredential::fromString(self::SECOND_ROTATED_CREDENTIAL),
             new DateTimeImmutable('2026-08-19T12:00:01+00:00'),
             new DateInterval('PT5S')
         ));

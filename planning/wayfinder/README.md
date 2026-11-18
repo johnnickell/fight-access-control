@@ -4,9 +4,19 @@ Wayfinder maps chart an uncertain feature before it becomes an EPIC, TICKET, or 
 index of linked decision tickets, not a second source of decisions. Start with an active map's **Frontier**; when
 none is available, `/ask-matt` should offer `/wayfinder` to chart a new feature.
 
+The directly approved [EPIC-00015 refactoring plan](../epics/00015-EPIC.md) is fully decomposed through TASK-00114
+for its original scope. Its separately approved Agent-command follow-up is fully planned as
+[TICKET-00053](../tickets/00053-TICKET.md)/[TASK-00182](../tasks/00182-TASK.md): void Commands and outcome Queries,
+invocable sync or async without a transport assumption. Next: `/skill:next` for current Board selection;
+no new map or reopening of Closed maps is needed. It amends future ownership/placement and adds canonical adapter/
+Common prerequisites to unfinished EPIC-00014 MCP roots. Map handoffs below preserve their original decomposition
+checkpoints; current blockers and execution priority belong to the [Board](../tasks/BOARD.md) and
+[Roadmap enablers](../ROADMAP.md#first-priority--pre-v1-architecture-enablers), not historical source observations.
+
 | Map | Status | Frontier | Handoff |
 |---|---|---|---|
-| [Consolidated AccessControl correction batch](access-control-correction-batch-map.md) | Closed | — | WF-029–031 and all planning phases accepted; TICKET-00001 → [TASK-00077](../tasks/00077-TASK.md), [TASK-00078](../tasks/00078-TASK.md), [TASK-00079](../tasks/00079-TASK.md); TICKET-00024 → [TASK-00080](../tasks/00080-TASK.md); TASK-00077–00080 complete and integrated, including merged PR #132; no remaining batch planning/implementation handoff. See the [current Roadmap handoff](../ROADMAP.md#current-release-handoff--v080-preparation). |
+| [Permission integration for evolving Common MCP capabilities](mcp-capability-permission-integration-map.md) | Closed | — | All decisions and [EPIC-00014](../epics/00014-EPIC.md)'s eight-TICKET/23-TASK decomposition are accepted/written. The [Common v1.5.0 readiness amendment](../epics/00014-EPIC.md#common-v150-readiness-amendment) clears the former MCP supplier-information holds; unfinished local implementation dependencies remain. Current status and execution priority belong to the [Board](../tasks/BOARD.md). Minimum/ordinary-lane tests and independent feature acceptance remain implementation work; consumer policy is not missing operator input. Combined release/all five frameworks, opt-in runtime paths and unassigned version remain. Next: `/skill:next`, not automatic execution. |
+| [Consolidated AccessControl correction batch](access-control-correction-batch-map.md) | Closed | — | WF-029–031 and all planning phases accepted; TICKET-00001 → [TASK-00077](../tasks/00077-TASK.md), [TASK-00078](../tasks/00078-TASK.md), [TASK-00079](../tasks/00079-TASK.md); TICKET-00024 → [TASK-00080](../tasks/00080-TASK.md); TASK-00077–00080 complete and integrated, including merged PR #132; no remaining batch planning/implementation handoff. See the [current Roadmap handoff](../ROADMAP.md#current-release-handoff--v080-published). |
 | [Optional user self-registration for v1.0.0](self-registration-v1-map.md) | Closed | — | [EPIC-00013](../epics/00013-EPIC.md) → [TICKET-00021](../tickets/00021-TICKET.md), [TICKET-00022](../tickets/00022-TICKET.md), [TICKET-00023](../tickets/00023-TICKET.md); [TASK-00073](../tasks/00073-TASK.md) → [TASK-00074](../tasks/00074-TASK.md) → [TASK-00075](../tasks/00075-TASK.md); all planning phases and implementation complete; published in v0.7.0. Consumer enablement/qualification remains separate. |
 | [Human credential-delivery expiry cleanup](human-credential-delivery-expiry-map.md) | Closed | — | [EPIC-00012](../epics/00012-EPIC.md) → [TICKET-00020](../tickets/00020-TICKET.md) → [TASK-00072 — Discover and clean expired human credential work](../tasks/00072-TASK.md); decomposition and implementation complete; published in v0.5.0. Consumer qualification remains separate. |
 | [Permission-based feature flags](permission-based-feature-flags-map.md) | Closed | — | [EPIC-00010 — Permission-Based Feature Flags](../epics/00010-EPIC.md) |
