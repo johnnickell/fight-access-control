@@ -14,7 +14,10 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RecoverPen
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RegisterUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RestoreUserHandler;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitation;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
+use Fight\AccessControl\Domain\AccessControl\User\Event\PendingInvitationCorrected;
+use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
 use Fight\AccessControl\Domain\AccessControl\User\Query\UserView;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -24,9 +27,11 @@ use Fight\Common\Adapter\Http\Psr17\JSendResponseFactory;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Middleware\Psr15\SafeJSendErrorMiddleware;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Domain\AccessControl\User\UserFixture;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -179,7 +184,7 @@ final class UserLifecycleDispatchTest extends TestCase
     {
         $operation = match ($case) {
             'state' => 'disable',
-            'precondition' => 'recover',
+            'denial', 'precondition' => 'recover',
             'configuration' => 'register',
             default => 'enable'
         };
@@ -202,14 +207,7 @@ final class UserLifecycleDispatchTest extends TestCase
             $fixture->registration->unitOfWork->failNextCommit = true;
         } elseif ($case === 'unregistered') {
             $bus = new RoutingCommandBus(new InMemoryCommandRouter());
-        } elseif ($case === 'denial') {
-            $recovery = new RegistrationRecoveryFixture();
-            $router = new InMemoryCommandRouter();
-            $handler = $recovery->handler();
-            $router->registerHandler($handler::commandRegistration(), $handler);
-            $bus = new RoutingCommandBus($router);
-            $command = $recovery->command(actor: UserId::generate());
-        } else {
+        } elseif ($case === 'precondition') {
             self::assertInstanceOf(RecoverPendingRegistration::class, $command);
             $command = new RecoverPendingRegistration(
                 $command->getActorId(),
@@ -228,7 +226,17 @@ final class UserLifecycleDispatchTest extends TestCase
             new SafeHttpErrorPolicy(),
             $diagnostics
         );
-        $handler = new readonly class (static fn () => $bus->execute($command)) implements RequestHandlerInterface {
+        $execute = static function () use ($case, $bus, $command): void {
+            if ($case === 'denial') {
+                self::assertInstanceOf(RecoverPendingRegistration::class, $command);
+                self::dispatchFromEntry($bus, $command, UserId::generate(), $command->getUserId(), $command::class);
+
+                return;
+            }
+
+            $bus->execute($command);
+        };
+        $handler = new readonly class ($execute) implements RequestHandlerInterface {
             public function __construct(private Closure $execute)
             {
             }
@@ -245,6 +253,139 @@ final class UserLifecycleDispatchTest extends TestCase
         self::assertStringNotContainsString('trace', (string) $response->getBody());
         self::assertStringNotContainsString('current@example.test', (string) $response->getBody());
         self::assertStringNotContainsString('Role', (string) $response->getBody());
+    }
+
+    /** @return iterable<string, array{string, bool}> */
+    public static function pendingEntryCompositions(): iterable
+    {
+        foreach (['correct', 'recover'] as $operation) {
+            yield "$operation with audit" => [$operation, true];
+            yield "$operation without audit" => [$operation, false];
+        }
+    }
+
+    #[DataProvider('pendingEntryCompositions')]
+    public function test_admitted_pending_work_finishes_after_revocation_but_fresh_entry_is_denied(
+        string $operation,
+        bool $auditEnabled
+    ): void {
+        $permission = null;
+        $fixture = null;
+        $transaction = new readonly class (static function (callable $work) use (&$permission, &$fixture): mixed {
+            self::assertInstanceOf(LifecycleDispatchFixture::class, $fixture);
+
+            return $fixture->registration->unitOfWork->commitTransactional(
+                static function () use ($work, &$permission): mixed {
+                    $permission = null;
+
+                    return $work();
+                }
+            );
+        }) implements TransactionalUnitOfWork {
+            public function __construct(private Closure $transaction)
+            {
+            }
+
+            public function commitTransactional(callable $operation): mixed
+            {
+                return ($this->transaction)($operation);
+            }
+
+            public function isClosed(): bool
+            {
+                return false;
+            }
+        };
+        $fixture = new LifecycleDispatchFixture($operation, unitOfWork: $transaction, omitAudit: !$auditEnabled);
+        $command = $fixture->command;
+        self::assertTrue(
+            $command instanceof CorrectPendingInvitation || $command instanceof RecoverPendingRegistration
+        );
+        $actor = $command->getActorId();
+        $target = $command->getUserId();
+        $permission = $command::class;
+        $registration = $fixture->registration;
+        $userBefore = $registration->userRepository->getById($target);
+        $grantsBefore = $registration->activationGrantRepository->all();
+
+        foreach ([[null, $target], [UserId::generate(), $target], [$actor, UserId::generate()]] as [$caller, $scope]) {
+            try {
+                self::dispatchFromEntry($fixture->bus, $command, $caller, $scope, $permission);
+                self::fail('Unauthenticated, substituted or wrong-scope request was dispatched.');
+            } catch (PermissionDenied) {
+                self::assertSame(0, $registration->unitOfWork->transactions);
+                self::assertSame($userBefore, $registration->userRepository->getById($target));
+                self::assertSame($grantsBefore, $registration->activationGrantRepository->all());
+                self::assertSame([], $fixture->audit->all());
+                self::assertSame([], $registration->eventDispatcher->events());
+            }
+        }
+
+        self::dispatchFromEntry($fixture->bus, $command, $actor, $target, $permission);
+        self::assertNull($permission);
+        self::assertTrue($registration->unitOfWork->transactionCompleted);
+        $user = $registration->userRepository->getById($target);
+        self::assertNotNull($user);
+        self::assertSame('next@example.test', $user->getEmail()->canonical());
+        self::assertSame($userBefore?->getRoleIds(), $user->getRoleIds());
+        self::assertSame($userBefore?->getState(), $user->getState());
+        $grants = $registration->activationGrantRepository->all();
+        self::assertCount(2, $grants);
+        self::assertTrue($grants[0]->isRevoked());
+        self::assertNull($grants[0]->getDelivery()->getEncryptedMaterial());
+        self::assertTrue($grants[1]->isIssued());
+        self::assertSame($grants[0]->getOrigin(), $grants[1]->getOrigin());
+        self::assertSame('next@example.test', $grants[1]->getDelivery()->getEmail()->canonical());
+        $audit = $fixture->audit->all();
+        self::assertCount($auditEnabled ? 1 : 0, $audit);
+        if ($auditEnabled) {
+            self::assertSame($actor, $audit[0]->actorId());
+            self::assertSame($target, $audit[0]->getSubject()->getId());
+        }
+
+        $events = $registration->eventDispatcher->events();
+        self::assertCount(1, $events);
+        self::assertInstanceOf(
+            $operation === 'correct' ? PendingInvitationCorrected::class : PendingRegistrationRecovered::class,
+            $events[0]
+        );
+        $email = EmailAddress::fromString('fresh@example.test');
+        if ($command instanceof CorrectPendingInvitation) {
+            $fresh = new CorrectPendingInvitation($actor, $target, $email);
+        } else {
+            $fresh = new RecoverPendingRegistration($actor, $target, $grants[1]->getDelivery()->getId(), $email);
+        }
+
+        try {
+            self::dispatchFromEntry($fixture->bus, $fresh, $actor, $target, $permission);
+            self::fail('A fresh request used revoked permission.');
+        } catch (PermissionDenied) {
+            self::assertSame(1, $registration->unitOfWork->transactions);
+            self::assertSame($user, $registration->userRepository->getById($target));
+            self::assertSame($grants, $registration->activationGrantRepository->all());
+            self::assertSame($audit, $fixture->audit->all());
+            self::assertSame($events, $registration->eventDispatcher->events());
+        }
+    }
+
+    /** Bounded consumer model; caller and policy facts come from outside the command. */
+    private static function dispatchFromEntry(
+        RoutingCommandBus $bus,
+        CorrectPendingInvitation|RecoverPendingRegistration $command,
+        ?UserId $authenticatedCaller,
+        UserId $allowedTarget,
+        ?string $allowedOperation
+    ): void {
+        if (
+            $authenticatedCaller === null
+            || !$authenticatedCaller->equals($command->getActorId())
+            || $allowedOperation !== $command::class
+            || !$allowedTarget->equals($command->getUserId())
+        ) {
+            throw new PermissionDenied('Pending account administration is not authorized.');
+        }
+
+        $bus->execute($command);
     }
 
     #[DataProvider('operations')]

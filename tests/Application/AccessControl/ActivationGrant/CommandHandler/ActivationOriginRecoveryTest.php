@@ -381,7 +381,6 @@ final class ActivationOriginRecoveryTest extends TestCase
             $handler = new CorrectPendingInvitationHandler(
                 $fixture->userRepository,
                 $fixture->activationGrantRepository,
-                new ActivationService\FixedInvitationAdministrationAuthorization(true),
                 $fixture->unitOfWork,
                 new ActivationService\FixedCredentialGenerator('corrected-fixture'),
                 new ActivationService\PrefixInvitationDeliveryCipher(),

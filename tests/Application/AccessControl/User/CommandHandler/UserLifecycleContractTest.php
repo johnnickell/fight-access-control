@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use DateTimeImmutable;
-use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\CorrectPendingInvitationHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DeleteUserHandler;
@@ -13,7 +12,6 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\DisableUse
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\EnableUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RecoverPendingRegistrationHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RestoreUserHandler;
-use Fight\AccessControl\Application\AccessControl\User\Service\RegistrationRecoveryAuthorization;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
@@ -205,7 +203,6 @@ final class UserLifecycleContractTest extends TestCase
             'correct' => new CorrectPendingInvitationHandler(
                 $userRepository,
                 $grantRepository,
-                $this->createStub(InvitationAdministrationAuthorization::class),
                 $unitOfWork,
                 $generator,
                 $cipher,
@@ -216,7 +213,6 @@ final class UserLifecycleContractTest extends TestCase
             default => new RecoverPendingRegistrationHandler(
                 $userRepository,
                 $grantRepository,
-                $this->createStub(RegistrationRecoveryAuthorization::class),
                 $unitOfWork,
                 $generator,
                 $cipher,

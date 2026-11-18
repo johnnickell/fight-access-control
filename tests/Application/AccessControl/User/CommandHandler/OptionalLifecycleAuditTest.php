@@ -28,7 +28,6 @@ use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
-use Fight\Common\Application\Error\Exception\PermissionDenied;
 use Fight\Common\Application\Error\Exception\PreconditionFailed;
 use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -210,25 +209,6 @@ final class OptionalLifecycleAuditTest extends TestCase
                     AuditGrantState::fromGrant($fixture->registration->activationGrantRepository->all()[1]),
                     $facts->getGrantAfter()
                 );
-            }
-        }
-    }
-
-    public function test_disabling_audit_does_not_bypass_pending_target_authorization(): void
-    {
-        foreach (['correct', 'recover'] as $operation) {
-            foreach ([false, true] as $auditEnabled) {
-                $fixture = new LifecycleDispatchFixture($operation, auditEnabled: $auditEnabled, authorized: false);
-                $before = $fixture->registration->userRepository->all();
-                $grantsBefore = $fixture->registration->activationGrantRepository->all();
-                try {
-                    $fixture->bus->execute($fixture->command);
-                    self::fail('Audit composition bypassed target authorization.');
-                } catch (PermissionDenied) {
-                    self::assertSame($before, $fixture->registration->userRepository->all());
-                    self::assertSame($grantsBefore, $fixture->registration->activationGrantRepository->all());
-                    self::assertSame([], $fixture->audit->all());
-                }
             }
         }
     }

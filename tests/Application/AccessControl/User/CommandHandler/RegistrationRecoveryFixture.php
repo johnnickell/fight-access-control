@@ -12,14 +12,12 @@ use Fight\AccessControl\Application\AccessControl\User\Authentication\TokenIssue
 use Fight\AccessControl\Application\AccessControl\User\Authentication\UserAuthentication;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RecoverPendingRegistrationHandler;
 use Fight\AccessControl\Application\AccessControl\User\Security\AuthenticationTokenPolicy;
-use Fight\AccessControl\Application\AccessControl\User\Service\RegistrationRecoveryAuthorization;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -97,13 +95,11 @@ final class RegistrationRecoveryFixture
     public function handler(
         string $at = '2030-01-02T00:00:00Z',
         ?InMemoryEventDispatcher $eventDispatcher = null,
-        ?TransactionalUnitOfWork $unitOfWork = null,
-        ?RegistrationRecoveryAuthorization $authorization = null
+        ?TransactionalUnitOfWork $unitOfWork = null
     ): RecoverPendingRegistrationHandler {
         return new RecoverPendingRegistrationHandler(
             $this->userRepository,
             $this->activationGrantRepository,
-            $authorization ?? $this->authorization(),
             $unitOfWork ?? $this->unitOfWork,
             new FixedCredentialGenerator('recovered-registration-credential'),
             new PrefixInvitationDeliveryCipher(),
@@ -111,29 +107,6 @@ final class RegistrationRecoveryFixture
             $eventDispatcher ?? $this->eventDispatcher,
             $this->auditEvidenceRepository
         );
-    }
-
-    public function authorization(): RegistrationRecoveryAuthorization
-    {
-        return new readonly class ($this) implements RegistrationRecoveryAuthorization {
-            public function __construct(private RegistrationRecoveryFixture $fixture)
-            {
-            }
-
-            public function assertCanRecoverRegistration(UserId $actorId, UserId $userId): void
-            {
-                if (!$this->fixture->unitOfWork->transactionActive) {
-                    throw new LogicException('Authorization must be transactional.');
-                }
-
-                if (
-                    !$actorId->equals($this->fixture->actorId)
-                    || !$userId->equals($this->fixture->initialUser->getId())
-                ) {
-                    throw new RegistrationRecoveryAuthorizationException('Registration recovery is not authorized.');
-                }
-            }
-        };
     }
 
     public function connection(

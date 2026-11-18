@@ -7,7 +7,6 @@ namespace Fight\Test\AccessControl\Application\AccessControl\Event;
 use DateTimeImmutable;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\CommandHandler as Invitation;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\ActivationCredentialGenerator;
-use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Agent\CommandHandler as Agent;
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryProvider;
@@ -31,7 +30,6 @@ use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\Session
 use Fight\AccessControl\Application\AccessControl\Role\CommandHandler as Role;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler as User;
-use Fight\AccessControl\Application\AccessControl\User\Service\RegistrationRecoveryAuthorization;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\Agent\AgentRepository;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidenceRepository;
@@ -467,7 +465,7 @@ final class HandlerFailureContractTest extends TestCase
             ),
             User\CorrectPendingInvitationHandler::class => new User\CorrectPendingInvitationHandler(
                 $userRepository,
-                $activationGrantRepository, $this->createStub(InvitationAdministrationAuthorization::class),
+                $activationGrantRepository,
                 $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher, $auditEvidenceRepository
             ),
             User\DeleteUserHandler::class => new User\DeleteUserHandler(
@@ -507,7 +505,7 @@ final class HandlerFailureContractTest extends TestCase
             ),
             User\RecoverPendingRegistrationHandler::class => new User\RecoverPendingRegistrationHandler(
                 $userRepository,
-                $activationGrantRepository, $this->createStub(RegistrationRecoveryAuthorization::class),
+                $activationGrantRepository,
                 $unitOfWork, $credentials, $cipher, $clock, $eventDispatcher, $auditEvidenceRepository
             ),
             User\RegisterUserHandler::class => new User\RegisterUserHandler(

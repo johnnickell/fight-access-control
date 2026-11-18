@@ -23,7 +23,6 @@ use Fight\AccessControl\Domain\AccessControl\User\PasswordHash;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
-use Fight\Common\Application\Error\Exception\PermissionDenied;
 use Fight\Common\Application\Error\Exception\PreconditionFailed;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Error\Exception\StateConflict;
@@ -177,25 +176,6 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             }
 
             self::assertStringNotContainsString('recovered-registration-credential', serialize($data));
-        }
-    }
-
-    public function test_exact_actor_and_target_are_authorized_inside_transaction_before_protected_reads(): void
-    {
-        $fixture = new RegistrationRecoveryFixture();
-        foreach (['actor', 'target'] as $wrong) {
-            $command = new RecoverPendingRegistration(
-                $wrong === 'actor' ? UserId::generate() : $fixture->actorId,
-                $wrong === 'target' ? UserId::generate() : $fixture->initialUser->getId(),
-                $fixture->initial->getDelivery()->getId(),
-                EmailAddress::fromString('corrected@example.test')
-            );
-            try {
-                $fixture->handler()->handle(CommandMessage::create($command));
-                self::fail('Untrusted actor/target was admitted.');
-            } catch (PermissionDenied) {
-                $this->assertUnchanged($fixture);
-            }
         }
     }
 
@@ -437,7 +417,6 @@ final class RecoverPendingRegistrationHandlerTest extends TestCase
             $handler = new RecoverPendingRegistrationHandler(
                 $fixture->userRepository,
                 $fixture->activationGrantRepository,
-                $fixture->authorization(),
                 $fixture->unitOfWork,
                 $generator,
                 $cipher,

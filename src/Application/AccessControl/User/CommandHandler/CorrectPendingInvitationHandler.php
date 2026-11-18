@@ -6,13 +6,11 @@ namespace Fight\AccessControl\Application\AccessControl\User\CommandHandler;
 
 use DateInterval;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\ActivationCredentialGenerator;
-use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
-use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Exception\InvitationAdministrationAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditAction;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditCorrelation;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
@@ -25,7 +23,6 @@ use Fight\AccessControl\Domain\AccessControl\User\Command\CorrectPendingInvitati
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingInvitationCorrected;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\PendingInvitationCorrectionException;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
-use Fight\Common\Application\Error\Exception\PermissionDenied;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
@@ -51,7 +48,6 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
     public function __construct(
         private UserRepository $userRepository,
         private ActivationGrantRepository $activationGrantRepository,
-        private InvitationAdministrationAuthorization $invitationAdministrationAuthorization,
         private TransactionalUnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
@@ -83,20 +79,6 @@ final readonly class CorrectPendingInvitationHandler implements CommandHandler
                 $command,
                 $commandMessage
             ): PendingInvitationCorrected {
-                try {
-                    $this->invitationAdministrationAuthorization->assertCanCorrectInvitation(
-                        $command->getActorId(),
-                        $command->getUserId()
-                    );
-                } catch (
-                    InvitationAdministrationAuthorizationException $invitationAdministrationAuthorizationException
-                ) {
-                    throw new PermissionDenied(
-                        'Invitation correction is not authorized.',
-                        previous: $invitationAdministrationAuthorizationException
-                    );
-                }
-
                 $user = $this->userRepository->getById($command->getUserId());
                 if ($user === null) {
                     throw new ResourceNotFound('The pending invitation cannot be corrected.');

@@ -1,9 +1,13 @@
 # Operation outcomes
 
 The current package contract separates business persistence, configured atomic audit, notification and consumer presentation.
-Commands and synchronous authentication methods retain their established authorization and transaction boundaries.
-Queries remain read-only. This composition is published in [v0.8.0](release-0.8.0.md), not part of v0.7.0;
-the overview separates verified package publication from unexecuted consumer qualification.
+[v0.8.0](release-0.8.0.md) records the outcome composition published in that release, not the authorization
+change below. Its overview distinguishes package publication from consumer qualification.
+
+**Unreleased authorization change:** Consumers admit invitation correction and registration recovery at entry;
+their handlers enforce business state and transaction boundaries without checking permission again. See the
+[lifecycle contracts](user-lifecycle-contracts.md). Other commands and synchronous authentication methods retain
+their own authorization and transaction boundaries. Queries remain read-only.
 Unreleased [User/session type validation](user-session-type-contracts.md) preserves these outcomes and fences;
 shape validation is not authorization, diagnostic sanitization or consumer persistence qualification.
 
@@ -51,10 +55,14 @@ classification distinct from outer operation failure notification. No outbox or 
 
 ## Account lifecycle failures (Unreleased)
 
-The eight [User lifecycle handlers](user-lifecycle-contracts.md) now expose intentional Common Application
-absence, target denial, state conflict and explicit recovery-precondition outcomes. Wrong identities, broken
-configuration and unknown faults remain internal. Domain stays independent; no blanket transaction-wide exception
-translation, result DTO, new no-op event or changed uncertainty/publication policy is introduced.
+The eight [User lifecycle handlers](user-lifecycle-contracts.md) expose intentional Common Application outcomes
+for absence, state conflict and explicit recovery preconditions. For invitation correction and registration
+recovery, consumer entries own target denial: they check the actual caller's current operation permission and
+exact target and deny unauthorized requests before trusted dispatch. The handlers do not repeat that check.
+
+Wrong identities, broken configuration and unknown faults remain internal. Domain stays independent; no blanket
+transaction-wide exception translation, result DTO, new no-op event or changed uncertainty/publication policy
+is introduced.
 
 ## User authentication transitions (Unreleased)
 

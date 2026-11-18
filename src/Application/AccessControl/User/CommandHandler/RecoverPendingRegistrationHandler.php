@@ -8,7 +8,6 @@ use DateInterval;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\ActivationCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\ActivationGrant\Service\InvitationDeliveryCipher;
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
-use Fight\AccessControl\Application\AccessControl\User\Service\RegistrationRecoveryAuthorization;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
@@ -22,10 +21,8 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
 use Fight\AccessControl\Domain\AccessControl\User\Event\PendingRegistrationRecovered;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryException;
 use Fight\AccessControl\Domain\AccessControl\User\UserRepository;
-use Fight\Common\Application\Error\Exception\PermissionDenied;
 use Fight\Common\Application\Error\Exception\PreconditionFailed;
 use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Error\Exception\StateConflict;
@@ -48,7 +45,6 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
     public function __construct(
         private UserRepository $userRepository,
         private ActivationGrantRepository $activationGrantRepository,
-        private RegistrationRecoveryAuthorization $registrationRecoveryAuthorization,
         private TransactionalUnitOfWork $unitOfWork,
         private ActivationCredentialGenerator $activationCredentialGenerator,
         private InvitationDeliveryCipher $invitationDeliveryCipher,
@@ -80,18 +76,6 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
                 $command,
                 $commandMessage
             ): PendingRegistrationRecovered {
-                try {
-                    $this->registrationRecoveryAuthorization->assertCanRecoverRegistration(
-                        $command->getActorId(),
-                        $command->getUserId()
-                    );
-                } catch (RegistrationRecoveryAuthorizationException $registrationRecoveryAuthorizationException) {
-                    throw new PermissionDenied(
-                        'Registration recovery is not authorized.',
-                        previous: $registrationRecoveryAuthorizationException
-                    );
-                }
-
                 $user = $this->userRepository->getById($command->getUserId());
                 if ($user === null) {
                     throw new ResourceNotFound('The pending registration cannot be recovered.');
@@ -114,7 +98,7 @@ final readonly class RecoverPendingRegistrationHandler implements CommandHandler
                     throw new PreconditionFailed('The expected activation generation is no longer current.');
                 }
 
-                // A fresh admission sample after authoritative reads, not a completion deadline.
+                // Sample business eligibility after authoritative reads; this is not a completion deadline.
                 $issuedAt = $this->clock->now();
                 $replacement = clone $user;
                 try {

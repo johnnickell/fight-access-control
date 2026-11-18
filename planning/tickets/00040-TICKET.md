@@ -185,10 +185,17 @@ No source overlap alone establishes a dependency, and no blanket wait on Common/
 | 324 | [TASK-00145](../tasks/00145-TASK.md) | Correct authority and continuation contracts | done |
 ## Decisions and Progress
 
-All ten children are terminal following TASK-00136's independent Review ACCEPT and nonvisual QA PASS.
-Automatic parent completion closes this TICKET; EPIC-00016 remains open for its unfinished TICKETs. The owning
-TASKs retain bounded acceptance and warnings; their canonical Land handoffs own subsequent delivery/resource
-outcomes. This rollup does not claim whole-library, generic bus or actual consumer qualification.
+John approved reopening TASK-00137 for its existing request-time authorization amendment after the pre-v0.9.0
+contract audit. This TICKET and EPIC-00016 reopened only for that follow-up: remove redundant invitation/
+registration-recovery permission ports while preserving business consistency, enabled atomic audit and current
+failure/recovery behavior. The owning TASK records the independently accepted follow-up. All children are now
+terminal; no other child was reopened.
+
+The original ten-child completion remains historical: TASK-00136's independent Review ACCEPT and nonvisual QA PASS
+made all ten children terminal at that checkpoint and automatic parent completion closed this TICKET. The owning
+TASKs retain their bounded acceptance, warnings and canonical delivery/resource handoffs. Reopening does not
+invalidate those original subjects or claim acceptance of the new amendment, whole-library recertification,
+generic bus or actual consumer qualification.
 
 ### Historical sibling acceptance checkpoints
 

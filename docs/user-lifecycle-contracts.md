@@ -18,8 +18,8 @@ The preceding required arguments, in order, are:
 | --- | --- |
 | InvitePendingUser | userRepository, activationGrantRepository, unitOfWork, activationCredentialGenerator, invitationDeliveryCipher, clock, eventDispatcher |
 | RegisterUser | userRepository, roleRepository, activationGrantRepository, unitOfWork, activationCredentialGenerator, invitationDeliveryCipher, clock, eventDispatcher, defaultRoleNames |
-| CorrectPendingInvitation | userRepository, activationGrantRepository, invitationAdministrationAuthorization, unitOfWork, activationCredentialGenerator, invitationDeliveryCipher, clock, eventDispatcher |
-| RecoverPendingRegistration | userRepository, activationGrantRepository, registrationRecoveryAuthorization, unitOfWork, activationCredentialGenerator, invitationDeliveryCipher, clock, eventDispatcher |
+| CorrectPendingInvitation | userRepository, activationGrantRepository, unitOfWork, activationCredentialGenerator, invitationDeliveryCipher, clock, eventDispatcher |
+| RecoverPendingRegistration | userRepository, activationGrantRepository, unitOfWork, activationCredentialGenerator, invitationDeliveryCipher, clock, eventDispatcher |
 | EnableUser | userRepository, unitOfWork, eventDispatcher, clock |
 | DisableUser / DeleteUser | userRepository, sessionRevocationService, clock, unitOfWork, eventDispatcher, passwordResetGrantRepository |
 | RestoreUser | userRepository, activationGrantRepository, activationCredentialGenerator, invitationDeliveryCipher, clock, unitOfWork, eventDispatcher |
@@ -50,15 +50,15 @@ See the [typed contract](audit-evidence.md) and [complete outcome matrix](audit-
 | `CorrectPendingInvitation` | After target authorization, missing User is `ResourceNotFound`; missing/unusable/private-origin mismatch, same-address refusal and ineligible User are `StateConflict`. Final destination/grant CAS loss is `StateConflict`. |
 | `EnableUser`, `DisableUser`, `DeleteUser`, `RestoreUser` | Missing User is `ResourceNotFound`; the Domain's rejected lifecycle transition and final lifecycle CAS loss are `StateConflict`. Pending-restoration successor rejection is also `StateConflict`. |
 
-These classes are `Fight\Common\Application\Error\Exception` contracts. The two authorization ports retain their
-explicit Domain denial exceptions; the calling handler translates **only that port call's declared denial** to
-Application `PermissionDenied`. Unknown authentication-context, identity, configuration and provider faults must
-propagate, not be disguised as denial. Consumers still authorize every administrative entry point and independently
-apply public-registration admission. Actor IDs, invitation origin and expected generation values confer no permission.
-Target-scoped recovery/correction authorization remains valid through transaction completion.
+These classes are `Fight\Common\Application\Error\Exception` contracts. At each administrative entry, including
+workers and non-HTTP paths, the consumer authenticates the actual caller and checks the operation and exact target
+before trusted dispatch. Actor IDs, invitation origin and expected generation values confer no permission. Consumers
+also own public-registration admission. An admitted correction or recovery may finish after permission is removed;
+each fresh request checks current permission before dispatch. Neither handler repeats the permission check.
+Business-state and generation fences still apply through the package transaction.
 
-Domain exceptions stay independent of Application. Translation surrounds only the relevant aggregate transition,
-authorization call or repository's documented canonical-email uniqueness outcome. It never classifies an entire
+Domain exceptions stay independent of Application. Translation surrounds only the relevant aggregate transition
+or repository's documented canonical-email uniqueness outcome. It never classifies an entire
 transaction by exception class, diagnostic text, integer code or previous cause. For example, an unexpected
 `UserLifecycleException` thrown by a repository remains the exact internal fault; it is not a lifecycle refusal.
 `UserRepository::add()` / `addWithRoleAssignments()` declare `DuplicateEmailException` specifically for a claimed or
@@ -101,20 +101,21 @@ owners; account optionality does not implement them or claim consumer persistenc
 
 Update affected Application catches to the categories above; retain Domain construction/transition catches at their
 own boundaries. Update named constructor arguments on registration/invitation/recovery to
-`activationCredentialGenerator`, `invitationDeliveryCipher`, and recovery's `registrationRecoveryAuthorization`.
-Success wire shapes are unchanged. TASK-00123's current positional order is documented above. Apply the pre-v1 current-contract policy directly,
+`activationCredentialGenerator` and `invitationDeliveryCipher`. TASK-00137's follow-up removes the authorization
+argument from correction and recovery constructors (including named arguments); see the current order above.
+Success wire shapes are unchanged. Apply the pre-v1 current-contract policy directly,
 without aliases, nullable legacy modes, result DTOs or automatic stale-intent retries.
 
 Native `commitTransactional()` remains `mixed`; each handler annotates its known owned callback result locally
 with the actual Event or delivery-ID type. This is not an assertion over unrelated external data or proof of generic
-bus inference. The [static fixtures](type-contracts.md) assert all eight void method callbacks and both exact UserId
-ports, and reject incompatible identities/using void as a result. `UserLifecycleDispatchTest` exercises all eight
+bus inference. The [static fixtures](type-contracts.md) assert all eight void method callbacks and reject using
+void as a result. `UserLifecycleDispatchTest` models entry admission before protected dispatch and exercises all eight
 real registered paths, serialized envelopes, late audit rollback, both modeled commit-acknowledgement outcomes and
 post-commit double publication failure. Existing registration/recovery/lifecycle/race suites retain their detailed
 behavioral proof. `OptionalLifecycleAuditTest` additionally exercises explicit null/omitted composition, typed
-invitation origins, exact persisted User/grant/revision/message evidence, admission with audit disabled, rollback,
+invitation origins, exact persisted User/grant/revision/message evidence, rollback,
 primary audit fault identity, rejected repeats and pending restoration. Independent Review and nonvisual QA remain separate.
 
-Consumers must qualify actual authorization lifetime, storage identity mapping, shared connection/locks, uniqueness,
+Consumers must qualify actual request-time admission, storage identity mapping, shared connection/locks, uniqueness,
 all-writer CAS, audit atomicity, process restart/uncertainty, provider behavior and safe response/log boundaries.
 Package in-memory schedules and routing tests are not those consumer passes, a release or deployment authorization.

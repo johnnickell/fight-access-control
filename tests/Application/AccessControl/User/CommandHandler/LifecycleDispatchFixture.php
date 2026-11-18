@@ -14,7 +14,6 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\InvitePend
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RecoverPendingRegistrationHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RegisterUserHandler;
 use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RestoreUserHandler;
-use Fight\AccessControl\Application\AccessControl\User\Service\RegistrationRecoveryAuthorization;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationCredential;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
@@ -25,7 +24,6 @@ use Fight\AccessControl\Domain\AccessControl\User\Command\EnableUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\InvitePendingUser;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RecoverPendingRegistration;
 use Fight\AccessControl\Domain\AccessControl\User\Command\RestoreUser;
-use Fight\AccessControl\Domain\AccessControl\User\Exception\RegistrationRecoveryAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
@@ -34,7 +32,6 @@ use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
-use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service as ActivationService;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
@@ -62,8 +59,7 @@ final readonly class LifecycleDispatchFixture
         ?InMemoryEventDispatcher $eventDispatcher = null,
         ?TransactionalUnitOfWork $unitOfWork = null,
         bool $auditEnabled = true,
-        bool $omitAudit = false,
-        bool $authorized = true
+        bool $omitAudit = false
     ) {
         $fixture = new RegistrationFixture(eventDispatcher: $eventDispatcher);
         $this->registration = $fixture;
@@ -173,7 +169,6 @@ final readonly class LifecycleDispatchFixture
             'correct' => new CorrectPendingInvitationHandler(
                 $fixture->userRepository,
                 $fixture->activationGrantRepository,
-                new ActivationService\FixedInvitationAdministrationAuthorization($authorized),
                 $transaction,
                 $generator,
                 $cipher,
@@ -184,18 +179,6 @@ final readonly class LifecycleDispatchFixture
             default => new RecoverPendingRegistrationHandler(
                 $fixture->userRepository,
                 $fixture->activationGrantRepository,
-                new readonly class ($authorized) implements RegistrationRecoveryAuthorization {
-                    public function __construct(private bool $authorized)
-                    {
-                    }
-
-                    public function assertCanRecoverRegistration(UserId $actorId, UserId $userId): void
-                    {
-                        if (!$this->authorized) {
-                            throw new RegistrationRecoveryAuthorizationException('Recovery is not authorized.');
-                        }
-                    }
-                },
                 $transaction,
                 $generator,
                 $cipher,
