@@ -65,8 +65,9 @@ Within one transaction:
    a pristine registration-origin successor with new grant/delivery IDs, historically unused digest and seven-day
    expiry from admission. All grant writers share their per-User generation fence through completion, including
    claim/outcome, consumption, resend and recovery. Compare full origin/authority/delivery state, not ID/revision only.
-7. Record audit source as the admitted actor, action `user.pending_registration_recovered`, subject as the retained
-   User ID, with empty context. Commit User, predecessor, successor delivery and audit together, or roll back all.
+7. When audit is enabled, record the admitted actor as the source, `user.pending_registration_recovered` as the
+   action and the retained User ID as the subject, with empty context. Commit the audit record with the User,
+   predecessor and successor delivery changes. If the configured audit write fails, roll back all staged changes.
 
 Consumers implement this current Domain repository contract directly on the actual shared connection. There is no
 optional capability/default implementation, production Adapter, prior-data reader, migration or compatibility path;

@@ -55,10 +55,14 @@ classification distinct from outer operation failure notification. No outbox or 
 
 ## Account lifecycle failures (Unreleased)
 
-The eight [User lifecycle handlers](user-lifecycle-contracts.md) now expose intentional Common Application
-absence, target denial, state conflict and explicit recovery-precondition outcomes. Wrong identities, broken
-configuration and unknown faults remain internal. Domain stays independent; no blanket transaction-wide exception
-translation, result DTO, new no-op event or changed uncertainty/publication policy is introduced.
+The eight [User lifecycle handlers](user-lifecycle-contracts.md) expose intentional Common Application outcomes
+for absence, state conflict and explicit recovery preconditions. For invitation correction and registration
+recovery, consumer entries own target denial: they check the actual caller's current operation permission and
+exact target and deny unauthorized requests before trusted dispatch. The handlers do not repeat that check.
+
+Wrong identities, broken configuration and unknown faults remain internal. Domain stays independent; no blanket
+transaction-wide exception translation, result DTO, new no-op event or changed uncertainty/publication policy
+is introduced.
 
 ## User authentication transitions (Unreleased)
 
