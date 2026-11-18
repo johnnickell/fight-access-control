@@ -19,7 +19,11 @@ managed Super Admin Role can hold protected Permissions. Agents have direct `ADM
 The consumer builder protects every custom-Role lifecycle, User Role assignment and Agent Permission command entry
 point, including CLI, workers, direct bus and no-ops. Actor IDs are provenance, not authority. Last-admin safeguards,
 caller/target policy and recovery belong to that builder; the retired actor-only authorization ports are not supplied.
-Ownership-sensitive package authorization for sessions, email changes and invitation correction remains distinct.
+For invitation correction and registration recovery, every consumer entry, including CLI and workers, authenticates
+its actual caller and checks current operation permission and exact target before dispatch to the trusted bus.
+Actor IDs and audit provenance confer no authority. The handlers do not repeat the permission check; their
+business-state and writer fences remain. Separate ownership-sensitive package authorization for sessions and
+email changes is unchanged. See [User lifecycle contracts](user-lifecycle-contracts.md).
 A Super Admin caller cannot bypass the package's `ADMIN_SAFE` restriction for custom-Role grants or direct Agents.
 Custom Role rename/remove additionally require the revision of the displayed state; see
 [Role caller revisions](role-revisions.md). A fresh token bypasses neither these guards nor consumer authorization.

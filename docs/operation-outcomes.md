@@ -1,11 +1,13 @@
 # Operation outcomes
 
 The current package contract separates business persistence, configured atomic audit, notification and consumer presentation.
-Consumers admit invitation correction and registration recovery at entry; their handlers enforce business state
-and transaction boundaries without checking permission again. See the [lifecycle contracts](user-lifecycle-contracts.md).
-Other commands and synchronous authentication methods retain their own authorization and transaction boundaries.
-Queries remain read-only. This composition is published in [v0.8.0](release-0.8.0.md), not part of v0.7.0;
-the overview separates verified package publication from unexecuted consumer qualification.
+[v0.8.0](release-0.8.0.md) records the outcome composition published in that release, not the authorization
+change below. Its overview distinguishes package publication from consumer qualification.
+
+**Unreleased authorization change:** Consumers admit invitation correction and registration recovery at entry;
+their handlers enforce business state and transaction boundaries without checking permission again. See the
+[lifecycle contracts](user-lifecycle-contracts.md). Other commands and synchronous authentication methods retain
+their own authorization and transaction boundaries. Queries remain read-only.
 Unreleased [User/session type validation](user-session-type-contracts.md) preserves these outcomes and fences;
 shape validation is not authorization, diagnostic sanitization or consumer persistence qualification.
 
