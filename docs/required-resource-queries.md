@@ -67,8 +67,8 @@ read-only behavior, absence, wrong identities, native return violations and oper
 separate missing/wrong Feature binding, invalid Agent snapshots and revoked/wrong-revoked profiles. Existing owning
 handler, registration/recovery, profile Tool and Permission-admission tests retain their business/security proof.
 
-The declared Common floor remains `^1.4.1`. Its released `v1.4.1` source includes the Application failure and safe
-PSR-15 APIs (introduced in v1.4.0). Work evidence records actual tagged identities and sufficient-minimum/ordinary
+The current Common floor is `^1.5.1`. The earlier required-resource qualification used the then-current floor
+`^1.4.1`; its released `v1.4.1` source includes the Application failure and safe PSR-15 APIs introduced in v1.4.0. Work evidence records actual tagged identities and sufficient-minimum/ordinary
 resolutions and executions; source inspection alone is not proof. No Common implementation or new supplier API is
 needed. The unchanged mixed bus API proves runtime routing, not exact static inference through the generic bus.
 

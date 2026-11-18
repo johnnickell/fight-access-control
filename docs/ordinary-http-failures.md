@@ -1,6 +1,6 @@
 # Ordinary HTTP failure contracts (Unreleased)
 
-Ordinary HTTP admission and error handling are **separately selected**. Use Common `^1.5.0` and its canonical
+Ordinary HTTP admission and error handling are **separately selected**. Use Common `^1.5.1` and its canonical
 safe policy/diagnostics/projector through the [PSR-15](http-permission-admission.md),
 [Symfony](symfony-permission-admission.md), [Laravel](laravel-permission-admission.md) or
 [CodeIgniter 4](codeigniter-permission-admission.md) composition. No error handler is automatically installed.
@@ -35,10 +35,12 @@ any logger/formatter receives private messages, causes, stack arguments or conte
 PSR-3 `exception` is not redaction. Failed reporting proves no delivery and is not retried. Package fixture sinks
 record only an allowlisted class name; that does not qualify an actual consumer sink.
 
-## Current native contracts
+## Current admission and historical safe-error qualification
 
-All seven current production boundaries remain explicit opt-ins. Constructor names and positional/named callers
-are unchanged. The Symfony event map now states its exact native event/method/priority tuple for static consumers.
+For current admission constructors, follow the linked framework guides above. This table records the earlier
+ordinary-HTTP qualification checkpoint; do not copy superseded adapter wiring from it. The current PSR-15 recipe
+binds `PermissionRequirements` and a trusted `Closure(ServerRequestInterface): SelectedAction`, not a nullable
+route declaration constructor.
 
 | Owner | Input/result and dynamic boundary | Disposition |
 | --- | --- | --- |
@@ -81,11 +83,12 @@ Current selected native lower bounds are Slim 4.15.3/PSR7 1.8.0; Yii Router 4.0.
 DI 1.4.1/Injector 1.2.2; Symfony Event Dispatcher 8.1.5 and HttpFoundation/HttpKernel/Routing/optional Security HTTP
 8.1.11; Laravel 13.40.0; CI4 4.7.6. Routing and optional Security HTTP floors are raised to 8.1.11 after advisory
 checks of the older lane. No security-advisory bypass or analyzer/test suppression is added. Older tag tables in
-the native guides retain historical qualification only. Current Common is tagged 1.4.2, not a development replacement.
+the native guides retain historical qualification only. Common v1.4.2 was a supplier checkpoint; the current
+AccessControl floor is `^1.5.1`.
 
 Update nullable-result callers and generic LookupException-to-404 catches directly to the actual current use-case
 contract. Keep unknown/internal faults as server failures; do not add a compatibility reader, fallback grant or
-another renderer. Select Common `^1.5.0`, supply real request-owned authentication, safe diagnostics, finite public
+another renderer. Select Common `^1.5.1`, supply real request-owned authentication, safe diagnostics, finite public
 projections and required scheme metadata, and qualify actual middleware/listener order and final responses.
 
 TASK-00168's explicit [CI4 coverage amendment](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment)

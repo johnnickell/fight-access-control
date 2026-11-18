@@ -568,7 +568,15 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.8.0 published
+## Current release handoff — v0.9.0 preparation
+
+John approved preparing v0.9.0 in the current checkout. The [release overview](../docs/release-0.9.0.md) and
+[Changelog](../CHANGELOG.md) describe the candidate scope and consumer changes. The Board has no active
+implementation tasks at preparation. Release review, QA, integration, exact-merge certification, signing and
+publication remain release stages, not consequences of planning completion. v0.8.0 was the latest published
+release at this checkpoint.
+
+## v0.8.0 published release closeout
 
 [v0.8.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.8.0) is published on 2026-10-21 from
 certified main merge `319738255e682d587642b67856039f882b9588d6` through
