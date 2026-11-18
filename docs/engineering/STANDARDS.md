@@ -8,12 +8,12 @@ The ten canonical standards below are copied into this checkout for self-contain
 
 | Standard | Source SHA-256 | Installed SHA-256 |
 | --- | --- | --- |
-| [Architecture](standards/Architecture.md) | `3937a128e280f93bb9eece8dea9f612f02a63fdd79bd0f7d63b41a167e190980` | `d672a38f76807d5d21ea452733ee5e165701748cc1e078d72c7120999206f07a` |
+| [Architecture](standards/Architecture.md) | `3937a128e280f93bb9eece8dea9f612f02a63fdd79bd0f7d63b41a167e190980` | `61a98fe4e0d76d8b11b6e7df8c12160719b5e866d5311a8f9ea69badf636547a` |
 | [Delivery](standards/Delivery.md) | `f846b7dbb8977d7ef195cdbd339ce91a1632691a7664455ebdd2067de4ad925e` | `fa91f6431f00c4d0e944a8ff8790f4152a56ebb4bbe4c55b98568fd04ef57ba6` |
 | [Frontend](standards/Frontend.md) | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
-| [Governance](standards/Governance.md) | `b15f5ccc7804f0c3a7745aa0d7ba9f200c24f7652e81883217ae80aa7e37b81d` | `b15f5ccc7804f0c3a7745aa0d7ba9f200c24f7652e81883217ae80aa7e37b81d` |
+| [Governance](standards/Governance.md) | `b15f5ccc7804f0c3a7745aa0d7ba9f200c24f7652e81883217ae80aa7e37b81d` | `d9843d7aaae83a74d04d1e7a4f0aa4cd17654431b6cebca119ca09f72236bdc6` |
 | [HTTP](standards/HTTP.md) | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
-| [Naming](standards/Naming.md) | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` | `208e06ec365a406b5b4a2255dc4ad89fc80ae6d8735fc95eac12c9374a0da4ca` |
+| [Naming](standards/Naming.md) | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` | `bf99eba3569eb7d0a3defc053bf209614fe41798715f29fbbbce262436f348dd` |
 | [PHP](standards/PHP.md) | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` | `8c948208cc882f1d14db436a954187fb63c58256dca6e31c68df56708d508a2b` |
 | [Planning](standards/Planning.md) | `616c8e3a793e200747a98b9b918ed921ac17708f4e08b0925a94bd04a79a1bd1` | `ec87830d1037e31aa2c4b3af537b1628e18ea1693da428c851ed2996a1c9777d` |
 | [Review](standards/Review.md) | `46b53d075a5cae328391eb57d645404c3fb55bc76aee461def94aa123f04ea35` | `d9b77bb05bc04176f323a6c86cd1af76eb4edf76ddec3cd1df01a5ba86e4bfd5` |
@@ -28,6 +28,23 @@ The baseline AGENTS links were rewritten from `Standards/<name>.md` to `docs/eng
 This adoption does not certify all existing code against the baseline. Its compatibility scan and deferred cleanup are preserved in the ignored adoption handoff. The package boundary, container runtime, exact-coverage gate, and release-certification procedure remain project-specific bindings.
 
 ## Project deviations
+
+### AccessControl domain glossary — TASK-00184
+
+- **Rule:** The single root [GLOSSARY.md](../../GLOSSARY.md) contains concise AccessControl domain definitions only,
+  with optional short navigation links. Do not put implementation, specifications, operating procedures, decisions,
+  progress or acceptance checkpoints there. Read applicable ADRs for decisions and relevant owning guides/profile
+  for aggregate responsibilities, state transitions, composition, security and consumer obligations.
+- **Scope:** This replaces only the local CONTEXT-as-orientation/vocabulary convention in AGENTS, Architecture,
+  Naming and Governance. All non-vocabulary requirements, inward dependencies, security/transaction/recovery rules,
+  independent acceptance, runtime admission and delivery authority remain in force.
+- **History:** [CONTEXT.historical.md](../../CONTEXT.historical.md) preserves the original checkpoints and vocabulary
+  at the TASK base, outside mandatory orientation. It remains at root to preserve its original relative links;
+  it is not a current-status owner or second orientation document. TASK-owned ignored Work evidence accounts for
+  each section and its current requirement owner. Existing ADR locations/identities and planning records remain.
+- **Approval/reference:** John explicitly selected a strict domain glossary and approved the bounded migration in
+  [TASK-00184](../../planning/tasks/00184-TASK.md). Only local adopted guidance changes; provider resources and source
+  baseline digests remain untouched. Installed Architecture, Naming and Governance digests identify the amended bytes.
 
 ### AccessControl run layout
 

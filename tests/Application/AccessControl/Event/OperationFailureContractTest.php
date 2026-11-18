@@ -122,77 +122,27 @@ final class OperationFailureContractTest extends TestCase
         $eventDispatcher = $this->events($attempts, $notificationFails);
         $unitOfWork = $this->createMock(TransactionalUnitOfWork::class);
         $unitOfWork->expects(self::once())->method('commitTransactional')->willThrowException($primary);
-        $refreshSessionRepository = $this->createStub(RefreshSessionRepository::class);
-        $tokenIssuer = new TokenIssuer(
-            $this->createStub(TokenEncoder::class),
-            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
-        );
-        $authentication = new UserAuthentication(
-            $this->createStub(UserRepository::class),
-            $this->createStub(ActivationGrantRepository::class),
-            $unitOfWork,
-            $this->createStub(Clock::class),
-            $this->createStub(LoginThrottle::class),
-            $this->createStub(RefreshCredentialGenerator::class),
-            $this->createStub(PasswordHasher::class),
-            $this->createStub(PasswordValidator::class),
-            $tokenIssuer,
-            PasswordHash::fromString(password_hash('synthetic-password', PASSWORD_DEFAULT)),
-            $eventDispatcher
-        );
-        $passwordManagement = new PasswordManagement(
-            $this->createStub(UserRepository::class),
-            $this->createStub(PasswordResetGrantRepository::class),
-            new SessionRevocationService($refreshSessionRepository),
-            $unitOfWork,
-            $this->createStub(Clock::class),
-            $this->createStub(PasswordHasher::class),
-            $this->createStub(PasswordValidator::class),
-            PasswordHash::fromString(password_hash('synthetic-password', PASSWORD_DEFAULT)),
-            $eventDispatcher,
-            $this->createStub(AuditEvidenceRepository::class)
-        );
-        $sessionLifecycle = new SessionLifecycle(
-            $this->createStub(UserRepository::class),
-            $refreshSessionRepository,
-            new SessionRevocationService($refreshSessionRepository),
-            $unitOfWork,
-            $this->createStub(Clock::class),
-            $this->createStub(RefreshCredentialGenerator::class),
-            $tokenIssuer,
-            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
-            $eventDispatcher
-        );
-        $emailChangeConfirmation = new EmailChangeConfirmation(
-            $this->createStub(UserRepository::class),
-            $this->createStub(EmailChangeGrantRepository::class),
-            $this->createStub(PasswordResetGrantRepository::class),
-            new SessionRevocationService($refreshSessionRepository),
-            $unitOfWork,
-            $this->createStub(Clock::class),
-            $eventDispatcher,
-            $this->createStub(AuditEvidenceRepository::class)
-        );
+        $authentication = $this->authenticationOwner($operation, $unitOfWork, $eventDispatcher);
         $userId = UserId::generate();
         $caught = null;
         try {
             match ($operation) {
                 'activate' => $authentication->activate($userId, 'synthetic-credential', 'synthetic-password'),
                 'login' => $authentication->login('person@example.test', 'synthetic-password'),
-                'refresh' => $sessionLifecycle->refresh('synthetic-credential'),
-                'logout' => $sessionLifecycle->logout('synthetic-credential'),
-                'resetPassword' => $passwordManagement->resetPassword(
+                'refresh' => $authentication->refresh('synthetic-credential'),
+                'logout' => $authentication->logout('synthetic-credential'),
+                'resetPassword' => $authentication->resetPassword(
                     $userId,
                     'synthetic-credential',
                     'synthetic-password',
                     AnonymousId::generate()
                 ),
-                'changePassword' => $passwordManagement->changePassword(
+                'changePassword' => $authentication->changePassword(
                     $userId,
                     'synthetic-current',
                     'synthetic-password'
                 ),
-                'confirmEmail' => $emailChangeConfirmation->confirmEmail(
+                'confirmEmail' => $authentication->confirmEmail(
                     $userId,
                     'synthetic-credential',
                     AnonymousId::generate()
@@ -225,6 +175,81 @@ final class OperationFailureContractTest extends TestCase
         foreach ($details as $detail) {
             self::assertStringNotContainsString($detail, serialize($data));
         }
+    }
+
+    private function authenticationOwner(
+        string $operation,
+        TransactionalUnitOfWork $unitOfWork,
+        InMemoryEventDispatcher $eventDispatcher
+    ): UserAuthentication|PasswordManagement|SessionLifecycle|EmailChangeConfirmation {
+        // Valid bcrypt fixture; these cases fail at transaction entry, before password verification.
+        $hash = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
+
+        return match ($operation) {
+            'activate', 'login' => new UserAuthentication(
+                $this->createStub(UserRepository::class),
+                $this->createStub(ActivationGrantRepository::class),
+                $unitOfWork,
+                $this->createStub(Clock::class),
+                $this->createStub(LoginThrottle::class),
+                $this->createStub(RefreshCredentialGenerator::class),
+                $this->createStub(PasswordHasher::class),
+                $this->createStub(PasswordValidator::class),
+                $this->tokenIssuer(),
+                PasswordHash::fromString($hash),
+                $eventDispatcher
+            ),
+            'resetPassword', 'changePassword' => new PasswordManagement(
+                $this->createStub(UserRepository::class),
+                $this->createStub(PasswordResetGrantRepository::class),
+                new SessionRevocationService($this->createStub(RefreshSessionRepository::class)),
+                $unitOfWork,
+                $this->createStub(Clock::class),
+                $this->createStub(PasswordHasher::class),
+                $this->createStub(PasswordValidator::class),
+                PasswordHash::fromString($hash),
+                $eventDispatcher,
+                $this->createStub(AuditEvidenceRepository::class)
+            ),
+            'refresh', 'logout' => $this->sessionLifecycle($unitOfWork, $eventDispatcher),
+            'confirmEmail' => new EmailChangeConfirmation(
+                $this->createStub(UserRepository::class),
+                $this->createStub(EmailChangeGrantRepository::class),
+                $this->createStub(PasswordResetGrantRepository::class),
+                new SessionRevocationService($this->createStub(RefreshSessionRepository::class)),
+                $unitOfWork,
+                $this->createStub(Clock::class),
+                $eventDispatcher,
+                $this->createStub(AuditEvidenceRepository::class)
+            )
+        };
+    }
+
+    private function sessionLifecycle(
+        TransactionalUnitOfWork $unitOfWork,
+        InMemoryEventDispatcher $eventDispatcher
+    ): SessionLifecycle {
+        $refreshSessionRepository = $this->createStub(RefreshSessionRepository::class);
+
+        return new SessionLifecycle(
+            $this->createStub(UserRepository::class),
+            $refreshSessionRepository,
+            new SessionRevocationService($refreshSessionRepository),
+            $unitOfWork,
+            $this->createStub(Clock::class),
+            $this->createStub(RefreshCredentialGenerator::class),
+            $this->tokenIssuer(),
+            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S')),
+            $eventDispatcher
+        );
+    }
+
+    private function tokenIssuer(): TokenIssuer
+    {
+        return new TokenIssuer(
+            $this->createStub(TokenEncoder::class),
+            AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
+        );
     }
 
     /** @param list<Event> $attempts */

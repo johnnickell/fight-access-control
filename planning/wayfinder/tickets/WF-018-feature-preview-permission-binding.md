@@ -40,7 +40,7 @@ hard-coding `TEST_UNRELEASED_FEATURES` or checking specific Roles?
   [AuthenticatedUserPrincipal](../../../src/Domain/AccessControl/Authorization/AuthenticatedUserPrincipal.php) and
   [AuthenticatedAgentPrincipal](../../../src/Domain/AccessControl/Agent/AuthenticatedAgentPrincipal.php) both expose
   Permission checks. These existing checks are a candidate integration point, not a finalized feature evaluator API.
-- The [project context](../../../CONTEXT.md) defines User Permissions through Roles and direct Agent Permissions.
+- The [historical project context](../../../CONTEXT.historical.md) defines User Permissions through Roles and direct Agent Permissions.
   [AgentPermissionAssignmentCoordinator](../../../src/Application/AccessControl/Agent/PermissionAssignment/AgentPermissionAssignmentCoordinator.php)
   rejects assignments outside `ADMIN_SAFE`. A Permission intended for both Users and Agents must respect that tier;
   `SUPER_ADMIN_ONLY` is human-only under the existing policy. `ADMIN_SAFE` does not mean freely grantable: consumers

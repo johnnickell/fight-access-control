@@ -7,9 +7,9 @@ provided under the repository's [MIT License](LICENSE).
 ## Before changing code
 
 Start with [AGENTS.md](AGENTS.md) and its routing entry; [CLAUDE.md](CLAUDE.md) forwards to the same authority.
-For execution, read the [project profile](planning/agents/project-profile.md), relevant [CONTEXT.md](CONTEXT.md)
-sections and selected accepted TASK under [planning/](planning/README.md), including actual blockers and required
-private inputs. A public summary is not a substitute for a required maintainer brief.
+For execution, read the [project profile](planning/agents/project-profile.md), [domain glossary](GLOSSARY.md),
+relevant composition guides and applicable [ADRs](planning/adr/README.md), and the selected accepted TASK under
+[planning/](planning/README.md), including actual blockers and required private inputs. A public summary is not a substitute for a required maintainer brief.
 
 With optional Fight Agent OS/Pi tooling, `/skill:next` recommends and stops; explicitly invoke
 `/skill:build TASK-NNNNN` for the selected approved TASK, substituting its actual ID. Build coordinates work,
@@ -35,18 +35,16 @@ Preserve unrelated changes and do not copy consumer implementations into this li
 
 ## Package PHP runtime
 
-`./bin/build` and the focused Docker wrappers (through `bin/.container-run`) always build with `--pull`,
-then inspect the actual selected image's PHP version before running Composer, the quality gate or your command.
-The supported build line is stable **PHP 8.5**, with a security floor of **8.5.12**. Later 8.5 patches are admitted;
-prereleases, malformed/missing results and other lines fail closed until their support/security floors are assessed.
-The floating `php:8.5-cli` base retrieves current patches; a Docker tag or Composer's simulated platform version
-is not runtime verification. This does not change consumer Composer requirements.
+[Local tooling](docs/engineering/LOCAL_TOOLING.md#two-caches-with-different-lifetimes) owns build preparation,
+cache admission and runtime details. A normal `./bin/build` validates planning freshly, then either reuses qualifying
+application evidence or prepares and executes the full gate. `./bin/build --force` requests fresh application execution.
+A cache hit skips preparation; report retained application evidence separately from fresh checks.
 
-Docker/registry access is required even with a cached image. Refresh or inspection failure exits nonzero without
-running package work; there is no silent offline fallback. Restore Docker/network/registry access or availability
-of a patched upstream image, then retry. The selected checkout owns its project-scoped PHP image;
-ambient legacy image/executable overrides do not select the package runtime. Release-only image overrides
-remain explicit inputs to release certification.
+On a cache miss, preparation refreshes the image, verifies the actual runtime before mounted package work and resolves
+dependencies. Focused Docker wrappers retain their runtime admission; they are not a cache or security-floor bypass.
+The supported CLI line is stable PHP 8.5, minimum 8.5.12. Refresh or admission failure stops execution without a silent
+offline fallback. Restore the failed prerequisite before retrying. Consumer Composer requirements and separately
+controlled release image inputs are unchanged.
 
 When changing these wrappers, qualify them directly with the native commands in
 [local tooling](docs/engineering/LOCAL_TOOLING.md): prepare the explicit isolated checkout, inspect the actual

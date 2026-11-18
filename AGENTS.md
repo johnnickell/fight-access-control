@@ -30,11 +30,11 @@ For Docker preparation/teardown, isolated worktrees, guarded source removal and 
 [local tooling](docs/engineering/LOCAL_TOOLING.md). Use normal `./bin/build` for fresh planning and qualified
 application reuse; use `--force` for deliberate fresh application execution.
 
-**Scope:** these are shared engineering conventions. Read the local [AccessControl project profile](planning/agents/project-profile.md), [CONTEXT.md](CONTEXT.md), and the selected work record alongside them. All required project guidance is available in this checkout; no private skill installation is required.
+**Scope:** these are shared engineering conventions. Read the local [AccessControl project profile](planning/agents/project-profile.md), [domain glossary](GLOSSARY.md), relevant composition guides and applicable [ADRs](planning/adr/README.md), and the selected work record alongside them. All required project guidance is available in this checkout; no private skill installation is required.
 Optional Fight Agent OS workflows use the [local workflow binding](planning/agents/project-profile.md#agent-os-workflow-binding),
 not copied skills or provider-application assumptions.
 
-**Orient:** read the project's AGENTS.md, `planning/agents/project-profile.md` when present, CONTEXT.md, and the selected work record. Inspect current source, Git state, and project-owned commands before relying on recorded examples. Preserve unrelated work.
+**Orient:** read the project's AGENTS.md, `planning/agents/project-profile.md` when present, GLOSSARY.md, applicable ADRs and composition guides, and the selected work record. Inspect current source, Git state, and project-owned commands before relying on recorded examples. Preserve unrelated work.
 
 **Load:** read only standards relevant to the work; builders, reviewers, and auditors use the same rules.
 
@@ -57,7 +57,7 @@ The profile distinguishes implemented source from approved follow-ups; approval 
 
 **Build:** one TASK normally owns one PR. Use dependency-ordered SUBTASKs for layer assignments. Features are code-first; bugs start with one failing regression test. Keep domain knowledge with its owner and runtime dependencies behind Domain/Application contracts.
 
-**Verify:** use focused checks while iterating, then the complete project gate for implementation/build-input changes. Documentation-only follow-ups may retain prior full-gate evidence with verified input equivalence and targeted checks under the Testing standard. Cover production behavior; keep release/tooling tests separate from default builds and CI. Private repositories use a local build receipt as proof; a hosted CI pass is not required. Surface warnings and incomplete evidence. Keep CONTEXT.md and affected documentation aligned with the code.
+**Verify:** use focused checks while iterating, then the complete project gate for implementation/build-input changes. Documentation-only follow-ups may retain prior full-gate evidence with verified input equivalence and targeted checks under the Testing standard. Cover production behavior; keep release/tooling tests separate from default builds and CI. Private repositories use a local build receipt as proof; a hosted CI pass is not required. Surface warnings and incomplete evidence. Keep domain definitions in GLOSSARY.md and affected owning guides aligned with the code; preserve decisions in their ADRs, not in the glossary.
 
 **Authorize:** follow the current request's delivery scope. Implementation, publication, independent review, landing,
 signed library release and production deployment remain distinct effects. An explicit Build invocation delegates its

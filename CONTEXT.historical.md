@@ -1,5 +1,11 @@
 # Fight AccessControl Context
 
+> Historical reference: CONTEXT.md at `3db92b9653d4aa2b0fab266036067c849bfe47cb`, preserved by TASK-00184.
+> This file is not required orientation, a current status summary or delivery instructions. Checkpoints retain
+> their original subjects, approvals, corrections, warnings and limits; pending-at-checkpoint wording is historical.
+> Use [GLOSSARY.md](GLOSSARY.md) for definitions, the [project profile](planning/agents/project-profile.md) and
+> relevant composition guides for current requirements, and applicable [ADRs](planning/adr/README.md) for decisions.
+
 ## Portable admission reconciliation — TASK-00181 accepted checkpoint
 
 The [current evidence map](docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)

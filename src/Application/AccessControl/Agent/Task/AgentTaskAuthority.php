@@ -11,7 +11,6 @@ use Fight\AccessControl\Application\AccessControl\Agent\Continuation\AgentContin
 use Fight\AccessControl\Application\AccessControl\Agent\Continuation\AgentContinuationGuard;
 use Fight\AccessControl\Application\AccessControl\Agent\Continuation\AgentContinuationScope;
 use Fight\AccessControl\Application\AccessControl\Agent\Exception\AgentContinuationRejectedException;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentAuthenticationDiagnosticClassification;
 use Fight\AccessControl\Domain\AccessControl\Agent\AuthenticatedAgentPrincipal;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
@@ -115,10 +114,8 @@ final readonly class AgentTaskAuthority
             $principal = ($this->resolve)();
         } catch (CurrentAgentPrincipalResolutionRejectedException $currentAgentPrincipalResolutionRejectedException) {
             if (
-                in_array($currentAgentPrincipalResolutionRejectedException->getDiagnostic()->getClassification(), [
-                AgentAuthenticationDiagnosticClassification::AUTHENTICATION_REJECTED,
-                AgentAuthenticationDiagnosticClassification::AGENT_AUTHORITY_NOT_CURRENT
-                ], true)
+                $currentAgentPrincipalResolutionRejectedException->getDiagnostic()->getClassification()
+                    ->isAuthenticationRefusal()
             ) {
                 return null;
             }

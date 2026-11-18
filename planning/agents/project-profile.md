@@ -52,7 +52,7 @@ Inspection, enrollment or an available command is not end-to-end Build qualifica
 remain ordinary Pi tools, not OS isolation or universal Jev enforcement. Optional discovery does not grant authority.
 
 Pi loads context from its working directory and ancestors, not every descendant instruction file when reading
-source. Explicitly read this profile, applicable CONTEXT sections and linked standards; do not assume they were
+source. Explicitly read this profile, the root GLOSSARY.md, relevant composition guides, applicable ADRs and linked standards; do not assume they were
 automatically loaded. Before every delegated stage, the coordinator supplies a private reusable project-context
 path plus owning skill, target checkout, TASK/base/head, permitted effects and evidence paths. The child verifies
 Git identity and reads that context and target instructions before the skill; apply these substitutions through
@@ -60,7 +60,7 @@ all nested references:
 
 | Concern | AccessControl authority |
 | --- | --- |
-| Instructions and accepted scope | Root `AGENTS.md`, this profile, `CONTEXT.md`, selected `planning/tasks/NNNNN-TASK.md` and applicable accepted parents |
+| Instructions and accepted scope | Root `AGENTS.md`, this profile, `GLOSSARY.md`, relevant composition guides/applicable ADRs, selected `planning/tasks/NNNNN-TASK.md` and applicable accepted parents |
 | Planning/navigation | `planning/CONVENTIONS.md`, `planning/tasks/BOARD.md`, `planning/wayfinder/README.md`, authored `planning/ROADMAP.md` handoff; generated views remain generator-owned |
 | Engineering rules | Local `docs/engineering/STANDARDS.md` and its selected standards; preserve package exceptions below |
 | Runtime and commands | Isolated package PHP Docker runtime through `./bin/*`; no application webserver, database, HTTP Adapter or UI provisioning required for package-only work |
@@ -139,6 +139,21 @@ classification/changelog rules remain; they do not require compatibility code. T
 previous-iteration support; completed TASKs and earlier guidance cannot require that code to remain.
 
 ## Package boundary and contracts
+
+[Domain definitions](../../GLOSSARY.md) are separate from current behavior/composition and ADR decisions.
+The former CONTEXT is retained only as [historical evidence](../../CONTEXT.historical.md), not required orientation
+or a current delivery queue. Read the relevant capability guides below for behavior and state-transition contracts.
+
+Consumers protect every Command entry point, including HTTP, CLI, workers and direct bus invocation. Outer layers
+normally authenticate, validate, authorize, choose synchronous/asynchronous invocation and translate failures;
+Application/Domain retain their own invariant checks. Target-sensitive session, email-change and invitation-recovery
+ports remain distinct from the retired actor-only Role and Agent Permission administration ports. See
+[Permission tiers](../../docs/permission-tiers.md) for all-path authorization, no-op eligibility and consumer last-admin duties.
+Package-owned workflow coordinators marked `@internal` are final implementation details, not consumer extension ports.
+Use public Commands, services, authenticated principals and SecurityContext. Credential providers receive one sensitive
+invocation after a committed claim and return a typed outcome; schedulers use the package's secret-free discovery and
+delivery Commands instead of copying claim/retry/terminalization/stale-generation policy. See
+[human delivery](../../docs/credential-delivery.md) and [Agent integration](../../docs/agent-integration.md).
 
 - The normative [placement/dependency rules](../../docs/engineering/standards/Architecture.md#accesscontrol-placement-and-dependency-rules)
   and [collaborator naming](../../docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections)

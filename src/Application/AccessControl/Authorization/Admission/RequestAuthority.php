@@ -9,7 +9,6 @@ use Fight\AccessControl\Application\AccessControl\Agent\Authentication\CurrentAg
 use Fight\AccessControl\Application\AccessControl\Agent\Authentication\SignedAgentRequest;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\CurrentPrincipalProvider;
 use Fight\AccessControl\Application\AccessControl\Authorization\Service\SecurityContext;
-use Fight\AccessControl\Domain\AccessControl\Agent\AgentAuthenticationDiagnosticClassification;
 use Fight\AccessControl\Domain\AccessControl\Agent\Exception\CurrentAgentPrincipalResolutionRejectedException;
 use Fight\AccessControl\Domain\AccessControl\Authorization\Exception\PrincipalResolutionException;
 use Fight\Common\Application\Error\Exception\AuthenticationRequired;
@@ -62,12 +61,7 @@ final readonly class RequestAuthority
         } catch (PrincipalResolutionException $failure) {
             throw new AuthenticationRequired('Request authentication rejected.', previous: $failure);
         } catch (CurrentAgentPrincipalResolutionRejectedException $failure) {
-            if (
-                in_array($failure->getDiagnostic()->getClassification(), [
-                AgentAuthenticationDiagnosticClassification::AUTHENTICATION_REJECTED,
-                AgentAuthenticationDiagnosticClassification::AGENT_AUTHORITY_NOT_CURRENT
-                ], true)
-            ) {
+            if ($failure->getDiagnostic()->getClassification()->isAuthenticationRefusal()) {
                 throw new AuthenticationRequired('Request authentication rejected.', previous: $failure);
             }
 

@@ -1461,6 +1461,12 @@
       "reason": "Isolated values, transitions or application behavior with controlled in-memory repositories/security/clock/UoW ports; no real storage, network or process.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentAuthenticationDiagnosticClassificationTest": {
+      "file": "tests/Domain/AccessControl/Agent/AgentAuthenticationDiagnosticClassificationTest.php",
+      "category": "Unit",
+      "reason": "Pure enum refusal-versus-fault decisions and stable serialized identities; no collaborators or external effects.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\Domain\\AccessControl\\Agent\\AgentEventTimeTest": {
       "file": "tests/Domain/AccessControl/Agent/AgentEventTimeTest.php",
       "category": "Unit",
