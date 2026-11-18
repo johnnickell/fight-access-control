@@ -115,21 +115,21 @@ an email address, a delivery ID, or the latest request ID at dispatch or retry t
 Keep the exact delivery ID associated with the request being reviewed (for example, from the committed
 `EmailChangeRequested` fact). Resolve it through `FindCredentialDeliveryStatus('email_change', deliveryId)`.
 The returned `CredentialDeliveryStatusView` adds the typed `getEmailChangeGrantId()` and serialized
-`email_change_grant_id` for that delivery's exact grant, including retained terminal history; invitation and
-password-reset views serialize this field as `null`. Direct `fromDelivery()` callers pass the corresponding
-ID explicitly for email change and `null` otherwise. There is no raw-grant or secret output.
+`email_change_grant_id` for that delivery's exact grant, including retained terminal history. For activation
+(invitation or self-registration) and password reset, this field is `null`. Direct `fromDelivery()` callers pass
+the corresponding ID explicitly for email change and `null` otherwise. There is no raw-grant or secret output.
 
 Authenticate the real caller and admit the status read for the exact request/target before exposing any result.
 Use a trusted delivery-to-target binding, not possession of an ID. If resolving a caller-supplied delivery ID
 inside a privileged boundary, verify the returned User against the authorized target before returning any data,
 without distinguishing foreign from unknown IDs. Independently authorize cancellation for the same target at
-entry; the package still checks cross-User administration. For example, after these checks and a status View
-matched to the reviewed request:
+entry; the package still checks cross-User administration. After these checks and matching the status View to the
+reviewed request, pass the raw Command to Common's `CommandBus::execute()`:
 
 ```php
 $requestId = $status->getEmailChangeGrantId();
 if ($requestId !== null) {
-    $commandBus->dispatch(new CancelEmailChange($actorId, $targetUserId, $requestId));
+    $commandBus->execute(new CancelEmailChange($actorId, $targetUserId, $requestId));
 }
 ```
 
