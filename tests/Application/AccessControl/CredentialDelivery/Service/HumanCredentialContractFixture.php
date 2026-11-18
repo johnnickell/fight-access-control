@@ -78,7 +78,11 @@ final readonly class HumanCredentialContractFixture
                 $userId,
                 $userId, EmailAddress::fromString('another@example.test')
             ),
-            'email_change.cancel' => new EmailCommand\CancelEmailChange($userId, $userId),
+            'email_change.cancel' => new EmailCommand\CancelEmailChange(
+                $userId,
+                $userId,
+                $this->state->initial->getId()
+            ),
             default => throw new LogicException('Unknown fixture operation.')
         };
     }

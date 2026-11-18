@@ -198,6 +198,20 @@ final class EmailChangeAuditTest extends TestCase
 
             self::assertCount(1, $fixture->auditEvidenceRepository->all());
             self::assertFalse($fixture->unitOfWork->transactionActive);
+            if ($operation === 'cancel') {
+                $user = $fixture->userRepository->getById($fixture->userId);
+                $grant = $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId);
+                self::assertNull($user->getPendingEmailChange());
+                self::assertTrue($grant->isRevoked());
+                self::assertFalse($grant->getDelivery()->hasRecoverableMaterial());
+                $events = $fixture->eventDispatcher->events();
+                if ($phase === 'commit acknowledgment') {
+                    self::assertCount(1, $events);
+                    self::assertInstanceOf(CommandFailedEvent::class, $events[0]);
+                } else {
+                    self::assertSame([], $events);
+                }
+            }
         }
     }
 
@@ -251,7 +265,7 @@ final class EmailChangeAuditTest extends TestCase
         $actorId = $administrative ? UserId::generate() : $user->getId();
         $command = match ($operation) {
             'request' => new RequestEmailChange($actorId, $user->getId(), EmailAddress::fromString('new@example.test')),
-            'cancel' => new CancelEmailChange($actorId, $user->getId()),
+            'cancel' => new CancelEmailChange($actorId, $user->getId(), $grant->getId()),
             'delivery' => new DeliverEmailChange($actorId, $user->getId(), $grant->getDelivery()->getId()),
             'expiry' => new ExpireEmailChange(
                 $administrative ? $actorId : SystemId::generate(),

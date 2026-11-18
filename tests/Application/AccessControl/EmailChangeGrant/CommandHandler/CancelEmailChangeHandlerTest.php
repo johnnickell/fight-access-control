@@ -5,15 +5,20 @@ declare(strict_types=1);
 namespace Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler;
 
 use DateTimeImmutable;
+use Fight\AccessControl\Application\AccessControl\CredentialDelivery\QueryHandler\FindCredentialDeliveryStatusHandler;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler\CancelEmailChangeHandler;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserOutcome;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
+use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindCredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeCancelled;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeRequested;
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
@@ -23,11 +28,14 @@ use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
+use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
+use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repository\InMemoryActivationGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
 use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Repository\InMemoryEmailChangeGrantRepository;
 use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Service as EmailChangeService;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
+use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\RecoveryFixture;
 use Fight\Test\AccessControl\Application\AccessControl\Timing\Service\FixedClock;
 use Fight\Test\AccessControl\Application\AccessControl\User\InMemoryUnitOfWork;
 use Fight\Test\AccessControl\Application\AccessControl\User\Repository\InMemoryUserRepository;
@@ -45,6 +53,102 @@ use RuntimeException;
 #[CoversClass(User::class)]
 final class CancelEmailChangeHandlerTest extends TestCase
 {
+    public function test_delayed_cancellation_preserves_a_same_address_successor(): void
+    {
+        $fixture = new RecoveryFixture();
+        $fixture->requestEmail(credential: 'first-change');
+
+        $first = $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId);
+        $requested = $fixture->eventDispatcher->events()[0];
+        self::assertInstanceOf(EmailChangeRequested::class, $requested);
+        $statusHandler = new FindCredentialDeliveryStatusHandler(
+            new InMemoryActivationGrantRepository(),
+            $fixture->passwordResetGrantRepository,
+            $fixture->emailChangeGrantRepository
+        );
+        $query = QueryMessage::create(new FindCredentialDeliveryStatus(
+            'email_change',
+            $requested->getEmailChangeDeliveryId()->toString()
+        ));
+        $reviewed = $statusHandler->handle($query);
+        self::assertInstanceOf(CredentialDeliveryStatusView::class, $reviewed);
+        self::assertEquals($first->getId(), $reviewed->getEmailChangeGrantId());
+        $delayed = new CancelEmailChange($fixture->userId, $fixture->userId, $reviewed->getEmailChangeGrantId());
+        $fixture->expireEmail();
+        $fixture->now = $first->getExpiresAt();
+        $fixture->requestEmail(credential: 'second-change');
+
+        $successor = $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId);
+        self::assertNotEquals($first->getId(), $successor->getId());
+        $reserved = $fixture->user();
+
+        $auditBefore = $fixture->auditEvidenceRepository->all();
+        $eventsBefore = count($fixture->eventDispatcher->events());
+        $this->expectException(StateConflict::class);
+        try {
+            $fixture->cancelEmail($delayed);
+        } finally {
+            self::assertEquals($successor, $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId));
+            self::assertEquals($reserved, $fixture->user());
+            self::assertEquals($auditBefore, $fixture->auditEvidenceRepository->all());
+            $events = $fixture->eventDispatcher->events();
+            self::assertCount($eventsBefore + 1, $events);
+            self::assertInstanceOf(CommandFailedEvent::class, $events[$eventsBefore]);
+            self::assertEquals($first->getId(), $statusHandler->handle($query)->getEmailChangeGrantId());
+        }
+    }
+
+    public function test_another_users_request_id_cannot_cancel_either_users_pending_change(): void
+    {
+        $fixture = new RecoveryFixture();
+        $fixture->requestEmail('first@example.test');
+
+        $userId = $fixture->userId;
+        $foreign = UserFixture::withState('other@example.test', UserState::ACTIVE);
+        $fixture->userRepository->add($foreign);
+        $reserved = clone $foreign;
+        $reserved->requestEmailChange(EmailAddress::fromString('new@example.test'), $fixture->now);
+        self::assertTrue($fixture->userRepository->replaceEmailChangeReservation($foreign, $reserved));
+        $foreignGrant = $this->grant($foreign->getId(), 'new@example.test');
+        self::assertTrue($fixture->emailChangeGrantRepository->add($foreignGrant));
+        $usersBefore = [$fixture->user(), $fixture->userRepository->getById($foreign->getId())];
+        $grantsBefore = $fixture->emailChangeGrantRepository->all();
+        $auditBefore = $fixture->auditEvidenceRepository->all();
+
+        $this->expectException(StateConflict::class);
+        $this->expectExceptionMessage('The user has no cancellable email change.');
+        try {
+            $fixture->cancelEmail(new CancelEmailChange(UserId::generate(), $userId, $foreignGrant->getId()));
+        } finally {
+            self::assertEquals($usersBefore, [$fixture->user(), $fixture->userRepository->getById($foreign->getId())]);
+            self::assertEquals($grantsBefore, $fixture->emailChangeGrantRepository->all());
+            self::assertEquals($auditBefore, $fixture->auditEvidenceRepository->all());
+            self::assertCount(2, $fixture->eventDispatcher->events());
+            self::assertInstanceOf(CommandFailedEvent::class, $fixture->eventDispatcher->events()[1]);
+        }
+    }
+
+    public function test_cancellation_refuses_the_exact_request_after_it_expires(): void
+    {
+        $fixture = new RecoveryFixture();
+        $fixture->requestEmail();
+
+        $grant = $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId);
+        $fixture->expireEmail();
+        $expired = $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId);
+        $userBefore = $fixture->user();
+        $auditBefore = $fixture->auditEvidenceRepository->all();
+
+        $this->expectException(StateConflict::class);
+        try {
+            $fixture->cancelEmail(new CancelEmailChange($fixture->userId, $fixture->userId, $grant->getId()));
+        } finally {
+            self::assertEquals($userBefore, $fixture->user());
+            self::assertEquals($expired, $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId));
+            self::assertEquals($auditBefore, $fixture->auditEvidenceRepository->all());
+        }
+    }
+
     public function test_the_owner_atomically_cancels_the_issued_change_without_changing_canonical_identity(): void
     {
         $unitOfWork = new InMemoryUnitOfWork();
@@ -84,7 +188,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
 
         $handler->handle(CommandMessage::create(new CancelEmailChange(
             $user->getId(),
-            $user->getId()
+            $user->getId(),
+            $emailChangeGrantRepository->all()[0]->getId()
         )));
 
         $storedUser = $userRepository->getById($user->getId());
@@ -108,14 +213,17 @@ final class CancelEmailChangeHandlerTest extends TestCase
     public function test_command_and_success_event_round_trip_without_confirmation_material(): void
     {
         $userId = UserId::generate();
-        $command = new CancelEmailChange($userId, $userId);
+        [$handler, , $emailChangeGrantRepository, $eventDispatcher] = $this->fixture($userId);
+        $grantId = $emailChangeGrantRepository->all()[0]->getId();
+        $command = new CancelEmailChange($userId, $userId, $grantId);
 
         self::assertSame(CancelEmailChange::class, CancelEmailChangeHandler::commandRegistration());
         self::assertEquals($command, CancelEmailChange::fromArray($command->toArray()));
         self::assertSame($userId, $command->getActorId());
         self::assertSame($userId, $command->getUserId());
+        self::assertSame($grantId, $command->getEmailChangeGrantId());
+        self::assertSame($grantId->toString(), $command->toArray()['email_change_grant_id']);
 
-        [$handler, , , $eventDispatcher] = $this->fixture($userId);
         $handler->handle(CommandMessage::create($command));
 
         $event = $eventDispatcher->events()[0];
@@ -124,17 +232,19 @@ final class CancelEmailChangeHandlerTest extends TestCase
         self::assertSame($userId, $event->getActorId());
         self::assertSame($userId, $event->getUserId());
         self::assertSame('2026-08-22T12:30:00+00:00', $event->getCancelledAt()->format(DATE_ATOM));
-        self::assertSame($event->getEmailChangeGrantId()->toString(), $event->toArray()['email_change_grant_id']);
+        self::assertEquals($grantId, $event->getEmailChangeGrantId());
+        self::assertSame($grantId->toString(), $event->toArray()['email_change_grant_id']);
         self::assertArrayNotHasKey('credential', $event->toArray());
         self::assertArrayNotHasKey('ciphertext', $event->toArray());
     }
 
     public function test_missing_command_and_event_data_is_rejected(): void
     {
-        foreach (['actor_id', 'user_id'] as $missing) {
+        foreach (['actor_id', 'user_id', 'email_change_grant_id'] as $missing) {
             $data = [
-                'actor_id' => UserId::generate()->toString(),
-                'user_id'  => UserId::generate()->toString()
+                'actor_id'              => UserId::generate()->toString(),
+                'user_id'               => UserId::generate()->toString(),
+                'email_change_grant_id' => EmailChangeGrantId::generate()->toString()
             ];
             unset($data[$missing]);
 
@@ -161,7 +271,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
             }
         }
 
-        self::addToAssertionCount(6);
+        self::addToAssertionCount(7);
     }
 
     public function test_missing_or_mismatched_authority_leaves_the_reservation_unchanged(): void
@@ -182,11 +292,16 @@ final class CancelEmailChangeHandlerTest extends TestCase
             }
 
             $eventDispatcher = new InMemoryEventDispatcher();
+            $grant = $emailChangeGrantRepository->getLatestByUserId($user->getId());
 
             try {
                 $this->handler($userRepository, $emailChangeGrantRepository, $unitOfWork, $eventDispatcher)->handle(
                     CommandMessage::create(
-                        new CancelEmailChange($user->getId(), $user->getId())
+                        new CancelEmailChange(
+                            $user->getId(),
+                            $user->getId(),
+                            $grant?->getId() ?? EmailChangeGrantId::generate()
+                        )
                     )
                 );
                 self::fail('Cancellation succeeded without matching issued authority.');
@@ -214,7 +329,7 @@ final class CancelEmailChangeHandlerTest extends TestCase
                 new InMemoryEmailChangeGrantRepository($unitOfWork),
                 $unitOfWork,
                 $eventDispatcher
-            )->handle(CommandMessage::create(new CancelEmailChange($userId, $userId)));
+            )->handle(CommandMessage::create(new CancelEmailChange($userId, $userId, EmailChangeGrantId::generate())));
         } finally {
             self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
         }
@@ -245,7 +360,11 @@ final class CancelEmailChangeHandlerTest extends TestCase
         try {
             $this->handler($userRepository, $emailChangeGrantRepository, $unitOfWork, $eventDispatcher)->handle(
                 CommandMessage::create(
-                    new CancelEmailChange($user->getId(), $user->getId())
+                    new CancelEmailChange(
+                        $user->getId(),
+                        $user->getId(),
+                        $emailChangeGrantRepository->all()[0]->getId()
+                    )
                 )
             );
         } finally {
@@ -275,7 +394,11 @@ final class CancelEmailChangeHandlerTest extends TestCase
 
         $this->expectException(StateConflict::class);
         try {
-            $handler->handle(CommandMessage::create(new CancelEmailChange($userId, $userId)));
+            $handler->handle(CommandMessage::create(new CancelEmailChange(
+                $userId,
+                $userId,
+                $emailChangeGrantRepository->all()[0]->getId()
+            )));
         } finally {
             self::assertSame(
                 'new@example.test',
@@ -322,7 +445,11 @@ final class CancelEmailChangeHandlerTest extends TestCase
         );
         $actorId = UserId::generate();
 
-        $handler->handle(CommandMessage::create(new CancelEmailChange($actorId, $target->getId())));
+        $handler->handle(CommandMessage::create(new CancelEmailChange(
+            $actorId,
+            $target->getId(),
+            $emailChangeGrantRepository->all()[0]->getId()
+        )));
 
         self::assertSame('old@example.test', $userRepository->getById($target->getId())->getEmail()->canonical());
         self::assertNull($userRepository->getById($target->getId())->getPendingEmailChange());
@@ -376,7 +503,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create(new CancelEmailChange(
                 UserId::generate(),
-                $target->getId()
+                $target->getId(),
+                $emailChangeGrantRepository->all()[0]->getId()
             )));
         } finally {
             self::assertSame(1, $authorization->calls());
@@ -419,7 +547,8 @@ final class CancelEmailChangeHandlerTest extends TestCase
         try {
             $handler->handle(CommandMessage::create(new CancelEmailChange(
                 UserId::generate(),
-                $target->getId()
+                $target->getId(),
+                $emailChangeGrantRepository->all()[0]->getId()
             )));
         } finally {
             self::assertSame(

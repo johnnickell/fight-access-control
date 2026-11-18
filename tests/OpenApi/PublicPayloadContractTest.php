@@ -396,7 +396,7 @@ final class PublicPayloadContractTest extends TestCase
         self::assertFalse(self::valid('JSend.Success.Empty', ['status' => 'success', 'data' => []]));
     }
 
-    public function test_found_feature_binding_and_expired_work_keep_their_real_optional_relationships(): void
+    public function test_feature_binding_and_credential_views_keep_their_real_optional_relationships(): void
     {
         foreach (PublicValueSamples::values() as [$name, $payload]) {
             if ($name === 'Feature') {
@@ -404,7 +404,7 @@ final class PublicPayloadContractTest extends TestCase
                 self::assertFalse(self::valid($name, $payload));
             }
 
-            if ($name === 'ExpiredCredentialDelivery') {
+            if ($name === 'ExpiredCredentialDelivery' || ($name === 'CredentialDeliveryStatusResult' && isset($payload['purpose']))) {
                 $payload['email_change_grant_id'] = $payload['email_change_grant_id'] === null ? PublicMessageSamples::ID : null;
                 self::assertFalse(self::valid($name, $payload));
             }

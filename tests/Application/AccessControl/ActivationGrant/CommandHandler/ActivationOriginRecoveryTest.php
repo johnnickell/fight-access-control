@@ -134,7 +134,8 @@ final class ActivationOriginRecoveryTest extends TestCase
                 $safe = json_encode(CredentialDeliveryStatusView::fromDelivery(
                     'activation',
                     $stored->getDelivery(),
-                    $stored->getRevision()
+                    $stored->getRevision(),
+                    null
                 )->toArray(), JSON_THROW_ON_ERROR);
                 foreach (['origin-fixture', 'ciphertext:', 'private vendor diagnostic'] as $secret) {
                     self::assertStringNotContainsString($secret, $safe);

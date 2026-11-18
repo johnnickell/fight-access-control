@@ -42,7 +42,11 @@ notification policy**: consumers must separately sanitize responses and logs and
 - Success events publish only after confirmed commit. A subsequent publisher or synchronous subscriber fault still
   throws; it does not undo the committed state or acknowledge success to the caller.
 - Lost commit acknowledgement is not proof of rollback. Reconcile using authoritative current state under current
-  authorization rather than inferring outcomes from events or blindly replaying a command.
+  authorization rather than inferring outcomes from events or blindly replaying a command. For
+  [email-change cancellation](credential-delivery.md#cancel-the-exact-email-change-request-unreleased), retain
+  the reviewed request ID and observe that exact generation plus authorized User state or enabled audit as
+  applicable. Neither absence nor a successor proves how the original attempt ended. Do not retarget a retry;
+  a conflict is not proof that the original attempt succeeded.
 - The confirmed-commit publication-containment exception remains recoverable Agent provision and rotation.
   TASK-00182's unreleased void Commands complete even if both publishers fail; independent authorized Queries expose
   original issuance/dispositions, with no returned or reconstructed warning. Lost acknowledgement throws safe

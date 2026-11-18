@@ -77,7 +77,7 @@ final class PublicMessageSamples
             'Agent/Command/RevokePermissionFromAgent'                        => 'actor_id agent_id permission_id',
             'Agent/Command/RotateAgentCredential'                            => 'namespace caller_type caller_id operation_id agent_id expected_credential_id expected_credential_revision destination_id destination_revision',
             'Agent/Command/UpdateAgent'                                      => 'initiator agent_id name',
-            'EmailChangeGrant/Command/CancelEmailChange'                     => 'actor_id user_id',
+            'EmailChangeGrant/Command/CancelEmailChange'                     => 'actor_id user_id email_change_grant_id',
             'EmailChangeGrant/Command/DeliverEmailChange'                    => 'actor_id user_id email_change_delivery_id',
             'EmailChangeGrant/Command/ExpireEmailChange'                     => 'actor_kind actor_id user_id email_change_grant_id occurred_at',
             'EmailChangeGrant/Command/RequestEmailChange'                    => 'actor_id user_id email',

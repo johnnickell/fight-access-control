@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00186](00186-TASK.md) — Cancel only the identified email-change request.
+Active Task: [TASK-00186](00186-TASK.md) — Cancel only the identified email-change request.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 509 | [TASK-00186](00186-TASK.md) | Cancel only the identified email-change request | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 509 | [TASK-00186](00186-TASK.md) | Cancel only the identified email-change request | — (standalone bug) | ready-for-agent | — | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

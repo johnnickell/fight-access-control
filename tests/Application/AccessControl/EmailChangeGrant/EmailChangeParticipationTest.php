@@ -9,6 +9,7 @@ use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeCo
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeTransition;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeTransitionStage;
 use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeRequested;
@@ -81,7 +82,9 @@ final class EmailChangeParticipationTest extends TestCase
         $participant = new InMemoryEmailChangeTransitionParticipant($fixture->unitOfWork);
         $admin = UserId::generate();
         $fixture->requestEmail(participant: $participant, requesterId: $admin, audit: false);
-        $fixture->cancelEmail();
+
+        $grant = $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId);
+        $fixture->cancelEmail(new CancelEmailChange($fixture->userId, $fixture->userId, $grant->getId()));
         $fixture->requestEmail(credential: 'successor', participant: $participant, audit: false);
 
         $confirmation = $fixture->emailChangeConfirmation($participant, audit: false);

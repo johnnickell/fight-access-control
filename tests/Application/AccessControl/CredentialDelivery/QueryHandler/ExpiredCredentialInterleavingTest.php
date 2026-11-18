@@ -580,7 +580,8 @@ final class ExpiredCredentialInterleavingTest extends TestCase
         return function () use ($fixture, $handler, $competitor, $participant): void {
             $handler->handle(CommandMessage::create(new CancelEmailChange(
                 $fixture->user->getId(),
-                $fixture->user->getId()
+                $fixture->user->getId(),
+                $fixture->initial->getId()
             )));
             if ($competitor === 'replacement') {
                 $this->requestEmail($fixture, $participant);

@@ -19,6 +19,7 @@ use Fight\AccessControl\Application\AccessControl\User\CommandHandler\RemoveRole
 use Fight\AccessControl\Application\AccessControl\User\PasswordManagement;
 use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
@@ -178,7 +179,12 @@ final class RecoveryLifecycleTest extends TestCase
             } else {
                 $fixture->requestEmail();
                 if ($activity === 'email cancel') {
-                    $fixture->cancelEmail();
+                    $emailGrant = $fixture->emailChangeGrantRepository->getLatestByUserId($fixture->userId);
+                    $fixture->cancelEmail(new CancelEmailChange(
+                        $fixture->userId,
+                        $fixture->userId,
+                        $emailGrant->getId()
+                    ));
                 } elseif ($activity === 'email expiry') {
                     $fixture->expireEmail();
                 }

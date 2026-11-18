@@ -34,6 +34,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\DueCredentialDel
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\ExpiredCredentialDelivery;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryAbsent;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDelivery;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId;
 use Fight\AccessControl\Domain\AccessControl\Feature\FeatureId;
@@ -258,7 +259,7 @@ final class PublicValueSamples
         }
 
         foreach ($deliveries as $index => $delivery) {
-            $status = CredentialDeliveryStatusView::fromDelivery('password_reset', $delivery, 0);
+            $status = CredentialDeliveryStatusView::fromDelivery('password_reset', $delivery, 0, null);
             yield 'status '.$index => ['CredentialDeliveryStatusResult', $status->toArray()];
             foreach (ActivationOrigin::cases() as $origin) {
                 yield 'invitation '.$index.' '.$origin->value => ['InvitationDeliveryStatusResult',
@@ -271,6 +272,21 @@ final class PublicValueSamples
                     )->toArray()];
             }
         }
+
+        $emailDelivery = EmailChangeDelivery::create(
+            EmailChangeDeliveryId::generate(),
+            $userId,
+            EmailAddress::fromString('new@example.test'),
+            'test-only-encrypted-material',
+            $at->modify('+1 hour'),
+            $at
+        );
+        yield 'email-change status' => ['CredentialDeliveryStatusResult', CredentialDeliveryStatusView::fromDelivery(
+            'email_change',
+            $emailDelivery,
+            0,
+            EmailChangeGrantId::fromString($id)
+        )->toArray()];
 
         foreach (['CredentialDeliveryStatusResult', 'InvitationDeliveryStatusResult'] as $name) {
             yield $name.' absent' => [$name, new CredentialDeliveryAbsent()->toArray()];

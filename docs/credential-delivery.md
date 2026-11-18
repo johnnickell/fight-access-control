@@ -104,7 +104,40 @@ address after terminalization have distinct IDs and reservation revisions. Ackno
 reconcile authoritative stored state and consumer intent, do not assume rollback, blindly repeat the business operation
 or enqueue afterward based on Events. Post-commit publication failure leaves state, intent and enabled audit committed.
 Neither committed intent nor success publication guarantees exactly-once sending. Cancellation/expiry are not participant
-stages. Existing Command/Event payloads and delivery-provider boundaries do not change.
+stages. Participation does not change Command/Event payloads or delivery-provider boundaries.
+
+## Cancel the exact email-change request (Unreleased)
+
+Use `CancelEmailChange(actorId, userId, emailChangeGrantId)` for both self-service and administrative cancellation.
+The canonical payload requires UUID strings `actor_id`, `user_id` and `email_change_grant_id`. Do not substitute
+an email address, a delivery ID, or the latest request ID at dispatch or retry time.
+
+Keep the exact delivery ID associated with the request being reviewed (for example, from the committed
+`EmailChangeRequested` fact). Resolve it through `FindCredentialDeliveryStatus('email_change', deliveryId)`.
+The returned `CredentialDeliveryStatusView` adds the typed `getEmailChangeGrantId()` and serialized
+`email_change_grant_id` for that delivery's exact grant, including retained terminal history; invitation and
+password-reset views serialize this field as `null`. Direct `fromDelivery()` callers pass the corresponding
+ID explicitly for email change and `null` otherwise. There is no raw-grant or secret output.
+
+Authenticate the real caller and admit the status read for the exact request/target before exposing any result.
+Use a trusted delivery-to-target binding, not possession of an ID. If resolving a caller-supplied delivery ID
+inside a privileged boundary, verify the returned User against the authorized target before returning any data,
+without distinguishing foreign from unknown IDs. Independently authorize cancellation for the same target at
+entry; the package still checks cross-User administration. For example, after these checks and a status View
+matched to the reviewed request:
+
+```php
+$requestId = $status->getEmailChangeGrantId();
+if ($requestId !== null) {
+    $commandBus->dispatch(new CancelEmailChange($actorId, $targetUserId, $requestId));
+}
+```
+
+Delivery status is not confirmation authority, proof of a current reservation, or a cancellation receipt. The
+handler rechecks exact grant ID, issued state and reservation inside its transaction. Stale, foreign or terminal
+requests are refused without touching a successor, even at the same destination. Success preserves canonical
+email and atomically clears the matching reservation and revokes its grant and recoverable delivery material,
+with configured audit. It does not recall sent mail or change unrelated sessions or notification history.
 
 ## Optional email-change audit composition (Unreleased)
 
@@ -176,8 +209,8 @@ actor, email, purpose and timestamp payload fields must be strings, and discover
 The in-progress [audit contract replacement](audit-evidence.md) additionally requires `actor_kind` alongside
 `actor_id` on invitation delivery/resend/retry/expiry and reset delivery/expiry payloads and their affected Events. Direct
 UserId/AgentId/SystemId/AnonymousId values preserve the admitted origin; workers do not parse labels or substitute
-themselves. Deliberate public registration/reset-request subscribers establish AnonymousId. Other current human
-message contracts and email-change constructor/expiry wiring are unchanged. TASK-00123 separately makes the
+themselves. Deliberate public registration/reset-request subscribers establish AnonymousId. See the current
+[exact cancellation contract](#cancel-the-exact-email-change-request-unreleased) for the required request ID. TASK-00123 separately makes the
 eight account lifecycle handlers' final audit repository optional.
 Timestamp-bearing payloads require an explicit valid RFC3339 instant, never relative dates or calendar rollover.
 Canonical field names, nullability and existing timestamp output precision are unchanged. `fromArray()` remains a

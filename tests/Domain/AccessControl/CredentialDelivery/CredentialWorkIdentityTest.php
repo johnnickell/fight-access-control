@@ -140,7 +140,7 @@ final class CredentialWorkIdentityTest extends TestCase
             )
         };
         $this->expectException(DomainException::class);
-        CredentialDeliveryStatusView::fromDelivery($purpose, $delivery, 0);
+        CredentialDeliveryStatusView::fromDelivery($purpose, $delivery, 0, null);
     }
 
     public function test_status_projection_rejects_negative_revision(): void
@@ -155,7 +155,7 @@ final class CredentialWorkIdentityTest extends TestCase
             $at
         );
         $this->expectException(DomainException::class);
-        CredentialDeliveryStatusView::fromDelivery('activation', $delivery, -1);
+        CredentialDeliveryStatusView::fromDelivery('activation', $delivery, -1, null);
     }
 
     public function test_expiry_work_preserves_the_required_email_grant_relationship(): void
