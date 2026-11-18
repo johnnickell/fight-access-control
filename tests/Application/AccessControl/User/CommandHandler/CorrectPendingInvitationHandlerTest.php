@@ -18,14 +18,12 @@ use Fight\AccessControl\Domain\AccessControl\User\Event\PendingInvitationCorrect
 use Fight\AccessControl\Domain\AccessControl\User\User;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
 use Fight\AccessControl\Domain\AccessControl\User\UserState;
-use Fight\Common\Application\Error\Exception\PermissionDenied;
 use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Repository\InMemoryActivationGrantRepository;
-use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service as ActivationService;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
@@ -67,7 +65,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             'ciphertext:activate-old'
         );
         self::assertTrue($activationGrantRepository->add($predecessor));
-        $authorization = new ActivationService\FixedInvitationAdministrationAuthorization(true);
         $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
         $eventDispatcher = new InMemoryEventDispatcher(
             static function () use ($auditEvidenceRepository, $unitOfWork): void {
@@ -78,7 +75,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         $handler = new CorrectPendingInvitationHandler(
             $userRepository,
             $activationGrantRepository,
-            $authorization,
             $unitOfWork,
             new FixedCredentialGenerator('activate-new'),
             new PrefixInvitationDeliveryCipher(),
@@ -121,9 +117,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             'ciphertext:activate-new',
             $activationGrantRepository->all()[1]->getDelivery()->getEncryptedMaterial()?->reveal()
         );
-        self::assertSame(1, $authorization->calls());
-        self::assertSame($actorId, $authorization->lastActorId());
-        self::assertSame($user->getId(), $authorization->lastUserId());
         $audit = $auditEvidenceRepository->all()[0];
         self::assertSame(AuditAction::USER_PENDING_INVITATION_CORRECTED, $audit->action());
         self::assertSame($actorId, $audit->actorId());
@@ -209,46 +202,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         self::addToAssertionCount(7);
     }
 
-    public function test_unauthorized_correction_fails_before_read_or_mutation(): void
-    {
-        $unitOfWork = new InMemoryUnitOfWork();
-        $userRepository = new InMemoryUserRepository($unitOfWork);
-        $user = User::invite(
-            UserId::generate(),
-            EmailAddress::fromString('old@example.test'),
-            new DateTimeImmutable('2026-01-01T00:00:00+00:00')
-        );
-        $userRepository->add($user);
-        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
-        $authorization = new ActivationService\FixedInvitationAdministrationAuthorization(false);
-        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
-        $eventDispatcher = new InMemoryEventDispatcher();
-
-        $this->expectException(PermissionDenied::class);
-        try {
-            $this->handler(
-                $userRepository,
-                $activationGrantRepository,
-                $authorization,
-                $auditEvidenceRepository,
-                $unitOfWork,
-                $eventDispatcher
-            )->handle(
-                CommandMessage::create(new CorrectPendingInvitation(
-                    UserId::generate(),
-                    $user->getId(),
-                    EmailAddress::fromString('corrected@example.test')
-                ))
-            );
-        } finally {
-            self::assertSame('old@example.test', $userRepository->getById($user->getId())?->getEmail()->canonical());
-            self::assertSame([], $activationGrantRepository->all());
-            self::assertSame([], $auditEvidenceRepository->all());
-            self::assertSame(1, $authorization->calls());
-            self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
-        }
-    }
-
     public function test_active_and_same_address_users_cannot_be_corrected(): void
     {
         foreach ([UserState::ACTIVE, UserState::PENDING_ACTIVATION] as $state) {
@@ -272,7 +225,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
                 $this->handler(
                     $userRepository,
                     $activationGrantRepository,
-                    new ActivationService\FixedInvitationAdministrationAuthorization(true),
                     new InMemoryAuditEvidenceRepository($unitOfWork),
                     $unitOfWork,
                     $eventDispatcher
@@ -327,7 +279,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
                 $this->handler(
                     $userRepository,
                     $activationGrantRepository,
-                    new ActivationService\FixedInvitationAdministrationAuthorization(true),
                     new InMemoryAuditEvidenceRepository($unitOfWork),
                     $unitOfWork,
                     $eventDispatcher
@@ -381,7 +332,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
                 $this->handler(
                     $userRepository,
                     $activationGrantRepository,
-                    new ActivationService\FixedInvitationAdministrationAuthorization(true),
                     new InMemoryAuditEvidenceRepository($unitOfWork),
                     $unitOfWork,
                     $eventDispatcher
@@ -423,7 +373,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             $this->handler(
                 $userRepository,
                 $activationGrantRepository,
-                new ActivationService\FixedInvitationAdministrationAuthorization(true),
                 new InMemoryAuditEvidenceRepository($unitOfWork),
                 $unitOfWork,
                 $eventDispatcher
@@ -460,7 +409,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
             $this->handler(
                 $userRepository,
                 $activationGrantRepository,
-                new ActivationService\FixedInvitationAdministrationAuthorization(true),
                 $auditEvidenceRepository,
                 $unitOfWork,
                 $eventDispatcher
@@ -490,7 +438,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
     private function handler(
         InMemoryUserRepository $userRepository,
         InMemoryActivationGrantRepository $activationGrantRepository,
-        ActivationService\FixedInvitationAdministrationAuthorization $authorization,
         InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
         InMemoryEventDispatcher $eventDispatcher
@@ -498,7 +445,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         return new CorrectPendingInvitationHandler(
             $userRepository,
             $activationGrantRepository,
-            $authorization,
             $unitOfWork,
             new FixedCredentialGenerator('activate-new'),
             new PrefixInvitationDeliveryCipher(),
@@ -537,7 +483,6 @@ final class CorrectPendingInvitationHandlerTest extends TestCase
         $this->handler(
             $userRepository,
             $activationGrantRepository,
-            new ActivationService\FixedInvitationAdministrationAuthorization(true),
             new InMemoryAuditEvidenceRepository($unitOfWork),
             $unitOfWork,
             $eventDispatcher

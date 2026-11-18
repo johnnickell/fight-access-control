@@ -33,7 +33,6 @@ use Fight\Common\Domain\Messaging\Event\CommandFailedEvent;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
-use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service as ActivationService;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\UncertainActivationUnitOfWork;
@@ -302,7 +301,6 @@ final class RegistrationRecoveryJourneyTest extends TestCase
         $private = new CorrectPendingInvitationHandler(
             $fixture->userRepository,
             $fixture->activationGrantRepository,
-            new ActivationService\FixedInvitationAdministrationAuthorization(true),
             $fixture->unitOfWork,
             new FixedCredentialGenerator('private-correction'),
             new PrefixInvitationDeliveryCipher(),

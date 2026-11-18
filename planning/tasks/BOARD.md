@@ -5,17 +5,18 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00137](00137-TASK.md) — Correct User account lifecycle contracts.
+Active Task: [TASK-00137](00137-TASK.md) — Correct User account lifecycle contracts.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 316 | [TASK-00137](00137-TASK.md) | Correct User account lifecycle contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | in-progress | — | https://github.com/johnnickell/fight-access-control/pull/176 |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 316 | [TASK-00137](00137-TASK.md) | Correct User account lifecycle contracts | [TICKET-00040](../tickets/00040-TICKET.md) — Make command and synchronous Application contracts explicit | ready-for-agent | — | https://github.com/johnnickell/fight-access-control/pull/176 |
 | 508 | [TASK-00185](00185-TASK.md) | Support atomic consumer participation in email-change transitions | — (standalone chore) | ready-for-agent | — | — |
 | 509 | [TASK-00186](00186-TASK.md) | Cancel only the identified email-change request | — (standalone bug) | ready-for-agent | — | — |
 

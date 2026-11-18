@@ -1,4 +1,4 @@
-# Administrator pending-registration recovery (v0.7.0)
+# Administrator pending-registration recovery
 
 [TASK-00075](../planning/tasks/00075-TASK.md) adds distinct `RecoverPendingRegistration` /
 `RecoverPendingRegistrationHandler` and post-commit `PendingRegistrationRecovered`, released in
@@ -17,16 +17,13 @@ of these fields grants no authority. Both variants use this command:
 - The same canonical email requests fresh activation **only at exact expiry or later**. Case-only changes are the
   same destination: no email rewrite, timestamp or User revision change occurs. Before expiry this rejects, not resends.
 
-Protect **every** HTTP, CLI, queue and other command/query dispatch path in the consumer. Additionally implement the
-mandatory Application `User\Service\RegistrationRecoveryAuthorization::assertCanRecoverRegistration(actorId, userId)`.
-The handler calls it inside its transaction, before protected repository reads. Bind the claimed actor to trusted
-current authenticated administrator context, reject actor substitution and check permission for the **exact target**.
-Keep that authority valid through transaction completion under the consumer's authorization fence. A permissive stub,
-caller-supplied actor, route admission alone or cached UI permission is not production authorization. Throw
-`RegistrationRecoveryAuthorizationException` only for denied actor/target admission; the handler translates this
-explicit denial to Application `PermissionDenied`. Unknown context/provider faults remain internal. Consumers own
-actual policy and wiring. The unreleased [lifecycle contract table](user-lifecycle-contracts.md) documents missing,
-unusable, expected-generation and concurrency outcomes; success remains void.
+Protect **every** HTTP, CLI, queue and other command/query entry in the consumer. Before trusted dispatch,
+authenticate the real caller, bind the actor to that identity and check current operation permission for the
+**exact target**. A caller-supplied actor, route match or cached UI permission is not authorization. Refuse denied
+requests at entry; do not dispatch them. An admitted ordinary request may finish if permission is removed while it
+runs. A fresh request checks again. The handler does not repeat the permission check or hold a permission fence.
+The [lifecycle contract table](user-lifecycle-contracts.md) documents missing, unusable, expected-generation and
+concurrency outcomes; success remains void.
 
 Use existing consumer-protected `GetUserById` and `FindInvitationDeliveryStatus` for operator inspection. The latter's
 current `InvitationDeliveryStatusView` now requires/exposes typed `getActivationDeliveryId()` and serialized
@@ -40,17 +37,17 @@ reserve state nor prove final eligibility. The handler revalidates current origi
 ## Composition and atomic persistence
 
 Construct `RecoverPendingRegistrationHandler` with, in order: Domain `UserRepository`, `ActivationGrantRepository`,
-Application `RegistrationRecoveryAuthorization`, Common `TransactionalUnitOfWork`, Application
+Common `TransactionalUnitOfWork`, Application
 `ActivationCredentialGenerator`, `InvitationDeliveryCipher`, Timing `Clock`, Common `EventDispatcher`, and optional
 last `?AuditEvidenceRepository $auditEvidenceRepository = null` (Unreleased TASK-00123). Register it through
-`commandRegistration()`. Omitted/null intentionally disables durable audit, not target authorization or expected-state
-fences. Configured evidence failure aborts staged work; no fallback repository is used. No Role repository or
+`commandRegistration()`. Remove the old authorization argument from constructor calls. Omitted/null intentionally
+disables durable audit, not consumer admission or expected-state fences. Configured evidence failure aborts staged work; no fallback repository is used. No Role repository or
 default-Role configuration belongs here.
 
 Within one transaction:
 
-1. Authorize the exact actor/target. Load authoritative current User and latest activation grant.
-2. Take one fresh clock sample after those reads. This is admission time, not a commit/completion deadline.
+1. Load the authoritative current User and latest activation grant for the admitted target.
+2. Take one fresh clock sample after those reads to evaluate business eligibility, not as a completion deadline.
 3. Require issued, unconsumed/unrevoked **registration-origin** authority, exact expected delivery generation,
    consistent User/delivery ownership, expiry and canonical destination. Require pending User state without a
    password or unrelated pending email reservation. Absent, active, disabled, deleted, private, stale, mismatched
@@ -124,7 +121,7 @@ can win against a stale recovery and must retain private origin and the original
 
 | TASK criterion | Executable package evidence |
 | --- | --- |
-| C1 | `RecoverPendingRegistrationHandlerTest`: exact actor/target transactional admission, strict DTO validation/round trips/registration; existing protected status generation output tests |
+| C1 | `UserLifecycleDispatchTest`: bounded entry model and real Command bus; `RecoverPendingRegistrationHandlerTest`: strict DTO validation/round trips/registration; existing protected status generation output tests |
 | C2–C4 | Handler tests for both variants, exact/pre/post expiry, all nonpending states, missing/private/terminal/stale/mismatched authority, inconsistent pending password/reservation, all-state canonical claims/live reservations and full rollback; journey tests for terminal delivery, private guard, duplicate/default-Role non-takeover |
 | C5 | `RegistrationRecoveryRaceTest`: Fiber-paused pre-write recovery/resend, correction/another recovery and activation schedules in both winner orders; reservation winner orders; held User/grant fences through commit/rollback; delayed delivered/retry/permanent outcomes; legal lifecycle orders with stale recovery versus activation/delete/restore |
 | C6 | `RegistrationRecoveryJourneyTest`: both variants through subscriber/Common bus/provider/single-use activation; both uncertain outcomes, response loss/double publication failure, scheduler restart and provider retry/resend; generator/cipher failure tests assert original throwable and redacted attempted failure evidence |
@@ -135,7 +132,7 @@ state and reject conflicts; Fiber pauses occur only before writes. Held-fence te
 through completion. Restart reconstitutes grants and reads retained User state; it is not an operating-system restart.
 Pending deletion remains rejected in either order; tests do not invent an unsupported competing transition.
 
-**Unexecuted real-consumer obligations:** actual administrator authentication/target-policy and authority fencing;
+**Unexecuted real-consumer obligations:** actual administrator authentication, operation permission and exact-target admission on every entry;
 shared DB connection, canonical uniqueness/reservation locks and complete-state CAS in parallel SQL sessions; rollback,
 uncertain commit and process restart; cipher/key durability; provider idempotency; actual scheduler; independently
 configurable registration/private templates and origin routing; every exposed dispatch/query path, public enumeration,

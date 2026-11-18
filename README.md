@@ -111,7 +111,7 @@ This bounded acceptance does not qualify consumer persistence, cryptography or t
 | Capability | Start here |
 | --- | --- |
 | User invitation, activation and credential delivery | [Delivery composition](docs/credential-delivery.md) · [Expired-work cleanup](docs/credential-expiry.md) |
-| Optional User registration and administrator recovery | [Registration](docs/user-registration.md) · [Recovery](docs/registration-recovery.md) |
+| Optional User registration and administrator recovery | [Registration](docs/user-registration.md) · [Recovery](docs/registration-recovery.md) · [Request-time admission and lifecycle constructors](docs/user-lifecycle-contracts.md) |
 | Login, refresh, logout, passwords and current authority | [Direct synchronous composition](docs/user-authentication.md) · [Behavioral contract](planning/tickets/00001-TICKET.md) · [Domain glossary](GLOSSARY.md) · [Package boundaries](planning/agents/project-profile.md#package-boundary-and-contracts) |
 | Roles, Permission tiers and managed policy | [Permission tiers](docs/permission-tiers.md) · [Operation outcomes](docs/operation-outcomes.md) |
 | Recoverable Agent provisioning, rotation and delivery | [Agent integration](docs/agent-integration.md) · [Conformance and evidence](docs/agent-operation-evidence.md) |

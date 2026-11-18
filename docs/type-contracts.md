@@ -173,8 +173,8 @@ The runtime suite separately exercises all eleven real Command routes and decode
 failure categories, internal failures, time/claim boundaries and existing family recovery/expiry guarantees.
 These fixtures establish neither generic Command/Event inference nor consumer persistence/provider qualification.
 
-TASK-00137 adds ten exact callback probes for all eight void User lifecycle handlers and both target-specific
-UserId authorization ports, plus four diagnostics rejecting wrong-purpose identities and use of void as a result.
+TASK-00137 covers the eight exact void User lifecycle handler callbacks and rejects using void as a result.
+The request-time authorization follow-up removes the probes for the two removed authorization ports.
 Owned handler analysis checks the local callback-result annotations separately. These fixtures neither qualify
 Common bus/Event generics nor replace runtime identity, failure, transaction and authorization proof.
 

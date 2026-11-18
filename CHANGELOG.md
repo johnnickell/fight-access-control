@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking changes
+
+- `CorrectPendingInvitationHandler` and `RecoverPendingRegistrationHandler` no longer take their former
+  authorization ports. Remove the constructor arguments, port bindings and obsolete denial catches. Before
+  trusted dispatch, every consumer entry must authenticate the real caller and check operation permission
+  for the exact target. An admitted ordinary request may finish after permission is removed; new requests check
+  again. Business fences, atomic configured audit and command/event payloads are unchanged. See the
+  [caller contracts](docs/user-lifecycle-contracts.md) and [recovery guide](docs/registration-recovery.md).
+
 ### Added
 
 - Current [portable admission reconciliation](docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)

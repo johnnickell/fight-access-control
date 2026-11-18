@@ -373,8 +373,10 @@ mandatory creation-time Role fencing, as described in the [registration guide](u
 fact is routed by `InvitationDeliverySubscriber` using fixed `registration` source provenance, not an authenticated actor.
 The worker uses stored origin and the normal activation purpose. Registration/default Roles/grant/delivery/audit commit
 before any invocation. Pending User and Roles survive publication/provider faults; delivery does not activate the User.
-For administrator correction or expired-same-email fresh activation, register `RecoverPendingRegistrationHandler`
-and its exact-target `RegistrationRecoveryAuthorization` port. Its `PendingRegistrationRecovered` fact is also routed
+For administrator correction or expired-same-email fresh activation, register `RecoverPendingRegistrationHandler`.
+Consumer entries authenticate the caller and check operation permission and exact target before dispatch, for both
+registration recovery and private invitation correction. The handlers do not repeat that permission check.
+The `PendingRegistrationRecovered` fact is also routed
 by `InvitationDeliverySubscriber` after commit, retaining stored registration origin. Follow the
 [recovery guide](registration-recovery.md) for mandatory User no-op/correction fencing, expected-generation validation,
 rollback and uncertain-commit resolution. The table below lists delivery-worker registrations.

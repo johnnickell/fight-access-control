@@ -146,8 +146,10 @@ or a current delivery queue. Read the relevant capability guides below for behav
 
 Consumers protect every Command entry point, including HTTP, CLI, workers and direct bus invocation. Outer layers
 normally authenticate, validate, authorize, choose synchronous/asynchronous invocation and translate failures;
-Application/Domain retain their own invariant checks. Target-sensitive session, email-change and invitation-recovery
-ports remain distinct from the retired actor-only Role and Agent Permission administration ports. See
+Application/Domain retain their own invariant checks. Invitation correction and registration recovery rely on
+consumer request-time admission for the actual caller, operation and exact target. The separate target-sensitive
+session and email-change ports remain, as distinct contracts from these and the retired actor-only Role and Agent
+Permission administration ports. See
 [Permission tiers](../../docs/permission-tiers.md) for all-path authorization, no-op eligibility and consumer last-admin duties.
 Package-owned workflow coordinators marked `@internal` are final implementation details, not consumer extension ports.
 Use public Commands, services, authenticated principals and SecurityContext. Credential providers receive one sensitive

@@ -132,7 +132,8 @@ and protect event/audit access (messages contain email/identity).
 
 Private invitations retain `PRIVATE_INVITATION`, private correction rejects registration, and deleted-to-pending restore
 starts a fresh private invitation. Administrator `RecoverPendingRegistration` retains the pending User and exact Roles,
-using its expected delivery ID and transaction-scoped target authorization; it never resolves new default Roles.
+after consumer entry admission for the operation and exact target. It checks the expected delivery ID inside its
+business transaction and never resolves new default Roles.
 The existing protected invitation status now exposes `activation_delivery_id` for generation inspection. See the
 [recovery composition and evidence](registration-recovery.md). Password-reset and email-change behavior is unchanged.
 
