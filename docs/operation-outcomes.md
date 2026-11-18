@@ -13,11 +13,16 @@ shape validation is not authorization, diagnostic sanitization or consumer persi
 
 The [current audit outcome matrix](audit-outcome-coverage.md) reconciles every handler and related sensitive/worker
 entry, including all family suppliers and the ordinary Role/conformance bindings. **Unreleased:** audit storage is
-optional last nullable everywhere in that surface, including formerly mandatory writers. Omitted/null disables
-durable evidence only; configured audit is required inside the mutation transaction and failure aborts staged work.
-Mixed per-owner composition is intentional. Later opt-in never backfills history or manufactures evidence during
-validated no-change/original-key resolution. Existing required actors, authorization, coupled writes, reference/
-cohort/restoration fences and recovery remain mandatory independently of audit. Historical releases retain their
+optional and nullable for every covered writer, including formerly mandatory writers. `RequestEmailChangeHandler`
+and `EmailChangeConfirmation` take `auditEvidenceRepository` immediately before the final nullable
+`emailChangeTransitionParticipant` argument. The two are independently optional; to enable participation without
+audit, pass `null` for audit or bind the participant by name. See
+[atomic email-change notification intent](credential-delivery.md#atomic-email-change-notification-intent-unreleased).
+Omitting audit or passing `null` disables durable audit evidence only. Configured audit writes are required inside
+the mutation transaction; failure aborts staged work. Mixed per-owner composition is intentional. Later opt-in
+never backfills history or manufactures evidence during validated no-change/original-key resolution. Existing
+required actors, authorization, coupled writes, reference/cohort/restoration fences and recovery remain mandatory
+independently of audit. Historical releases retain their
 original mandatory-audit contract; they are not documentation of this breaking current composition.
 
 ## Notifications and callers
