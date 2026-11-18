@@ -192,5 +192,5 @@ The [Task Board](BOARD.md) is the operational projection.
 | 506 | [TASK-00181](00181-TASK.md) | Close composition gaps and reconcile guidance | [TICKET-00052](../tickets/00052-TICKET.md) — Qualify independent and combined admission | done | [TASK-00180](00180-TASK.md), [TASK-00172](00172-TASK.md), [TASK-00173](00173-TASK.md), [TASK-00174](00174-TASK.md), [TASK-00175](00175-TASK.md), [TASK-00176](00176-TASK.md), [TASK-00177](00177-TASK.md), [TASK-00178](00178-TASK.md), [TASK-00179](00179-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/256 |
 | 507 | [TASK-00184](00184-TASK.md) | Replace CONTEXT with a domain glossary and apply bounded simplifications | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/257 |
 | 508 | [TASK-00185](00185-TASK.md) | Support atomic consumer participation in email-change transitions | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/259 |
-| 509 | [TASK-00186](00186-TASK.md) | Cancel only the identified email-change request | — (standalone bug) | in-progress | — | — |
+| 509 | [TASK-00186](00186-TASK.md) | Cancel only the identified email-change request | — (standalone bug) | done | — | — |
 <!-- generated:task-index:end -->
