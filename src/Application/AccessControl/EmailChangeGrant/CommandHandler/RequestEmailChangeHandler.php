@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler;
 
 use DateInterval;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeTransition;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeTransitionParticipant;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeTransitionStage;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeAdministrationAuthorization;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeCredentialGenerator;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\Service\EmailChangeDeliveryCipher;
@@ -20,6 +23,7 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AuditUserRevisions;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\RequestEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeRequested;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Exception\EmailChangeAdministrationAuthorizationException;
 use Fight\AccessControl\Domain\AccessControl\User\Exception\EmailChangeRequestException;
@@ -59,7 +63,8 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
         private EmailChangeDeliveryCipher $emailChangeDeliveryCipher,
         private Clock $clock,
         private EventDispatcher $eventDispatcher,
-        private ?AuditEvidenceRepository $auditEvidenceRepository = null
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null,
+        private ?EmailChangeTransitionParticipant $emailChangeTransitionParticipant = null
     ) {
     }
 
@@ -135,7 +140,8 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
                     $issuedAt->add(new DateInterval(self::GRANT_LIFETIME)),
                     $command->getEmail(),
                     $this->emailChangeDeliveryCipher->encrypt($credential->toString()),
-                    $replacement->getEmailChangeReservationRevision()
+                    $replacement->getEmailChangeReservationRevision(),
+                    new EmailChangeRequestOrigin($command->getActorId(), $user->getEmail())
                 );
                 if ($predecessor instanceof EmailChangeGrant) {
                     if (!$this->emailChangeGrantRepository->appendAfterTerminal($predecessor, $grant)) {
@@ -144,6 +150,16 @@ final readonly class RequestEmailChangeHandler implements CommandHandler
                 } elseif (!$this->emailChangeGrantRepository->add($grant)) {
                     throw new StateConflict('Email-change authority changed concurrently.');
                 }
+
+                $this->emailChangeTransitionParticipant?->stage(new EmailChangeTransition(
+                    EmailChangeTransitionStage::REQUESTED,
+                    $user->getId(),
+                    $grant->getId(),
+                    $grant->getEmailChangeReservationRevision(),
+                    $grant->getRequestOrigin(),
+                    $requestedAt,
+                    null
+                ));
 
                 if ($this->auditEvidenceRepository !== null) {
                     $this->auditEvidenceRepository->add(AuditEvidence::record(

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
+- `EmailChangeGrant::issue()` now requires `EmailChangeRequestOrigin`. Persist, hydrate and preserve the original
+  requester and protected canonical old mailbox with the exact grant/reservation generation, even if participation
+  is off. No compatibility defaults or backfill. See [email-change composition](docs/credential-delivery.md#atomic-email-change-notification-intent-unreleased).
+
 - `CorrectPendingInvitationHandler` and `RecoverPendingRegistrationHandler` no longer take their former
   authorization ports. Remove the constructor arguments, port bindings and obsolete denial catches. Before
   trusted dispatch, every consumer entry must authenticate the real caller and check operation permission
@@ -17,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [caller contracts](docs/user-lifecycle-contracts.md) and [recovery guide](docs/registration-recovery.md).
 
 ### Added
+
+- Optional typed consumer participation stages required request and confirmation notification intent on the actual
+  package transaction, alongside enabled audit. No new provider calls or Command/Event fields. Consumer storage,
+  delivery, recovery and operational qualification remain consumer-owned.
 
 - Current [portable admission reconciliation](docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
   connects existing Feature-only, Permission-only and combined evidence across Slim, Yii 3, Symfony, Laravel and CI4.
@@ -44,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Integrated [audit outcome inventory](docs/audit-outcome-coverage.md) for every current handler and related
   synchronous/worker outcome, with current family proof and ordinary Role/shared-transaction examples. All covered
-  owners now support optional final nullable audit storage, including formerly mandatory writers. Mixed per-owner
+  owners now support optional nullable audit storage, including formerly mandatory writers. Mixed per-owner
   composition and later opt-in without backfill are explicit. **Pre-v1:** update current constructor/provenance and
   typed persisted mappings directly; enabled adapters must reject unsupported evidence. Void Agent issuance and
   authorized outcome Queries preserve committed issuance despite publisher failure without returned/reconstructed
@@ -184,11 +192,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Consumers must qualify current evidence mappings and the actual shared connection before adoption; see
   [Role composition](docs/role-revisions.md#optional-lifecycle-audit-unreleased).
 
-- Optional final audit storage for email-change request, cancellation, delivery and expiry. Self-service and
+- Optional audit storage for email-change request, cancellation, delivery and expiry. Audit is last for cancellation,
+  delivery and expiry; the request handler takes it before the final optional participant. Self-service and
   administrative outcomes share current request/cancel action values; expiry records atomic User/grant release.
-  Breaking pre-v1 changes move former mandatory storage arguments to the end, replace administrative-only action
-  spellings and require typed actor-kind/UUID expiry Command/Event payloads. Update current callers and mappings
-  directly. Claims, external sends, recovery and ordinary failure propagation remain unchanged; synchronous
+  Breaking pre-v1 changes require updated constructor wiring, replace administrative-only action spellings and require
+  typed actor-kind/UUID expiry Command/Event payloads. Update callers and mappings directly. Claims, external
+  sends, recovery and ordinary failure propagation remain unchanged; synchronous
   confirmation is separately owned. See [email-change composition](docs/credential-delivery.md#optional-email-change-audit-composition-unreleased).
 
 - Optional final audit storage for password-reset request, delivery and expiry. Enabled expiry records atomic typed
@@ -254,10 +263,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking pre-v1 synchronous audit composition:** UserAuthentication, SessionLifecycle, PasswordManagement,
-  EmailChangeConfirmation and RevokeSessionHandler take optional nullable audit storage last. Omission/null disables
-  durable evidence; configured failure aborts the coupled outcome. Activation/login/rotation/logout and self-service
-  revocation now join the existing password/email/admin paths. Explicit typed provenance is required for enabled
+- **Breaking pre-v1 synchronous audit composition:** UserAuthentication, SessionLifecycle, PasswordManagement
+  and RevokeSessionHandler take optional nullable audit storage last. EmailChangeConfirmation takes it before the
+  final optional participant. Omission/null disables durable evidence; configured failure aborts the coupled
+  outcome. Activation/login/rotation/logout and self-service revocation now join the existing password/email/admin
+  paths. Explicit typed provenance is required for enabled
   activation, logout, reset, confirmation and terminal replay revocation, never inferred from a target or old
   credential. Committed replay revocation is evidenced before outward refusal; benign conflicts and helper no-change
   create no duplicate evidence. Consumer mappings must admit the new actions/authentication facts; no backfill or

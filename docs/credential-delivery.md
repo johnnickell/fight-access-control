@@ -52,11 +52,65 @@ Common generic bus inference. Actual tagged minimum/ordinary routing and safe HT
 TASK-00138's ignored Work evidence; HTTP maps deliberate 403/404/409 intent and keeps unknown/internal faults 500.
 MCP/OAuth mapping and real consumer storage/provider/worker qualification remain separate.
 
+## Atomic email-change notification intent (Unreleased)
+
+`RequestEmailChangeHandler` (through the registered Command) and `EmailChangeConfirmation::confirmEmail()`
+accept an optional `emailChangeTransitionParticipant: $participant` constructor argument. Bind the consumer's
+implementation of `EmailChangeTransitionParticipant` to **both** use cases when both notices are required.
+Each owner is configured separately. Omitted or explicit `null` performs no consumer intent write and promises
+no durable request/completion notice; it still performs the normal package transition and configured audit.
+No notification infrastructure is required for package-only composition.
+
+```text
+Request Command / synchronous confirmation
+    |
+    v
+AccessControl transaction owner (one actual connection and UoW)
+    |---> stage fenced User + grant/delivery writes (+ reset/session invalidation on confirmation)
+    |---> configured consumer stages protected notification intent on that same transaction
+    |---> stage enabled audit
+    `---> commit; only after acknowledgement, publish existing success Event
+
+Consumer delivery and recovery use committed intent, outside this flow.
+```
+
+`stage(EmailChangeTransition $transition)` runs after the business writes and their fences succeed, before enabled
+audit and commit. The consumer writer must use the actual active connection and unit of work used by the package
+repositories and enabled audit. Merely injecting the same abstraction, using the same database with another
+connection, or running a separate/nested transaction is not sufficient. The writer returns only after all required
+intent is staged, or throws an internal write fault. It must not publish, send mail, schedule external work, or
+commit independently. Consumers own intent storage, protected recipient handling, uniqueness, scheduling, templates,
+provider delivery and recovery. Verify actual rollback and commit with the consumer adapters before enabling the journey.
+
+The facts contain the target User ID, exact grant ID and accepted reservation revision, `REQUESTED` or `CONFIRMED`,
+the trusted reservation or confirmation time, and the original requester User ID and canonical old mailbox.
+On confirmation, stage means that valid purpose-bound credential proof was accepted; possession identifies no human.
+`confirmationActorId` is separately supplied trusted attribution (nullable when audit is off), never inferred from
+the target or original requester. Do not put these protected facts in public messages, safe Views, audit or logs.
+The participant receives no raw credential, digest, ciphertext, link or provider diagnostics.
+
+Persist/hydrate the required `EmailChangeRequestOrigin` on each `EmailChangeGrant`, even without participation:
+store its requester `UserId` and canonical old mailbox together with the immutable reservation revision and grant
+identity. `EmailChangeGrant::issue()` requires the origin after the reservation revision. Repository mappers must
+restore both origin fields and include them in complete expected-state comparison and same-generation preservation,
+including delivery and terminal revisions. Do not recover the old recipient from the current User, destination,
+audit record or timestamp. There is no historical hydration, default or backfill contract.
+
+Use exact `(grant ID, stage)` as the per-change intent identity in the consumer's storage scope, not email or time.
+At most one call is made per eligible owning attempt. Denied, stale, expired, duplicate/consumed and early CAS-losing
+attempts do not stage; a later transaction loss rolls back anything staged. A retry after **known** rollback must
+revalidate from current state; a fresh request attempt can allocate a new grant ID. Successive requests for the same
+address after terminalization have distinct IDs and reservation revisions. Acknowledgement loss is indeterminate:
+reconcile authoritative stored state and consumer intent, do not assume rollback, blindly repeat the business operation
+or enqueue afterward based on Events. Post-commit publication failure leaves state, intent and enabled audit committed.
+Neither committed intent nor success publication guarantees exactly-once sending. Cancellation/expiry are not participant
+stages. Existing Command/Event payloads and delivery-provider boundaries do not change.
+
 ## Optional email-change audit composition (Unreleased)
 
-TASK-00126 makes `AuditEvidenceRepository` the optional **last** constructor argument of
-`RequestEmailChangeHandler`, `CancelEmailChangeHandler`, `DeliverEmailChangeHandler` and `ExpireEmailChangeHandler`.
-Move the former mandatory request/cancel/delivery argument to the end. Omitted/null intentionally disables durable
+`RequestEmailChangeHandler`, `CancelEmailChangeHandler`, `DeliverEmailChangeHandler` and `ExpireEmailChangeHandler`
+accept optional `auditEvidenceRepository` storage. The request handler takes it before the optional participant.
+Omitted/null intentionally disables durable
 evidence; a supplied repository must join the User/grant repositories' actual transaction and connection and must
 not discard unsupported evidence. Audit storage failure aborts the required outcome transaction.
 

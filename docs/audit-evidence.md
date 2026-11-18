@@ -160,23 +160,31 @@ backfill history. External delivery effects, separately committed claims and ord
 their own truthful outcomes. Agent provision/rotation alone retain their existing confirmed-commit publication policy;
 void Commands do not return or reconstruct publication warnings.
 
-The approved family composition is a **last nullable repository dependency**: omitted/null intentionally disables
-audit; no enable flag or no-op repository is required. Enabled evidence needs provenance before its first required
-mutation, while pure no-change/disabled execution gains no new audit-only actor obligation. TASK-00122 defines this
-contract; TICKET-00044 through TICKET-00047 own actual optional constructor wiring, family admission and expanded
-outcomes. TASK-00123 now implements this composition for InvitePendingUser, RegisterUser, CorrectPendingInvitation,
-RecoverPendingRegistration, EnableUser, DisableUser, DeleteUser and RestoreUser. Their final
+Audit is an **optional nullable repository dependency**. Omitting it or passing `null` intentionally disables audit
+for that owner; no enable flag or no-op repository is required. In `RequestEmailChangeHandler` and
+`EmailChangeConfirmation`, `?AuditEvidenceRepository $auditEvidenceRepository = null` comes immediately before the
+final `?EmailChangeTransitionParticipant $emailChangeTransitionParticipant = null` argument. The two dependencies are
+independent: to configure participation without audit, pass `null` in the audit slot or use the named
+`emailChangeTransitionParticipant` argument. See the
+[atomic email-change participation contract](credential-delivery.md#atomic-email-change-notification-intent-unreleased).
+
+Enabled evidence needs provenance before its first required mutation, while pure no-change/disabled execution
+gains no new audit-only actor obligation. TASK-00122 defines optional audit; TICKET-00044 through TICKET-00047 own
+optional constructor wiring, family admission and expanded outcomes. TASK-00123 implemented this composition for
+InvitePendingUser, RegisterUser, CorrectPendingInvitation, RecoverPendingRegistration, EnableUser, DisableUser,
+DeleteUser and RestoreUser. Their final
 `?AuditEvidenceRepository $auditEvidenceRepository = null` argument may be omitted or explicitly null; no evidence
 or evidence identity is constructed in that composition. All existing business-required actors remain required;
 public registration deliberately establishes AnonymousId only for enabled evidence. No new audit-only actor input
 is needed in this slice because its existing typed Commands already supply sufficient provenance. Target admission,
-Role/reference fences and coupled persistence do not depend on enabling audit. TASK-00127 applies the same final
-nullable dependency to all four synchronous owners and RevokeSessionHandler, including previously mandatory
-password/email paths. Meaningful activation/login/rotation/logout/password/email and self/admin revocation outcomes
-are covered. Benign refresh conflicts, rejected work and concurrent helper no-change have no new mutation record;
+Role/reference fences and coupled persistence do not depend on enabling audit. TASK-00127 introduced audit as the
+final nullable dependency for all four synchronous owners and RevokeSessionHandler, including previously mandatory
+password/email paths. TASK-00185 later added the participant after audit in `EmailChangeConfirmation` and
+`RequestEmailChangeHandler`. Meaningful activation/login/rotation/logout/password/email and self/admin revocation
+outcomes are covered. Benign refresh conflicts, rejected work and concurrent helper no-change have no new mutation record;
 terminal replay's actually committed revocation is recorded before outward refusal. Helpers never add evidence.
 All remaining covered Role, membership, Agent administration/credential/delivery/maintenance and Feature/policy
-owners now implement the same final nullable injection. See the complete matrix for their actual signatures,
+owners also take audit as a final nullable dependency. See the [complete matrix](audit-outcome-coverage.md) for signatures,
 provenance, typed facts and executable proof; binding one writer never enables another owner implicitly.
 TASK-00167 adds reusable [transaction/storage conformance](audit-transaction-conformance.md) around the enabled
 writer, reopened modeled representation and wrong-connection controls. It does not qualify family optionality,

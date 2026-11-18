@@ -22,6 +22,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDelive
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\ExpireEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\ExpirePasswordResetDelivery;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
@@ -131,7 +132,8 @@ final readonly class ExpiredCredentialFixture
                 $arguments[2],
                 $arguments[3],
                 'fixture:encrypted',
-                $this->user->getEmailChangeReservationRevision()
+                $this->user->getEmailChangeReservationRevision(),
+                new EmailChangeRequestOrigin($this->user->getId(), $this->user->getEmail())
             ),
             default => throw new LogicException('Unknown fixture purpose.'),
         };

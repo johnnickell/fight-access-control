@@ -14,6 +14,9 @@ use Fight\AccessControl\Domain\AccessControl\User\UserId;
  * Interface EmailChangeGrantRepository
  *
  * Persists email-change authority generations under the caller's atomic boundary.
+ * Store and rehydrate the required request origin (requester User ID and canonical old mailbox) with every
+ * generation, even when no participant is configured. Protect that mailbox as personal data. Never reconstruct
+ * origin from a later User snapshot, the destination, or safe audit records.
  */
 interface EmailChangeGrantRepository
 {
@@ -88,7 +91,8 @@ interface EmailChangeGrantRepository
      *
      * Compare complete expected authority/delivery state against the latest stored generation, not object identity
      * or identifier/revision alone. Preserve grant/User/delivery identity, digest, expiry and the immutable bound User
-     * reservation revision. Accept only the aggregate's exact next delivery or consumed/revoked/expired authority
+     * reservation revision and original requester/old mailbox. Accept only the aggregate's exact next delivery or
+     * consumed/revoked/expired authority
      * transition. Direct delivery expiry preserves attempt/outcome/failure evidence, distinct from a new retry failure.
      * Returns false without mutation for stale/fabricated predecessors, skipped revisions or invalid transitions.
      * Writes share the caller's transaction; either grant or matching reservation CAS loss rolls back both.

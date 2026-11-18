@@ -9,19 +9,22 @@ qualification. It is not an audit API, executable registry, qualification score 
 
 TASK-00122's [typed evidence replacement](audit-evidence.md) supplies direct typed actors, finite
 subjects/actions, unique evidence identity, actual time/revisions/relationships/correlation and admitted facts.
-All covered mutation owners now implement optional last nullable audit storage, including formerly mandatory
+All covered mutation owners now implement optional nullable audit storage, including formerly mandatory
 writers. The family suppliers below own their original independent Review/QA and complete gate evidence;
 TASK-00169's ignored Work handoff owns their source/dependency/runtime/log bridges to the integrated candidate.
 Neither constructor presence nor ancestor acceptance alone proves current compatibility. The integrated checks
 exercise the current package; independent Review and nonvisual QA remain separate. No release or real consumer
 qualification is implied.
 
-The implemented contract uses the existing cohesive evidence/repository boundary, explicit optional **last nullable**
-audit injection per outcome owner, direct typed originating identities, package-defined actions, unique evidence
+The implemented contract uses the existing cohesive evidence/repository boundary, explicit optional nullable audit injection per outcome owner, direct typed originating identities, package-defined actions, unique evidence
 identity, trusted outcome time, precise subject/relationship references and bounded admitted context. Current APIs
 belong to [TASK-00121](../planning/tasks/00121-TASK.md)/[TASK-00122](../planning/tasks/00122-TASK.md) and the family
 suppliers below; use the [ordinary Role example](role-audit-composition.md) and each family's composition guide.
 
+- The email-change request and confirmation owners can separately configure
+  [consumer notification participation](credential-delivery.md#atomic-email-change-notification-intent-unreleased).
+  It does not enable or replace audit. Enabled audit follows consumer staging in the same transaction; a failure
+  rolls back both. The new request origin's mailbox is never copied into audit evidence.
 - Omitted/null means disabled, with **no durable-audit promise**. Configured write failure is not disabled and must
   not be swallowed to continue unaudited. Mixed per-owner opt-in is intentional; one binding does not enable all paths.
 - Enabled work admits required originating attribution before its first mutation requiring evidence, including a

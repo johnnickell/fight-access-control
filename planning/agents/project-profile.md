@@ -223,7 +223,9 @@ delivery Commands instead of copying claim/retry/terminalization/stale-generatio
 ## Application and security behavior
 
 - **Current optional atomic audit (EPIC-00017):** every covered handler and related synchronous outcome owner uses
-  optional last nullable `AuditEvidenceRepository`, including formerly mandatory writers. Omitted/null deliberately
+  optional nullable `AuditEvidenceRepository`, including formerly mandatory writers. Email-change request and
+  confirmation take it before the separate [optional participant](../../docs/credential-delivery.md#atomic-email-change-notification-intent-unreleased).
+  Omitted/null deliberately
   disables durability for that owner only; configured failure never does. Enabled evidence joins the actual mutation
   transaction before commit. Later opt-in does not backfill history. Explicit typed origin grants no authority;
   disabled/no-change work needs no new audit-only actor, while existing business actors and all admission/fence/

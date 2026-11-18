@@ -34,6 +34,7 @@
     {"ticket": "TICKET-00040", "task": "TASK-00137", "path": "src/Application/AccessControl/User/CommandHandler/(RegisterUser|InvitePendingUser|RecoverPendingRegistration|CorrectPendingInvitation|EnableUser|DisableUser|DeleteUser|RestoreUser)Handler\\.php"},
     {"ticket": "TICKET-00040", "task": "TASK-00138", "path": "src/Application/AccessControl/((ActivationGrant|PasswordResetGrant|EmailChangeGrant)/(CommandHandler|Service)/.*|CredentialDelivery/Service/.*)"},
     {"ticket": "TICKET-00040", "task": "TASK-00139", "path": "src/Application/AccessControl/(User/(Authentication/.*|Security/.*|PasswordManagement\\.php|Service/LoginThrottle\\.php)|RefreshSession/(CommandHandler/.*|Service/.*|SessionLifecycle\\.php)|EmailChangeGrant/EmailChangeConfirmation\\.php)"},
+    {"ticket": "TICKET-00040", "task": "TASK-00138", "path": "src/Application/AccessControl/EmailChangeGrant/EmailChangeTransition(Participant|Stage)?\\.php"},
     {"ticket": "TICKET-00040", "task": "TASK-00140", "path": "src/Application/AccessControl/(Role/CommandHandler/.*|User/CommandHandler/(AssignRoleToUser|RemoveRoleFromUser)Handler\\.php)"},
     {"ticket": "TICKET-00040", "task": "TASK-00141", "path": "src/Application/AccessControl/Agent/(PermissionAssignment/.*|CommandHandler/(GrantPermissionToAgent|RevokePermissionFromAgent|ReplaceAgentPermissions|UpdateAgent)Handler\\.php)"},
     {"ticket": "TICKET-00040", "task": "TASK-00142", "path": "src/Application/AccessControl/(Feature/(CommandHandler|Discovery|Service)/.*|ManagedPolicy/(CommandHandler|Service)/.*)"},

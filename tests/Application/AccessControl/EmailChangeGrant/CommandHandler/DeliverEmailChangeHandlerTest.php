@@ -15,6 +15,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\DeliverEma
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeDelivered;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Event\EmailChangeRequested;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -382,14 +383,17 @@ final class DeliverEmailChangeHandlerTest extends TestCase
 
     private function grant(string $expiresAt = '2026-08-23T12:00:00+00:00'): EmailChangeGrant
     {
+        $userId = UserId::generate();
+
         return EmailChangeGrant::issue(
-            UserId::generate(),
+            $userId,
             EmailChangeCredential::fromString('confirm-once'),
             new DateTimeImmutable('2026-08-23T11:00:00+00:00'),
             new DateTimeImmutable($expiresAt),
             EmailAddress::fromString('new@example.test'),
             'ciphertext:confirm-once',
-            1
+            1,
+            new EmailChangeRequestOrigin($userId, EmailAddress::fromString('old@example.test'))
         );
     }
 

@@ -12,6 +12,7 @@ use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandle
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler\ExpireEmailChangeHandler;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler\RequestEmailChangeHandler;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
+use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeTransitionStage;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\ExpirePasswordResetDeliveryHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\RequestPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\RefreshSession\Service\SessionRevocationService;
@@ -42,6 +43,7 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\FixedCredentialGenerator;
 use Fight\Test\AccessControl\Application\AccessControl\ActivationGrant\Service\PrefixInvitationDeliveryCipher;
 use Fight\Test\AccessControl\Application\AccessControl\Audit\Repository\InMemoryAuditEvidenceRepository;
+use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\InMemoryEmailChangeTransitionParticipant;
 use Fight\Test\AccessControl\Application\AccessControl\EmailChangeGrant\Service as EmailChangeService;
 use Fight\Test\AccessControl\Application\AccessControl\Event\InMemoryEventDispatcher;
 use Fight\Test\AccessControl\Application\AccessControl\PasswordResetGrant\Service\FixedPasswordResetCredentialGenerator;
@@ -203,11 +205,13 @@ final class ExpiredCredentialInterleavingTest extends TestCase
         self::assertInstanceOf(EmailChangeGrant::class, $before);
         $loserEventDispatcher = new InMemoryEventDispatcher();
         $cleanup = $fixture->handler(eventDispatcher: $cleanupWins ? $fixture->eventDispatcher : $loserEventDispatcher);
+        $participant = new InMemoryEmailChangeTransitionParticipant($fixture->unitOfWork);
         $other = $this->emailCompetitor(
             $fixture,
             $competitor,
             $cleanupWins,
-            $cleanupWins ? $loserEventDispatcher : $fixture->eventDispatcher
+            $cleanupWins ? $loserEventDispatcher : $fixture->eventDispatcher,
+            $participant
         );
         if (!$cleanupWins) {
             $cleanup = $this->pausedCleanup($fixture, $loserEventDispatcher);
@@ -235,6 +239,17 @@ final class ExpiredCredentialInterleavingTest extends TestCase
 
         self::assertSame($persisted, $fixture->current());
         self::assertSame($userState, self::userState($fixture->userRepository->getById($fixture->user->getId())));
+        self::assertSame((int) (!$cleanupWins && $competitor !== 'cancel'), $participant->invocations);
+        if (!$cleanupWins && $competitor !== 'cancel') {
+            $stage = match ($competitor) {
+                'consume' => EmailChangeTransitionStage::CONFIRMED,
+                default   => EmailChangeTransitionStage::REQUESTED
+            };
+            self::assertSame([$persisted->getId()->toString().':'.$stage->value], array_keys($participant->intents));
+        } else {
+            self::assertSame([], $participant->intents);
+        }
+
         self::assertNoSuccess($loserEventDispatcher);
         self::assertCount(!$cleanupWins && $competitor === 'replacement' ? 2 : 1, $fixture->eventDispatcher->events());
         self::assertSame($fixture->user->getState(), $persistedUser->getState());
@@ -509,7 +524,8 @@ final class ExpiredCredentialInterleavingTest extends TestCase
         ExpiredCredentialFixture $fixture,
         string $competitor,
         bool $pause,
-        InMemoryEventDispatcher $eventDispatcher
+        InMemoryEventDispatcher $eventDispatcher,
+        InMemoryEmailChangeTransitionParticipant $participant
     ): Closure {
         $userRepository = $fixture->userRepository;
         $emailChangeGrantRepository = $fixture->emailChangeGrantRepository;
@@ -544,7 +560,8 @@ final class ExpiredCredentialInterleavingTest extends TestCase
                 $fixture->unitOfWork,
                 $clock,
                 $eventDispatcher,
-                $auditEvidenceRepository
+                $auditEvidenceRepository,
+                $participant
             );
 
             return static fn () => $service->confirmEmail($fixture->user->getId(), 'fixture', AnonymousId::generate());
@@ -560,19 +577,21 @@ final class ExpiredCredentialInterleavingTest extends TestCase
             $auditEvidenceRepository
         );
 
-        return function () use ($fixture, $handler, $competitor): void {
+        return function () use ($fixture, $handler, $competitor, $participant): void {
             $handler->handle(CommandMessage::create(new CancelEmailChange(
                 $fixture->user->getId(),
                 $fixture->user->getId()
             )));
             if ($competitor === 'replacement') {
-                $this->requestEmail($fixture);
+                $this->requestEmail($fixture, $participant);
             }
         };
     }
 
-    private function requestEmail(ExpiredCredentialFixture $fixture): void
-    {
+    private function requestEmail(
+        ExpiredCredentialFixture $fixture,
+        ?InMemoryEmailChangeTransitionParticipant $participant = null
+    ): void {
         $handler = new RequestEmailChangeHandler(
             $fixture->userRepository,
             $fixture->emailChangeGrantRepository,
@@ -582,7 +601,8 @@ final class ExpiredCredentialInterleavingTest extends TestCase
             new EmailChangeService\PrefixEmailChangeDeliveryCipher(),
             new FixedClock($fixture->expiresAt->format('Y-m-d\TH:i:s.uP')),
             $fixture->eventDispatcher,
-            new InMemoryAuditEvidenceRepository($fixture->unitOfWork)
+            new InMemoryAuditEvidenceRepository($fixture->unitOfWork),
+            $participant
         );
         $handler->handle(CommandMessage::create(new RequestEmailChange(
             $fixture->user->getId(),

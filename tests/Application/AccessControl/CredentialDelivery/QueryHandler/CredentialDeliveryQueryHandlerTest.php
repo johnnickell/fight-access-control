@@ -17,6 +17,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindCreden
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindDueCredentialDeliveries;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetCredential;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\User\RecoveryAuthority;
@@ -169,6 +170,7 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
         $issuedAt ??= new DateTimeImmutable('2026-08-23T11:00:00+00:00');
         $expiresAt = new DateTimeImmutable('2026-08-23T12:00:00+00:00');
         $email = EmailAddress::fromString('alice@example.test');
+        $emailChangeUserId = UserId::generate();
 
         return [
             ActivationGrant::issue(
@@ -190,13 +192,14 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
                 new RecoveryAuthority(1, 0)
             ),
             EmailChangeGrant::issue(
-                UserId::generate(),
+                $emailChangeUserId,
                 EmailChangeCredential::fromString('change'),
                 $issuedAt,
                 $expiresAt,
                 $email,
                 'ciphertext:change',
-                1
+                1,
+                new EmailChangeRequestOrigin($emailChangeUserId, EmailAddress::fromString('old@example.test'))
             )
         ];
     }

@@ -54,7 +54,8 @@ final readonly class EmailChangeConfirmation
         private TransactionalUnitOfWork $unitOfWork,
         private Clock $clock,
         private EventDispatcher $eventDispatcher,
-        private ?AuditEvidenceRepository $auditEvidenceRepository = null
+        private ?AuditEvidenceRepository $auditEvidenceRepository = null,
+        private ?EmailChangeTransitionParticipant $emailChangeTransitionParticipant = null
     ) {
     }
 
@@ -132,6 +133,16 @@ final readonly class EmailChangeConfirmation
                     $confirmedAt
                 );
                 $this->sessionRevocationService->revokeAllActiveFor($userId, $confirmedAt);
+
+                $this->emailChangeTransitionParticipant?->stage(new EmailChangeTransition(
+                    EmailChangeTransitionStage::CONFIRMED,
+                    $userId,
+                    $grant->getId(),
+                    $grant->getEmailChangeReservationRevision(),
+                    $grant->getRequestOrigin(),
+                    $confirmedAt,
+                    $actorId
+                ));
 
                 if ($actorId !== null) {
                     $this->auditEvidenceRepository?->add(AuditEvidence::record(

@@ -20,6 +20,7 @@ use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
 use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeRequestOrigin;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrant;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSession;
@@ -96,7 +97,8 @@ final class EmailChangeConfirmationTest extends TestCase
             new DateTimeImmutable('2026-08-19T13:00:00+00:00'),
             EmailAddress::fromString('new@example.test'),
             'ciphertext:confirm-email-once',
-            $reservedUser->getEmailChangeReservationRevision()
+            $reservedUser->getEmailChangeReservationRevision(),
+            new EmailChangeRequestOrigin($user->getId(), $user->getEmail())
         )));
         $refreshSessionRepository = new InMemoryRefreshSessionRepository($unitOfWork);
         $refreshSessionRepository->add($this->session($reservedUser, $this->refreshCredential(), false));
@@ -216,7 +218,8 @@ final class EmailChangeConfirmationTest extends TestCase
                     $condition === 'mismatched' ? 'mismatched@example.test' : 'new@example.test'
                 ),
                 'ciphertext:confirm-email-once',
-                $reservedUser->getEmailChangeReservationRevision()
+                $reservedUser->getEmailChangeReservationRevision(),
+                new EmailChangeRequestOrigin($user->getId(), $user->getEmail())
             );
             self::assertTrue($emailChangeGrantRepository->add($grant));
             if ($condition === 'consumed') {

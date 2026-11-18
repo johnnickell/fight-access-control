@@ -4,6 +4,7 @@
 
 - **User**: A stable human identity whose canonical email remains unique across pending, active, disabled and deleted states.
 - **Grant**: A purpose-bound, expiring, single-use credential for account activation, password reset or email change.
+- **Email-change request origin**: The original requester and protected canonical old mailbox retained on the exact email-change grant generation. [Composition](docs/credential-delivery.md#atomic-email-change-notification-intent-unreleased).
 - **Activation origin**: The distinction between a private invitation and self-registration that produced an activation grant and its delivery.
 - **Recoverable credential delivery**: Retained activation, password-reset or email-change work that can resume after interruption without issuing another grant. [Composition](docs/credential-delivery.md).
 - **Refresh session**: The authoritative server-side session that owns refresh-credential rotation, revocation, activity, lifetime and coarse device information.

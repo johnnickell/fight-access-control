@@ -16,7 +16,7 @@ All paths below are relative to `Fight\AccessControl\Application\AccessControl`.
 | `User\Authentication\UserAuthentication` | `activate(UserId, activationCredential, plainPassword, remember, actorId = null): TokenSet`; `login(email, plainPassword, remember): TokenSet` | Single-use activation or verified/throttled login, complete User successor and coupled session insertion. Publish `UserActivated`/`UserLoggedIn` only after commit; return tokens only after publication. |
 | `RefreshSession\SessionLifecycle` | `refresh(refreshCredential, actorId = null): RefreshResult`; `logout(refreshCredential, actorId = null): void` | Rotation or secret-free bounded conflict; terminal replay commits revocation before outward refusal. Logout revokes only the selected current session and publishes `CurrentSessionLoggedOut` after commit. |
 | `User\PasswordManagement` | `changePassword(authenticatedUserId, currentPassword, newPassword): void`; `resetPassword(userId, resetCredential, plainPassword, actorId = null): void` | Verify the current password or consume the current eligible reset grant, replace User authority, cancel recovery as applicable, revoke sessions and audit together. Publish `PasswordChanged`/`PasswordResetCompleted` after commit. |
-| `EmailChangeGrant\EmailChangeConfirmation` | `confirmEmail(userId, emailChangeCredential, actorId = null): void` | Consume the current email grant, promote the pending identity, invalidate reset authority, revoke sessions and audit together. Publish `EmailChangeConfirmed` after commit. No token issuance. |
+| `EmailChangeGrant\EmailChangeConfirmation` | `confirmEmail(userId, emailChangeCredential, actorId = null): void` | Consume the current email grant, promote the pending identity, invalidate reset authority, revoke sessions, and stage configured notice intent and audit in one transaction. Publish `EmailChangeConfirmed` after commit. No token issuance. |
 
 Passwords and presented credentials remain `SensitiveParameter` inputs. Keep them out of message DTOs, application
 logs and diagnostic responses. Token results are immediate sensitive transport material, not serializable CQRS
@@ -26,10 +26,9 @@ An `authenticatedUserId` argument is a trusted caller assertion, not a new authe
 
 ## Optional atomic audit
 
-All four direct owners and `RevokeSessionHandler` take a final
-`?AuditEvidenceRepository $auditEvidenceRepository = null`. Omission/null deliberately disables durable audit;
-configured write failure aborts the coupled transaction. Password/email constructors move their formerly required
-audit argument to this last optional position. Update positional callers directly; no compatibility mode is supplied.
+All four direct owners and `RevokeSessionHandler` take optional
+`?AuditEvidenceRepository $auditEvidenceRepository = null`. Email confirmation takes it before the optional
+participant. Omission/null deliberately disables durable audit; configured write failure aborts the coupled transaction.
 
 Enabled activation, reset completion, email confirmation, logout and terminal replay revocation require explicit
 `UserId|AgentId|SystemId|AnonymousId` provenance before the first mutation. A target UserId or an old replayed
@@ -63,8 +62,8 @@ $authenticationService->logout($refreshCredential);
 ```
 
 After, construct only the owner needed by the caller. Email confirmation has seven required dependencies plus
-optional audit storage and needs
-no password/token ports, throttle, activation repository or dummy hash:
+optional audit storage and [atomic consumer participation](credential-delivery.md#atomic-email-change-notification-intent-unreleased).
+It needs no password/token ports, throttle, activation repository or dummy hash:
 
 ```php
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EmailChangeConfirmation;
@@ -79,9 +78,10 @@ $emailChangeConfirmation = new EmailChangeConfirmation(
     unitOfWork: $unitOfWork,
     clock: $clock,
     eventDispatcher: $eventDispatcher,
-    auditEvidenceRepository: $auditEvidenceRepository
+    auditEvidenceRepository: $auditEvidenceRepository,
+    emailChangeTransitionParticipant: $emailChangeTransitionParticipant
 );
-$emailChangeConfirmation->confirmEmail($userId, $emailChangeCredential, actorId: $originatingActorId);
+$emailChangeConfirmation->confirmEmail($userId, $emailChangeCredential, actorId: $confirmationActorId);
 ```
 
 Password consumers need nine required dependencies plus optional audit storage, not email/activation grants,

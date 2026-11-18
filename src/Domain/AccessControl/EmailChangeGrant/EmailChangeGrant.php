@@ -32,6 +32,7 @@ class EmailChangeGrant
         private readonly DateTimeImmutable $expiresAt,
         private readonly EmailChangeDelivery $delivery,
         private readonly int $emailChangeReservationRevision,
+        private readonly EmailChangeRequestOrigin $requestOrigin,
         private readonly ?DateTimeImmutable $consumedAt = null,
         private readonly ?DateTimeImmutable $revokedAt = null,
         private readonly ?DateTimeImmutable $expiredAt = null,
@@ -49,7 +50,8 @@ class EmailChangeGrant
         DateTimeImmutable $expiresAt,
         EmailAddress $email,
         string $ciphertext,
-        int $emailChangeReservationRevision
+        int $emailChangeReservationRevision,
+        EmailChangeRequestOrigin $requestOrigin
     ): static {
         if ($expiresAt <= $issuedAt) {
             throw new EmailChangeGrantException('The email-change grant expiry must follow issuance.');
@@ -72,7 +74,8 @@ class EmailChangeGrant
                 $expiresAt,
                 $issuedAt
             ),
-            $emailChangeReservationRevision
+            $emailChangeReservationRevision,
+            $requestOrigin
         );
     }
 
@@ -98,6 +101,14 @@ class EmailChangeGrant
     public function getEmailChangeReservationRevision(): int
     {
         return $this->emailChangeReservationRevision;
+    }
+
+    /**
+     * Returns the original requester and protected old mailbox for this generation
+     */
+    public function getRequestOrigin(): EmailChangeRequestOrigin
+    {
+        return $this->requestOrigin;
     }
 
     /**
@@ -160,6 +171,7 @@ class EmailChangeGrant
             $this->expiresAt,
             $this->delivery->invalidate(),
             $this->emailChangeReservationRevision,
+            $this->requestOrigin,
             $at,
             $this->revokedAt,
             $this->expiredAt,
@@ -183,6 +195,7 @@ class EmailChangeGrant
             $this->expiresAt,
             $this->delivery->invalidate(),
             $this->emailChangeReservationRevision,
+            $this->requestOrigin,
             $this->consumedAt,
             $at,
             $this->expiredAt,
@@ -206,6 +219,7 @@ class EmailChangeGrant
             $this->expiresAt,
             $this->delivery->invalidate(),
             $this->emailChangeReservationRevision,
+            $this->requestOrigin,
             $this->consumedAt,
             $this->revokedAt,
             $at,
@@ -369,6 +383,7 @@ class EmailChangeGrant
             $this->expiresAt,
             $delivery,
             $this->emailChangeReservationRevision,
+            $this->requestOrigin,
             $this->consumedAt,
             $this->revokedAt,
             $this->expiredAt,
