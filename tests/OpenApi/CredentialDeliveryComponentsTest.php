@@ -146,7 +146,7 @@ final class CredentialDeliveryComponentsTest extends TestCase
                 ),
                 ActivationOrigin::PRIVATE_INVITATION
             );
-            $view = CredentialDeliveryStatusView::fromDelivery('password_reset', $delivery, 0);
+            $view = CredentialDeliveryStatusView::fromDelivery('password_reset', $delivery, 0, null);
             $payloads = [
                 'InvitationDeliveryStatus' => $invitation->toArray(),
                 'CredentialDeliveryStatus' => $view->toArray()
@@ -223,17 +223,22 @@ final class CredentialDeliveryComponentsTest extends TestCase
         $failures = [...array_column(CredentialDeliveryFailure::cases(), 'value'), null];
         $operational = $schemas['Fight.AccessControl.CredentialDeliveryStatus'];
         self::assertSame([
-            'purpose'         => $purpose,
-            'delivery_id'     => $uuid,
-            'user_id'         => $uuid,
-            'revision'        => ['type' => 'integer', 'minimum' => 0],
-            'status'          => $status,
-            'due_at'          => $date,
-            'expires_at'      => $date,
-            'attempt_count'   => ['type' => 'integer', 'minimum' => 0],
-            'last_attempt_at' => ['type' => ['string', 'null'], 'format' => 'date-time'],
-            'last_outcome_at' => ['type' => ['string', 'null'], 'format' => 'date-time'],
-            'last_failure'    => ['type' => ['string', 'null'], 'enum' => $failures]
+            'purpose'               => $purpose,
+            'delivery_id'           => $uuid,
+            'user_id'               => $uuid,
+            'email_change_grant_id' => [
+                'description' => 'Exact request ID for email_change; null for invitation/reset',
+                'type'        => ['string', 'null'],
+                'format'      => 'uuid'
+            ],
+            'revision'              => ['type' => 'integer', 'minimum' => 0],
+            'status'                => $status,
+            'due_at'                => $date,
+            'expires_at'            => $date,
+            'attempt_count'         => ['type' => 'integer', 'minimum' => 0],
+            'last_attempt_at'       => ['type' => ['string', 'null'], 'format' => 'date-time'],
+            'last_outcome_at'       => ['type' => ['string', 'null'], 'format' => 'date-time'],
+            'last_failure'          => ['type' => ['string', 'null'], 'enum' => $failures]
         ], $operational['properties']);
         self::assertSame([
             'purpose'     => $purpose,
@@ -252,9 +257,9 @@ final class CredentialDeliveryComponentsTest extends TestCase
         ], $schemas['Fight.AccessControl.InvitationDeliveryStatus']['properties']);
 
         $deliveries = $this->deliveries();
-        $pending = CredentialDeliveryStatusView::fromDelivery('password_reset', $deliveries['pending'], 0)->toArray();
-        foreach (['last_attempt_at', 'last_outcome_at', 'last_failure'] as $field) {
-            self::assertNull($pending[$field]);
+        $pending = CredentialDeliveryStatusView::fromDelivery('password_reset', $deliveries['pending'], 0, null);
+        foreach (['email_change_grant_id', 'last_attempt_at', 'last_outcome_at', 'last_failure'] as $field) {
+            self::assertNull($pending->toArray()[$field]);
             self::assertContains($field, $operational['required']);
             self::assertContains('null', $operational['properties'][$field]['type']);
         }
@@ -270,7 +275,7 @@ final class CredentialDeliveryComponentsTest extends TestCase
                 $failed = $claimed->fail($token, $at, $failure);
             }
 
-            $payload = CredentialDeliveryStatusView::fromDelivery('password_reset', $failed, 2)->toArray();
+            $payload = CredentialDeliveryStatusView::fromDelivery('password_reset', $failed, 2, null)->toArray();
             $this->assertCanonicalFields($operational, $payload);
             self::assertSame(1, $payload['attempt_count']);
             self::assertSame('2030-01-01T12:00:00+00:00', $payload['last_attempt_at']);

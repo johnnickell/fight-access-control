@@ -10,6 +10,7 @@ use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\Credential
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\CredentialDeliveryStatusView;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\Query\FindCredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeDeliveryId;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantRepository;
@@ -78,6 +79,11 @@ final readonly class FindCredentialDeliveryStatusHandler implements QueryHandler
             throw new LogicException('Invalid credential status repository result.');
         }
 
-        return CredentialDeliveryStatusView::fromDelivery($grant->purpose(), $delivery, $grant->getRevision());
+        return CredentialDeliveryStatusView::fromDelivery(
+            $grant->purpose(),
+            $delivery,
+            $grant->getRevision(),
+            $grant instanceof EmailChangeGrant ? $grant->getId() : null
+        );
     }
 }

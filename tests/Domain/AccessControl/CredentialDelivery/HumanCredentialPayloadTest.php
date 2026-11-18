@@ -79,7 +79,7 @@ final class HumanCredentialPayloadTest extends TestCase
             ],
             FindDueCredentialDeliveries::class                      => ['at' => $at, 'limit' => 50],
             FindExpiredCredentialDeliveries::class                  => ['at' => $at, 'limit' => 50],
-            EmailCommand\CancelEmailChange::class                   => $actorUser,
+            EmailCommand\CancelEmailChange::class                   => $actorUser + ['email_change_grant_id' => $id],
             EmailCommand\DeliverEmailChange::class                  => $email,
             EmailCommand\ExpireEmailChange::class                   => $expiry,
             EmailCommand\RequestEmailChange::class                  => $actorUser + [

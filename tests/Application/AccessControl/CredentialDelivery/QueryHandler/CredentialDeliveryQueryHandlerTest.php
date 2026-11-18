@@ -125,6 +125,9 @@ final class CredentialDeliveryQueryHandlerTest extends TestCase
             self::assertSame($grant->purpose(), $view->getPurpose());
             self::assertSame($grant->getDelivery()->getId()->toString(), $view->getDeliveryId());
             self::assertTrue($grant->getUserId()->equals($view->getUserId()));
+            $requestId = $grant === $emailChange ? $emailChange->getId() : null;
+            self::assertEquals($requestId, $view->getEmailChangeGrantId());
+            self::assertSame($requestId?->toString(), $view->toArray()['email_change_grant_id']);
             self::assertSame(0, $view->getRevision());
             self::assertSame(CredentialDeliveryStatus::PENDING, $view->getStatus());
             self::assertEquals($grant->getDelivery()->getDueAt(), $view->getDueAt());

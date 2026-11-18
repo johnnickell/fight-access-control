@@ -10,6 +10,7 @@ use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHand
 use Fight\AccessControl\Application\AccessControl\Timing\Service\Clock;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrantRepository;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryClaimToken;
+use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\CancelEmailChange;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeCredential;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrant;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantRepository;
@@ -385,8 +386,9 @@ final class HumanCredentialContractTest extends TestCase
 
         $this->expectException(LogicException::class);
         try {
+            $userId = $fixture->state->user->getId();
             $fixture->handler('email_change.cancel', email: $email)->handle(
-                CommandMessage::create($fixture->command('email_change.cancel'))
+                CommandMessage::create(new CancelEmailChange($userId, $userId, $grant->getId()))
             );
         } finally {
             self::assertNotNull($fixture->state->userRepository->getById(

@@ -361,7 +361,7 @@ final class RecoveryFixture
         )));
     }
 
-    public function cancelEmail(): void
+    public function cancelEmail(CancelEmailChange $command): void
     {
         new CancelEmailChangeHandler(
             $this->userRepository,
@@ -371,7 +371,7 @@ final class RecoveryFixture
             new FixedClock($this->now),
             $this->eventDispatcher,
             $this->auditEvidenceRepository
-        )->handle(CommandMessage::create(new CancelEmailChange($this->userId, $this->userId)));
+        )->handle(CommandMessage::create($command));
     }
 
     private function tokenIssuer(): TokenIssuer

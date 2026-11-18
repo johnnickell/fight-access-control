@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
+- `CancelEmailChange` now requires the exact `EmailChangeGrantId` (`email_change_grant_id`) for self-service and
+  administrative cancellation. Delayed intent cannot cancel a newer request, even for the same address.
+  `FindCredentialDeliveryStatus` exposes that request ID for the exact email-change delivery, and `null` for
+  other purposes. See [caller and read admission](docs/credential-delivery.md#cancel-the-exact-email-change-request-unreleased).
+
 - `EmailChangeGrant::issue()` now requires `EmailChangeRequestOrigin`. Persist, hydrate and preserve the original
   requester and protected canonical old mailbox with the exact grant/reservation generation, even if participation
   is off. No compatibility defaults or backfill. See [email-change composition](docs/credential-delivery.md#atomic-email-change-notification-intent-unreleased).

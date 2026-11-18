@@ -112,6 +112,7 @@ final readonly class CancelEmailChangeHandler implements CommandHandler
                 if (
                     !$pendingEmailChange instanceof EmailAddress
                     || !$emailChangeGrant instanceof EmailChangeGrant
+                    || !$emailChangeGrant->getId()->equals($command->getEmailChangeGrantId())
                     || !$emailChangeGrant->isIssued()
                 ) {
                     throw new StateConflict('The user has no cancellable email change.');
