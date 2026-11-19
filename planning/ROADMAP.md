@@ -568,7 +568,13 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.9.0 published
+## Current release handoff — v0.10.0 published
+
+[v0.10.0](../docs/release-0.10.0.md) was published on 2026-11-19 (UTC) from the certified `main` merge in
+[PR #263](https://github.com/johnnickell/fight-access-control/pull/263). The signed tag, immutable GitHub release,
+and Packagist source and archive references were verified. Consumer installation and CLI qualification remain separate.
+
+## v0.9.0 published release checkpoint
 
 [v0.9.0](../docs/release-0.9.0.md) was published on 2026-11-18 from the certified `main` merge in
 [PR #261](https://github.com/johnnickell/fight-access-control/pull/261). The signed tag, immutable GitHub release
@@ -849,6 +855,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.10.0` | 2026-11-19 (UTC) | Published trusted User Role assignments with system attribution and widened actor getters. Existing User payloads are unchanged. See the [release overview](../docs/release-0.10.0.md). |
 | `v0.9.0` | 2026-11-18 | Published breaking User and Agent contracts, optional atomic audit, portable HTTP admission and current OpenAPI components. See the [release overview](../docs/release-0.9.0.md) for consumer obligations. |
 | `v0.8.0` | 2026-10-21 | Published breaking Role caller revisions and recovery composition, operation-outcome and managed-policy consistency, plus contributor/release-documentation improvements. Main-to-develop merge-back completed through PR #135; release-owned cleanup is satisfied. Consumer qualification remains separate. |
 | `v0.7.0` | 2026-10-20 | Published optional User registration, activation origin and administrator recovery; merged back through PR #125. Consumer enablement and qualification remain separate. |

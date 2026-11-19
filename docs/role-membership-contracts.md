@@ -94,6 +94,18 @@ uncertain commit and both race winners. Package transaction-aware fixtures are n
 adds no rejected-attempt store, audit-only transaction, compatibility reader or backfill. Role lifecycle composition
 and removal of consumer interception workarounds retain their separate owners.
 
+## User membership actors
+
+An already admitted caller can attribute `AssignRoleToUser` to a `UserId` or, for trusted system work, to
+`SystemId`. The target remains a `UserId`. `SystemId` is not a principal, a permission, or proof that a caller
+is trusted. Every entry point, including a bootstrap CLI, still owns caller admission and must enforce its
+existing operation, exact target and bootstrap restrictions before dispatch. Role eligibility is unchanged.
+
+The assignment command and `RoleAssignedToUser` event use `actor_kind: system` only with the canonical nil
+`actor_id`. When `actor_kind` is absent, the payload represents a `UserId`, even if its UUID is nil. Existing
+User payloads are unchanged. The two `getActorId()` methods now return `UserId|SystemId`; consumers that
+require a `UserId` must check the type. Role removal is unchanged.
+
 ## Optional User membership audit composition
 
 `AssignRoleToUserHandler` and `RemoveRoleFromUserHandler` accept the same optional final nullable
@@ -111,9 +123,10 @@ $handler = new AssignRoleToUserHandler(
 );
 ```
 
-Removal uses the identical constructor shape. Both Commands retain their required typed originating `UserId`;
-the target User is not inferred as the actor. Provenance grants no entry, target, tenant or last-admin authority.
-No Command/Event payload, caller revision or authentication policy changes.
+The removal handler uses the identical constructor shape. Assignment accepts `UserId` or `SystemId`; removal
+still requires `UserId`. The assignment command and event use the [actor payload rules](#user-membership-actors)
+above. The target User is not inferred as the actor, and attribution grants no entry, target, tenant or last-admin
+authority. Caller revision and authentication policies are unchanged.
 
 After successful membership persistence and before that same transaction commits, one `USER_ROLE_ASSIGNED` or
 `USER_ROLE_REMOVED` record identifies the User primary subject. `AuditUserRoleOutcome` contains actual before/after
