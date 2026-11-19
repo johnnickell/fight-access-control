@@ -43,9 +43,12 @@ final readonly class AuditGrantOutcome implements Arrayable
         }
 
         if (
-            $failure !== null && $deliveryStatus !== match ($failure) {
-                CredentialDeliveryFailure::PERMANENT_PROVIDER => CredentialDeliveryStatus::PERMANENT_FAILURE,
-                default => CredentialDeliveryStatus::RETRY_PENDING
+            $failure !== null && !match ($failure) {
+                CredentialDeliveryFailure::PERMANENT_PROVIDER =>
+                    $deliveryStatus === CredentialDeliveryStatus::PERMANENT_FAILURE,
+                CredentialDeliveryFailure::RETRYABLE_PROVIDER, CredentialDeliveryFailure::UNEXPECTED_PROVIDER =>
+                    $deliveryStatus === CredentialDeliveryStatus::RETRY_PENDING
+                    || $deliveryStatus === CredentialDeliveryStatus::EXPIRED
             }
         ) {
             throw new DomainException('Audit failure classification must match the persisted delivery outcome.');
@@ -105,6 +108,14 @@ final readonly class AuditGrantOutcome implements Arrayable
     public function getDeliveryStatus(): ?CredentialDeliveryStatus
     {
         return $this->deliveryStatus;
+    }
+
+    /**
+     * Returns the bounded classification of the failed attempt, if recorded
+     */
+    public function getFailure(): ?CredentialDeliveryFailure
+    {
+        return $this->failure;
     }
 
     /**

@@ -1,4 +1,4 @@
-# Typed audit evidence (Unreleased)
+# Typed audit evidence
 
 TASK-00122 replaces the pre-v1 evidence and persisted contract directly across existing writers and their
 current callers, fixtures and schemas. The TASK and canonical Work handoff own package verification evidence.
@@ -13,7 +13,7 @@ using TASK-00153's implemented optional lifecycle writers.
 TASK-00154 adds [optional custom Role Permission grant/revoke composition](role-membership-contracts.md#optional-role-permission-audit-composition).
 TASK-00155 adds [optional User Role membership composition](role-membership-contracts.md#optional-user-membership-audit-composition).
 TASK-00156 adds [optional Agent name-change composition](agent-name-updates.md#optional-atomic-name-change-audit-unreleased).
-No release, consumer adoption or independent acceptance is claimed by this document.
+For version and publication status, see the [changelog](../CHANGELOG.md). This guide does not establish consumer qualification.
 
 ## Current construction and persistence
 
@@ -49,9 +49,13 @@ correlation; record identity/correlation is neither authority nor universal dedu
   distinction; no generic User revision is invented and no raw data/context bag is admitted.
 - `AuditGrantOutcome` captures actual grant revisions/delivery identities without implying a User mutation.
   Delivery facts carry the actual persisted `CredentialDeliveryStatus` and bounded failure classification, not provider
-  diagnostics. Permanent provider failure pairs with permanent-failure state; retryable/unexpected failure pairs
-  with retry-pending state. Each grant reference retains its family; a replacement can identify different predecessor and
-  successor grants/deliveries without fabricating an increment across their identities. User and grant outcomes
+  diagnostics. `permanent_provider` pairs only with `permanent_failure`. `retryable_provider` and
+  `unexpected_provider` pair with `retry_pending` when the next retry is strictly before expiry, or `expired`
+  when the next retry would fall at or after expiry. An `expired` delivery-failed record requires the retryable
+  attempt classification; it is not a separate expiry-cleanup action. Invitation and password-reset delivery expiry
+  actions record `expired` without an attempt classification; email-change expiry still records the separate
+  grant and reservation outcome. Each grant reference retains its family; a replacement can identify different
+  predecessor and successor grants/deliveries without fabricating an increment across their identities. User and grant outcomes
   additionally retain `replaced_predecessor`: the old generation's actual post-cancellation revision, or its
   unchanged terminal revision when appending after terminal history. It is required when replacing a different
   grant identity and absent on initial issuance/in-place outcomes. The original, retained predecessor and new
