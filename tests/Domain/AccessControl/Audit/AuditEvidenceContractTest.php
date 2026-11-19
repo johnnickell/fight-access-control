@@ -168,11 +168,13 @@ final class AuditEvidenceContractTest extends TestCase
             $before = new AuditGrantState($id, 4, $deliveryId);
             $after = new AuditGrantState($id, 5, $deliveryId);
             $outcome = CredentialDeliveryStatus::DELIVERED;
+            $failure = null;
             if ($action === AuditAction::EMAIL_CHANGE_DELIVERY_FAILED) {
                 $outcome = CredentialDeliveryStatus::PERMANENT_FAILURE;
+                $failure = CredentialDeliveryFailure::PERMANENT_PROVIDER;
             }
 
-            $facts = new AuditGrantOutcome($before, $after, $outcome);
+            $facts = new AuditGrantOutcome($before, $after, $outcome, $failure);
             self::assertSame($before, $facts->getBefore());
             self::assertSame($after, $facts->getAfter());
             $evidence = AuditEvidence::record(

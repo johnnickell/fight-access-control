@@ -193,4 +193,5 @@ The [Task Board](BOARD.md) is the operational projection.
 | 507 | [TASK-00184](00184-TASK.md) | Replace CONTEXT with a domain glossary and apply bounded simplifications | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/257 |
 | 508 | [TASK-00185](00185-TASK.md) | Support atomic consumer participation in email-change transitions | — (standalone chore) | done | — | https://github.com/johnnickell/fight-access-control/pull/259 |
 | 509 | [TASK-00186](00186-TASK.md) | Cancel only the identified email-change request | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/260 |
+| 510 | [TASK-00187](00187-TASK.md) | Record retryable delivery failures that end in expiry | — (standalone bug) | ready-for-agent | — | — |
 <!-- generated:task-index:end -->

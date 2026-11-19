@@ -350,8 +350,9 @@ final class RecoveryLifecycleTest extends TestCase
                 $fixture->request();
                 $first = $fixture->grant();
                 $caught = null;
+                $winningEvidence = [];
                 try {
-                    $fixture->deliver(function () use ($fixture, $transition): void {
+                    $fixture->deliver(function () use ($fixture, $transition, &$winningEvidence): void {
                         self::assertFalse($fixture->unitOfWork->transactionActive);
                         if ($transition === 'replacement') {
                             $fixture->request('successor-fixture');
@@ -365,12 +366,15 @@ final class RecoveryLifecycleTest extends TestCase
                         } else {
                             $this->transition($fixture, $transition);
                         }
+
+                        $winningEvidence = $fixture->auditEvidenceRepository->all();
                     }, $outcome);
                 } catch (StateConflict $exception) {
                     $caught = $exception;
                 }
 
                 self::assertNotNull($caught);
+                self::assertSame($winningEvidence, $fixture->auditEvidenceRepository->all());
                 self::assertNotSame(CredentialDeliveryStatus::DELIVERED, $fixture->grant()->getDelivery()->getStatus());
                 $old = $fixture->passwordResetGrantRepository->getById($first->getId());
                 self::assertFalse($old->isIssued());

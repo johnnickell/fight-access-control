@@ -22,6 +22,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(AuditEvidence::class)]
+#[CoversClass(AuditGrantOutcome::class)]
 #[CoversClass(AuditGrantState::class)]
 #[CoversClass(AuditUserRevisions::class)]
 final class AuditOutcomeAdmissionTest extends TestCase
@@ -450,6 +451,67 @@ final class AuditOutcomeAdmissionTest extends TestCase
         yield [true];
     }
 
+    /** @return iterable<string, array{AuditAction, string, ?string, bool, bool}> */
+    public static function deliveryFailureRelationships(): iterable
+    {
+        $failed = AuditAction::INVITATION_DELIVERY_FAILED;
+        $expired = AuditAction::INVITATION_DELIVERY_EXPIRED;
+        $confirmed = AuditAction::INVITATION_DELIVERY_CONFIRMED;
+        $cases = [
+            'retryable pending'      => [$failed, 'retry_pending', 'retryable_provider', true],
+            'unexpected pending'     => [$failed, 'retry_pending', 'unexpected_provider', true],
+            'retryable expired'      => [$failed, 'expired', 'retryable_provider', true],
+            'unexpected expired'     => [$failed, 'expired', 'unexpected_provider', true],
+            'permanent'              => [$failed, 'permanent_failure', 'permanent_provider', true],
+            'unclassified expiry'    => [$failed, 'expired', null, false],
+            'unclassified retry'     => [$failed, 'retry_pending', null, true],
+            'unclassified permanent' => [$failed, 'permanent_failure', null, true],
+            'permanent expired'      => [$failed, 'expired', 'permanent_provider', false],
+            'retryable permanent'    => [$failed, 'permanent_failure', 'retryable_provider', false],
+            'ordinary expiry'        => [$expired, 'expired', null, true],
+            'attempt as cleanup'     => [$expired, 'expired', 'unexpected_provider', false],
+            'attempt as success'     => [$confirmed, 'expired', 'retryable_provider', false]
+        ];
+        foreach ($cases as $case => [$action, $status, $failure, $valid]) {
+            foreach ([false, true] as $hydrate) {
+                $mode = $hydrate ? ' readback' : ' recording';
+                yield $case.$mode => [$action, $status, $failure, $hydrate, $valid];
+            }
+        }
+    }
+
+    #[DataProvider('deliveryFailureRelationships')]
+    public function test_delivery_classification_describes_the_attempt_and_matches_the_action(
+        AuditAction $action,
+        string $status,
+        ?string $failure,
+        bool $hydrate,
+        bool $valid
+    ): void {
+        $before = [
+            'kind'        => 'activation',
+            'id'          => UserId::generate()->toString(),
+            'revision'    => 1,
+            'delivery_id' => UserId::generate()->toString()
+        ];
+        $after = $before;
+        $after['revision'] = 2;
+        $facts = [
+            'grant_before'         => $before,
+            'grant_after'          => $after,
+            'delivery_status'      => $status,
+            'failure'              => $failure,
+            'replaced_predecessor' => null
+        ];
+        if (!$valid) {
+            $this->expectException(DomainException::class);
+        }
+
+        $evidence = $this->admit($action, $facts, $hydrate);
+        self::assertSame($action, $evidence->action());
+        self::assertSame($facts, $evidence->getFacts()->toArray());
+    }
+
     /** @return iterable<string, array{AuditAction, array<array-key, mixed>, bool}> */
     public static function invalidGrantOutcomes(): iterable
     {
@@ -477,8 +539,10 @@ final class AuditOutcomeAdmissionTest extends TestCase
                 $after = $before;
                 $after['revision'] = 6;
                 $status = $action === AuditAction::INVITATION_RETRY_REQUESTED ? null : 'delivered';
+                $failure = null;
                 if (str_ends_with($action->value, 'failed')) {
                     $status = 'retry_pending';
+                    $failure = 'retryable_provider';
                 }
 
                 foreach (['backward', 'unchanged', 'skipped', 'delivery changed', 'generation replaced'] as $case) {
@@ -505,7 +569,7 @@ final class AuditOutcomeAdmissionTest extends TestCase
                             'grant_before'         => $before,
                             'grant_after'          => $invalid,
                             'delivery_status'      => $status,
-                            'failure'              => null,
+                            'failure'              => $failure,
                             'replaced_predecessor' => $retained
                         ], $hydrate];
                     }

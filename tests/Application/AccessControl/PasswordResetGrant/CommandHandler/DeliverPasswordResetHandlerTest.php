@@ -10,6 +10,8 @@ use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\Cre
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\CommandHandler\DeliverPasswordResetHandler;
 use Fight\AccessControl\Application\AccessControl\PasswordResetGrant\EventSubscriber\PasswordResetDeliverySubscriber;
 use Fight\AccessControl\Domain\AccessControl\Audit\AnonymousId;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\Command\DeliverPasswordReset;
@@ -93,6 +95,51 @@ final class DeliverPasswordResetHandlerTest extends TestCase
         self::assertSame('user.password_reset_delivery.confirmed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertInstanceOf(PasswordResetDeliveryConfirmed::class, $eventDispatcher->events()[0]);
         self::assertSame(DeliverPasswordReset::class, DeliverPasswordResetHandler::commandRegistration());
+    }
+
+    public function test_retryable_failure_past_the_backoff_expiry_boundary_commits_with_audit(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $grant = $this->grant();
+        $passwordResetGrantRepository = new InMemoryPasswordResetGrants($unitOfWork);
+        self::assertTrue($passwordResetGrantRepository->add($grant));
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $provider = new RecordingCredentialDeliveryProvider([CredentialDeliveryOutcome::RETRYABLE_FAILURE]);
+        $eventDispatcher = new InMemoryEventDispatcher();
+        $message = CommandMessage::create($this->command($grant));
+
+        $this->handler(
+            $passwordResetGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $provider,
+            $eventDispatcher,
+            new FixedClock('2026-08-23T11:59:30+00:00')
+        )->handle($message);
+
+        $stored = $passwordResetGrantRepository->getLatestByUserId($grant->getUserId());
+        self::assertNotNull($stored);
+        self::assertEquals($grant->getId(), $stored->getId());
+        self::assertEquals($grant->getDelivery()->getId(), $stored->getDelivery()->getId());
+        self::assertSame(2, $stored->getRevision());
+        self::assertSame(CredentialDeliveryStatus::EXPIRED, $stored->getDelivery()->getStatus());
+        self::assertFalse($stored->getDelivery()->hasRecoverableMaterial());
+        self::assertFalse($stored->getDelivery()->isRetryable());
+        self::assertCount(1, $passwordResetGrantRepository->all());
+        self::assertCount(1, $provider->invocations());
+        self::assertSame([], $eventDispatcher->events());
+        self::assertCount(1, $auditEvidenceRepository->all());
+        $evidence = AuditEvidence::fromArray($auditEvidenceRepository->all()[0]->toArray());
+        self::assertSame('user.password_reset_delivery.failed', $evidence->action()->value);
+        self::assertEquals($message->id(), $evidence->getCorrelation()?->getMessageId());
+        $before = new AuditGrantState($grant->getId(), 1, $grant->getDelivery()->getId());
+        self::assertSame([
+            'grant_before'         => $before->toArray(),
+            'grant_after'          => AuditGrantState::fromGrant($stored)->toArray(),
+            'delivery_status'      => 'expired',
+            'failure'              => 'retryable_provider',
+            'replaced_predecessor' => null
+        ], $evidence->getFacts()->toArray());
     }
 
     public function test_typed_and_unexpected_provider_failures_record_safe_outcomes(): void
@@ -419,14 +466,15 @@ final class DeliverPasswordResetHandlerTest extends TestCase
         InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
         ?RecordingCredentialDeliveryProvider $provider = null,
-        ?InMemoryEventDispatcher $eventDispatcher = null
+        ?InMemoryEventDispatcher $eventDispatcher = null,
+        ?FixedClock $clock = null
     ): DeliverPasswordResetHandler {
         return new DeliverPasswordResetHandler(
             $passwordResetGrantRepository,
             $unitOfWork,
             new PrefixPasswordResetDeliveryCipher(),
             $provider ?? new RecordingCredentialDeliveryProvider(),
-            new FixedClock('2026-08-23T11:00:00+00:00'),
+            $clock ?? new FixedClock('2026-08-23T11:00:00+00:00'),
             $eventDispatcher ?? new InMemoryEventDispatcher(),
             $this->users($passwordResetGrantRepository, $unitOfWork),
             $auditEvidenceRepository

@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-No non-terminal Task exists. Any future release decision requires separate human authorization.
+First ready Task: [TASK-00187](00187-TASK.md) — Record retryable delivery failures that end in expiry.
 
 ## In Progress
 
@@ -13,7 +13,9 @@ No Tasks are currently in this state.
 
 ## Ready Frontier
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 510 | [TASK-00187](00187-TASK.md) | Record retryable delivery failures that end in expiry | — (standalone bug) | ready-for-agent | — | — |
 
 ## Waiting
 

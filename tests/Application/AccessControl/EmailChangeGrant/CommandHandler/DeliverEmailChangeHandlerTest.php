@@ -9,6 +9,8 @@ use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\Cre
 use Fight\AccessControl\Application\AccessControl\CredentialDelivery\Service\CredentialDeliveryOutcome;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\CommandHandler\DeliverEmailChangeHandler;
 use Fight\AccessControl\Application\AccessControl\EmailChangeGrant\EventSubscriber\EmailChangeDeliverySubscriber;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\Command\DeliverEmailChange;
@@ -91,6 +93,51 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         self::assertSame('user.email_change_delivery.confirmed', $auditEvidenceRepository->all()[0]->action()->value);
         self::assertInstanceOf(EmailChangeDelivered::class, $eventDispatcher->events()[0]);
         self::assertSame(DeliverEmailChange::class, DeliverEmailChangeHandler::commandRegistration());
+    }
+
+    public function test_unexpected_provider_failure_at_the_backoff_expiry_boundary_commits_with_audit(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $grant = $this->grant();
+        $emailChangeGrantRepository = new InMemoryEmailChangeGrantRepository($unitOfWork);
+        self::assertTrue($emailChangeGrantRepository->add($grant));
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $provider = new RecordingCredentialDeliveryProvider([new RuntimeException('private provider diagnostic')]);
+        $eventDispatcher = new InMemoryEventDispatcher();
+        $message = CommandMessage::create($this->command($grant));
+
+        $this->handler(
+            $emailChangeGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $provider,
+            $eventDispatcher,
+            new FixedClock('2026-08-23T11:59:00+00:00')
+        )->handle($message);
+
+        $stored = $emailChangeGrantRepository->getLatestByUserId($grant->getUserId());
+        self::assertNotNull($stored);
+        self::assertEquals($grant->getId(), $stored->getId());
+        self::assertEquals($grant->getDelivery()->getId(), $stored->getDelivery()->getId());
+        self::assertSame(2, $stored->getRevision());
+        self::assertSame(CredentialDeliveryStatus::EXPIRED, $stored->getDelivery()->getStatus());
+        self::assertFalse($stored->getDelivery()->hasRecoverableMaterial());
+        self::assertFalse($stored->getDelivery()->isRetryable());
+        self::assertCount(1, $emailChangeGrantRepository->all());
+        self::assertCount(1, $provider->invocations());
+        self::assertSame([], $eventDispatcher->events());
+        self::assertCount(1, $auditEvidenceRepository->all());
+        $evidence = AuditEvidence::fromArray($auditEvidenceRepository->all()[0]->toArray());
+        self::assertSame('user.email_change_delivery.failed', $evidence->action()->value);
+        self::assertEquals($message->id(), $evidence->getCorrelation()?->getMessageId());
+        $before = new AuditGrantState($grant->getId(), 1, $grant->getDelivery()->getId());
+        self::assertSame([
+            'grant_before'         => $before->toArray(),
+            'grant_after'          => AuditGrantState::fromGrant($stored)->toArray(),
+            'delivery_status'      => 'expired',
+            'failure'              => 'unexpected_provider',
+            'replaced_predecessor' => null
+        ], $evidence->getFacts()->toArray());
     }
 
     public function test_each_typed_failure_and_unexpected_throwable_records_only_safe_state(): void
@@ -411,14 +458,15 @@ final class DeliverEmailChangeHandlerTest extends TestCase
         InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
         ?RecordingCredentialDeliveryProvider $provider = null,
-        ?InMemoryEventDispatcher $eventDispatcher = null
+        ?InMemoryEventDispatcher $eventDispatcher = null,
+        ?FixedClock $clock = null
     ): DeliverEmailChangeHandler {
         return new DeliverEmailChangeHandler(
             $emailChangeGrantRepository,
             $unitOfWork,
             new PrefixEmailChangeDeliveryCipher(),
             $provider ?? new RecordingCredentialDeliveryProvider(),
-            new FixedClock('2026-08-23T11:00:00+00:00'),
+            $clock ?? new FixedClock('2026-08-23T11:00:00+00:00'),
             $eventDispatcher ?? new InMemoryEventDispatcher(),
             $auditEvidenceRepository
         );
