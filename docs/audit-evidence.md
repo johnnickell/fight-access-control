@@ -1,4 +1,4 @@
-# Typed audit evidence (Unreleased)
+# Typed audit evidence
 
 TASK-00122 replaces the pre-v1 evidence and persisted contract directly across existing writers and their
 current callers, fixtures and schemas. The TASK and canonical Work handoff own package verification evidence.
@@ -13,7 +13,7 @@ using TASK-00153's implemented optional lifecycle writers.
 TASK-00154 adds [optional custom Role Permission grant/revoke composition](role-membership-contracts.md#optional-role-permission-audit-composition).
 TASK-00155 adds [optional User Role membership composition](role-membership-contracts.md#optional-user-membership-audit-composition).
 TASK-00156 adds [optional Agent name-change composition](agent-name-updates.md#optional-atomic-name-change-audit-unreleased).
-No release, consumer adoption or independent acceptance is claimed by this document.
+For version and publication status, see the [changelog](../CHANGELOG.md). This guide does not establish consumer qualification.
 
 ## Current construction and persistence
 
