@@ -568,7 +568,14 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.10.0 published
+## Current release handoff — v0.10.1 prepared
+
+[v0.10.1](../docs/release-0.10.1.md) is the current-line patch candidate for the
+[credential-delivery audit fix](tasks/00187-TASK.md). [PR #265](https://github.com/johnnickell/fight-access-control/pull/265)
+merged the fix into `develop`. Release review, QA, integration, certification, signing and publication are
+separate from that implementation merge. At preparation, v0.10.0 remains the latest published version.
+
+## v0.10.0 published release checkpoint
 
 [v0.10.0](../docs/release-0.10.0.md) was published on 2026-11-19 (UTC) from the certified `main` merge in
 [PR #263](https://github.com/johnnickell/fight-access-control/pull/263). The signed tag, immutable GitHub release,

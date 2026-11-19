@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-11-19
+
+Prepared on this date; see the [release overview](docs/release-0.10.1.md).
+
+### Fixed
+
+- Invitation, password-reset and email-change deliveries now commit expiry and one delivery-failed audit entry
+  together when audit is enabled and a retryable failure would schedule the next attempt at or after expiry.
+  The entry retains the bounded failure classification, not provider diagnostics. Retry timing and worker
+  admission are unchanged. See [typed audit evidence](docs/audit-evidence.md).
+
 ## [0.10.0] - 2026-11-18
 
 Prepared on this date; see the [release overview](docs/release-0.10.0.md).
@@ -752,7 +763,8 @@ This dated section prepares release notes; it is not evidence of signing, public
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.10.1...HEAD
+[0.10.1]: https://github.com/johnnickell/fight-access-control/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/johnnickell/fight-access-control/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/johnnickell/fight-access-control/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/johnnickell/fight-access-control/compare/v0.7.0...v0.8.0
