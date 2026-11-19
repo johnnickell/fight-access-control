@@ -15,6 +15,8 @@ use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationGrant;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\ActivationOrigin;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Command\DeliverUserInvitation;
 use Fight\AccessControl\Domain\AccessControl\ActivationGrant\Event\UserInvitationDelivered;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditEvidence;
+use Fight\AccessControl\Domain\AccessControl\Audit\AuditGrantState;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryFailure;
 use Fight\AccessControl\Domain\AccessControl\CredentialDelivery\CredentialDeliveryStatus;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -89,6 +91,112 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         self::assertSame(DeliverUserInvitation::class, DeliverUserInvitationHandler::commandRegistration());
     }
 
+    public function test_retryable_failure_at_the_backoff_expiry_boundary_commits_with_audit(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $grant = $this->grant('2026-08-25T12:00:00+00:00', '2026-08-25T11:00:00+00:00');
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        self::assertTrue($activationGrantRepository->add($grant));
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork);
+        $provider = new RecordingCredentialDeliveryProvider([CredentialDeliveryOutcome::RETRYABLE_FAILURE]);
+        $eventDispatcher = new InMemoryEventDispatcher();
+        $commandMessage = CommandMessage::create($this->command($grant));
+        $attemptedAt = '2026-08-25T11:59:00+00:00';
+
+        $this->handler(
+            $activationGrantRepository,
+            $auditEvidenceRepository,
+            $unitOfWork,
+            $provider,
+            $eventDispatcher,
+            new FixedClock($attemptedAt)
+        )->handle($commandMessage);
+
+        $stored = $activationGrantRepository->getLatestByUserId($grant->getUserId());
+        self::assertNotNull($stored);
+        self::assertEquals($grant->getId(), $stored->getId());
+        self::assertEquals($grant->getDelivery()->getId(), $stored->getDelivery()->getId());
+        self::assertSame(2, $stored->getRevision());
+        self::assertSame(CredentialDeliveryStatus::EXPIRED, $stored->getDelivery()->getStatus());
+        self::assertFalse($stored->getDelivery()->hasRecoverableMaterial());
+        self::assertFalse($stored->getDelivery()->isRetryable());
+        self::assertCount(1, $activationGrantRepository->all());
+        self::assertCount(1, $provider->invocations());
+        self::assertSame([], $eventDispatcher->events());
+        self::assertCount(1, $auditEvidenceRepository->all());
+        $evidence = AuditEvidence::fromArray($auditEvidenceRepository->all()[0]->toArray());
+        self::assertSame('user.invitation_delivery.failed', $evidence->action()->value);
+        self::assertEquals($commandMessage->id(), $evidence->getCorrelation()?->getMessageId());
+        $before = new AuditGrantState($grant->getId(), 1, $grant->getDelivery()->getId());
+        self::assertSame([
+            'grant_before'         => $before->toArray(),
+            'grant_after'          => AuditGrantState::fromGrant($stored)->toArray(),
+            'delivery_status'      => 'expired',
+            'failure'              => 'retryable_provider',
+            'replaced_predecessor' => null
+        ], $evidence->getFacts()->toArray());
+    }
+
+    public function test_retryable_failure_commits_expiry_when_audit_is_disabled(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $grant = $this->grant();
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        self::assertTrue($activationGrantRepository->add($grant));
+        $eventDispatcher = new InMemoryEventDispatcher();
+
+        $this->handler(
+            $activationGrantRepository,
+            null,
+            $unitOfWork,
+            new RecordingCredentialDeliveryProvider([CredentialDeliveryOutcome::RETRYABLE_FAILURE]),
+            $eventDispatcher,
+            new FixedClock('2026-08-23T11:59:30+00:00')
+        )->handle(CommandMessage::create($this->command($grant)));
+
+        $stored = $activationGrantRepository->getLatestByUserId($grant->getUserId());
+        self::assertSame(2, $stored->getRevision());
+        self::assertSame(CredentialDeliveryStatus::EXPIRED, $stored->getDelivery()->getStatus());
+        self::assertSame(CredentialDeliveryFailure::RETRYABLE_PROVIDER, $stored->getDelivery()->getLastFailure());
+        self::assertFalse($stored->getDelivery()->hasRecoverableMaterial());
+        self::assertSame([], $eventDispatcher->events());
+    }
+
+    public function test_audit_write_fault_rolls_back_expiry_without_undoing_the_claim(): void
+    {
+        $unitOfWork = new InMemoryUnitOfWork();
+        $grant = $this->grant();
+        $activationGrantRepository = new InMemoryActivationGrantRepository($unitOfWork);
+        self::assertTrue($activationGrantRepository->add($grant));
+        $auditEvidenceRepository = new InMemoryAuditEvidenceRepository($unitOfWork, failAfterSave: true);
+        $provider = new RecordingCredentialDeliveryProvider([CredentialDeliveryOutcome::RETRYABLE_FAILURE]);
+        $eventDispatcher = new InMemoryEventDispatcher();
+
+        try {
+            $this->handler(
+                $activationGrantRepository,
+                $auditEvidenceRepository,
+                $unitOfWork,
+                $provider,
+                $eventDispatcher,
+                new FixedClock('2026-08-23T11:59:00+00:00')
+            )->handle(CommandMessage::create($this->command($grant)));
+            self::fail('Required audit write fault was not propagated.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame($auditEvidenceRepository->failure(), $runtimeException);
+        }
+
+        $stored = $activationGrantRepository->getLatestByUserId($grant->getUserId());
+        self::assertSame(1, $stored->getRevision());
+        self::assertSame(CredentialDeliveryStatus::CLAIMED, $stored->getDelivery()->getStatus());
+        self::assertTrue($stored->getDelivery()->hasRecoverableMaterial());
+        self::assertNull($stored->getDelivery()->getLastFailure());
+        self::assertSame([], $auditEvidenceRepository->all());
+        self::assertCount(1, $provider->invocations());
+        self::assertCount(1, $eventDispatcher->events());
+        self::assertInstanceOf(CommandFailedEvent::class, $eventDispatcher->events()[0]);
+    }
+
     public function test_typed_retryable_and_permanent_outcomes_record_safe_terminal_states(): void
     {
         foreach (
@@ -109,7 +217,8 @@ final class DeliverUserInvitationHandlerTest extends TestCase
                 $auditEvidenceRepository,
                 $unitOfWork,
                 new RecordingCredentialDeliveryProvider([$outcome]),
-                $eventDispatcher
+                $eventDispatcher,
+                new FixedClock('2026-08-23T11:58:59+00:00')
             )->handle(CommandMessage::create($this->command($grant)));
 
             $delivery = $activationGrantRepository->getLatestByUserId($grant->getUserId())?->getDelivery();
@@ -118,6 +227,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
             self::assertSame([], $eventDispatcher->events());
             if ($outcome === CredentialDeliveryOutcome::RETRYABLE_FAILURE) {
                 self::assertSame(CredentialDeliveryFailure::RETRYABLE_PROVIDER, $delivery->getLastFailure());
+                self::assertEquals(new DateTimeImmutable('2026-08-23T11:59:59+00:00'), $delivery->getNextAttemptAt());
                 self::assertNotNull($delivery->getEncryptedMaterial());
             } else {
                 self::assertSame(CredentialDeliveryFailure::PERMANENT_PROVIDER, $delivery->getLastFailure());
@@ -358,13 +468,15 @@ final class DeliverUserInvitationHandlerTest extends TestCase
         self::addToAssertionCount(6);
     }
 
-    private function grant(string $expiresAt = '2026-08-23T12:00:00+00:00'): ActivationGrant
-    {
+    private function grant(
+        string $expiresAt = '2026-08-23T12:00:00+00:00',
+        string $issuedAt = '2026-08-23T11:00:00+00:00'
+    ): ActivationGrant {
         return ActivationGrant::issue(
             ActivationOrigin::PRIVATE_INVITATION,
             UserId::generate(),
             ActivationCredential::fromString('activate-once'),
-            new DateTimeImmutable('2026-08-23T11:00:00+00:00'),
+            new DateTimeImmutable($issuedAt),
             new DateTimeImmutable($expiresAt),
             EmailAddress::fromString('alice@example.test'),
             'ciphertext:activate-once'
@@ -382,7 +494,7 @@ final class DeliverUserInvitationHandlerTest extends TestCase
 
     private function handler(
         InMemoryActivationGrantRepository $activationGrantRepository,
-        InMemoryAuditEvidenceRepository $auditEvidenceRepository,
+        ?InMemoryAuditEvidenceRepository $auditEvidenceRepository,
         InMemoryUnitOfWork $unitOfWork,
         ?RecordingCredentialDeliveryProvider $provider = null,
         ?InMemoryEventDispatcher $eventDispatcher = null,

@@ -512,16 +512,21 @@ class AuditEvidence implements Arrayable
 
         $validOutcome = match ($this->action) {
             AuditAction::INVITATION_DELIVERY_EXPIRED, AuditAction::PASSWORD_RESET_DELIVERY_EXPIRED => (
-                $facts->getDeliveryStatus() === CredentialDeliveryStatus::EXPIRED
+                $facts->getDeliveryStatus() === CredentialDeliveryStatus::EXPIRED && $facts->getFailure() === null
             ),
             AuditAction::INVITATION_DELIVERY_CONFIRMED, AuditAction::PASSWORD_RESET_DELIVERY_CONFIRMED,
                 AuditAction::EMAIL_CHANGE_DELIVERY_CONFIRMED => (
                     $facts->getDeliveryStatus() === CredentialDeliveryStatus::DELIVERED
                 ),
             AuditAction::INVITATION_DELIVERY_FAILED, AuditAction::PASSWORD_RESET_DELIVERY_FAILED,
-                AuditAction::EMAIL_CHANGE_DELIVERY_FAILED => in_array($facts->getDeliveryStatus(), [
-                    CredentialDeliveryStatus::RETRY_PENDING, CredentialDeliveryStatus::PERMANENT_FAILURE
-                ], true),
+                AuditAction::EMAIL_CHANGE_DELIVERY_FAILED => (
+                    in_array($facts->getDeliveryStatus(), [
+                        CredentialDeliveryStatus::RETRY_PENDING, CredentialDeliveryStatus::PERMANENT_FAILURE
+                    ], true) || (
+                        $facts->getDeliveryStatus() === CredentialDeliveryStatus::EXPIRED
+                        && $facts->getFailure() !== null
+                    )
+                ),
             default => $facts->getDeliveryStatus() === null
         };
         if (!$validOutcome) {
