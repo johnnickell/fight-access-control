@@ -1,7 +1,13 @@
 # v0.10.1 release and integration overview
 
-**Prepared; not yet published at this checkpoint.** This patch contains the credential-delivery audit fix in
-[PR #265](https://github.com/johnnickell/fight-access-control/pull/265). PHP 8.5+ and Fight Common ^1.5.1 are unchanged.
+**Published on 2026-11-19 (UTC).** The [immutable GitHub release](https://github.com/johnnickell/fight-access-control/releases/tag/v0.10.1)
+uses the signed tag at certified `main` merge `57a693e39dd1aef9f753a1ab9b089be6eb48396c`
+([PR #266](https://github.com/johnnickell/fight-access-control/pull/266)). The
+[Packagist](https://packagist.org/packages/johnnickell/fight-access-control#v0.10.1) source and archive references
+match that commit. The tag preserves the preparation snapshot.
+
+This patch contains the credential-delivery audit fix in [PR #265](https://github.com/johnnickell/fight-access-control/pull/265).
+PHP 8.5+ and Fight Common ^1.5.1 are unchanged.
 
 ## Record retryable failures that end in expiry
 

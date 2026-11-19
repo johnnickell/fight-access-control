@@ -568,12 +568,11 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.10.1 prepared
+## Current release handoff — v0.10.1 published
 
-[v0.10.1](../docs/release-0.10.1.md) is the current-line patch candidate for the
-[credential-delivery audit fix](tasks/00187-TASK.md). [PR #265](https://github.com/johnnickell/fight-access-control/pull/265)
-merged the fix into `develop`. Release review, QA, integration, certification, signing and publication are
-separate from that implementation merge. At preparation, v0.10.0 remains the latest published version.
+[v0.10.1](../docs/release-0.10.1.md) was published on 2026-11-19 (UTC) from the certified `main` merge in
+[PR #266](https://github.com/johnnickell/fight-access-control/pull/266). The signed tag, immutable GitHub release,
+and Packagist source and archive references were verified. Consumer installation was not tested.
 
 ## v0.10.0 published release checkpoint
 
@@ -862,6 +861,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.10.1` | 2026-11-19 (UTC) | Fixed atomic delivery-failed audit recording when retryable invitation, password-reset or email-change delivery ends in expiry. See the [release overview](../docs/release-0.10.1.md). |
 | `v0.10.0` | 2026-11-19 (UTC) | Published trusted User Role assignments with system attribution and widened actor getters. Existing User payloads are unchanged. See the [release overview](../docs/release-0.10.0.md). |
 | `v0.9.0` | 2026-11-18 | Published breaking User and Agent contracts, optional atomic audit, portable HTTP admission and current OpenAPI components. See the [release overview](../docs/release-0.9.0.md) for consumer obligations. |
 | `v0.8.0` | 2026-10-21 | Published breaking Role caller revisions and recovery composition, operation-outcome and managed-policy consistency, plus contributor/release-documentation improvements. Main-to-develop merge-back completed through PR #135; release-owned cleanup is satisfied. Consumer qualification remains separate. |
