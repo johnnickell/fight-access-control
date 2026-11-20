@@ -23,13 +23,13 @@ Plan this first. Coordinate links to relocated fixtures with [TICKET-00056](0005
 
 ## Planning progress
 
-John approved the three-TASK split: build the branded site first, then consolidate guides and enable publication as independent follow-ups. All three TASKs are written; implementation has not started.
+John approved the three-TASK split: build the branded site first, then consolidate guides and enable publication as independent follow-ups. The branded site and shorter README are accepted in [TASK-00189](../tasks/00189-TASK.md). Guide consolidation and Pages publication remain open.
 
 ## Child Tasks
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 512 | [TASK-00189](../tasks/00189-TASK.md) | Build the branded consumer docs site and shorten the README | ready-for-agent |
+| 512 | [TASK-00189](../tasks/00189-TASK.md) | Build the branded consumer docs site and shorten the README | done |
 | 513 | [TASK-00190](../tasks/00190-TASK.md) | Consolidate current guides and retire superseded notes | ready-for-agent |
 | 514 | [TASK-00191](../tasks/00191-TASK.md) | Validate and publish consumer docs automatically | ready-for-agent |
 ## Acceptance Evidence

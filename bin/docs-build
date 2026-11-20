@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+set -eu
+
+ROOT_DIR="$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)"
+cd "$ROOT_DIR"
+
+if [ "$#" -ne 0 ]; then
+    printf 'Usage: ./bin/docs-build\n' >&2
+    exit 2
+fi
+if ! command -v uv >/dev/null 2>&1; then
+    printf 'uv is required to build the consumer docs.\n' >&2
+    exit 1
+fi
+
+mkdir -p "$ROOT_DIR/site"
+output="$(mktemp -d "$ROOT_DIR/site/build.XXXXXXXX")"
+trap 'rm -rf -- "$output"' EXIT
+trap 'exit 1' HUP INT TERM
+
+# Never overwrite an earlier usable artifact or advertise a partial build.
+uv run --project etc/docs-site --locked mkdocs build --strict --config-file mkdocs.yml --site-dir "$output" >&2
+trap - EXIT HUP INT TERM
+printf '%s\n' "$output"

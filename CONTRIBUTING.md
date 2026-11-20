@@ -56,6 +56,23 @@ This check covers only the package's local CLI build runtime. Consumers must ind
 web-serving PHP-FPM/Apache/other runtimes and perform required service restarts through their own procedures.
 A local CLI pass is neither consumer remediation nor proof of exploitability or compromise.
 
+## Consumer documentation site
+
+Run `./bin/docs-build` with [uv](https://docs.astral.sh/uv/) and Python 3.12. uv uses the locked dependencies in
+`etc/docs-site/uv.lock`; it can download Python if needed. Docker and Composer are not needed for the site.
+The command checks navigation, local links and anchors through a strict MkDocs build. On success it prints the
+absolute path to a new static artifact under ignored `site/`. To preview, serve that directory locally:
+
+```bash
+site_dir=$(./bin/docs-build) && python3 -m http.server --bind 127.0.0.1 --directory "$site_dir" 8000
+```
+
+Open `http://127.0.0.1:8000/`. On failure, the command exits nonzero without returning an artifact path or
+replacing an earlier successful artifact. The site command never deploys. Keep navigation in `mkdocs.yml` aligned
+with the allowlist in `etc/docs-site/consumer_files.py`: publish only consumer pages and the assets they need. Repository guides, release procedures,
+engineering standards, planning and evidence are not part of the site artifact. Run `./bin/documentation-check`
+separately for repository Markdown links.
+
 ## Quality and review
 
 Use the repository-owned `./bin/*` wrappers. Run focused tests while iterating, then run both:
