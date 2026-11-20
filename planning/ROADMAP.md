@@ -568,7 +568,13 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.10.1 published
+## Current release handoff — v0.11.0 prepared
+
+[v0.11.0](../docs/release-0.11.0.md) prepares the [TASK-00188](tasks/00188-TASK.md) audit repair as a new minor:
+admin revocation evidence requires `facts.reason` on readback. Independent release review and QA, integration,
+final certification and publication are separate. v0.10.1 remains the latest published version at preparation.
+
+## v0.10.1 published release checkpoint
 
 [v0.10.1](../docs/release-0.10.1.md) was published on 2026-11-19 (UTC) from the certified `main` merge in
 [PR #266](https://github.com/johnnickell/fight-access-control/pull/266). The signed tag, immutable GitHub release,

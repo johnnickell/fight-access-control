@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-20
+
+Prepared on this date (UTC); see the [release overview](docs/release-0.11.0.md).
+
 ### Breaking changes
 
 - Administrative session revocation audit evidence now retains the exact trimmed explanation in `facts.reason`.
@@ -769,7 +773,8 @@ This dated section prepares release notes; it is not evidence of signing, public
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.10.1...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/johnnickell/fight-access-control/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/johnnickell/fight-access-control/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/johnnickell/fight-access-control/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/johnnickell/fight-access-control/compare/v0.8.0...v0.9.0
