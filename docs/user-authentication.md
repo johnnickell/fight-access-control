@@ -25,6 +25,9 @@ digest. The raw transport credential also has a separate 64-lowercase-hex-charac
 require a positive session authentication version and a nonnegative persistence revision. Rotation time is present
 exactly when used history is nonempty and must equal last activity. Preserve `createdAt <= lastActivityAt < idleExpiresAt <= absoluteExpiresAt`.
 
+Each rotation requires a fresh refresh credential: neither the current credential nor any credential previously
+used in that session may be reused.
+
 Before the first rotation no predecessor can match. After rotation, only the latest used digest can match as a
 retry, from the rotation instant inclusive to the conflict deadline (`rotatedAt + conflictWindow`) exclusive.
 Earlier history remains replay evidence, not a benign conflict.
