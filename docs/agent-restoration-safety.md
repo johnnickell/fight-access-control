@@ -129,8 +129,8 @@ or prior-binary resumption is required or supplied.
 `tests/Application/AccessControl/Agent/Credential/AgentRestorationConformance.php` is reusable through
 `DeliveryConformanceFixture & AgentRestorationFixture`. The fixture supplies real consumer save/restore/reconciliation
 controls and independent persisted observations; the suite calls actual public package services. It must not return
-canned Application results or substitute a manually flipped ready flag for reconciliation. Run it alongside
-[issuance](agent-issuance-conformance.md), [delivery](agent-delivery-conformance.md) and
+canned Application results or substitute a manually flipped ready flag for reconciliation. Run it alongside the
+[issuance and delivery suites](agent-integration.md#restoration-and-consumer-evidence-handoff) and
 [cohort](agent-operation-cohorts.md) conformance, including real authority writer races.
 
 | M4 outcome | Executable package evidence |
@@ -177,6 +177,5 @@ raw credentials, ciphertext or key paths as proof.
   revocation. Package issuance/delivery success alone proves none of those consumer outcomes.
 
 Passing PHP tests, inspecting migration text, saving a backup, or testing a mock fence does not satisfy these external
-requirements. TASK-00059's [integration guide](agent-integration.md) and
-[complete evidence inventory](agent-operation-evidence.md) connect the cross-TICKET results and remaining gaps;
-consumer adoption, release and deployment remain separately authorized.
+requirements. See the [Agent consumer checks](agent-integration.md#restoration-and-consumer-evidence-handoff)
+for the other integration boundaries. Consumer adoption, release and deployment remain separately authorized.

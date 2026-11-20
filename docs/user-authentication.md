@@ -4,8 +4,23 @@ Secret-bearing operations use direct Application capabilities, not serializable 
 breaking pre-v1 replacement of `User\Security\AuthenticationService`; that class is removed without an alias,
 forwarding facade or compatibility mode. Update imports, constructor bindings and named arguments directly.
 The supported JWT profile and existing token/conflict/void result shapes remain unchanged.
-[User/session type contracts](user-session-type-contracts.md) describe current message validation, typed Role lists,
+[User and session wire and storage types](#user-and-session-wire-and-storage-types) describe current message validation, typed Role lists,
 hydration and integer-counter limits without changing these synchronous capability homes.
+
+## User and session wire and storage types
+
+Decode identities, email, enums and text as strings without coercion. Preserve required nullable wire fields,
+including `RevokeSession.reason` and `UserRestored.activation_delivery_id`. Events require explicit RFC3339
+instants with offsets, not inferred clocks; preserve each event's output precision. Pagination inputs use integers
+and named string ordering maps. User and session repositories still return the aggregate or `null` on a lookup.
+
+Persist the actual User Role list and revisions; validate identity elements before set comparison and do not
+reconstruct missing values from lifecycle state. Authentication version is positive; the distinct authority,
+assignment, reservation and canonical-email revisions are nonnegative. Persist exact instants for CAS, including
+subseconds. Refresh history is ordered, unique and disjoint from the current digest. Raw refresh credentials
+must be exactly 64 lowercase hexadecimal characters. Only the most recent predecessor can match during the
+bounded post-rotation conflict window; earlier history remains replay evidence. Exhausted revisions reject
+changes without producing a successor.
 
 ## Direct owners
 

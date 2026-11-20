@@ -16,10 +16,17 @@ Cover failure paths and business effects, not only successful calls. Use project
 
 ## Test quality and suite balance
 
-The current source denominator is all `src/` PHP files, with no source-file exclusions. Retain the
-existing exact statement gate and required coverage metadata. The existing all-suite statement
-gate does not by itself establish Unit-only line coverage; independent Unit attribution and line enforcement
-remain to be qualified. Preserve shipped OpenAPI schema-contract integration tests as product behavior.
+The build runs PHPUnit once and enforces both exact all-suite statements and separately attributed Unit-only
+lines over all `src/` PHP files, including unexecuted files. Preserve shipped OpenAPI schema-contract integration
+tests as product behavior. Maintain the [category manifest](../../../etc/test-categories.json) when adding or
+changing tests. Class defaults apply to discovered methods; use explicit method entries for mixed classes.
+Unknown classes and stale entries fail. CI4 tests with only controlled collaborators are Unit; tests that boot
+its real Permission pipeline are Integration and do not supply Unit hits.
+
+The [coverage checker](../../../scripts/check_unit_coverage.py) reconciles expanded PHPUnit IDs and native
+per-test line hits. Read `var/reports/coverage/unit.json` for Unit gaps, category counts and measured case time;
+use `clover.xml` for statement coverage and the native receipt for test and gate provenance. Normal runs collect
+lines, not branch data. Qualify explicit branch probes separately; partial or failed collection is not a pass.
 
 Test one behavior with clear setup, one execution and preferably one assertion. A few related assertions may
 prove one outcome; do not split cohesive checks or hide them in a giant Boolean expression to satisfy a count.

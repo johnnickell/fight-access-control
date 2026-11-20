@@ -7,7 +7,7 @@ qualifies Common or consumers, or supplies independent Review/QA.
 
 ## Required structural check
 
-Prepare the [isolated PHP runtime](engineering/LOCAL_TOOLING.md) and ordinary Composer dependencies first.
+Prepare the [isolated PHP runtime](LOCAL_TOOLING.md) and ordinary Composer dependencies first.
 `bin/quality` is the sole gate definition and runs `python3 scripts/contract_inventory.py` without ignored evidence
 or private criteria. `nikic/php-parser` is an explicit development dependency; source is parsed, never included.
 The existing syntax, style, static/dependency, Rector, default PHPUnit/OpenAPI and exact coverage gates are unchanged.
@@ -33,14 +33,14 @@ ones, tests and consumer examples. File hashes invalidate judgments even for imp
 
 ## Ownership and deliberate drift reconciliation
 
-[contract-owners.json](../etc/contract-owners.json) routes current families to the existing correction TASK/TICKET
+[contract-owners.json](../../etc/contract-owners.json) routes current families to the existing correction TASK/TICKET
 owners. Exactly one primary correction/edit owner applies to each file and its boundaries. Separate dispatch
 concerns retain TICKET-00038 ownership without taking over Domain, query semantics or presentation edits. Actual
 relocations and Agent Command conversion are reflected; old planning paths/counts are not permanent assertions.
-This is a compact routing projection of [TICKET-00042](../planning/tickets/00042-TICKET.md), not another architecture
+This is a compact routing projection of [TICKET-00042](../../planning/tickets/00042-TICKET.md), not another architecture
 standard, backlog, acceptance ledger or delivery queue. Consult owning requirements before changing its rules.
 
-[contract-inventory.json](../etc/contract-inventory.json) stores only per-primary-owner boundary counts and canonical
+[contract-inventory.json](../../etc/contract-inventory.json) stores only per-primary-owner boundary counts and canonical
 SHA-256 fingerprints of identities, locations, contracts and owners/concerns. It intentionally has no historical
 acceptance rows. A new, removed, relocated or contract-changed boundary causes drift even if a broad family rule
 already assigns its owner. A fresh checkout can check the tracked fingerprints without another checkout's `.runs`.

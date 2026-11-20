@@ -39,6 +39,6 @@ TASK-00059 supplies current integration guidance and evidence rather than a migr
 At the policy checkpoint this did not establish code removal or fresh implementation acceptance. TASK-00068 has
 since been independently accepted for removal/current-contract safety, and TASK-00058 for package restoration guards.
 TASK-00059's [integration guide](../../docs/agent-integration.md) and
-[evidence inventory](../../docs/agent-operation-evidence.md) document the resulting contract and explicit consumer
+[consumer qualification](../../docs/agent-integration.md#restoration-and-consumer-evidence-handoff) document the resulting contract and explicit consumer
 gaps, with independent technical acceptance and behavioral QA at `ed516f9`. Historical decisions and receipts remain
 unchanged; no consumer qualification, release or deployment follows from these package checkpoints.

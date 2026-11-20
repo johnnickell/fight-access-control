@@ -91,7 +91,7 @@ Prepared on this date; see the [release overview](docs/release-0.9.0.md) for sco
   authentication/nonce without accepting copied context. Common remains the sole selected safe-error owner.
   See [Laravel composition](docs/laravel-permission-admission.md) for supported forms and construction/runtime limits.
 
-- Integrated [audit outcome inventory](docs/audit-outcome-coverage.md) for every current handler and related
+- Integrated [audit outcome inventory](https://github.com/johnnickell/fight-access-control/blob/b2d2c8a0fe041a0d950df4d12daa0b9e44892808/docs/audit-outcome-coverage.md) for every current handler and related
   synchronous/worker outcome, with current family proof and ordinary Role/shared-transaction examples. All covered
   owners now support optional nullable audit storage, including formerly mandatory writers. Mixed per-owner
   composition and later opt-in without backfill are explicit. **Pre-v1:** update current constructor/provenance and
@@ -331,7 +331,7 @@ Prepared on this date; see the [release overview](docs/release-0.9.0.md) for sco
 - Adopt the canonical MCP contracts first qualified on published Common `^1.5.0` foundation and HTTP adapter spellings and Skill getters, with
   exact-minimum and ordinary composition proof at that checkpoint. The v0.9.0 floor is `^1.5.1`. Upstream runtime identity, profile/Resource/Skill output,
   validation, independent authority, nonce/request lifetimes and transaction/publication behavior remain.
-  No future MCP family or consumer deployment is qualified. See the [contract inventory](docs/common-contracts.md).
+  No future MCP family or consumer deployment is qualified. See the [contract inventory](https://github.com/johnnickell/fight-access-control/blob/b2d2c8a0fe041a0d950df4d12daa0b9e44892808/docs/common-contracts.md).
 - **Ordinary HTTP composition:** use the release's Common `^1.5.1` floor and, when selected, Symfony Routing/Security HTTP
   `^8.1.11`; qualify typed 404/409/412/422 versus internal
   500, private structured validation, required metadata and one safe reporting/fallback owner. Symfony composition
@@ -344,7 +344,7 @@ Prepared on this date; see the [release overview](docs/release-0.9.0.md) for sco
   constrain browser output to its safe fields, and align optional relationships, canonical names/session reasons and
   native empty payload/ordering shapes. Default generated OpenAPI 3.1 tests validate real values and invalid
   samples; FeatureFlag now permits repeated class/method declarations and remains declaration-only. Recompose consumer documents
-  and regenerate clients as appropriate; no endpoint, generic failure policy or compatibility mode is supplied. See the [current payload map](docs/public-payload-catalog.md).
+  and regenerate clients as appropriate; no endpoint, generic failure policy or compatibility mode is supplied. See the [current payload map](https://github.com/johnnickell/fight-access-control/blob/b2d2c8a0fe041a0d950df4d12daa0b9e44892808/docs/public-payload-catalog.md).
 - **Breaking pre-v1 human credential worker failures:** eleven void request/worker handlers now distinguish known
   Common Application conflict/not-found/permission intent from internal lookup and claim faults. Preserve generic
   reset no-work, distinct family authority/expiry, outside-transaction provider retry classification and ordinary
@@ -582,7 +582,7 @@ This dated section prepares release notes; it is not evidence of signing, public
   complete CURRENT-scope discovery of native and explicit references, and mandatory full-expected-state
   `FeatureRepository::remove()` under the shared transaction/reference fence. Later provisioning allocates a new
   identity OFF/1 with the current default; old requests cannot retarget it. Consumer-bindable retirement scenarios
-  and a [complete Feature evidence inventory](docs/feature-evidence.md) distinguish package proof from real
+  and a [complete Feature evidence inventory](https://github.com/johnnickell/fight-access-control/blob/46ffcf75f1e14dbc5b58a5049e05a600ce5cf8a0/docs/feature-evidence.md) distinguish package proof from real
   scanner/database/UI/runtime qualification. No deployment fencing, name tombstone or transport API is supplied.
 - [Feature management](docs/feature-management.md): additive manual OFF creation, safe read/list views, atomic
   revision-checked status and testing-Permission edits, and post-commit facts. The Feature repository now requires
@@ -604,10 +604,10 @@ This dated section prepares release notes; it is not evidence of signing, public
   results. Additive PHP metadata contracts only; no storage, provisioning, evaluation, scanner or runtime enforcement.
 
 - [Current Agent integration guidance](docs/agent-integration.md) and the
-  [complete scenario/evidence inventory](docs/agent-operation-evidence.md): all 25 proposal scenarios plus ratified
+  [complete scenario/evidence inventory](https://github.com/johnnickell/fight-access-control/blob/46ffcf75f1e14dbc5b58a5049e05a600ce5cf8a0/docs/agent-operation-evidence.md): all 25 proposal scenarios plus ratified
   outcome/bounds additions, current package test provenance, superseded legacy/upgrade obligations and explicit
   real-adapter/sink/authority/restore/activation gaps. Documentation only; no consumer qualification or release receipt.
-- One [Agent operation canonical contract](docs/agent-canonical-upgrades.md) with fixed Unicode
+- One [Agent operation canonical contract](https://github.com/johnnickell/fight-access-control/blob/46ffcf75f1e14dbc5b58a5049e05a600ce5cf8a0/docs/agent-canonical-upgrades.md) with fixed Unicode
   edge-whitespace normalization and marker `2`. Before first adoption, removed the speculative v1 reader,
   creation-version/reader-set selection and cross-version fixtures; request `canonicalize()` methods take no version
   argument. `AgentOperationContract` validates one `canonicalVersion` instead of creation/reader settings. Retry,

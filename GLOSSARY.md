@@ -41,7 +41,7 @@
 - **Agent issuance**: The original Agent/credential/revision and delivery-destination binding created by provisioning or rotation, distinct from delivery, enrollment activation and permission to use the credential.
 - **Agent operation status**: An authorized secret-free observation separating confirmed original issuance, delivery disposition and original-credential disposition; absence is indeterminate rather than proof of rollback.
 - **Agent operation cohort**: A compatible set of Agent and credential-operation writers sharing one persisted contract and monotonic generation. [Contract](docs/agent-operation-cohorts.md).
-- **Agent canonical request version**: The marker identifying the supported canonical representation of a retained credential-operation request. [Contract](docs/agent-canonical-upgrades.md).
+- **Agent canonical request version**: The marker identifying the supported canonical representation of a retained credential-operation request. [canonical request and name contract](docs/agent-integration.md#canonical-request-and-name).
 - **Agent protected delivery**: Delivery of original credential material to its fixed authorized sink, distinct from issuance and from activation or use authority.
 - **Agent delivery maintenance**: Rewrapping retained delivery ciphertext, expiring original delivery material and confirming cleanup of inert sink copies. [Composition](docs/agent-delivery-maintenance.md).
 - **Agent continuation binding**: Provenance tied to the originally authenticated Agent/credential/revision and original lifetime, not a continuing Permission or scope grant.

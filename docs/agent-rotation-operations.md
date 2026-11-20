@@ -3,12 +3,10 @@
 [TASK-00048](../planning/tasks/00048-TASK.md) replaces raw-return rotation with an authorized, retained-key
 operation. It consumes [provisioning correlation](agent-provisioning-operations.md),
 [atomic predecessor retirement](agent-credential-retirement.md) and the existing
-[protected delivery attempt](agent-credential-delivery.md). This is not release or consumer qualification:
-[discovery/restart recovery](agent-delivery-recovery.md), [maintenance](agent-delivery-maintenance.md) and
-[issuance conformance](agent-issuance-conformance.md) now exercise the replacement together.
-[Delivery conformance](agent-delivery-conformance.md) and mandatory [cohort guards](agent-operation-cohorts.md) also
-cover the actual paths. [Restoration guards](agent-restoration-safety.md) are implemented at the package boundary;
-[current integration and evidence](agent-integration.md) distinguish this from unexecuted real consumer qualification.
+[protected delivery attempt](agent-credential-delivery.md). Compose [restart recovery](agent-delivery-recovery.md),
+[maintenance](agent-delivery-maintenance.md), [cohort guards](agent-operation-cohorts.md) and
+[restoration guards](agent-restoration-safety.md) together. Run the [consumer checks](agent-integration.md#restoration-and-consumer-evidence-handoff)
+on real adapters; the package tests do not qualify a deployment.
 
 ## Public API and composition
 
@@ -39,8 +37,8 @@ $view = $queryBus->fetch(new GetAgentOperation($key, $registeredDestination));
 
 Register `RotateAgentCredentialHandler::commandRegistration()` through the configured supported Common CommandBus;
 register the existing `GetAgentOperationHandler` through its QueryBus. No service facade or result channel remains.
-See the [issuance dispatch contract map](agent-issuance-dispatch-contracts.md) for concrete metadata/void handling,
-precise annotated optional outcome types and executable qualification; bus Query methods remain mixed.
+See [issuance dispatch composition](agent-integration.md#public-composition-map) for message routing and envelope
+handling. QueryBus methods still return mixed.
 The Command round-trips original scoped key, Agent, expected credential ID/revision and destination ID/revision as
 strict secret-free fields. It preserves the canonical marker/bytes and original predecessor across envelope changes.
 Confirmed Query issuance identifies the original Agent/credential/revision, delivery ID, destination and write order,
@@ -76,7 +74,7 @@ credential UUID, expected revision, destination UUID, destination binding revisi
 from 0 through `PHP_INT_MAX - 1`; destination revisions remain positive. UUID value objects normalize equivalent
 representations. Existing keys validate their marker before comparison; unsupported markers reject and permanent
 tombstones never become new work. Changed kind, target, predecessor identity/revision or destination binding conflicts
-without issuance. No outcome-affecting per-request options exist. The [canonical contract](agent-canonical-upgrades.md)
+without issuance. No outcome-affecting per-request options exist. The [canonical request and name contract](agent-integration.md#canonical-request-and-name)
 has no historical reader or selectable creation version; `canonicalize()` takes no argument.
 
 Inside one package-owned transaction:
@@ -123,8 +121,7 @@ Publisher failure completes void handling after best-effort fixed, sanitized `Ag
 evidence; failure of both publishers cannot disguise the committed outcome. No invocation warning is returned,
 stored or reconstructed by the Query. There is no outbox or
 automatic event retry guarantee. Same-key retries emit no duplicate mutation/audit/fact. Durable operation state,
-not notifications, owns recovery; [TASK-00049 conformance](agent-issuance-conformance.md) exercises both-publisher failure
-and scheduler-only restart through TASK-00052's actual path.
+not notifications, owns recovery. Qualify scheduler-only restart with both publishers failing.
 
 Default pending limits are **100 per originating scope and 10000 globally**, with validated overrides of 1–10000 and
 1–1000000 respectively (global at least per-scope). `AgentOperationLimits` retains provisioning's name bound, which

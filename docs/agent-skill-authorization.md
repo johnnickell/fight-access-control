@@ -141,7 +141,7 @@ installed v1.4.0 (`87b9580c072f3149d574e09865daa79620c92118`) for the inspected 
 composition, not just tag presence, qualifies this historical minimum. TASK evidence retains exact lock/source manifests,
 commands, logs/exits and tested input mapping. TASK-00148 then qualified tagged **v1.4.1**
 (`a482c220d312d2ef7762c3f0d85d9fb76a7021fa`) and ordinary dependency lanes under its then-current `^1.4.1` constraint.
-The current checkout requires **`^1.5.0`** after [TASK-00110's canonical adoption](common-contracts.md); its exact-minimum
+The current checkout requires **`^1.5.0`** after the [Common adoption record](../planning/tasks/00110-TASK.md); its exact-minimum
 and ordinary lanes exercise actual Resource/Skill composition on tagged v1.5.0, including canonical file/limit getters.
 These executed lanes extend the earlier family proof; a development snapshot or tag label alone is not qualification.
 

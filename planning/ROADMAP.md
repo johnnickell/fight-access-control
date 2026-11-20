@@ -103,9 +103,8 @@ QA in their owning records. Completing audit planning neither supplied that acce
 ## Explicit optional atomic audit — package scope complete
 
 All six [EPIC-00017](epics/00017-EPIC.md) TICKETs are complete for package scope. The
-[current matrix](../docs/audit-outcome-coverage.md) accounts for 39 handlers, seven synchronous User entries and six
-remaining Agent entries with candidate-compatible family evidence. Optional audit is implemented everywhere in
-scope; actual consumer mapping/connections/locks/processes/sinks/restoration/activation/use and workaround removal
+[audit guide](../docs/audit-evidence.md#atomicity-and-explicit-optionality) explains current composition. Optional audit
+is implemented throughout package scope; actual consumer mapping/connections/locks/processes/sinks/restoration/activation/use and workaround removal
 remain separate. The planning account below preserves its historical counts and allocation, not current open work.
 
 ### Historical TASK-planning handoff

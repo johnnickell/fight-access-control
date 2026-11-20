@@ -4,7 +4,7 @@ Compose `AgentExecutionReadAdmission` with Common's real execution handlers to i
 with trusted consumer relationship scope. The package requires Common **^1.5.1**, first sufficient scoped-aggregate
 minimum [v1.5.1](https://github.com/johnnickell/fight-common/releases/tag/v1.5.1), source
 `c73690164a9f112dbf14d774c56a7c01519b88aa`. v1.5.0 supplied the APIs but did not constrain derived inspection by
-activity grants. The [contract inventory](common-contracts.md) records supplier acceptance and qualification.
+activity grants. The [Common adoption record](../planning/tasks/00110-TASK.md) records supplier acceptance and qualification.
 
 ## Ownership and composition
 

@@ -3,7 +3,7 @@
 [TASK-00056](../planning/tasks/00056-TASK.md) adds persisted compatibility enforcement to the replacement Agent
 protocol. This is a breaking v0.5.0 repository contract, not a migration tool, deployment command, release receipt,
 old-binary fence or consumer qualification. Only the [current Agent model](agent-current-contract.md) applies;
-there is no legacy mode or adoption transition. The [single canonical contract](agent-canonical-upgrades.md) is supplied by TASK-00057;
+there is no legacy mode or adoption transition. The [canonical request and name contract](agent-integration.md#canonical-request-and-name) is supplied by TASK-00057;
 [restoration reconciliation](agent-restoration-safety.md) is supplied by TASK-00058 at the package boundary.
 
 ## Composition and persisted meaning
@@ -170,9 +170,8 @@ conflict, but the competing switch must not commit through the held transaction.
 
 The reference runner is `InMemoryAgentCohortConformanceTest`. It models persisted state and deterministic
 interleavings. Its capabilities are explicit **test fixture composition**, not real database/cryptographic/sink
-qualification. Existing [issuance conformance](agent-issuance-conformance.md) and
-[delivery conformance](agent-delivery-conformance.md) retain uncertainty, capacity, optional lookup, authorization,
-publication and key/sink failure coverage. Product tests exercise public behavior; no schema/config-text test replaces it.
+qualification. Run the [issuance and delivery suites](agent-integration.md#restoration-and-consumer-evidence-handoff)
+against real adapters to check uncertainty, capacity, optional lookup, authorization, publication and key/sink failures.
 
 Before a consumer can claim M2 qualification, additionally retain these **mandatory unexecuted external scenarios**:
 

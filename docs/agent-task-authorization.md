@@ -584,7 +584,7 @@ nonvisual behavioral QA remain required.
 
 The first sufficient tagged Common API is **v1.5.0**, source
 `06fb5cd3720af9cf8295198f74040d95b64c5155`; the manifest already requires `^1.5.0`. Supplier independent acceptance and
-release adoption are recorded in [the contract inventory](common-contracts.md). Exact-minimum and ordinary feature
+release adoption are recorded in the [Common adoption record](../planning/tasks/00110-TASK.md). Exact-minimum and ordinary feature
 lanes, lock/source/runtime identity, focused/full gate and exact owned coverage belong to the canonical TASK-00097
 Work handoff; TASK-00098's canonical Work handoff separately owns removal minimum/ordinary-lane and gate evidence.
 The installed minimum supplies `TaskRemovalAdmission`, `RemoveTasksHandler`, `TaskSelection`, `RemoveTasks` and

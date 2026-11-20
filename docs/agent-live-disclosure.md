@@ -3,7 +3,7 @@
 Unreleased [TASK-00093](../planning/tasks/00093-TASK.md) composes Common's actual Subscription admission,
 retained source Queries, tracking and native HTTP delivery. The sufficient minimum is **Common v1.5.0**, source
 `06fb5cd3720af9cf8295198f74040d95b64c5155`; the existing `^1.5.0` requirement suffices. Supplier acceptance and
-publication are recorded in the [contract inventory](common-contracts.md). Independent Review ACCEPT and nonvisual
+publication are recorded in the [Common adoption record](../planning/tasks/00110-TASK.md). Independent Review ACCEPT and nonvisual
 QA PASS cover candidate `55b9ccb0b6ad6ef3533d99e99cae63ab98cb7657`; the owning TASK and canonical Land handoff
 retain integration/delivery provenance. This is library composition, not consumer adoption or production qualification.
 

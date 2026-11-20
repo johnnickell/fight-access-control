@@ -59,7 +59,7 @@ changes. Authorization changes observed before the final check deny. Later chang
 already authorized response. This is **not** the transactional admission fence required for delivery or activation.
 Consumers must check current authority again for those operations and each credential use.
 
-See [exact Query contracts](agent-query-contracts.md) for the unreleased read-adapter and failure distinction.
+See [Query and read-adapter composition](agent-integration.md#operation-ownership-and-readwrite-composition-unreleased) for the unreleased read-adapter and failure distinction.
 
 ## Query and result shapes
 
@@ -85,7 +85,7 @@ no permissive casts from numeric strings, booleans or floats. `AgentOperationKey
 | --- | --- | --- |
 | `key` | Original namespace/caller type/caller ID/operation ID | Same retained key |
 | `issuance_outcome` | `confirmed` | `indeterminate` |
-| `canonical_version` | Persisted request marker `2` only (see the [canonical contract](agent-canonical-upgrades.md)) | `null` |
+| `canonical_version` | Persisted request marker `2` only (see the [canonical request and name contract](agent-integration.md#canonical-request-and-name)) | `null` |
 | `issuance` | Original `AgentIssuance::toArray()` | `null` |
 | `delivery_disposition` | Recorded delivery enum below | `null` |
 | `credential_disposition` | Recorded credential enum below | `null` |
@@ -183,7 +183,8 @@ prove read projection only, not their downstream writers or valid lifecycle tran
 [TASK-00050's tests](agent-credential-retirement.md#package-evidence-and-remaining-qualification) exercise actual
 revocation/cancellation and controlled direct supersession. [TASK-00051's delivery tests](agent-credential-delivery.md)
 now exercise actual package claim/admission/outcome writers and safe disposition. TASK-00049/00054 integrate actual
-rotation/delivery transitions; the [complete evidence inventory](agent-operation-evidence.md) maps both owning sides.
+rotation and delivery transitions. The [consumer checks](agent-integration.md#restoration-and-consumer-evidence-handoff)
+explain what still needs real adapters.
 The status tests alone do not prove scheduler recovery, real database concurrency, consumer authorization policy,
 sink, encryption, activation or launch qualification.
 This contract has no HTTP endpoint/envelope or UI; executable state/failure evidence is the useful before/after proof.

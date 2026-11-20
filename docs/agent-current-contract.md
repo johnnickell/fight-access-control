@@ -39,7 +39,7 @@ New `add()` is insertion only, never an upsert over existing or revoked authorit
 
 [Name updates](agent-name-updates.md) use `UpdateAgent` with typed User/Agent provenance and a mandatory
 `AgentRepository::rename(id, name, now)` name-only capability. Provisioning and rename share `AgentName`'s
-[fixed Unicode-edge rule](agent-canonical-upgrades.md#supported-representation); rename's replacement of PHP `trim`
+[canonical request and name contract](agent-integration.md#canonical-request-and-name); rename's replacement of PHP `trim`
 is an intentional pre-v1 behavior change, not a provisioning canonical-byte or marker change.
 The repository samples the supplied clock callback
 only after current writer admission, applies `Agent::rename()` to fenced ACTIVE state, and returns the exact persisted
@@ -108,7 +108,7 @@ readers or fallback. Cipher/key identities, protocol versions and monotonic gene
 they are not selectable previous package contracts.
 
 [Restoration safety](agent-restoration-safety.md) is implemented and independently accepted at the package boundary.
-Use the [integration guide](agent-integration.md) and [final evidence inventory](agent-operation-evidence.md) for
+Use the [integration guide](agent-integration.md) and [consumer qualification](agent-integration.md#restoration-and-consumer-evidence-handoff) for
 current composition and qualification gaps; TASK-00059's guidance has independent acceptance and behavioral QA.
 There is no historical data migration/backfill or cross-version rollback obligation, and no permission to reset consumer data. Actual
 database, key, sink, authority-writer and activation/use qualification is separate from package tests.

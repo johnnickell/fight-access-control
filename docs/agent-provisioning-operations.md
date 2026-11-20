@@ -89,8 +89,8 @@ if (!$view->isConfirmed()) {
 
 Register `ProvisionAgentHandler::commandRegistration()` with the configured Common CommandBus, and
 `GetAgentOperationHandler::queryRegistration()` with its QueryBus. No direct handler/result channel is needed.
-The [issuance dispatch contract map](agent-issuance-dispatch-contracts.md) records exact payload/metadata/void and
-annotated optional outcome types, concrete Common composition and executable static/runtime proof.
+See [issuance dispatch composition](agent-integration.md#public-composition-map) for Common message routing,
+envelopes and authority boundaries.
 Commands may be serialized, delayed, restarted and redelivered without an active submitting transport. Authenticate
 the actual executing invoker or explicitly delegated worker independently of the serialized scope and metadata;
 recheck current authority inside the package transaction on every attempt. Consumers own broker routing, worker
@@ -115,7 +115,7 @@ before comparing the request; unsupported markers reject without fallback. Unsee
 Unicode-aware normalization owned by `AgentName::fromString()`, for both binding and Agent name; rename consumes
 that same value rule. Canonicalization translates invalid names to safe `INVALID_REQUEST` without chaining Domain
 diagnostics. Retained bindings are never rewritten; there is no
-historical reader or runtime version choice. See the [canonical contract](agent-canonical-upgrades.md).
+historical reader or runtime version choice. See the [canonical request and name contract](agent-integration.md#canonical-request-and-name).
 
 `AgentCredentialOperationRepository` owns operation persistence and destination write reservations. Reserve monotonically
 increasing versions under the destination ownership fence shared with reassignment; the counter belongs to the stable
@@ -172,8 +172,8 @@ No publication warning is returned, persisted or reconstructed by status. Lost c
 `AgentOperationUncertainException` without chaining diagnostics; retain the original key/request and reconcile
 through authorized status and same-key retry. Uncertain and pre-commit failure publish only sanitized failure
 evidence, never a success fact. Durable operation
-and prepared state survive absent notifications; [TASK-00049 conformance](agent-issuance-conformance.md) exercises
-scheduler-only discovery with TASK-00052's actual path, not merely this slice's prepared-state fixtures. Failure evidence contains no request strings or arbitrary provider messages.
+and prepared state survive absent notifications. Qualify scheduler-only recovery with both publishers failing,
+not only with prepared-state fixtures. Failure evidence contains no request strings or arbitrary provider messages.
 
 ## Finite bounds
 
@@ -201,8 +201,8 @@ consumer-capability doubles. `ProvisioningEnvironment`, `InMemoryAgentCredential
 `InMemoryAgentOperationAuthorization`, `BoundAgentDeliveryCipher` and `UncertainAgentUnitOfWork` are reusable test
 fixtures under `tests/Application/AccessControl/Agent/`, not production adapters. The cipher fixture is deliberately
 not cryptography. Consumers must independently qualify authenticated encryption and the actual shared connection,
-locking, unique constraints and concurrent transactions before adoption. TASK-00049 now exposes the
-[cross-operation consumer-bindable suite](agent-issuance-conformance.md), separately from these focused fixtures.
+locking, unique constraints and concurrent transactions before adoption. Bind the [issuance recovery suite](agent-integration.md#restoration-and-consumer-evidence-handoff)
+to those adapters separately from these focused fixtures.
 
 | Requirement | Focused package evidence |
 | --- | --- |

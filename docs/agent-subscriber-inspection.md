@@ -7,7 +7,7 @@ under `Application/AccessControl/Agent/Notice`. It consumes Common's actual `Sub
 ## Explicit composition
 
 Use Common **^1.5.0**, first sufficient published source `06fb5cd3720af9cf8295198f74040d95b64c5155`.
-Supplier acceptance/adoption provenance is in the [contract inventory](common-contracts.md); feature minimum and
+Supplier acceptance/adoption provenance is in the [Common adoption record](../planning/tasks/00110-TASK.md); feature minimum and
 ordinary dependency/runtime results belong to the canonical TASK-00095 Work handoff. Do not infer feature
 qualification merely from a dependency constraint or use a development snapshot as a stable contract.
 

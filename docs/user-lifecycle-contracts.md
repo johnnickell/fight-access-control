@@ -38,7 +38,7 @@ introduced. Read/validation alone produces none. Default-Role and expected-state
 Bulk session/reset cancellation belongs to disable/delete's single account outcome, not duplicate helper evidence.
 Pending restoration records its fresh private activation relationship; active restoration has none. Evidence
 uses actual User counters and message/grant/delivery IDs, with no email, credentials, reason or diagnostic capture.
-See the [typed contract](audit-evidence.md) and [complete outcome matrix](audit-outcome-coverage.md).
+See the [typed contract](audit-evidence.md) and [current audit composition](audit-evidence.md#atomicity-and-explicit-optionality).
 
 ## Intentional outcomes
 
