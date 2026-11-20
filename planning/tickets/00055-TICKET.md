@@ -25,7 +25,7 @@ Coordinate baseline and candidate runs with [fixture relocation](00056-TICKET.md
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 515 | [TASK-00192](../tasks/00192-TASK.md) | Make stale planning failures diagnosable | ready-for-agent |
+| 515 | [TASK-00192](../tasks/00192-TASK.md) | Make stale planning failures diagnosable | done |
 | 516 | [TASK-00193](../tasks/00193-TASK.md) | Reduce PHPUnit overhead without weakening coverage | ready-for-agent |
 | 517 | [TASK-00194](../tasks/00194-TASK.md) | Replace timing-sensitive test setup where proof is equivalent | ready-for-agent |
 ## Acceptance Evidence
