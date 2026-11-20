@@ -81,8 +81,10 @@ successful site.
 At delivery, ask the authorized repository owner to confirm that Pages uses **GitHub Actions** as its source,
 that the `github-pages` environment allows deployment from `main`, and that the intended readers can access the
 site. After changes reach `main` through the existing authorized merge process, match the successful Actions run
-and Pages deployment to the exact `main` commit and open the URL reported by the deployment. Until then, use the
-[repository docs entry point](docs/index.md). The workflow does not change repository settings or branch policy.
+and Pages deployment to the exact `main` commit and open the URL reported by the deployment. The
+[public consumer docs](https://johnnickell.github.io/fight-access-control/) show the last successful deployment;
+use the [repository docs](docs/index.md) for the current checkout. The workflow does not change repository settings
+or branch policy.
 
 Put integration summaries and entry points in the consumer pages. Put detailed behavior in the guide for the
 owning capability and link to it from the site rather than copying it. Use the [project profile](planning/agents/project-profile.md)
