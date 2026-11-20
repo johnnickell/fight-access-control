@@ -568,11 +568,11 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.11.0 prepared
+## Current release handoff — v0.11.0 published
 
-[v0.11.0](../docs/release-0.11.0.md) prepares the [TASK-00188](tasks/00188-TASK.md) audit repair as a new minor:
-admin revocation evidence requires `facts.reason` on readback. Independent release review and QA, integration,
-final certification and publication are separate. v0.10.1 remains the latest published version at preparation.
+[v0.11.0](../docs/release-0.11.0.md) was published on 2026-11-20 (UTC) from the certified `main` merge in
+[PR #269](https://github.com/johnnickell/fight-access-control/pull/269). The signed tag, immutable GitHub release,
+and Packagist source and archive references were verified. Consumer installation was not tested.
 
 ## v0.10.1 published release checkpoint
 
@@ -867,6 +867,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.11.0` | 2026-11-20 (UTC) | Administrative session revocation audit records now require the exact trimmed reason on readback. See the [release overview](../docs/release-0.11.0.md). |
 | `v0.10.1` | 2026-11-19 (UTC) | Fixed atomic delivery-failed audit recording when retryable invitation, password-reset or email-change delivery ends in expiry. See the [release overview](../docs/release-0.10.1.md). |
 | `v0.10.0` | 2026-11-19 (UTC) | Published trusted User Role assignments with system attribution and widened actor getters. Existing User payloads are unchanged. See the [release overview](../docs/release-0.10.0.md). |
 | `v0.9.0` | 2026-11-18 | Published breaking User and Agent contracts, optional atomic audit, portable HTTP admission and current OpenAPI components. See the [release overview](../docs/release-0.9.0.md) for consumer obligations. |

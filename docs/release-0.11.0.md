@@ -1,7 +1,10 @@
 # v0.11.0 release and integration overview
 
-**Prepared on 2026-11-20 (UTC); not yet published.** The latest published version at preparation is
-[v0.10.1](release-0.10.1.md). PHP 8.5+ and Fight Common ^1.5.1 are unchanged.
+**Published on 2026-11-20 (UTC).** The [immutable GitHub release](https://github.com/johnnickell/fight-access-control/releases/tag/v0.11.0)
+uses the signed tag at certified `main` merge `6258682512e2c8d76a3fa655dd633167bd8f55b6`
+([PR #269](https://github.com/johnnickell/fight-access-control/pull/269)). The
+[Packagist](https://packagist.org/packages/johnnickell/fight-access-control#v0.11.0) source and archive references
+match that commit. The tag preserves the preparation snapshot. PHP 8.5+ and Fight Common ^1.5.1 are unchanged.
 
 ## Administrative session revocation audit records require a reason
 
@@ -21,7 +24,7 @@ read paths before upgrading; do not invent a reason or treat an old record as va
 ## Verification and consumer obligations
 
 The [implementation checkpoint](../planning/tasks/00188-TASK.md#acceptance-checkpoint) records independent
-technical and behavioral acceptance for the package repair. That evidence does not replace release review,
-release QA or certification of the final `main` merge. Before adoption, prove that your actual storage and reader
+technical and behavioral acceptance for the package repair. Independent release Review and QA passed before
+integration; the exact `main` merge passed final certification. Before adoption, prove that your actual storage and reader
 preserve the reason, that the audit write shares the session transaction, and that access to the stored explanation
 is appropriately restricted. Package evidence does not qualify consumer storage, registry installation or deployment.

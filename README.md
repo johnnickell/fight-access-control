@@ -21,7 +21,7 @@ publication checkpoints remain evidence; planning stays offline and releases sta
 <!-- release:start -->
 **Release: [v0.11.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.11.0)**
 
-**Status: prepared (not yet published).**
+**Status: published.**
 
 Requires **PHP 8.5+** and **Fight Common ^1.5.1** (resolved by Composer).
 ```bash
@@ -32,8 +32,8 @@ composer require johnnickell/fight-access-control:"~0.11.0"
 [Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.11.0/docs)
 <!-- release:end -->
 
-The install command and tagged documentation above await publication. The latest published version is
-[v0.10.1](https://github.com/johnnickell/fight-access-control/releases/tag/v0.10.1).
+The signed tag preserves the preparation snapshot. The immutable GitHub release and the Packagist source and
+archive references were verified. Registry availability does not establish installation or qualification in your application.
 
 The constraint stays on this minor line. Pre-v1 minors can break API and persistence contracts: read the
 [Changelog](CHANGELOG.md) and the target release overview before upgrading. Only the current contract is supported;
