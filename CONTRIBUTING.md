@@ -73,6 +73,17 @@ with the allowlist in `etc/docs-site/consumer_files.py`: publish only consumer p
 engineering standards, planning and evidence are not part of the site artifact. Run `./bin/documentation-check`
 separately for repository Markdown links.
 
+The **Consumer docs** Actions workflow runs this build on pull requests. A push to `main` also uploads the
+successful build and deploys that artifact to GitHub Pages. Pull requests and `develop` do not deploy. If the
+build, upload, or deployment fails, check the failed job in Actions; a failed run does not replace the last
+successful site.
+
+At delivery, ask the authorized repository owner to confirm that Pages uses **GitHub Actions** as its source,
+that the `github-pages` environment allows deployment from `main`, and that the intended readers can access the
+site. After changes reach `main` through the existing authorized merge process, match the successful Actions run
+and Pages deployment to the exact `main` commit and open the URL reported by the deployment. Until then, use the
+[repository docs entry point](docs/index.md). The workflow does not change repository settings or branch policy.
+
 Put integration summaries and entry points in the consumer pages. Put detailed behavior in the guide for the
 owning capability and link to it from the site rather than copying it. Use the [project profile](planning/agents/project-profile.md)
 for current package and engineering rules, the [release runbook](docs/releasing.md) for release preparation, and
