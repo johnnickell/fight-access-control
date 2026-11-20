@@ -96,7 +96,7 @@ final class SynchronousAuditTest extends TestCase
     }
 
     #[DataProvider('outcomes')]
-    public function test_enabled_outcomes_are_typed_secret_free_and_committed_once(
+    public function test_enabled_outcomes_retain_typed_facts_and_commit_once(
         string $operation,
         AuditAction $action
     ): void {
@@ -140,8 +140,14 @@ final class SynchronousAuditTest extends TestCase
         self::assertEquals(new DateTimeImmutable('2026-08-19T12:00:00Z'), $evidence->getOccurredAt());
         self::assertSame($evidence->toArray(), AuditEvidence::fromArray($evidence->toArray())->toArray());
         self::assertSame(in_array($operation, ['self', 'admin'], true), $evidence->getCorrelation() !== null);
+        if ($operation === 'admin') {
+            self::assertSame('Compromised device', $facts['reason']);
+        } else {
+            self::assertArrayNotHasKey('reason', $facts);
+        }
+
         foreach (
-            ['correct-secret', 'new-password', 'ciphertext:', 'new@example.test', 'Secret reason omitted',
+            ['correct-secret', 'new-password', 'ciphertext:', 'new@example.test',
             self::REFRESH_CREDENTIAL,
             self::ACTIVATION_CREDENTIAL, self::RESET_CREDENTIAL, self::EMAIL_CHANGE_CREDENTIAL] as $secret
         ) {
@@ -493,7 +499,7 @@ final class SynchronousAuditTest extends TestCase
                 $actorId,
                 $currentSessionId,
                 $session->getId(),
-                $operation === 'admin' ? SessionRevocationReason::fromString('Secret reason omitted') : null
+                $operation === 'admin' ? SessionRevocationReason::fromString('Compromised device') : null
             )))
         };
         $snapshot = fn(): array => [

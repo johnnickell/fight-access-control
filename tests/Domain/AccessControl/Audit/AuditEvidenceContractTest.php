@@ -42,6 +42,7 @@ use Fight\AccessControl\Domain\AccessControl\EmailChangeGrant\EmailChangeGrantId
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetDeliveryId;
 use Fight\AccessControl\Domain\AccessControl\PasswordResetGrant\PasswordResetGrantId;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\SessionRevocationReason;
 use Fight\AccessControl\Domain\AccessControl\Role\Role;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleName;
@@ -248,19 +249,44 @@ final class AuditEvidenceContractTest extends TestCase
         }
     }
 
-    public function test_session_evidence_admits_no_free_text_reason(): void
-    {
-        $facts = new AuditSessionRevocation(RefreshSessionId::generate(), 4, 5);
-        $evidence = AuditEvidence::record(
+    #[DataProvider('invalidSessionReasons')]
+    public function test_session_evidence_rejects_an_invalid_or_misplaced_reason(
+        AuditAction $action,
+        array $fields
+    ): void {
+        $reason = null;
+        if ($action === AuditAction::SESSION_ADMINISTRATIVELY_REVOKED) {
+            $reason = SessionRevocationReason::fromString('Compromised device');
+        }
+
+        $facts = new AuditSessionRevocation(RefreshSessionId::generate(), 4, 5, $reason);
+        $payload = AuditEvidence::record(
             UserId::generate(),
             new AuditSubject(UserId::generate()),
-            AuditAction::SESSION_ADMINISTRATIVELY_REVOKED,
+            $action,
             new DateTimeImmutable(),
             $facts,
             new AuditCorrelation(MessageId::generate(), null)
-        );
-        self::assertSame($evidence->toArray(), AuditEvidence::fromArray($evidence->toArray())->toArray());
-        self::assertSame(['session_id', 'before', 'after'], array_keys($facts->toArray()));
+        )->toArray();
+        unset($payload['facts']['reason']);
+        $payload['facts'] += $fields;
+
+        $this->expectException(DomainException::class);
+        AuditEvidence::fromArray($payload);
+    }
+
+    /** @return iterable<string, array{AuditAction, array{reason?: mixed}}> */
+    public static function invalidSessionReasons(): iterable
+    {
+        $administrative = AuditAction::SESSION_ADMINISTRATIVELY_REVOKED;
+        yield 'missing' => [$administrative, []];
+        yield 'null' => [$administrative, ['reason' => null]];
+        yield 'non-string' => [$administrative, ['reason' => 123]];
+        yield 'blank' => [$administrative, ['reason' => "\u{2003}"]];
+        yield 'too long' => [$administrative, ['reason' => str_repeat("\u{00E9}", 501)]];
+        yield 'self-service' => [AuditAction::SESSION_REVOKED, ['reason' => 'Compromised device']];
+        yield 'logout' => [AuditAction::SESSION_LOGGED_OUT, ['reason' => 'Compromised device']];
+        yield 'replay' => [AuditAction::SESSION_REPLAY_REVOKED, ['reason' => 'Compromised device']];
     }
 
     public function test_role_creation_change_and_removal_keep_complete_incarnation(): void
