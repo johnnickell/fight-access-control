@@ -9,7 +9,7 @@ Framework-neutral identity and authorization for PHP. Manage User accounts, Agen
 Permissions while keeping control of your application's infrastructure.
 
 [Install](#release-and-installation) · [Get started](docs/getting-started.md) · [Capabilities](docs/capabilities.md) ·
-[Framework setup](docs/frameworks.md)
+[Framework setup](docs/frameworks.md) · [Consumer docs](https://johnnickell.github.io/fight-access-control/)
 
 ## Release and installation
 
