@@ -195,32 +195,7 @@ new issuance capacity must never gate existing-operation status, claims or recov
 
 ## Package evidence and consumer qualification
 
-`AgentOperationTest` proves values, canonicalization, bounds, safe material and tombstone identity.
-`ProvisionAgentHandlerTest` proves observable persisted outcomes using transaction-aware Domain repository and
-consumer-capability doubles. `ProvisioningEnvironment`, `InMemoryAgentCredentialOperationRepository`,
-`InMemoryAgentOperationAuthorization`, `BoundAgentDeliveryCipher` and `UncertainAgentUnitOfWork` are reusable test
-fixtures under `tests/Application/AccessControl/Agent/`, not production adapters. The cipher fixture is deliberately
-not cryptography. Consumers must independently qualify authenticated encryption and the actual shared connection,
-locking, unique constraints and concurrent transactions before adoption. Bind the [issuance recovery suite](agent-integration.md#restoration-and-consumer-evidence-handoff)
-to those adapters separately from these focused fixtures.
-
-| Requirement | Focused package evidence |
-| --- | --- |
-| I1, I7 complete issuance and safe result | `test_it_commits_one_complete_issuance_before_publication_and_returns_no_secret` |
-| I2 loss/restart, equivalent canonical request | `test_lost_response_and_restart_resolve_without_generation_audit_or_another_fact` |
-| I2 concurrent identical/conflicting keys | `test_unique_loser_rolls_back_then_resolves_or_conflicts_with_winner` |
-| I2 changed fields/unknown version | `test_changed_binding_or_unknown_version_rejects_without_generation` |
-| I3 uncertain committed/rolled-back outcomes | `test_uncertain_commit_never_guesses_and_restart_resolves_the_original_key` |
-| I3 pre-commit rollback across all write/encryption boundaries | `test_precommit_faults_roll_back_every_record_and_never_expose_provider_details` |
-| I4 success/both publisher failure | `test_publication_failure_preserves_committed_work_without_reconstructed_warnings` |
-| I5 denied new/retry before lookup | `test_current_authority_denies_before_lookup` |
-| I5 shared authority fence/delegated identity | `test_authorization_writer_waits_for_issuance_and_next_retry_observes_revocation` |
-| I5 authority capability rollback | `test_authorization_participant_failure_rolls_back_its_own_writes` |
-| I5 cross-scope delivery identity and reassigned-slot order | `test_cross_scope_ids_and_reassignment_preserve_delivery_identity_and_slot_order` |
-| I6 default/override bounds, capacity isolation and retained keys | `AgentOperationTest` and `test_capacity_rejects_new_work_but_preserves_resolution_under_lowered_limits_and_tombstones` |
-| I7 mandatory cancellation after Permission changes | `test_recoverable_agent_rejects_unfenced_lifecycle_even_after_permission_changes`, `AgentCredentialRetirementTest` |
-
-Interleavings model a winner becoming visible after loser rollback and an authority writer waiting for the shared
-fence. They are not parallel database sessions or PostgreSQL proof. No no-caller scheduler, sink, activation/use,
-real encryption adapter, release or consumer-adoption result is claimed here. Current Agent authentication,
-Permission, hydration and lifecycle tests remain part of the complete package gate.
+Qualify authenticated encryption, shared database connection and transaction, locking, uniqueness and concurrency
+with the actual adapters. Bind the [issuance recovery suite](agent-integration.md#restoration-and-consumer-evidence-handoff)
+to those adapters; in-memory interleavings and the package test cipher do not qualify them. Qualify the scheduler,
+sink and independent activation/use separately.

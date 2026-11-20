@@ -158,21 +158,6 @@ Do not emulate failure by returning canned Application results. `restart()` must
 retaining real storage, receipt and authority evidence. A contention hook may observe blocked execution or a retryable
 conflict, but the competing switch must not commit through the held transaction.
 
-| M2 scenario | Package evidence |
-| --- | --- |
-| Missing storage/outage, unsupported contract markers, every absent capability across eight public paths | `test_incompatible_restarted_workers_do_not_mutate_or_materialize` asserts unchanged Agent/operation/material/order/audit/generation and no sink/decryption; status remains confirmed rather than absent |
-| Compatible creation/rotation, scheduler delivery, rewrap and revocation | `test_compatible_cohort_retains_real_rotation_delivery_maintenance_and_revocation` |
-| Switch at claim/admission/materialization/sink acceptance; compatible and incompatible restart | `test_cohort_switch_never_acknowledges_stale_admission_and_restart_recovers` |
-| Transaction versus switch, no startup cache | `test_cohort_switch_contends_with_live_transaction_not_just_startup_check` |
-| Direct repository writers; current revocation; Permission changes and no-ops; mismatched repository cohorts | `AgentCohortWriterTest` |
-| Cleanup switch-back and maintenance contention/rollback | `AgentCohortWriterTest` |
-| Single supported contract and generation-bound authority rules | `AgentOperationContractTest` |
-
-The reference runner is `InMemoryAgentCohortConformanceTest`. It models persisted state and deterministic
-interleavings. Its capabilities are explicit **test fixture composition**, not real database/cryptographic/sink
-qualification. Run the [issuance and delivery suites](agent-integration.md#restoration-and-consumer-evidence-handoff)
-against real adapters to check uncertainty, capacity, optional lookup, authorization, publication and key/sink failures.
-
 Before a consumer can claim M2 qualification, additionally retain these **mandatory unexecuted external scenarios**:
 
 - For an actual runtime replacement (not first adoption), attempt every excluded issuance, rotation/revocation,

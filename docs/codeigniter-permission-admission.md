@@ -10,30 +10,14 @@ The combined five-framework release remains unfinished and unversioned.
 
 ## Current verification boundary
 
-TASK-00179 now selects `SafeNativeLogger` before native formatting/cache/handlers, delegating to the **same**
-Common `SafeHttpDiagnostics` owner as `SafeErrorResponder`. Correction to the earlier Work hold: CI4 supports an
-explicit logger service replacement; a thin ingress to the existing owner is not a competing reporter. The loop
-alone still cannot intercept swallowed native failures. Select both services as shown below; no vendor change or
-native Attribute safeguard disablement is needed. TASK-00179 has independent Review ACCEPT and nonvisual QA PASS
-for this package boundary; actual consumer composition remains separately qualified.
+Select `SafeNativeLogger` before native formatting, cache and handlers, and use the **same** Common
+`SafeHttpDiagnostics` owner for it and `SafeErrorResponder`. The loop alone cannot intercept swallowed native
+failures. Select both services as shown below; no vendor change or native Attribute safeguard disablement is needed.
 
-The separate fixture mistake is corrected: before native test bootstrap, the Permission fixture defines its own
-`WRITEPATH` under ignored `var/tests/task-00179/native-permission/<process>/`. Native logs, file cache, sessions,
-debugbar and uploads use that owned output tree, not installed dependencies. Native logging and required filters
-remain enabled. The earlier canonical input-stability failure remains a failed historical receipt; relocating test
-output alone did not resolve the production reporting gap or establish acceptance. Production-style native proof
-now uses separate PHP processes with `ENVIRONMENT=production`, native Common loaded before Composer helpers and
-`Boot::bootConsole` followed by the selected web loop. Default required filters and native `pre_system` buffering
-remain enabled. This does not certify a deployed front controller or persistent worker.
-
-TASK-00168 removed the affected Feature bootstrap-dependent journeys; those tests remain removed. Its
-[Feature verification limits](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment)
-are unchanged. TASK-00179 separately requires native Permission proof. `NativePermissionTest` now exercises real CI4
-routing, default required filters, aliases, before-filter short-circuit, inherited/method/array/invokable/closure
-controllers, User/Agent authority and the selected native response/error loop. Controlled units separately qualify
-portable decisions, cooperating gates, fresh context and finite response/fallback behavior. Native cases are classified
-Integration, not Unit coverage. These fixtures do not qualify installed consumer routes, authentication, storage,
-cryptography, sinks, worker reset or deployment. Earlier supplier evidence retains its historical subject.
+Native Permission checks cover actual routing, required filters and response handling. They do not qualify the
+[Feature-native or combined lifecycle](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment).
+Qualify installed routes, authentication, storage, cryptography, sinks, front controller and worker reset separately.
+See [TASK-00179](../planning/tasks/00179-TASK.md) for package evidence.
 
 ## Trusted declaration and native filter wiring
 

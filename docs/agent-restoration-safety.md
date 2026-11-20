@@ -133,28 +133,9 @@ canned Application results or substitute a manually flipped ready flag for recon
 [issuance and delivery suites](agent-integration.md#restoration-and-consumer-evidence-handoff) and
 [cohort](agent-operation-cohorts.md) conformance, including real authority writer races.
 
-| M4 outcome | Executable package evidence |
-| --- | --- |
-| Stale state before issuance, before sink outcome commit, after supersession/revocation and cleanup; nine public paths deny with no persisted change/generation/audit/materialization | `test_stale_package_state_never_reopens_unsafe_public_paths` (45 histories/paths, retaining external receipts/high-water separately) |
-| Forward repair retains original key/issuance, terminal material absence and nondecreasing order; authorized retry does not issue again | `test_verified_repair_preserves_keys_order_terminal_state_and_identity` |
-| Missing/unavailable witness, receipt mismatch, all twelve issuance tuple fields, missing tombstone or order evidence | `test_incomplete_or_mismatched_external_evidence_cannot_enable_repaired_state`; failed reconciliation leaves state unchanged and retry/delivery unavailable |
-| Restore after claim/admission/materialization/acceptance; no early invocation or stale acknowledgement, eventual exact original recovery | `test_restore_between_stages_denies_acknowledgement_and_preserves_bytes` |
-| Conflicting restore versus live transaction, repeated runtime check rather than startup cache | `test_restoration_contends_with_the_live_writer_fence_and_is_not_a_startup_check` |
-| Cleanup tombstones reject delayed replay after repair | `test_reconciled_cleanup_retains_the_sink_tombstone_against_delayed_replay` |
-| Reconciliation does not replace current caller/Permission/delegation/destination authority | `test_reconciliation_never_substitutes_for_current_delivery_authorization` |
-| Compatible reconciled generation still rejects old delivery/cleanup acknowledgements; maintenance conflict rolls back | `AgentRestorationWriterTest` |
-| Same-generation witness validation, missing/stale/unknown generation, both repository participants and authority binding | `AgentOperationContractTest` |
-| All eight direct repository writer paths deny unreconciled evidence; service paths and operational reads retain cohort guards | `AgentCohortWriterTest`, expanded `AgentCohortConformance` |
-
-`InMemoryAgentRestorationConformanceTest` and `InMemoryAgentRestorationWithoutLookupTest` run the same scenarios
-with and without optional receipt lookup. Their retained latest-package snapshot stands for an independent authoritative
-recovery journal; the package snapshot excludes trusted readiness and the sink. It actually
-replaces modeled Agent/operation/audit/order state while preserving sink acceptance, receipts, tombstones and
-high-water evidence. Reconciliation compares the proposed forward checkpoint with that independently retained
-history and verifies safe sink bindings/order. Opaque observation tokens compare complete persisted snapshots without
-serializing secret-bearing material. This does **not** establish how a consumer obtains a complete journal, performs
-physical restore, authenticates evidence, fences a real process or implements database concurrency. It is not a
-production reconciliation algorithm. Package guards and public results, not the fixture implementation, are the API.
+Run both receipt-lookup modes where supported. Keep trusted witness and sink evidence outside the restored dataset,
+and compare persisted observations without exporting secret material. The modeled fixtures are not a production
+reconciliation algorithm.
 
 ## Mandatory external qualification — not executed here
 
@@ -164,7 +145,8 @@ provenance, generation before/after, protected observations and abort/resume out
 raw credentials, ciphertext or key paths as proof.
 
 - Restore a genuinely older current-contract database behind a real sink's accepted and cleaned effects. Independently
-  observe no duplicate issuance/audit, no reset/reuse of order/keys and no material resurrection across all M4 histories.
+  observe no duplicate issuance or audit, no order reset or key reuse, and no material resurrection. Cover stale restore
+  points before issuance, before sink outcome commit, after supersession or revocation, and after cleanup.
 - Race restore/reconciliation with every actual writer on independent connections/processes; attempt stale/restarted
   workers and direct administrative connections. Show that storage replacement cannot bypass the conflicting fence.
 - Remove, corrupt, replay or swap the actual trusted witness, storage incarnation, receipt/binding, tombstone and

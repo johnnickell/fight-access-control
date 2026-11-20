@@ -198,44 +198,12 @@ points/envelopes separate from this ordinary HTTP/JSend composition.
 
 ## Tagged minimum evidence and consumer qualification
 
-These are selected sufficient tagged lower bounds, not guesses about the oldest possible compatible versions:
+See [current package and native qualification limits](ordinary-http-failures.md#consumer-obligations-and-evidence-bounds).
+A selected tagged minimum does not qualify every dependency resolution. Keep Laravel test bootstrap
+in a separate PHP process from CI4. Use `./bin/phpunit` or `./bin/quality`; raw PHPUnit misses
+the required helper deferral.
 
-| Component | Tested minimum source |
-| --- | --- |
-| Common v1.4.1 (`^1.4.1`) | `a482c220d312d2ef7762c3f0d85d9fb76a7021fa` |
-| Laravel v13.40.0 (`^13.40.0`) | `1449bf241017087fbd38c118ecaabef3f6797fdc` |
-| HttpFoundation v8.1.11 (`^8.1.11`) | `30fa3efe6e736b0d06f5331cc6abe813582c0a26` |
-| HttpKernel v8.1.11 (`^8.1.11`) | `460658504e26a2794aa614b4fbe6cf9bac2076fe` |
-| Event Dispatcher v8.1.5 (`^8.1.5`) | `7458da64220376b2e0dc2d8451bf43382c1ad297` |
-
-Common's annotated remote v1.4.1 tag peels to the installed source above; its runtime/test/manifest bytes equal the
-independently accepted release-preparation candidate. Supplier acceptance is not consumer proof. The original
-AccessControl v1.4.0 persistent-fault regression red is preserved, and the unchanged probe passes on installed 1.4.1;
-the owning native regression now runs in default coverage. Exact locks, archive/source equivalence and executed
-runtime/reflection evidence live in TASK-00105's Work handoff.
-
-The original ordinary and isolated exact-minimum native lanes exercise real User/Agent admission and the native
-suite. TASK-00178's current candidate verification and sufficient-minimum lane are recorded in its canonical Work
-handoff; the table above remains historical supplier evidence, not acceptance of this new portable integration. The isolated lane has no Slim/Yii/CI4 application runtime or Symfony Security HTTP. Symfony HTTP
-primitives are Laravel dependencies, not absent-framework claims. A production-only core lane exercises inward
-admission/optional adapter autoload with Laravel absent. Other transitive dependencies are lock-recorded, not an
-exhaustive all-lowest matrix. Preliminary HttpFoundation/HttpKernel 8.1.9 passed behavior but reported five newly
-published security advisories; it is **not** the supported floor. 8.1.11 qualification retains a clean Composer audit.
-PHP 8.5.12/Xdebug 3.5.3 is actually executed; Composer platform 8.5.4 is resolver metadata, not a minimum-patch test.
-Semver ranges are support bounds, not qualification of all future versions or every resolver combination.
-
-The default native fixtures select one application bootstrap per process. Laravel's eager global helpers (notably
-`config()`) collide with CI4's different globals if both applications are booted together. The package test launchers
-(`bin/phpunit` and `bin/quality`, used by `bin/build`) prepend `tests/Adapter/framework-bootstrap.php` before Composer
-to defer only Laravel's Foundation/Support global helpers. Laravel tests run in fresh processes and load those actual
-supplier files from the selected framework source before native boot. CI4's source/fixtures and production behavior
-are unchanged. This is test isolation, not support for running two application bootstraps in one PHP process.
-Direct raw `vendor/bin/phpunit` is not the qualified all-framework launcher; focused native commands must retain the
-same prepend option. Independent minimum tests also use the actual isolated vendor and these process boundaries.
-
-Mirrored Adapter tests, exact owned-statement coverage and the full package gate remain binding; independent Review
-and behavioral QA are still required. Controlled native fixtures use real inward contracts with modeled repositories,
-nonce transactions and fixed crypto boundaries, not actual consumer authentication/persistence/cryptography. Consumers
+Consumers
 must qualify real bootstrap/guards/routes, complete target binding, order/construction, service reset/nesting, nonce
 atomicity, storage/crypto, scope/grants, safe sinks/projectors, proxies, workers and deployed runtime before adoption.
 The combined all-five-framework release remains unfinished; no release, adoption or deployment is authorized here.

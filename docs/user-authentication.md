@@ -17,10 +17,17 @@ and named string ordering maps. User and session repositories still return the a
 Persist the actual User Role list and revisions; validate identity elements before set comparison and do not
 reconstruct missing values from lifecycle state. Authentication version is positive; the distinct authority,
 assignment, reservation and canonical-email revisions are nonnegative. Persist exact instants for CAS, including
-subseconds. Refresh history is ordered, unique and disjoint from the current digest. Raw refresh credentials
-must be exactly 64 lowercase hexadecimal characters. Only the most recent predecessor can match during the
-bounded post-rotation conflict window; earlier history remains replay evidence. Exhausted revisions reject
-changes without producing a successor.
+subseconds. Exhausted revisions reject changes without producing a successor.
+
+Persist the current refresh credential **digest** and the ordered, duplicate-free list of used digests, never raw
+credentials. Each digest is validated as exactly 64 lowercase hexadecimal characters; the list excludes the current
+digest. The raw transport credential also has a separate 64-lowercase-hex-character format requirement. On hydration,
+require a positive session authentication version and a nonnegative persistence revision. Rotation time is present
+exactly when used history is nonempty and must equal last activity. Preserve `createdAt <= lastActivityAt < idleExpiresAt <= absoluteExpiresAt`.
+
+Before the first rotation no predecessor can match. After rotation, only the latest used digest can match as a
+retry, from the rotation instant inclusive to the conflict deadline (`rotatedAt + conflictWindow`) exclusive.
+Earlier history remains replay evidence, not a benign conflict.
 
 ## Direct owners
 

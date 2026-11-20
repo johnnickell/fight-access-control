@@ -240,18 +240,8 @@ use Common's single supplied redaction-aware sink, not a second logger or except
 
 ## Evidence and limits
 
-`tests/Adapter/Mcp/Subscription/Agent/` exercises real AccessControl authority, Common routed recovery, DBAL SQLite
-notice/tracking, Sodium continuation, exact Resource/whole-Skill bindings and native HTTP endpoint/emitter. The
-native SAPI fixture proves acknowledgment and signal bytes arrive before finite closure, checks correlation type
-and preserves HTTP Accept safeguards. Controlled scheduling covers queued denial and tracking callbacks; actual
-storage/transport faults, slow-reader freshness, idle closure, separate-principal same-ID streams and independently
-admitted retained recovery remain distinct scenarios. The native fixture uses an explicitly trusted handoff; owning
-request tests separately prove authentication and one nonce without replay.
-
-Minimum/ordinary dependency identities, exact coverage, complete gate logs, warnings and runtime locators belong to
-the canonical Work handoff. TASK-00093's minimum checkpoint reported 40 advisories in 12 packages; TASK-00094's
-current minimum lane reports 43 advisories in 13 packages. Its ordinary resolution reports none. These fixtures qualify package composition, **not** production consumer DB/crypto/policy,
-all authority writers, access-history restoration, concurrency schedules, proxies, buffering or client receipt.
-Nonvisual actual wire/admission/Query/state evidence is useful here; UI screenshots would prove none of these rules.
-Independent Review and behavioral QA accept the named candidate above. No release, deployment or exactly-once
-delivery is claimed.
+On actual adapters, verify acknowledged wire output and finite closure, freshness with slow readers and idle streams,
+separate principal streams, and independently admitted retained recovery. Qualify production storage, cryptography,
+policy and all authority writers, restoration, concurrency, proxies, buffering and actual client receipt.
+No exactly-once delivery is promised. [TASK-00094](../planning/tasks/00094-TASK.md) records the package evidence and
+advisory findings for its dependency lanes.

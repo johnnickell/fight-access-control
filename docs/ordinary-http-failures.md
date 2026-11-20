@@ -37,25 +37,10 @@ record only an allowlisted class name; that does not qualify an actual consumer 
 
 ## Current admission and historical safe-error qualification
 
-For current admission constructors, follow the linked framework guides above. This table records the earlier
-ordinary-HTTP qualification checkpoint; do not copy superseded adapter wiring from it. The current PSR-15 recipe
-binds `PermissionRequirements` and a trusted `Closure(ServerRequestInterface): SelectedAction`, not a nullable
-route declaration constructor.
-
-| Owner | Input/result and dynamic boundary | Disposition |
-| --- | --- | --- |
-| PSR-15 `PermissionMiddleware` | Route-bound nullable declaration; `Closure(ServerRequestInterface): ?RequestAuthority`; `process(ServerRequestInterface, RequestHandlerInterface): ResponseInterface` | Unchanged: native response identity, immutable request replacement and fresh factory lifetime. Null declaration is configuration failure, not PUBLIC. |
-| Symfony `PermissionSubscriber` | Trusted `RequestMatcherInterface`; `Closure(Request): ?RequestAuthority`; `onKernelRequest(RequestEvent): void`; exact `kernel.request => ['onKernelRequest', 16]` | Event-map annotation refined; native routing/declaration validation remains runtime-owned. |
-| Laravel `PermissionMiddleware` | Router plus `list<array{Route, mixed}>`; `Closure(Request): ?RequestAuthority`; `handle(Request, Closure(Request): Response): Response` | Unchanged: WeakMap keys are exact native Routes; raw action/declaration values remain mixed until runtime association/type validation, not falsely narrowed by PHPDoc. |
-| CI4 `PermissionFilter` | `Closure(): Router`, `Closure(IncomingRequest): ?RequestAuthority`; `before(RequestInterface, native arguments): ?ResponseInterface`; `after(...): null` | Unchanged: inherited arguments are genuinely dynamic; nonempty arguments/non-web requests fail before provider resolution. |
-| CI4 `RequestContexts` | `WeakMap<RequestInterface, SecurityContext>`; `get(): ?SecurityContext`, `set(): void`, `clear(): void` | Unchanged: exact request keys and weak lifetime; clear precedes each admission. |
-| CI4 `SafeCodeIgniter` | Native App/Cache/optional RouteCollection/Boolean loop arguments; protected `handleRequest(): ResponseInterface` | Unchanged: selected routing/downstream loop delegates failure presentation to the one Common-backed responder. |
-| CI4 `SafeErrorResponder` | Common diagnostics/projector/policy, optional `Closure(): ResponseInterface`; `respond(Throwable): ResponseInterface` | Unchanged: one reporting attempt, Common envelope/header policy, fresh native response and fixed terminal JSON. Private render helpers retain exact envelope/status/header contracts. |
-
-Factories are trusted configuration, not externally validated by static inference. An authority factory returns
-RequestAuthority or genuine absence, never a copied SecurityContext/principal. Constructors and callbacks are checked
-by the [positive/negative type fixtures](type-contracts.md); runtime tests separately challenge native configuration,
-trusted targets, privacy, ordering and request lifetimes. No generic bus typing or real consumer bootstrap is implied.
+Use the linked framework guides for current constructors and registration. An authority factory is trusted
+configuration: return `RequestAuthority` or genuine absence, never a copied SecurityContext or principal.
+Static inference does not validate native route, action or filter metadata. See [TASK-00146](../planning/tasks/00146-TASK.md)
+for the earlier safe-error qualification checkpoint.
 
 ## Native selection and lifetime limits
 
@@ -82,19 +67,16 @@ trusted targets, privacy, ordering and request lifetimes. No generic bus typing 
 Current selected native lower bounds are Slim 4.15.3/PSR7 1.8.0; Yii Router 4.0.2/FastRoute 4.0.3/Dispatcher 5.4.0/
 DI 1.4.1/Injector 1.2.2; Symfony Event Dispatcher 8.1.5 and HttpFoundation/HttpKernel/Routing/optional Security HTTP
 8.1.11; Laravel 13.40.0; CI4 4.7.6. Routing and optional Security HTTP floors are raised to 8.1.11 after advisory
-checks of the older lane. No security-advisory bypass or analyzer/test suppression is added. Older tag tables in
-the native guides retain historical qualification only. Common v1.4.2 was a supplier checkpoint; the current
-AccessControl floor is `^1.5.1`.
+checks of the older lane. The current AccessControl floor for Common is `^1.5.1`.
 
 Update nullable-result callers and generic LookupException-to-404 catches directly to the actual current use-case
 contract. Keep unknown/internal faults as server failures; do not add a compatibility reader, fallback grant or
 another renderer. Select Common `^1.5.1`, supply real request-owned authentication, safe diagnostics, finite public
 projections and required scheme metadata, and qualify actual middleware/listener order and final responses.
 
-TASK-00168's explicit [CI4 coverage amendment](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment)
-removes the CI4 bootstrap-dependent integration tests; current isolated units retain controlled filter/responder and
-loop-seam behavior. Native routing/aliases, short-circuit/order, downstream application interception and bootstrap/reset
-are now separate unverified framework obligations. Earlier CI4 reports retain their historical subjects.
+CI4 [native Permission checks](codeigniter-permission-admission.md#current-verification-boundary) do not qualify
+Feature-native or combined routing, ordering, downstream interception, bootstrap or reset. Follow the
+[Feature qualification boundary](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment).
 
 Maintained native fixtures cover Slim/Yii/Symfony and present Laravel category/privacy paths, safe metadata,
 report/fallback/order, fresh request/nonce behavior and protocol exclusion. Supported-minimum, ordinary and optional

@@ -93,28 +93,6 @@ trusted selected code --> Action/SelectedAction (existing shared ancestry and id
  Domain/Permission/PermissionName               trusted RequestAuthority
 ```
 
-Added owners are `Authorization/Attribute/RequiresPermission` and `Authorization/Admission/PermissionRequirements`.
-No production owner is removed or relocated; SelectedAction, PermissionDeclaration and PermissionAdmission are reused
-unchanged. Source and tests mirror these capability homes. `etc/contract-owners.json` assigns the two new
-files to TASK-00171; the reviewed structural inventory adds only their 44 boundaries, without reassigning existing
-TASK-00145 or shared TASK-00170 contracts. Structural inventory is not independent semantic acceptance.
-
-`tests/Application/AccessControl/Authorization/Admission/PermissionRequirementsTest.php` maintains the scenario matrix:
-
-| Scenario | Observable proof |
-| --- | --- |
-| Repeated class/method, parent/override, inherited/invokable, route conjunction | Complete ordered canonical names, PROTECTED, no controller construction |
-| Undeclared child override | Parent gates survive; direct method remains callable |
-| Closure and absent policy/all explicit modes | Exact route preserved or null; missing policy still faults in existing admission |
-| Wrong method/closure, missing selected method | Rejection, never unrelated/empty fallback |
-| PUBLIC/AUTHENTICATED conflict, raw duplicate/list/type/mode faults | Configuration rejects without effective repair |
-| Malformed repeated names/arguments and unsupported native targets | Actual native instantiation rejects every invalid declaration |
-| Permission-only, independent PUBLIC plus Feature | No Feature metadata evaluation dependency; both metadata sets remain distinct |
-| Existing admission composition | Metadata leaves authority unresolved; later admission checks every Permission |
-
-Shared traversal's own `FeatureRequirementsTest` retains interface, static trait alias and unsupported selection proof.
-These are package metadata and controlled authority fixtures. The separate PSR-15 native tests qualify that
-middleware's portable insertion/order and supported forms, not installed consumer bootstrap/scanning/authentication/
-storage, deployment or release. Independent Review and behavioral QA
-remain distinct from Work checks. No useful screenshot exists for this pure library API; executable declarations,
-returned modes/names and rejection/effect assertions are the nonvisual evidence.
+Use the [structural inventory procedure](engineering/contract-inventory.md) for declaration ownership.
+Qualify each native target, bootstrap, scanner, authentication and storage independently;
+metadata checks alone do not establish successful native registration or protection.

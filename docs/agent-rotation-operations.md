@@ -139,19 +139,6 @@ the [sensitive-trace obligations](agent-credential-retirement.md#composition-and
 
 ## Evidence and limits
 
-| Requirement | Executable package evidence |
-| --- | --- |
-| I1 / I2 normal rotation and original-request restart | `RotateAgentCredentialHandlerTest::test_rotation_commits_before_publication_and_recovers_after_restart` |
-| I2 same/conflicting keys, lost CAS, independent winner | `test_concurrent_loser_rolls_back_then_resolves_only_the_authoritative_winner`, `test_absent_collision_winner_is_bounded_contention_and_never_reissues` |
-| I2 / I6 changed requests, retained versions/tombstones | `test_changed_original_request_conflicts_and_unknown_versions_never_reissue`, `test_capacity_preserves_same_key_tombstones_and_rolls_back_a_rejected_new_rotation` |
-| I3 rollback and both uncertain commits | `test_precommit_failures_roll_back_successor_retirement_reservation_and_audit`, `test_uncertain_commit_requires_original_request_reconciliation` |
-| I4 both publishers fail | `test_both_publisher_failures_never_disguise_committed_issuance` |
-| I5 authority, delegation, shared writer fence, slot reassignment | `test_current_authority_precedes_lookup`, `test_authorized_delegate_and_target_writer_share_fences_and_retries_observe_revocation`, `test_destination_reassignment_across_scopes_preserves_global_order_and_distinct_delivery` |
-| I1 / I7 real delivery fences and successor bytes | `test_rotation_fences_real_delivery_and_late_staged_bytes_never_acknowledge`, `test_successor_delivery_wins_over_an_older_in_flight_invocation` |
-| I7 current authentication and nonce races | `AgentRotationAuthenticationTest` interleaves actual rotation before/after nonce consumption, rejects old authority and successor replay |
-| I7 Domain invariants and revocation failure semantics | `AgentRecoverableRotationTest`, `AgentCredentialLifecycleServiceTest`; existing revocation, Permission and authentication suites remain in the full gate |
-
-These are deterministic transaction-aware in-memory interleavings and a noncryptographic cipher/sink fixture, not
-parallel production database sessions, real cryptography, consumer activation/use or release qualification. The
-full package gate checks exact statement coverage; coverage is not proof of consumer concurrency. There is no HTTP/UI
-change, so executable persisted-state outcomes—not screenshots—are the before/after evidence.
+Run the [Agent consumer checks](agent-integration.md#restoration-and-consumer-evidence-handoff) on actual adapters.
+Qualify rotation and old-authority denial across nonce races, concurrent writers, publication failure and restart;
+controlled package interleavings do not qualify database concurrency, crypto, sink or activation/use.

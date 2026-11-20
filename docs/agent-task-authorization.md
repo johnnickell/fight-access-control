@@ -582,37 +582,8 @@ nonvisual behavioral QA remain required.
 
 ## Qualification and limits
 
-The first sufficient tagged Common API is **v1.5.0**, source
-`06fb5cd3720af9cf8295198f74040d95b64c5155`; the manifest already requires `^1.5.0`. Supplier independent acceptance and
-release adoption are recorded in the [Common adoption record](../planning/tasks/00110-TASK.md). Exact-minimum and ordinary feature
-lanes, lock/source/runtime identity, focused/full gate and exact owned coverage belong to the canonical TASK-00097
-Work handoff; TASK-00098's canonical Work handoff separately owns removal minimum/ordinary-lane and gate evidence.
-The installed minimum supplies `TaskRemovalAdmission`, `RemoveTasksHandler`, `TaskSelection`, `RemoveTasks` and
-`TaskDataRemoved`, with actual DBAL transaction/repository integrity, not guessed lifecycle facades. DBAL `^4.4` is a **development-only** dependency for actual Common SQLite adapter/transaction tests;
-no persistence adapter or Doctrine runtime dependency is added to the package's production policy.
-
-`AgentTaskAdmissionTest` uses real AccessControl authentication/exact Permission resolution and real Common handlers,
-routing buses, payload policy, schema, DBAL repository and transaction over SQLite. It covers independent Agent
-read sharing, scope denial/faults, complete five-state reads, input-state seeding through Common, original context,
-TTL, exact payload bound, retry/conflict/terminal winner, rollback, lost actual commit acknowledgment with a fresh
-connection, postcommit dispatch failure and current worker reporting. Existing continuation tests separately prove
-controlled all-writer schedules and binding validity. These are not real consumer persistence, cryptography, sharing,
-durable visibility history, authority writer/lock, queue-integrity, multi-process worker or external-effect qualification;
-SQLite evidence does not certify MySQL/PostgreSQL. `AgentTaskRemovalAdmissionTest` separately exercises real routing,
-whole-selection authority/scope, all retained states, coherent row/comparison removal, retry/recreate, bounds,
-partial-delete rollback, both lost-commit outcomes, caller ownership, dispatch failure and concurrent real lifecycle/
-removal/read schedules over separate SQLite processes. Its guarded cleanup fixture proves current revocation refusal
-without nonce replay, not production retention/hold policy, cleanup scheduling, worker stopping or all-writer fences.
-Consumers must qualify their exact components and alternate entry points.
-
-`AgentTaskInputAdmissionTest` separately exercises real authentication/Permission resolution, actual input issuance,
-partial/ignored/mixed invalid batches, immutable accepted evidence, confirmation refusal/single-use, protected observation,
-method acknowledgments, bounded retained capacity, retirement/high-water preservation, changed original authority and
-no nonce replay. Separate SQLite processes contend behind the actual namespace lock for conflicting answers and
-producer-terminal races. Actual SQLite rollback, both lost commit acknowledgment outcomes and postcommit publication
-failure preserve admission truth. The consumer scope/fence/cryptography/effect and authority-writer fixtures remain
-controlled inputs, not deployed storage/locking/worker/external-effect qualification. Common v1.5.0 is sufficient for
-all consumed input/confirmation/acquisition APIs; exact-minimum and restored ordinary lanes and their lock/runtime
-identities belong to TASK-00099's canonical Work handoff. No new production dependencies or optional MCP capability
-registration are added. Independent Review and nonvisual QA remain required; no package acceptance or combined release
-is self-issued.
+Use the package's supported Common range from [Composer](../composer.json). SQLite/DBAL integration tests are
+package evidence, not a production persistence adapter or certification for MySQL/PostgreSQL. DBAL is development-only.
+Qualify actual persistence and concurrency, cryptography, scope and sharing, retention/holds, worker/queue and
+authority-writer fences, visibility history, and external effect ordering. Include alternate entry points, uncertain
+commits, rollback and post-commit publication failure for reads, removal and input paths where applicable.

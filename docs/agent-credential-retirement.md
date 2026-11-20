@@ -176,23 +176,7 @@ required to revoke or recover routine work.
 
 ## Package evidence and remaining qualification
 
-`AgentCredentialRetirementTest` exercises real provisioning, Domain retirement, the lifecycle service, status and
-same-key resolution through transaction-aware in-memory repository doubles. `ControlledAgentDeliveryWriter` supplies
-only controlled expected-state claim/admission/completion writes. It is not a worker, does not invoke a sink and
-makes no real database concurrency, receipt, deadline or activation/use claim.
-
-| TICKET-00013 evidence | Focused tests / boundary |
-| --- | --- |
-| D2 / D5 pre-admission and stale completion fences | `test_retirement_fences_controlled_claim_admission_and_completion` covers pending, claimed and admitted snapshots through service and direct repository paths. |
-| D2 consumer epochs / shared fence | `test_consumer_authority_writers_share_retirement_fences_and_aba_invalidates_old_snapshots` demonstrates required consumer-writer participation with controlled caller/destination ABA. |
-| D5 direct rotation-capable write | `test_direct_rotation_capable_write_uses_the_same_cancellation_without_building_rotation` uses a hydrated successor; TASK-00048 separately tests the actual rotation workflow. |
-| D5 / D6 atomicity and no key/sink dependency | Successful revocation plus cancellation/Agent/audit/commit rollback cases assert persisted outcomes; generator and cipher are never called. Missing correlation, wrong connection, absent/nested transaction reject. |
-| D5 publication | Both publishers fail; committed revocation remains and the original publication fault rethrows. |
-| D6 safe retained original identity | Domain tuple checks, all delivery dispositions, same-key resolution and secret-free status/debug/audit assertions; no successor-secret or authentication-envelope fallback. `test_retirement_failure_debug_redacts_agents_with_exception_arguments_enabled` proves redacted replacement trace arguments and safe structured failure debug for missing/ambiguous correlation, cancellation storage failure and unsupported participation, with rollback preserved. |
-| D7 defaults/overrides and cleanup/replay | Default-only retirement and one-slot capacity exhaustion/cleanup tests preserve original resolution and monotonic destination order. |
-
-[TASK-00051 delivery tests](agent-credential-delivery.md#evidence-and-limits) now exercise actual package admission and
-in-flight sink races with both service and direct revocation. [TASK-00048](agent-rotation-operations.md) adds actual
-rotation and successor-delivery races; TASK-00053 owns maintenance and TASK-00054 reusable all-path conformance. Real consumer database, authority-writer,
-sink, activation/use and restoration qualification remain mandatory before adoption. There is no HTTP/UI change;
-executable persisted-state tests are the useful before/after evidence, not screenshots.
+Use the [Agent consumer checks](agent-integration.md#restoration-and-consumer-evidence-handoff) to qualify
+actual database and authority writers, in-flight sink effects, activation/use and restoration. Cover claim,
+admission and completion, including direct repository paths and revoke/regrant of authority. Revocation plus
+cancellation must not depend on a generator, cipher or sink. Package fixtures do not qualify those adapters.
