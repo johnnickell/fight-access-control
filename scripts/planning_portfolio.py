@@ -435,13 +435,21 @@ def main() -> int:
         for path, rendered in views.items():
             if path.read_text(encoding="utf-8") != rendered:
                 path.write_text(rendered, encoding="utf-8")
-        stale = []
     elif stale:
-        errors.append("generated planning views are stale; run ./bin/planning-check --write: " + ", ".join(map(str, stale)))
-
-    if errors:
-        print("Planning validation failed:")
-        print("\n".join(f"- {error}" for error in errors))
+        revision = subprocess.run(
+            ["git", "-c", f"safe.directory={ROOT.resolve()}", "rev-parse", "--verify", "HEAD"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        head = revision.stdout.strip() if revision.returncode == 0 else "unavailable"
+        print("Planning validation failed: generated planning files are stale.")
+        print(f"Checked working tree at Git HEAD: {head}")
+        for path in stale:
+            print(f"- {path.as_posix()}")
+        print("Regenerate locally: ./bin/planning-check --write")
+        print("Review the changes with git diff, run ./bin/planning-check, and commit the refreshed views.")
         return 1
 
     active = sum(record.fields["status"] not in TERMINAL for record in records.values())

@@ -158,7 +158,10 @@ Roadmap record-status projection are deterministic views. After a planning-recor
     ./bin/planning-check
 
 The write form closes eligible parents and regenerates views; the read-only form validates IDs, parents, dependencies and cycles, local links,
-ignored run space, and view freshness. Do not hand-edit generated rows.
+ignored run space, and view freshness. On a stale-view failure, the check lists affected paths and the checked
+working tree's Git HEAD. In pull request CI, that revision can be a test merge commit rather than the branch tip.
+Integrate the intended base locally, regenerate the views, and review the diff before committing. Do not hand-edit
+generated rows or regenerate them in CI.
 
 The Board has the contract used by /ask-matt: surface a current human decision first and the active TASK when one
 exists; otherwise surface the active TASK, first executable ready TASK, first needs-info TASK, first needs-triage
