@@ -19,17 +19,17 @@ publication checkpoints remain evidence; planning stays offline and releases sta
 ## Release and installation
 
 <!-- release:start -->
-**Release: [v0.10.1](https://github.com/johnnickell/fight-access-control/releases/tag/v0.10.1)**
+**Release: [v0.11.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.11.0)**
 
 **Status: published.**
 
 Requires **PHP 8.5+** and **Fight Common ^1.5.1** (resolved by Composer).
 ```bash
-composer require johnnickell/fight-access-control:"~0.10.1"
+composer require johnnickell/fight-access-control:"~0.11.0"
 ```
 
-[Release overview](docs/release-0.10.1.md) ·
-[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.10.1/docs)
+[Release overview](docs/release-0.11.0.md) ·
+[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.11.0/docs)
 <!-- release:end -->
 
 The signed tag preserves the preparation snapshot. The immutable GitHub release and the Packagist source and
