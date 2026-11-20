@@ -22,13 +22,16 @@ with actual application UI, adapters, and CMS migration planned separately?
 
 ## Required evidence
 
-- The inspected [project profile](../../agents/project-profile.md), [README](../../../README.md), and
-  [historical CONTEXT](../../../CONTEXT.historical.md) restrict production code to Domain/Application. Consumers own persistence,
+- At the inspected revision, [project context](https://github.com/johnnickell/fight-access-control/blob/ea1e316c0cfa3499e73b213f538257bfd1ee3888/CONTEXT.md) and
+  [README](https://github.com/johnnickell/fight-access-control/blob/ea1e316c0cfa3499e73b213f538257bfd1ee3888/README.md)
+  restricted production code to Domain/Application. At that checkpoint consumers owned persistence,
   transport, framework composition, UI, runtime, and entry-point authorization.
-- [Composer](../../../composer.json) autoloads only Domain/Application production namespaces and has no production
-  framework dependency. [Deptrac](../../../deptrac.yaml) allows Application to depend on Domain, public Common
-  contracts, and PHP internals. Native PHP Attribute metadata can fit this boundary without a Symfony listener or
-  a new Adapter namespace; its exact namespace and API require normal design review.
+- At that same historical revision, [Composer](https://github.com/johnnickell/fight-access-control/blob/ea1e316c0cfa3499e73b213f538257bfd1ee3888/composer.json)
+  autoloaded only Domain/Application production namespaces and had no production framework dependency.
+  [Deptrac](https://github.com/johnnickell/fight-access-control/blob/ea1e316c0cfa3499e73b213f538257bfd1ee3888/deptrac.yaml)
+  allowed Application to depend on Domain, public Common contracts, and PHP internals. Native PHP Attribute
+  metadata could fit that boundary without a Symfony listener or a new Adapter namespace; its exact namespace
+  and API were left to design review.
 - At inspected AccessControl base `ea1e316c0cfa3499e73b213f538257bfd1ee3888`, no production Attribute/registry
   implementation was found by source-path inspection. Do not claim an existing reusable Feature scanner.
 - The public package boundary above excludes framework-specific listeners and filesystem scanners. A portable

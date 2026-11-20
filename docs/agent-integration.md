@@ -3,12 +3,7 @@
 This describes the **checked-out current contract**, including the unreleased operation ownership changes and
 TASK-00182's breaking void-Command/outcome-Query conversion over v0.5.0, not a release receipt, consumer qualification
 or deployment permission.
-Use its public contracts together; previously released versions are unchanged. TASK-00119's
-[precise Domain type contracts](agent-operation-type-contracts.md) describe current safe payloads, hydration,
-retained-request correlation and directly affected consumer obligations. See the
-[release overview](release-0.5.0.md) for scope and delivery gates. The
-[scenario/evidence inventory](agent-operation-evidence.md) separates package results, superseded requirements and
-missing consumer proof. [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md) permits only the current
+Use the [tagged docs](../README.md#release-and-installation) for an installed release. [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md) permits only the current
 API and persisted model: no legacy Agent adoption, historical reader, conversion/backfill or old-signature stub.
 Do not interpret this guide as permission to reset data.
 
@@ -17,9 +12,8 @@ Do not interpret this guide as permission to reset data.
 1. **Qualify one current composition before enablement.** Consumers own persistence/schema, authenticated context,
    authorization policy, keys, protected sinks, scheduling, storage admission and deployment tools. Package Domain
    owns transitions; Application services own transactions and recovery coordination. There is no production persistence Adapter,
-   consumer Permission catalog, enrollment service or broker here. Bind the exact candidate and its test suites
-   as described in [issuance conformance](agent-issuance-conformance.md#run-and-bind) and
-   [delivery conformance](agent-delivery-conformance.md#run-and-bind), not an older installed package.
+   consumer Permission catalog, enrollment service or broker here. Run the [consumer checks](#restoration-and-consumer-evidence-handoff)
+   against the exact package and adapters you will deploy.
 2. **Inventory and fence every writer.** Repositories, audit and transactional authorization share the package-owned
    `TransactionalUnitOfWork` connection. It must reject nested transactions, roll back callback failures, never
    silently retry a callback and return only after confirmed commit. Every direct repository, worker, CLI and
@@ -74,7 +68,11 @@ handlers and `AgentOperationAuthorization` share that aggregate's Application ho
 is supplied. Agent and operation repositories, requests and policies stay with their actual Domain aggregate.
 `Clock` belongs to Application Timing,
 `TransactionalUnitOfWork` and `EventDispatcher` to Fight Common. Use the linked guides for full signatures and message
-round trips. Serializable Queries use their handlers' Common registrations; secret-bearing work is synchronous.
+round trips. Register each serializable message with its actual handler in the configured Common routers. Command
+dispatch returns void and QueryBus returns mixed; validate dynamic results where they cross a trust boundary. Common
+message envelopes preserve identity, time, payload and metadata through round trips. Envelope IDs and metadata do
+not replace the original operation key or authorize execution. Allowlist types at the consumer wire boundary;
+secret-bearing work remains synchronous.
 
 | Use case / public entry | Injected composition and outcome |
 | --- | --- |
@@ -127,9 +125,12 @@ operation state.
 Before this change every status/scheduler/maintenance reader required the material-bearing `AgentCredentialOperationRepository`.
 Now the independent `AgentCredentialOperationReadRepository` exposes only `getStatusByKey`, `listDueDeliveries`,
 `listMaintenance`, `countDeliveryKeyReferences` and the read-only cohort observation `getOperationContract`.
-It does not extend the write repository. TASK-00134's unreleased [exact Query contracts](agent-query-contracts.md)
-require both work reads to return `AgentDeliveryWorkView` selection evidence internally while handlers still return
-safe status Views. Unexpected/result faults are safe internal failures; existing deliberate operation classifications
+It does not extend the write repository. Both work reads return `AgentDeliveryWorkView` from one coherent metadata
+snapshot: safe original status, copy presence, next due time, pinned retention, cleanup acknowledgement and current
+slot reservation. Due work requires the exact original reservation across scopes and binding revisions; maintenance
+includes obsolete reservations. The handlers return only safe status Views. Reject broken or oversized batches
+without normalization or partial disclosure; absence and empty results still require current authorization.
+Unexpected result faults are safe internal failures; deliberate operation classifications
 and destination concealment remain distinct. `AgentCredentialOperationRepository` separately retains `getByKey`, `add`,
 `reserveDestinationWrite`, `replaceDelivery`, `replaceMaintenance`, `retireCredential` and mandatory cohort fencing;
 it does not inherit read obligations. Neither is a UoW. One consumer adapter may implement both without forwarding
@@ -209,10 +210,6 @@ context and destination from server registration, never a caller URL/path. Same-
 current authority, retains the original rotation predecessor and does not repeat generation, mutation, audit or
 issuance publication. A genuinely new rotation is a separately authorized operation, not an automatic retry fallback.
 
-The [single canonical contract](agent-canonical-upgrades.md) uses no-argument request `canonicalize()`, exact ordered
-JSON and marker **2**. `AgentName::fromString()` owns the fixed Unicode-edge name rule for both provisioning and
-rename, preserving case/internal whitespace without NFC conversion. Rename intentionally replaces PHP `trim`;
-existing valid provisioning canonical bytes remain unchanged. Rotation binds the original target/predecessor/destination.
 Retain exact request and issuance through completion, supersession, revocation, expiry and cleanup. Unsupported markers (including 1) reject without a reader,
 rewrite, conversion or new key. Material expiry never expires deduplication: permanent operation/sink tombstones and
 slot order survive. Safe status absence is indeterminate, not proof of rollback or permission to issue another key.
@@ -237,6 +234,40 @@ notification retry, if added, must retain the original fact identity and documen
 can avoid repeat staging; without lookup it repeats original bytes/ID only after a fresh confirmed admission. Both
 are at-least-once, not exactly-once disclosure. Recovered admission alone permits receipt reconciliation only.
 
+## Canonical request and name
+
+Persist marker **2** and the exact JSON returned by the request's no-argument `canonicalize()`, not only a digest.
+The provision request binds the normalized name and destination ID/revision. Rotation binds the original Agent,
+expected credential ID/revision and destination ID/revision. Preserve order, integer types and escaping; do not
+re-encode stored bytes. Storage and destination use their own marker **1**; neither is the canonical request marker.
+
+`AgentName::fromString()` is the shared provisioning and rename rule. It trims NUL and the fixed Unicode whitespace
+set (U+0009–000D, U+0020, U+0085, U+00A0, U+1680, U+2000–200A, U+2028, U+2029, U+202F, U+205F, U+3000).
+The result must be nonempty UTF-8 and at most 120 code points. It preserves case, internal whitespace, U+200B
+and U+FEFF, with no Unicode normalization.
+
+## Operation hydration and wire types
+
+Persist and hydrate the complete original key/request/issuance, pinned policy, claim and authority epochs, deadlines,
+receipt/retry/failure history, material references and cleanup evidence. Defaults are for new work, not stored-state
+repair. Reject inconsistent snapshots or successors; do not reset fences, rewrite canonical data or recreate lost
+material. Resolution checks original issuance correlation as well as canonical bytes. A delivered snapshot without
+its receipt needs reconciliation, not a fresh delivery. `AgentIssuance::toArray()` is the exact cipher-associated
+payload, including a timestamp with six fractional digits and a numeric offset. Owned Event decoders enforce the
+declared scalar types and explicit RFC3339 instants. A confirmed operation View carries original issuance, marker
+and recorded dispositions; an indeterminate View has null confirmation fields.
+
+## Worker failures
+
+Use the configured Common `QueryBus` for scheduling. Reject a malformed, out-of-scope, oversized or duplicate-ID
+selection as a whole before delivery. An unavailable read is not an empty batch. Delivery and maintenance report
+safe `UNAVAILABLE` for unexpected faults, and `INDETERMINATE` only when their own callback completed but commit
+was not confirmed. Preserve the primary callback failure. Interpret denial, contention, key loss and provider
+failure only at the port that owns that classification; time sampling and invalid return values do not supply
+provider intent. When a sink or cleanup response is lost, reconcile the original tuple and reauthorize any retry.
+An authoritative false verification of a recorded receipt requires reconciliation, never restaging. Revocation
+reports deliberate absence or conflict separately and preserves retirement if post-commit publication throws.
+
 ## Finite defaults and validated overrides
 
 These values come from current `AgentOperationLimits`, `AgentDeliveryPolicy`, `AgentDeliverySchedule` and
@@ -260,7 +291,7 @@ reject with `INVALID_REQUEST` rather than disabling limits. Omit overrides to us
 
 Examples actually exercised in conformance: delivery `(10, 3, 4, 20, 2)`, schedule `(1, 90)`, maintenance `(1, 5)`;
 zero/excess batch, admission longer than lease, retention shorter than lease, retry beyond retention and zero/excess
-attempts reject. The [D4 evidence row](agent-operation-evidence.md#ratified-additions) also maps Domain boundary tests.
+attempts reject.
 First claim pins policy; rewrap before first claim pins the same default retention. Restart/new configuration cannot
 extend an operation's lifetime. Admission uses the earliest policy/lease/authority/original-retention deadline;
 retries wait for both lease and retry time. No override weakens immediate lifecycle cancellation.
@@ -287,10 +318,12 @@ reuse a generation to avoid stale-acknowledgement rejection. Full abort/resume r
 rehearsals are in [restoration safety](agent-restoration-safety.md#consumer-owned-stop-reconcile-and-resume-procedure).
 The package cannot detect arbitrary physical rollback, authenticate an adapter's witness or stop a bypassing binary.
 
-The [consumer gap register](agent-operation-evidence.md#consumer-gap-register) is the handoff checklist. Before any
-consumer support claim, its owner must supply the exact package/adapter/runtime identities, real writer inventory,
-commands/tool versions, times/exits, isolated connection/process schedules, independent persisted before/after
-observations and sanitized results. Run the consumer-bindable suites **and** actual activation/use and controlled
-restore rehearsals. Do not replace failed/missing runs with package fixtures or tests of Markdown/schema text.
-Release certification, consumer adoption and deployment each require separate authority. Agent OS TASK-00138 and
-its other prerequisites are not closed by this guide.
+Before support, bind [issuance recovery](../tests/Application/AccessControl/Agent/Credential/IssuanceRecoveryConformance.php)
+and [delivery lifecycle](../tests/Application/AccessControl/AgentCredentialOperation/Delivery/DeliveryLifecycleConformance.php)
+to disposable instances of your real adapters, including delivery with and without receipt lookup as applicable.
+Exercise concurrent writers, both uncertain-commit outcomes and real restart. Check actual key access and integrity,
+sink ordering and deduplication, and fenced activation with lost acknowledgement. Prove actual use independently,
+including denial of late, obsolete and revoked credentials. Rehearse controlled restore and test logging/tracing
+with argument capture enabled. Record exact package/adapter/runtime identities, writer inventory, tool versions,
+exits and independent persisted before/after observations. Keep credentials and diagnostics out of the evidence.
+Package fixtures do not qualify these external boundaries.

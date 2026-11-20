@@ -78,7 +78,7 @@ Permission lookup, name cache, mutation, transaction or event belongs to the rea
 retains its existing separate nonce transaction. Repository faults are not absence or a successful cached read.
 
 An update normalizes `name` through `AgentName::fromString()`, shared with provisioning: trim the
-[fixed Unicode edge set plus NUL](agent-canonical-upgrades.md#supported-representation), require nonempty UTF-8 and
+[fixed whitespace set and NUL](agent-integration.md#canonical-request-and-name), require nonempty UTF-8 and
 at most 120 code points **after** trimming, preserve case/internal whitespace, no NFC conversion. U+200B/U+FEFF remain.
 This intentionally replaces rename's previous PHP `trim` semantics before v1: NBSP/ideographic padding now trims,
 and Unicode-whitespace-only names reject. Common's input schema validates the string shape, not raw length;

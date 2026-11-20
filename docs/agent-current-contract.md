@@ -1,7 +1,9 @@
 # Current Agent contract (v0.5.0)
 
 [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md) selects one current pre-v1 API and persisted model.
-TASK-00068 removes previous-iteration support; this is not a migration, release or consumer qualification.
+TASK-00068 removed TASK-00055's legacy Agent path, including the recovery marker, adoption transition and
+retired rotation stubs. The package supplies no old-data conversion, backfill or cross-version rollback path.
+The earlier acceptance is historical; removal does not authorize a consumer data reset, release or deployment.
 
 ## One authority model
 
@@ -37,7 +39,7 @@ New `add()` is insertion only, never an upsert over existing or revoked authorit
 
 [Name updates](agent-name-updates.md) use `UpdateAgent` with typed User/Agent provenance and a mandatory
 `AgentRepository::rename(id, name, now)` name-only capability. Provisioning and rename share `AgentName`'s
-[fixed Unicode-edge rule](agent-canonical-upgrades.md#supported-representation); rename's replacement of PHP `trim`
+[canonical request and name contract](agent-integration.md#canonical-request-and-name); rename's replacement of PHP `trim`
 is an intentional pre-v1 behavior change, not a provisioning canonical-byte or marker change.
 The repository samples the supplied clock callback
 only after current writer admission, applies `Agent::rename()` to fenced ACTIVE state, and returns the exact persisted
@@ -82,20 +84,15 @@ Repository nullable lookups and the lazy `Closure(): DateTimeImmutable` rename c
 predecessor checks, operation correlation, redaction, atomic audit and authoritative Permission/cohort fences.
 Application-wide required-query absence and failure redesign remain outside this Domain slice.
 
-Executable proof lives in `AgentMessageContractTest`, `AgentTypeContractTest`, `AgentEventTimeTest`, the existing
-Agent authentication/admin/recovery/Tool suites and the generated-schema tests. The
-[type-contract gate](type-contracts.md) also checks exact collection/payload/callback/nullability/subtype inference and
-rejects incompatible callers. These checks qualify this package contract only, not consumer storage/crypto/runtime.
+Use the [type-contract gate](type-contracts.md) when changing PHP declaration or inference contracts.
 
 ## Application administration outcomes (unreleased)
 
-TASK-00141's Engineer candidate corrects the four void administration handlers and internal Permission-assignment
-coordinator. [Administration contracts](agent-administration-contracts.md) specify deliberate Common Application
+[Administration contracts](agent-administration-contracts.md) specify deliberate Common Application
 absence/input/rule/precondition/conflict outcomes, internal identity/snapshot faults, exact current Domain exception
 subtypes and consumer adapter/catch obligations. Known local callback results retain native mixed UoW with matching
 nullable-Event annotations. Entry authorization remains consumer-owned and distinct from ADMIN_SAFE membership
 eligibility; current no-op, complete-set/revision/reference/cohort and commit/publication fences remain unchanged.
-Independent Review/nonvisual QA are pending; generic bus, optional-audit and consumer qualification are separate.
 
 ## Retained safety, not historical support
 
@@ -105,23 +102,7 @@ mandatory. Cleanup cannot make an old operation key reusable. Unsupported canoni
 readers or fallback. Cipher/key identities, protocol versions and monotonic generations have current security purposes;
 they are not selectable previous package contracts.
 
-[Restoration safety](agent-restoration-safety.md) is implemented and independently accepted at the package boundary.
-Use the [integration guide](agent-integration.md) and [final evidence inventory](agent-operation-evidence.md) for
-current composition and qualification gaps; TASK-00059's guidance has independent acceptance and behavioral QA.
-There is no historical data migration/backfill or cross-version rollback obligation, and no permission to reset consumer data. Actual
-database, key, sink, authority-writer and activation/use qualification is separate from package tests.
-
-## Package evidence
-
-- `AgentReconstitutionTest`: exact persisted authority and invalid-state rejection, revisions and terminal lifecycle.
-- `AgentHydrationTest`: actual provision/revocation followed by reconstitution, secret-free queries and active/revoked
-  authentication without new issuance or mutation.
-- `AgentComponentsTest`: generated public schema matches current safe payloads and collection/envelope references.
-- `AgentRenameTest`, `UpdateAgentHandlerTest`, `AgentNameComponentsTest`: name-only transitions, typed provenance,
-  fenced no-ops/concurrent writers, rollback/publication failures and generated command/provenance schemas.
-- `AgentCredentialRetirementTest`: every direct/service cancellation path, missing correlation, unavailable
-  composition, rollback, redacted failures and stale successors.
-- `RotateAgentCredentialHandlerTest`, `AgentRotationAuthenticationTest`, issuance/delivery/cohort/canonical
-  conformance: retained-key restart, uncertain commits, authorization, nonce races, ordering and cleanup defenses.
-
-These use controlled transaction-aware adapters, not a production database or cryptographic sink certification.
+Follow [restoration safety](agent-restoration-safety.md) and run the [consumer qualification checks](agent-integration.md#restoration-and-consumer-evidence-handoff)
+against actual database, key, sink, authority-writer and activation/use adapters. Package tests do not qualify those
+adapters. There is no historical data migration/backfill or cross-version rollback obligation, and no permission to
+reset consumer data.

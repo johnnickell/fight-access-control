@@ -2,7 +2,9 @@
 
 Invitation, password-reset and email-change grants own recoverable, provider-neutral delivery. Only this current
 pre-v1 contract is supported under [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md). There is no
-historical signature, row conversion or migration/backfill obligation. Consumer adapters and runtime remain separate.
+historical signature, row conversion or migration/backfill obligation. The old transport-confirmation Command
+and inferred claim/outcome calling forms are not supported. Current transaction, recovery, idempotency and stale-state
+rules still apply. This contract does not authorize a consumer upgrade, data reset or deployment.
 
 ## Request and worker contracts (Unreleased)
 
@@ -481,7 +483,7 @@ rollback and uncertain-commit resolution. The table below lists delivery-worker 
 | `FindCredentialDeliveryStatus` | `FindCredentialDeliveryStatusHandler` |
 
 Optional invitation/password-reset/email-change subscribers provide immediate post-commit dispatch, not guaranteed
-recovery. Their complete [Event composition contract](delivery-event-contracts.md) records all eight static mappings,
+recovery. Their complete [Event composition contract](#human-delivery-event-composition) records all eight static mappings,
 accepted local payload annotations, optional restoration, metadata separation and actual dispatcher failure semantics.
 Schedule `FindDueCredentialDeliveries` with current time and a positive bound. Dispatch the returned purpose,
 User ID and delivery ID through the matching direct command using the consumer's trusted audit identity. Never derive
@@ -504,6 +506,53 @@ diagnostics. Failure notification is best effort: even if it throws, the same or
 caller. Confirmed registration/claim/outcome commits are not undone by later publication failure. Consumers must still
 sanitize rethrown faults and secure event/log access. The current [operation-outcome contract](operation-outcomes.md)
 also applies to reset/email-change workers, their request handlers and manual invitation retry.
+
+## Human delivery Event composition
+
+Register these subscribers with Common's synchronous `SimpleEventDispatcher` and configure the three delivery
+Commands on the consumer's supported `CommandBus`. Each subscriber retains its configured bus and static
+`eventRegistration()`. Its public callback accepts `EventMessage`, extracts the matching fact with an accurate
+local payload `@var`, and returns void after `execute()` or the documented no-delivery return. Common's
+`EventMessage::payload()` remains statically `Payload`; registration strings do not give generic Event inference.
+
+### Complete route and member dispositions
+
+| Subscriber / method | Registered fact | Dispatched Command / actor |
+| --- | --- | --- |
+| `InvitationDeliverySubscriber::onInvitationDeliveryResent` | `InvitationDeliveryResent` | `DeliverUserInvitation` / original typed actor |
+| `::onInvitationDeliveryRetryRequested` | `InvitationDeliveryRetryRequested` | `DeliverUserInvitation` / original typed actor |
+| `::onPendingRegistrationRecovered` | `PendingRegistrationRecovered` | `DeliverUserInvitation` / original `UserId` |
+| `::onUserInvited` | `UserInvited` | `DeliverUserInvitation` / original typed actor |
+| `::onUserRegistered` | `UserRegistered` | `DeliverUserInvitation` / canonical `AnonymousId` |
+| `::onUserRestored` | `UserRestored` | `DeliverUserInvitation` / original `UserId`, only with a delivery ID |
+| `PasswordResetDeliverySubscriber::onPasswordResetRequested` | `PasswordResetRequested` | `DeliverPasswordReset` / canonical `AnonymousId` |
+| `EmailChangeDeliverySubscriber::onEmailChangeRequested` | `EmailChangeRequested` | `DeliverEmailChange` / original `UserId` |
+
+Each Command carries the exact User ID and purpose-specific delivery-generation ID from the fact. Recovery uses
+only the successor generation. Restoration without a delivery ID schedules nothing; User state cannot supply a
+missing generation. `CorrectPendingInvitation` has no immediate subscriber route; use durable discovery.
+Actor provenance grants no authority and never falls back to ambient identity. The shared
+`Timing/Service/Clock::now(): DateTimeImmutable` supplies trusted time at invocation, not a monotonic clock or
+transaction deadline. Consumers own their sampling, admission, lease and deadline rules.
+
+### Composition and failure bounds
+
+The bus creates a new Command message ID and timestamp with empty metadata. The Event's envelope trace, time
+and metadata are not implicitly carried forward; business actor and generation fields are explicit payloads.
+Consumers that need transport correlation own that composition and must not treat metadata as authority.
+
+A fact is neither a grant nor a delivery receipt. Issuance commits before publication. The actual dispatcher
+reports missing Command handlers or worker failures as `EventDispatchFailed`, retaining the original handler
+throwable, possibly within another dispatch aggregate. Do not assume direct outer throwable identity, rollback of
+issuance, automatic replay or exactly-once delivery. Failure reporting cannot replace the primary fault. Provider
+invocation remains outside transactions; use the worker contracts for claims, outcomes and retries.
+
+`DeliverySubscriberCompositionTest` covers all eight decoded Event routes with real Common routing, exact Command
+arrays, no-delivery, envelope separation, unrelated routes, missing handler configuration and retained worker
+failure without replay. `DeliveryFailureCompositionTest` covers real reset/email-change claim, outcome and
+publication faults, double-notification failure, persistence/audit, provider ordering and discoverable recovery.
+These are package composition checks, not qualification of a consumer's SQL, workers, provider or queue.
+See [type fixtures](type-contracts.md) and TASK-00136's Work handoff for exact evidence and dependency lanes.
 
 ## Manual invitation retry admission (v0.6.0)
 

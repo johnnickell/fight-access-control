@@ -187,50 +187,13 @@ JSend handler. This package installs no protocol or global allowlist and changes
 
 ## Portable native qualification (Unreleased)
 
-TASK-00177's controlled real native matrix passes 105 tests / 885 assertions on both ordinary dependencies and a
-separate sufficient-minimum installation: Common v1.5.1, Event Dispatcher v8.1.5, HttpFoundation/HttpKernel/Routing/
-Security HTTP v8.1.11. The isolated minimum lane has no Slim/Yii/Laravel/CI4 application packages. A real core-native
-portable action also denies before lazy construction and admits a fresh authorized request with Security HTTP and
-all peer frameworks absent, loading no Feature services. Pure declarations pass 24 tests / 44 assertions with all
-native frameworks absent. These lanes report no security advisories; scratch-package version-detection notices are
-not product failures. Ordinary dependencies remain selected for the final canonical gate.
-
-The matrix extends earlier native proof with Attribute-only forms, repeated/inherited/overridden/route conjunction,
-mode conflicts, malformed Attributes, resolved-controller substitution, independent validation/arguments/IsGranted,
-actual User/Agent authority, nested/nonce lifetimes and both combined-gate orders. Existing native safe-error tests
-continue to exercise report/header/negotiation/fallback behavior. Full logs, exact package refs, locks, runtime and
-coverage identities belong to the canonical Work handoff. This is implementation evidence, not independent
-acceptance or a claim about installed FrameworkBundle/firewall/consumer composition.
+Qualify Attribute-only and explicit declarations, resolved-controller association, independent validation and
+IsGranted, nested request lifetimes and both combined-gate orders on the actual adapter. See
+[TASK-00177](../planning/tasks/00177-TASK.md) for package evidence.
 
 ## Qualified tags and remaining obligations
 
-Current package Common minimum is `^1.5.1`; current HttpFoundation/HttpKernel dev/suggestion floors are `^8.1.11`.
-TASK-00146 requalifies the selected Symfony safe-error contract and native minima, including the explicit Throwable
-kernel option. Routing and optional Security HTTP now also require `^8.1.11` after the older lower-bound audit
-reported advisories; supported-minimum and ordinary lanes report none. [Laravel qualification](laravel-permission-admission.md) previously established the 8.1.11 component
-floor after a preliminary 8.1.9 lane reported five security advisories. The current full default suite also exercises
-Symfony on the installed dependency set. The table/file counts below
-preserve TASK-00104's original behavioral qualification, not today's installed lock or security-floor recommendation.
-
-Those **selected sufficient behavioral minimums** were the installed tagged lane, not a claim about the earliest
-theoretically compatible release. Native components remain dev fixtures plus optional Composer suggestions.
-Security HTTP is optional even for Symfony admission: a core-only fixture passes with it absent. Another exact-minimum
-fixture exercises actual native User/Agent/order/error behavior with Slim/Yii application packages absent.
-
-| Component / selected range | Tested tag source |
-| --- | --- |
-| Common `^1.4` | v1.4.0 `87b9580c072f3149d574e09865daa79620c92118` |
-| Event Dispatcher `^8.1.5` | v8.1.5 `7458da64220376b2e0dc2d8451bf43382c1ad297` |
-| HttpFoundation `^8.1.9` | v8.1.9 `7850897fb8659f98491b03be79ac48600bdaf9ab` |
-| HttpKernel `^8.1.9` | v8.1.9 `55c6935bb4c004a72b55f723e79d5404881dcad3` |
-| Routing `^8.1.9` | v8.1.9 `edb06fb6ced3c1faaaed74c1c6c0f176a614c330` |
-| Security HTTP `^8.1.9` (optional attributes) | v8.1.9 `f3733837bb5ac0b0eed6895b14e374892547c97e` |
-| Security Core (transitive installed identity) | v8.1.9 `41968f1068f89edf881ef4ae0e691e0d9dd5d448` |
-
-All seven installed package file sets match upstream tag archives; exact tag refs, manifests, locks, traces and the
-patched PHP **8.5.12** runtime receipt are retained with TASK evidence. Native components require PHP 8.4.1+, but this
-package requires PHP 8.5+ and qualifies the patched 8.5.12 runtime, not older insecure patches. Semver ranges are support
-bounds, not proof of future releases or every transitive resolver combination. No development snapshot or alias is used.
-Normal mirrored Adapter tests, architecture/style/static analysis/default tests and exact owned statement coverage apply.
-Actual consumer routes/bootstrap/firewall, keys/crypto, persistence, scope/record checks, sinks, proxies, HTML handling and
-deployed runtime remain unqualified. Independent Review and nonvisual behavioral QA are required before acceptance.
+Use the [current native component floors](ordinary-http-failures.md#consumer-obligations-and-evidence-bounds).
+Security HTTP is optional; qualify it separately if using its Attributes. A selected tagged minimum does not certify
+every dependency resolution. Verify actual bootstrap, routes, firewall, crypto, persistence, target scope, diagnostics,
+proxies, HTML handling and runtime; native package checks do not qualify them.

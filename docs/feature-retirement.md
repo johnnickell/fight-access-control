@@ -131,8 +131,7 @@ while denying runtime availability. Preparation never grants activation or actio
   retirement followed by real managed-policy reconciliation: no remaining references permits Permission removal;
   another Feature, custom Role or Agent reference still rejects it. No fixture-only Permission deletion substitutes
   for that composition.
-- [Complete scenario/evidence inventory](feature-evidence.md) retains all Feature EPIC/TICKET requirements,
-  each TASK's independent acceptance/QA subject and scoped evidence, and remaining consumer qualification.
+- Run the [Feature consumer checks](feature-management.md#consumer-workflow-and-evidence) against the actual repositories and entry points.
 
 Before adoption, qualify actual scanner/code identity and completeness (both reference sources and invalid/partial
 scans), real final-state races/reference-release rollback, UI retirement/confirmation where exposed, every caller

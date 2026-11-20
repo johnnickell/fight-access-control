@@ -91,9 +91,12 @@ neither reservation nor transaction admission.
 meaning; omitted or explicit null deliberately disables durable evidence. The required `UserId` actor remains
 required and is attribution, not administrative authority. No Command or Event wire fields change.
 
-See [ordinary Role audit composition](role-audit-composition.md) for the executable modeled binding, complete
-mapping matrix and exact prerequisites to retire the Agent OS workaround. Inject the upgraded audit repository
-directly alongside ordinary `TransactionalUnitOfWork`, not an Event-inspecting transaction decorator. For example, using consumer-owned adapters on one actual connection:
+Inject the upgraded audit repository alongside ordinary `TransactionalUnitOfWork`, not an Event-inspecting
+transaction decorator. Before retiring a consumer workaround, qualify the general typed Role mapping, all three
+handlers on the real shared connection, reference-admission races, rollback and uncertain commit, restart and
+publication failure. Keep entry policy, displayed-token reconfirmation and evidence access/retention intact.
+Consumer adoption and schema or deployment changes require separate authority. For example, using consumer-owned
+adapters on one actual connection:
 
 ```php
 $create = new CreateCustomRoleHandler($roleRepository, $clock, $unitOfWork, $eventDispatcher, $auditEvidenceRepository);

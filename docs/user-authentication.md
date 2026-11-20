@@ -4,8 +4,33 @@ Secret-bearing operations use direct Application capabilities, not serializable 
 breaking pre-v1 replacement of `User\Security\AuthenticationService`; that class is removed without an alias,
 forwarding facade or compatibility mode. Update imports, constructor bindings and named arguments directly.
 The supported JWT profile and existing token/conflict/void result shapes remain unchanged.
-[User/session type contracts](user-session-type-contracts.md) describe current message validation, typed Role lists,
+[User and session wire and storage types](#user-and-session-wire-and-storage-types) describe current message validation, typed Role lists,
 hydration and integer-counter limits without changing these synchronous capability homes.
+
+## User and session wire and storage types
+
+Decode identities, email, enums and text as strings without coercion. Preserve required nullable wire fields,
+including `RevokeSession.reason` and `UserRestored.activation_delivery_id`. Events require explicit RFC3339
+instants with offsets, not inferred clocks; preserve each event's output precision. Pagination inputs use integers
+and named string ordering maps. User and session repositories still return the aggregate or `null` on a lookup.
+
+Persist the actual User Role list and revisions; validate identity elements before set comparison and do not
+reconstruct missing values from lifecycle state. Authentication version is positive; the distinct authority,
+assignment, reservation and canonical-email revisions are nonnegative. Persist exact instants for CAS, including
+subseconds. Exhausted revisions reject changes without producing a successor.
+
+Persist the current refresh credential **digest** and the ordered, duplicate-free list of used digests, never raw
+credentials. Each digest is validated as exactly 64 lowercase hexadecimal characters; the list excludes the current
+digest. The raw transport credential also has a separate 64-lowercase-hex-character format requirement. On hydration,
+require a positive session authentication version and a nonnegative persistence revision. Rotation time is present
+exactly when used history is nonempty and must equal last activity. Preserve `createdAt <= lastActivityAt < idleExpiresAt <= absoluteExpiresAt`.
+
+Each rotation requires a fresh refresh credential: neither the current credential nor any credential previously
+used in that session may be reused.
+
+Before the first rotation no predecessor can match. After rotation, only the latest used digest can match as a
+retry, from the rotation instant inclusive to the conflict deadline (`rotatedAt + conflictWindow`) exclusive.
+Earlier history remains replay evidence, not a benign conflict.
 
 ## Direct owners
 

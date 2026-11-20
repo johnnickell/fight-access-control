@@ -83,7 +83,7 @@ new feature implementations, release and deployment.
 
 John approved one complete TASK-00110 for this requirement. Work has now qualified the supplier v1.5.0 baseline
 and implemented current-package adoption, now independently accepted with nonvisual QA PASS. See the
-[contract inventory](../../docs/common-contracts.md). Local refactoring and ordinary native-framework work remain independent. The existing combined EPIC-00014 release scope
+[contract inventory](https://github.com/johnnickell/fight-access-control/blob/38feee76132230152de549c46418bc41b17e9518/docs/common-contracts.md). Local refactoring and ordinary native-framework work remain independent. The existing combined EPIC-00014 release scope
 and unassigned version are unchanged. Planning creates no dependency adoption or publication authority.
 
 TASK-00110 records accepted candidate `c4fc6d249eed0e80e6f00237960b96c92416299f`, complete gate/exact coverage

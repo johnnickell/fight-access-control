@@ -156,18 +156,6 @@ Package passes do not close any of these obligations or authorize release, activ
 
 ## Package evidence map
 
-| Criterion | Executable package evidence |
-| --- | --- |
-| C1 | `RegisterUserTest`, `RegisterUserHandlerTest`, subscriber registration/provenance test |
-| C2 | Handler configuration, all-defaults/deduplication, missing/conflicting names/IDs, fresh resolution on the same handler, earlier-User retention tests |
-| C3 | `RegistrationCreationContractTest`; `RegistrationReferenceRaceTest` removal/rename/replacement/same-name recreation winner and held-fence rollback/commit schedules; insert/grant/audit/commit rollback tests |
-| C4 | Every lifecycle state plus live destination reservation; competing canonical registration with exactly one complete winner |
-| C5 | `RegistrationJourneyTest` uncertain rolled-back/committed creation, both outer publishers failing, nested worker storage/failure-notification faults, lost response, provider fault/restart and exact delivery ID/origin recovery |
-| C6 | Real registration → subscriber/Common routing bus → package worker/provider → same-User single-use activation; protected User/status reads; existing invitation/reset/email tests |
-| C7 | `RegistrationComponentsTest` generates the opt-in catalog with a consumer root and compares actual payloads, fields/formats and forbidden authority/secret inputs |
-| C8 | TASK-owned focused/full gate logs, direct exits, coverage and content receipt; independent Review and nonvisual QA remain separate |
-
-The shared test repositories model separate connections, persisted state, transaction-duration conflict rejection and
-rollback. Grant restart reconstructs current origin/delivery state; fresh User wrappers read retained state. These are
-controlled package-port schedules, not real parallel SQL sessions, a restarted operating-system process or a qualified
-mail/security runtime. See the TASK checkpoint and ignored Work handoff for exact current counts and limitations.
+Use [the registration journey test](../tests/Application/AccessControl/User/CommandHandler/RegistrationJourneyTest.php) as a
+package example, not consumer proof. Qualify registration through routing, delivery and same-User single-use
+activation on actual adapters, including commit uncertainty and provider restart.

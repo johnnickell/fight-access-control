@@ -197,7 +197,7 @@ no findings; TASK-00048 is done for implementation/local verification. John's la
 [PR #83](https://github.com/johnnickell/fight-access-control/pull/83) against `develop`; it is open at this checkpoint,
 not merged or released at that publication checkpoint. All five TASK-00049 prerequisites are now done and present in
 its `develop` base `47ffd42`. John authorized the main checkout on `feature/task-00049-issuance-conformance`.
-Its [issuance-recovery conformance](../../docs/agent-issuance-conformance.md) exposes public-port consumer bindings and
+Its [issuance-recovery conformance](https://github.com/johnnickell/fight-access-control/blob/3fcf2c5c28f2a5658afcfc38eb449673aa6148b2/docs/agent-issuance-conformance.md) exposes public-port consumer bindings and
 exercises actual provision/rotation, safe reads, scheduler recovery, maintenance and current-credential authentication.
 I1–I7 evidence is mapped there to integrated and focused predecessor tests. The full local gate passes 1100 tests /
 12626 assertions and exact 6245/6245 statements; the reusable suite passes 53 tests / 3646 assertions.

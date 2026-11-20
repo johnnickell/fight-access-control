@@ -13,7 +13,7 @@ accepts a typed `UserId` or `AgentId`; its type is derived from that identifier,
 flag. Its canonical representation is `{type: "user"|"agent", id: UUID}`. The command's required canonical keys
 are `initiator`, `agent_id`, and `name`. `fromArray()` rejects missing required data and unknown initiator types.
 The input name remains raw in the command; the handler normalizes it with `AgentName::fromString()`, the same
-single owner used by provisioning. It trims the [fixed Unicode White_Space edge set plus NUL](agent-canonical-upgrades.md#supported-representation),
+single owner used by provisioning. It trims the [fixed Unicode whitespace set and NUL](agent-integration.md#canonical-request-and-name),
 requires nonempty UTF-8 and at most 120 code points after trimming, preserves case/internal whitespace and performs
 no NFC conversion. U+200B/U+FEFF are not trimmed. Names are neither unique nor revision-checked.
 

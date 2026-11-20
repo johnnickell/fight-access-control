@@ -262,7 +262,7 @@ remains open for its five other unfinished Domain children; no whole-Domain or c
 
 TASK-00115 now has an Engineer candidate for its complete 67-file User/RefreshSession/Audit boundary, with an
 exhaustive member/caller/disposition inventory and regression-backed type/shape corrections. Its
-[current contract guide](../../docs/user-session-type-contracts.md) preserves nullable repositories, direct User
+[current contract guide](https://github.com/johnnickell/fight-access-control/blob/52540b7293a0cfd84d8fa03230c6e2ab2cde6520/docs/user-session-type-contracts.md) preserves nullable repositories, direct User
 capability homes and current authority/transaction guarantees. Independent Review and behavioral QA remain pending;
 this does not accept that slice, complete this TICKET or qualify the other five Domain boundaries.
 

@@ -7,7 +7,7 @@ under `Application/AccessControl/Agent/Notice`. It consumes Common's actual `Sub
 ## Explicit composition
 
 Use Common **^1.5.0**, first sufficient published source `06fb5cd3720af9cf8295198f74040d95b64c5155`.
-Supplier acceptance/adoption provenance is in the [contract inventory](common-contracts.md); feature minimum and
+Supplier acceptance/adoption provenance is in the [Common adoption record](../planning/tasks/00110-TASK.md); feature minimum and
 ordinary dependency/runtime results belong to the canonical TASK-00095 Work handoff. Do not infer feature
 qualification merely from a dependency constraint or use a development snapshot as a stable contract.
 
@@ -87,21 +87,8 @@ A Query result is not automatically an MCP response or HTTP/JSend envelope; no s
 
 ## Package proof versus consumer qualification
 
-Mirrored admission tests and real TASK-00093 protected opening fixtures exercise routed summary/list admission,
-independent grants, whole-row/sentinel concealment, requested/accepted references, full counts/multiple pages,
-shared identities/reused request IDs, changing scope and fresh-request revocation. Real Common DBAL SQLite tracking
-covers clean disconnect and real native HTTP worker SIGKILL immediately after acknowledgment, followed by
-controlled retained-row observation at persisted observation time, exact expiry and beyond expiry. A separate
-committed two-connection forward-heartbeat test proves future observations are uncertain. Late renewal refusal,
-cleanup/disappearance and committed two-connection interleaving between reader batches remain covered.
-Complete-page overflow and invalid selections/order/page/grants reject; policy/storage faults stay explicit.
-Tracking snapshots and nonce counts distinguish read effects from authentication/lifecycle effects.
-
-The native worker uses a controlled trusted continuation handoff; ordinary inspection uses real signed-request
-verification fixtures and real AccessControl repositories. The two-connection scan test deliberately schedules
-cleanup after the first real DBAL batch; it is not a production scheduler or all-backend race certification.
-The canonical Work handoff owns exact dependency locks/source/runtime, focused/full-gate/coverage results and
-warnings. Independent Review and nonvisual behavioral QA remain separate obligations.
+On actual adapters, exercise clean disconnect and worker death after acknowledgement, then inspect retained rows
+before, at and beyond lease expiry. Test concurrent cleanup between read batches and fresh-request revocation.
 
 Consumers must qualify production policy/grants and complete-metadata eligibility, trustworthy caller/opening
 bindings, actual storage scope/backend/isolation, clocks, process/transport lifetimes, all authority writers,

@@ -48,7 +48,7 @@ legacy model and old raw-return APIs, including rejection-only stubs. No migrati
 Revocation retains its publication-failure rethrow; D3 remains scoped to provision/rotation.
 
 Use the [current integration guide](../../docs/agent-integration.md) and
-[evidence inventory](../../docs/agent-operation-evidence.md) rather than the historical raw-return decision below.
+[consumer qualification](../../docs/agent-integration.md#restoration-and-consumer-evidence-handoff) rather than the historical raw-return decision below.
 Package behavior is implemented; TASK-00059's documentation awaits independent review. Actual consumer composition,
 writer/sink/key/activation/use and restore qualification remain unexecuted. No release or deployment is authorized.
 

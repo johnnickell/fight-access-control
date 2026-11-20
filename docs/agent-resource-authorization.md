@@ -120,7 +120,7 @@ narrowing is needed beyond existing `^1.3`. Its tagged Resource contracts and ac
 the Resource composition and existing principal-provider tests in an isolated Composer-resolved scratch copy. The
 TASK-00148 checkpoint required Common `^1.4.1` and qualified actual tagged **v1.4.1**
 (`a482c220d312d2ef7762c3f0d85d9fb76a7021fa`) and ordinary dependency lanes through real Resource/Skill composition.
-The current checkout requires **`^1.5.0`** after [TASK-00110's canonical adoption](common-contracts.md), whose exact-minimum
+The current checkout requires **`^1.5.0`** after the [Common adoption record](../planning/tasks/00110-TASK.md), whose exact-minimum
 and ordinary lanes exercise the actual Resource/Skill composition on tagged v1.5.0. Retain the earlier family proof
 as historical evidence, not today's dependency selection. Source/tag presence alone is not qualification;
 exact resolved dependencies, commands, complete logs/exits and candidate input mapping live in the canonical Work

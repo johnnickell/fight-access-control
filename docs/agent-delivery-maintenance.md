@@ -4,12 +4,12 @@
 [protected delivery](agent-credential-delivery.md), [retirement](agent-credential-retirement.md) and
 [recovery](agent-delivery-recovery.md) paths. The package owns maintenance transitions, expected-state obligations,
 read contracts and coordination. Consumers own authorization, actual encryption, keys, database indexes/fences and
-protected sinks. The unreleased [worker contracts](agent-worker-contracts.md) refine exact failure/provider ownership
+protected sinks. The unreleased [worker failure boundaries](agent-integration.md#worker-failures) refine exact failure/provider ownership
 and known local transaction-result annotations without changing the maintenance protocol. This is not a key vault,
 plaintext retrieval API, physical key-destruction command or supported
 partial deployment. Mandatory [cohort guards](agent-operation-cohorts.md) fence maintenance transactions and bind
 cleanup authority to the persisted generation. [Package restoration](agent-restoration-safety.md) is implemented;
-[real consumer qualification](agent-operation-evidence.md#consumer-gap-register) and release remain separate.
+[consumer qualification](agent-integration.md#restoration-and-consumer-evidence-handoff) and release remain separate.
 
 ## Optional atomic maintenance audit (Unreleased)
 
@@ -187,7 +187,7 @@ All canonical fields, including nullable `after`, are required on deserializatio
 Its handler returns one secret-free page of `AgentOperationView` values, checks scope authority before/after selection
 and each target before disclosure, and rejects oversized, duplicate/out-of-order, foreign-scope or unsupported views.
 Internally the read repository now supplies `AgentDeliveryWorkView` metadata for exact material/cleanup predicate,
-pinned retention/grace and binding validation. See the unreleased [Query contracts](agent-query-contracts.md);
+pinned retention/grace and binding validation. See the unreleased [Query and read-adapter composition](agent-integration.md#operation-ownership-and-readwrite-composition-unreleased);
 no selection metadata is added to public status output, and a malformed page is an internal fault, not caller denial.
 Reads take no claims, commit nothing, dispatch no events and load no material.
 

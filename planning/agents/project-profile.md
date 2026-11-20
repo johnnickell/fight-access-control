@@ -141,8 +141,8 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 ## Package boundary and contracts
 
 [Domain definitions](../../GLOSSARY.md) are separate from current behavior/composition and ADR decisions.
-The former CONTEXT is retained only as [historical evidence](../../CONTEXT.historical.md), not required orientation
-or a current delivery queue. Read the relevant capability guides below for behavior and state-transition contracts.
+The former CONTEXT is available only as a [historical snapshot](https://github.com/johnnickell/fight-access-control/blob/38feee76132230152de549c46418bc41b17e9518/CONTEXT.historical.md),
+not current guidance or a delivery queue. Read the relevant capability guides below for behavior and state-transition contracts.
 
 Consumers protect every Command entry point, including HTTP, CLI, workers and direct bus invocation. Outer layers
 normally authenticate, validate, authorize, choose synchronous/asynchronous invocation and translate failures;
@@ -229,8 +229,8 @@ delivery Commands instead of copying claim/retry/terminalization/stale-generatio
   disables durability for that owner only; configured failure never does. Enabled evidence joins the actual mutation
   transaction before commit. Later opt-in does not backfill history. Explicit typed origin grants no authority;
   disabled/no-change work needs no new audit-only actor, while existing business actors and all admission/fence/
-  recovery contracts remain mandatory. See the [complete current outcome matrix](../../docs/audit-outcome-coverage.md),
-  [typed mapping](../../docs/audit-evidence.md) and [ordinary Role composition](../../docs/role-audit-composition.md).
+  recovery contracts remain mandatory. See the [current audit composition](../../docs/audit-evidence.md#atomicity-and-explicit-optionality),
+  [typed mapping](../../docs/audit-evidence.md) and [Role lifecycle audit composition](../../docs/role-revisions.md#optional-lifecycle-audit-unreleased).
   Historical mandatory-audit releases/acceptance retain their subjects; package models do not qualify actual consumer
   mapping, shared connections, locks, processes, keys/sinks, restoration or activation/use, or authorize workaround removal.
 
@@ -299,7 +299,7 @@ delivery Commands instead of copying claim/retry/terminalization/stale-generatio
   Request `canonicalize()` methods take no version argument. Retained keys/tombstones keep original request/issuance
   through cleanup; unsupported markers fail closed without migration or fallback. Storage/destination versions stay 1;
   repositories validate the one supported contract and share its generation/transaction fence. Safe reads do not
-  grant writer admission. See the [canonical contract](../../docs/agent-canonical-upgrades.md). Actual persistence,
+  grant writer admission. See the [canonical request and name contract](../../docs/agent-integration.md#canonical-request-and-name). Actual persistence,
   authority/sink fencing and restoration qualification remain separate from package proof.
 - TASK-00058 adds required nullable `reconciledGeneration` to the existing cohort snapshot. Trusted admission outside
   the restored dataset must verify the exact active storage incarnation and retained operation/receipt/tombstone/order
@@ -314,7 +314,7 @@ delivery Commands instead of copying claim/retry/terminalization/stale-generatio
   `ManagedPolicyPlanner` requires all four repositories, including Agent; it has no older optional composition.
   No prior-data conversion, legacy adoption or schema migration is a package obligation.
 - Use the [current Agent integration guide](../../docs/agent-integration.md) and
-  [complete scenario/evidence inventory](../../docs/agent-operation-evidence.md) for final composition and evidence
+  [consumer qualification](../../docs/agent-integration.md#restoration-and-consumer-evidence-handoff) for final composition and evidence
   handoff. They distinguish current package assertions, superseded requirements and mandatory unexecuted real-consumer
   qualification. TASK-00059's documentation has independent technical acceptance and behavioral QA at `ed516f9`;
   neither guides nor package passes authorize release, activation/use, consumer adoption, deployment or

@@ -84,7 +84,7 @@ existing package. Coordinate overlapping imports/dependency minima once; this re
 typing guarantees, static fixtures and real dispatch proof, not a duplicate canonical migration.
 
 Common v1.5.0 provides the supported mixed-bus and message contracts; TASK-00110 and the
-[contract inventory](../../docs/common-contracts.md) record published source and canonical qualification. Exercise
+[contract inventory](https://github.com/johnnickell/fight-access-control/blob/38feee76132230152de549c46418bc41b17e9518/docs/common-contracts.md) record published source and canonical qualification. Exercise
 minimum and ordinary dependency lanes with the actual owned production handlers during implementation. No generic
 replacement API or new supplier evidence is needed to start TASK-00130. Readiness is not feature acceptance.
 

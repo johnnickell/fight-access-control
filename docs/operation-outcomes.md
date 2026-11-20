@@ -8,11 +8,11 @@ change below. Its overview distinguishes package publication from consumer quali
 their handlers enforce business state and transaction boundaries without checking permission again. See the
 [lifecycle contracts](user-lifecycle-contracts.md). Other commands and synchronous authentication methods retain
 their own authorization and transaction boundaries. Queries remain read-only.
-Unreleased [User/session type validation](user-session-type-contracts.md) preserves these outcomes and fences;
+[User and session wire and storage types](user-authentication.md#user-and-session-wire-and-storage-types) preserve these outcomes and fences;
 shape validation is not authorization, diagnostic sanitization or consumer persistence qualification.
 
-The [current audit outcome matrix](audit-outcome-coverage.md) reconciles every handler and related sensitive/worker
-entry, including all family suppliers and the ordinary Role/conformance bindings. **Unreleased:** audit storage is
+See [audit composition](audit-evidence.md#atomicity-and-explicit-optionality) for storage and transaction ownership.
+**Unreleased:** audit storage is
 optional and nullable for every covered writer, including formerly mandatory writers. `RequestEmailChangeHandler`
 and `EmailChangeConfirmation` take `auditEvidenceRepository` immediately before the final nullable
 `emailChangeTransitionParticipant` argument. The two are independently optional; to enable participation without

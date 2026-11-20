@@ -171,7 +171,7 @@ Consumer qualification, adoption and package release remain separate.
 John subsequently selected the main checkout for TASK-00067 from clean `develop` `09abe1f`, on
 `feature/task-00067-feature-retirement`. Guarded retirement, full-state final deletion/reference release and the
 real deletion/reintroduction lifecycle composition were implemented at that builder checkpoint; the
-[complete evidence map](../../docs/feature-evidence.md) retains previous acceptance subjects and consumer gaps.
+[complete evidence map](https://github.com/johnnickell/fight-access-control/blob/8e33f0847d41aff562e6258b1a360d70d152dfe1/docs/feature-evidence.md) retains previous acceptance subjects and consumer gaps.
 Independent technical review subsequently **accepts** clean TASK-00067 candidate
 `8e33f0847d41aff562e6258b1a360d70d152dfe1` against `09abe1f` (C1–C10 pass, no findings). Independent post-review
 QA **PASS** covers seven scenarios / 260 executable checks plus a ten-case instruction walkthrough; focused

@@ -125,7 +125,7 @@ independent authorized outcome Queries. The returned-warning caller contract is 
 publication failure cannot hide committed issuance remains. Independent acceptance is separate.
 EPIC-00017's covered owners use optional nullable audit storage. Enabled evidence remains atomic;
 disabled use makes no durability promise and does not weaken any other mutation, authorization or recovery fence.
-See the [complete current outcome matrix](../../audit-outcome-coverage.md) for family ownership and qualification limits.
+See the [current audit composition](../../audit-evidence.md#atomicity-and-explicit-optionality) for family ownership and qualification limits.
 Exact owned-statement coverage and OpenAPI integration coverage remain mandatory. An actual source/policy mismatch
 returns to its named TASK/decision owner; this guidance neither repairs it nor authorizes later work.
 

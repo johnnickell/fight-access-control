@@ -186,7 +186,7 @@ both sides' proof; tests stay with their business owner rather than being deferr
 
 ### TASK-00049 issuance evidence checkpoint
 
-The [consumer-bindable suite and I1–I7 evidence map](../../docs/agent-issuance-conformance.md#evidence-map) now connect
+The [consumer-bindable suite and I1–I7 evidence map](https://github.com/johnnickell/fight-access-control/blob/3fcf2c5c28f2a5658afcfc38eb449673aa6148b2/docs/agent-issuance-conformance.md#evidence-map) now connect
 these rows to executable public package paths. The latest results and local gate receipt are recorded in
 [TASK-00049](../tasks/00049-TASK.md#implementation-and-verification-checkpoint). Method names below belong to
 `IssuanceRecoveryConformance`, run by `InMemoryIssuanceRecoveryConformanceTest`; predecessor tests remain identified
@@ -213,7 +213,7 @@ races/process termination, consumer activation/use and deployment rehearsals rem
 
 ### TASK-00054 delivery and lifecycle evidence checkpoint
 
-The [consumer-bindable suites and complete D1–D7 evidence map](../../docs/agent-delivery-conformance.md#evidence-map-d1d7)
+The [consumer-bindable suites and complete D1–D7 evidence map](https://github.com/johnnickell/fight-access-control/blob/7b58fbe77dadf608afc7525b8c68f9ba5b9ecf59/docs/agent-delivery-conformance.md#evidence-map-d1d7)
 now connect the delivery rows to actual package operations, original status and independent persisted observations.
 At the implementation checkpoint the new reference runners pass **186 tests / 5061 assertions**, covering receipt
 lookup and non-lookup recovery profiles. Full-gate results and retained logs/receipt belong to
@@ -262,7 +262,7 @@ mandatory unexecuted adoption evidence. No schema/migration, merge or release is
 
 ### TASK-00057 canonical upgrade evidence checkpoint — historical, superseded by M3 amendment
 
-The [canonical upgrade contract and M3 evidence map](../../docs/agent-canonical-upgrades.md) now connect permanent
+The [canonical upgrade contract and M3 evidence map](https://github.com/johnnickell/fight-access-control/blob/04a2adf944158dddd0077006276dc4c86df4ee54/docs/agent-canonical-upgrades.md) now connect permanent
 historical-reader retention to actual provision/rotation/status and delivery/retirement/cleanup paths. V1 retains
 frozen ASCII-edge name rules; v2 adds a fixed Unicode edge-whitespace set for newly issued provisioning requests.
 Both versions preserve original equality/conflict after creation switches and fresh service composition. Cohort
@@ -308,7 +308,7 @@ QA is N/A. Actual consumer rehearsal, final integration, merge, release and adop
 ## Current integration/evidence checkpoint — TASK-00059 accepted
 
 The [integration guide](../../docs/agent-integration.md) now connects the implemented current composition and
-[complete evidence inventory](../../docs/agent-operation-evidence.md) preserves all 25 rows above plus ratified D3/D4.
+[complete evidence inventory](https://github.com/johnnickell/fight-access-control/blob/ed516f9e6f7d6dabc917e41328fbf275d14894f0/docs/agent-operation-evidence.md) preserves all 25 rows above plus ratified D3/D4.
 It supplies current test references, observed results, tested-content/receipt provenance, superseded dispositions and
 mandatory unexecuted consumer gaps. This adds no runtime behavior or deferred behavior tests. Fresh Agent/OpenAPI
 checks pass **1103 tests / 30421 assertions**; TASK-00059 owns final gate evidence and the optional reporter limitation.
@@ -411,7 +411,7 @@ handoff; consumer qualification remains separate.
 
 John authorized TASK-00055 in the main checkout from `develop` `ea1e316`, after TASK-00047/00048 completed. It is now
 done for independently accepted implementation/local verification on `feature/task-00055-legacy-compatibility`. The
-[existing-data/API contract](../../docs/agent-existing-data-v0.5-migration.md) and executable M1 scenarios cover explicit
+[then-current existing-data/API contract](https://github.com/johnnickell/fight-access-control/blob/ebc396c502d53c60ca6fb370ec619636a7eeac7c/docs/agent-existing-data-v0.5-migration.md) and executable M1 scenarios cover explicit
 legacy reconstitution, preserved authentication, safe marker reads and new authorized rotation through the existing
 transaction. No historical operation/delivery is manufactured. Its local gate passes 1318 tests / 18169 assertions and
 exact 6270/6270 statements; focused Agent/OpenAPI checks pass 797 tests / 14246 assertions with exception arguments

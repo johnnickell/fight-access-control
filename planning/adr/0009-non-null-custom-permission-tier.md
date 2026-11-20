@@ -16,5 +16,6 @@ The accepted decision and its boundary are recorded in
 non-null tiers through [TASK-00041](../tasks/00041-TASK.md); consumer persistence adoption remains separate.
 Fight Agent OS has no stored Permissions, so it has no existing grant data to convert. Malformed or unexpected
 null authority fails closed. [TASK-00045](../tasks/00045-TASK.md) implements the separate protected-promotion
-decision by rejecting forbidden membership without automatic remediation. Consumers follow the
-[v0.4.0 migration guide](../../docs/permission-tier-v0.4-migration.md) before adopting the package.
+decision by rejecting forbidden membership without automatic remediation. The
+[v0.4.0 migration guide at release](https://github.com/johnnickell/fight-access-control/blob/380b134b35c722e6416787b13f5c20c64bd05388/docs/permission-tier-v0.4-migration.md)
+records that release's adoption guidance. For current composition use the [Permission tier contract](../../docs/permission-tiers.md).

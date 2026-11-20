@@ -17,7 +17,7 @@ selection never supplies those capabilities or grants admission.
 Inject the configured Common `QueryBus`, `AgentCredentialDeliveryService`, a trusted `Clock` and optionally
 `AgentDeliverySchedule` into `AgentDeliveryRecoveryService`. Register `ListDueAgentDeliveries` with its actual
 `ListDueAgentDeliveriesHandler` on that bus; direct-handler injection is removed without a compatibility mode.
-See the unreleased [worker contracts](agent-worker-contracts.md) for dynamic result validation and the separate
+See the unreleased [worker failure boundaries](agent-integration.md#worker-failures) for dynamic result validation and the separate
 generic-inference ownership. As an authenticated worker with explicit current
 delegation, call `recover(originalScope, registeredDestination)` once per scheduled pass. It selects one batch,
 then calls the actual delivery service once per item. The safe result maps original global delivery IDs to
@@ -52,7 +52,7 @@ same package transitions; consumers must not copy claim, admission, retry or ter
 
 `AgentCredentialOperationReadRepository::listDueDeliveries(scope, destination, now, limit)` now returns
 `list<AgentDeliveryWorkView>` selection evidence internally; the handler returns `list<AgentOperationView>`.
-See the unreleased [exact Query/read-adapter contracts](agent-query-contracts.md).
+See the unreleased [Query and read-adapter composition](agent-integration.md#operation-ownership-and-readwrite-composition-unreleased).
 It is an authoritative, bounded, **secret-free projection**, not an entity/material load or write transaction.
 The existing [safe operation representation](agent-operation-status.md) keeps original issuance and recorded
 credential/delivery disposition separate. No receipt, claim token, key version, ciphertext or capability is returned.

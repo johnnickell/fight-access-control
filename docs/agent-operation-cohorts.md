@@ -3,7 +3,7 @@
 [TASK-00056](../planning/tasks/00056-TASK.md) adds persisted compatibility enforcement to the replacement Agent
 protocol. This is a breaking v0.5.0 repository contract, not a migration tool, deployment command, release receipt,
 old-binary fence or consumer qualification. Only the [current Agent model](agent-current-contract.md) applies;
-there is no legacy mode or adoption transition. The [single canonical contract](agent-canonical-upgrades.md) is supplied by TASK-00057;
+there is no legacy mode or adoption transition. The [canonical request and name contract](agent-integration.md#canonical-request-and-name) is supplied by TASK-00057;
 [restoration reconciliation](agent-restoration-safety.md) is supplied by TASK-00058 at the package boundary.
 
 ## Composition and persisted meaning
@@ -157,22 +157,6 @@ separate delivery/activation/use outcomes and current policy remain unchanged.
 Do not emulate failure by returning canned Application results. `restart()` must discard process-local readiness while
 retaining real storage, receipt and authority evidence. A contention hook may observe blocked execution or a retryable
 conflict, but the competing switch must not commit through the held transaction.
-
-| M2 scenario | Package evidence |
-| --- | --- |
-| Missing storage/outage, unsupported contract markers, every absent capability across eight public paths | `test_incompatible_restarted_workers_do_not_mutate_or_materialize` asserts unchanged Agent/operation/material/order/audit/generation and no sink/decryption; status remains confirmed rather than absent |
-| Compatible creation/rotation, scheduler delivery, rewrap and revocation | `test_compatible_cohort_retains_real_rotation_delivery_maintenance_and_revocation` |
-| Switch at claim/admission/materialization/sink acceptance; compatible and incompatible restart | `test_cohort_switch_never_acknowledges_stale_admission_and_restart_recovers` |
-| Transaction versus switch, no startup cache | `test_cohort_switch_contends_with_live_transaction_not_just_startup_check` |
-| Direct repository writers; current revocation; Permission changes and no-ops; mismatched repository cohorts | `AgentCohortWriterTest` |
-| Cleanup switch-back and maintenance contention/rollback | `AgentCohortWriterTest` |
-| Single supported contract and generation-bound authority rules | `AgentOperationContractTest` |
-
-The reference runner is `InMemoryAgentCohortConformanceTest`. It models persisted state and deterministic
-interleavings. Its capabilities are explicit **test fixture composition**, not real database/cryptographic/sink
-qualification. Existing [issuance conformance](agent-issuance-conformance.md) and
-[delivery conformance](agent-delivery-conformance.md) retain uncertainty, capacity, optional lookup, authorization,
-publication and key/sink failure coverage. Product tests exercise public behavior; no schema/config-text test replaces it.
 
 Before a consumer can claim M2 qualification, additionally retain these **mandatory unexecuted external scenarios**:
 
