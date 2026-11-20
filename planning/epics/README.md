@@ -22,3 +22,4 @@ This generated index is a projection; individual records remain canonical.
 | [EPIC-00016](00016-EPIC.md) | Library-wide Typing and Handler Failure Contracts | done |
 | [EPIC-00017](00017-EPIC.md) | Explicit Optional Atomic Audit Recording | done |
 | [EPIC-00018](00018-EPIC.md) | Portable Feature and Permission Admission | done |
+| [EPIC-00019](00019-EPIC.md) | Pre-v1 documentation and developer tooling | ready-for-agent |

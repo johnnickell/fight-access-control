@@ -57,3 +57,8 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00051](00051-TICKET.md) | Enforce portable Permission declarations across five frameworks | done |
 | [TICKET-00052](00052-TICKET.md) | Qualify independent and combined admission | done |
 | [TICKET-00053](00053-TICKET.md) | Issue Agent credentials through Commands and outcome Queries | done |
+| [TICKET-00054](00054-TICKET.md) | Publish and streamline consumer documentation | ready-for-agent |
+| [TICKET-00055](00055-TICKET.md) | Make the quality gate faster and more reliable | ready-for-agent |
+| [TICKET-00056](00056-TICKET.md) | Relocate static type-contract fixtures without losing proof | ready-for-agent |
+| [TICKET-00057](00057-TICKET.md) | Migrate repository Python tooling to PHP or document exceptions | ready-for-agent |
+| [TICKET-00058](00058-TICKET.md) | Adopt equivalent Fight Common Domain helpers | ready-for-agent |

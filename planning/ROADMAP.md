@@ -1,5 +1,11 @@
 # Roadmap
 
+## Current planning handoff — pre-v1 documentation and developer tooling
+
+[EPIC-00019](epics/00019-EPIC.md) has five approved TICKETs and all 15 TASKs are written. Consult the
+[Task Board](tasks/BOARD.md) with `/skill:next` for execution selection. This handoff does not authorize
+implementation or release.
+
 ## TASK-00182 accepted implementation checkpoint
 
 TASK-00182's integrated void Agent Command conversion has independent Review ACCEPT and nonvisual QA PASS; TICKET-00053 closes with its sole child. TASK-00110's independently accepted Common adoption now completes the remaining TICKET-00034 and EPIC-00015. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00182/land.md` and the actual PR. The planning handoffs below retain their historical checkpoints.
@@ -903,4 +909,5 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00016](epics/00016-EPIC.md) | unassigned | done | 6 | 31 |
 | [EPIC-00017](epics/00017-EPIC.md) | unassigned | done | 6 | 24 |
 | [EPIC-00018](epics/00018-EPIC.md) | unassigned | done | 4 | 12 |
+| [EPIC-00019](epics/00019-EPIC.md) | unassigned | ready-for-agent | 5 | 15 |
 <!-- generated:epic-status:end -->
