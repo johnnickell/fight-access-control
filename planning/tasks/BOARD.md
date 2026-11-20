@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00189](00189-TASK.md) — Build the branded consumer docs site and shorten the README.
+First ready Task: [TASK-00190](00190-TASK.md) — Consolidate current guides and retire superseded notes.
 
 ## In Progress
 
@@ -15,7 +15,8 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 512 | [TASK-00189](00189-TASK.md) | Build the branded consumer docs site and shorten the README | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | ready-for-agent | — | — |
+| 513 | [TASK-00190](00190-TASK.md) | Consolidate current guides and retire superseded notes | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | ready-for-agent | [TASK-00189](00189-TASK.md) | — |
+| 514 | [TASK-00191](00191-TASK.md) | Validate and publish consumer docs automatically | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | ready-for-agent | [TASK-00189](00189-TASK.md) | — |
 | 515 | [TASK-00192](00192-TASK.md) | Make stale planning failures diagnosable | [TICKET-00055](../tickets/00055-TICKET.md) — Make the quality gate faster and more reliable | ready-for-agent | — | — |
 | 516 | [TASK-00193](00193-TASK.md) | Reduce PHPUnit overhead without weakening coverage | [TICKET-00055](../tickets/00055-TICKET.md) — Make the quality gate faster and more reliable | ready-for-agent | — | — |
 | 517 | [TASK-00194](00194-TASK.md) | Replace timing-sensitive test setup where proof is equivalent | [TICKET-00055](../tickets/00055-TICKET.md) — Make the quality gate faster and more reliable | ready-for-agent | — | — |
@@ -27,8 +28,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 513 | [TASK-00190](00190-TASK.md) | Consolidate current guides and retire superseded notes | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | ready-for-agent | [TASK-00189](00189-TASK.md) | — |
-| 514 | [TASK-00191](00191-TASK.md) | Validate and publish consumer docs automatically | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | ready-for-agent | [TASK-00189](00189-TASK.md) | — |
 | 520 | [TASK-00197](00197-TASK.md) | Port the Unit coverage checker to PHP | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP or document exceptions | ready-for-agent | [TASK-00196](00196-TASK.md) | — |
 | 521 | [TASK-00198](00198-TASK.md) | Port the static fixture runner and its qualification helper to PHP | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP or document exceptions | ready-for-agent | [TASK-00197](00197-TASK.md), [TASK-00195](00195-TASK.md) | — |
 | 522 | [TASK-00199](00199-TASK.md) | Resolve Python planning and archive tooling | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP or document exceptions | ready-for-agent | [TASK-00196](00196-TASK.md) | — |
@@ -239,3 +238,4 @@ No Tasks are currently in this state.
 | 509 | [TASK-00186](00186-TASK.md) | Cancel only the identified email-change request | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/260 |
 | 510 | [TASK-00187](00187-TASK.md) | Record retryable delivery failures that end in expiry | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/265 |
 | 511 | [TASK-00188](00188-TASK.md) | Save the reason for administrative session revocation | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/268 |
+| 512 | [TASK-00189](00189-TASK.md) | Build the branded consumer docs site and shorten the README | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | done | — | — |
