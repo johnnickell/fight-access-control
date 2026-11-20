@@ -1,0 +1,32 @@
+# Choose the host and Composer tooling split
+
+**Labels:** `wayfinder:grilling`
+**Mode:** HITL
+**Status:** Closed
+**Gate:** —
+**Map:** [Pre-v1 documentation and developer tooling](../pre-v1-maintenance-map.md)
+**Depends on:** WF-038
+
+## Question
+
+Which commands should become Composer-autoloaded PHP under `scripts/`, and which need to run without Docker or installed Composer dependencies?
+
+## Must decide
+
+- Classify commands as host orchestration, offline/bootstrap checks, or container tools. Prefer thin host wrappers delegating to selected-container PHP where possible, without changing invocation from the host.
+- Choose a dev-only Composer namespace/entrypoint pattern and justify any modern console dependency against simpler built-in PHP or existing tools. Keep tooling out of production autoloading.
+- Set migration order and exceptions. Preserve CLI arguments, exit status, offline planning, worktree selection, build-cache evidence and safe teardown. Include any runner retained by WF-038.
+
+## Approved resolution
+
+- Keep `bin/` as the host-facing interface. Leave lifecycle, worktree selection and build-cache orchestration on the host. Keep planning validation and archiving, release docs preflight, and the existing standalone documentation link check runnable without Docker or `vendor/`. Do not require host PHP for commands that do not already require it.
+- Start with the structural contract inventory: its [Python runner](../../../scripts/contract_inventory.py) already invokes a [PHP AST helper](../../../scripts/inventory_ast.php). Follow with the [coverage report checker](../../../scripts/check_unit_coverage.py), which currently shells out to PHP to read coverage. Port the [static fixture runner](../../../scripts/check_type_contracts.py) later, after the WF-038 relocation; preserve its per-file diagnostics, timeout handling, and separate qualification. None of these ports is a reason to alter the quality gate's proof.
+- Put shared tooling classes under `scripts/` in a separate dev-only PSR-4 namespace, with small PHP entrypoints loading `vendor/autoload.php`. Start without adding a console dependency. Delegate focused host commands through the existing [container wrapper](../../../bin/.container-run); the [shared gate](../../../bin/quality) should call the same PHP entrypoints directly in its prepared environment, whether that is the selected container or hosted CI. Do not nest Docker or prepare dependencies twice.
+
+## Evidence required for the planning handoff and delivery
+
+Use [local tooling guidance](../../../docs/engineering/LOCAL_TOOLING.md) and the [baseline](../research/pre-v1-maintenance-baseline.md). Trace clean-checkout, CI, linked-worktree and release call paths, including use before `vendor/` exists, and identify the direct qualification each migration needs.
+
+## Resolution boundary
+
+Set the command boundary and priorities. Do not port scripts, add dependencies or declare all Python removable without evidence.
