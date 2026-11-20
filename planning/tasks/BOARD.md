@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00190](00190-TASK.md) — Consolidate current guides and retire superseded notes.
+First ready Task: [TASK-00191](00191-TASK.md) — Validate and publish consumer docs automatically.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 513 | [TASK-00190](00190-TASK.md) | Consolidate current guides and retire superseded notes | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | ready-for-agent | [TASK-00189](00189-TASK.md) | — |
 | 514 | [TASK-00191](00191-TASK.md) | Validate and publish consumer docs automatically | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | ready-for-agent | [TASK-00189](00189-TASK.md) | — |
 | 515 | [TASK-00192](00192-TASK.md) | Make stale planning failures diagnosable | [TICKET-00055](../tickets/00055-TICKET.md) — Make the quality gate faster and more reliable | ready-for-agent | — | — |
 | 516 | [TASK-00193](00193-TASK.md) | Reduce PHPUnit overhead without weakening coverage | [TICKET-00055](../tickets/00055-TICKET.md) — Make the quality gate faster and more reliable | ready-for-agent | — | — |
@@ -239,3 +238,4 @@ No Tasks are currently in this state.
 | 510 | [TASK-00187](00187-TASK.md) | Record retryable delivery failures that end in expiry | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/265 |
 | 511 | [TASK-00188](00188-TASK.md) | Save the reason for administrative session revocation | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/268 |
 | 512 | [TASK-00189](00189-TASK.md) | Build the branded consumer docs site and shorten the README | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | done | — | https://github.com/johnnickell/fight-access-control/pull/272 |
+| 513 | [TASK-00190](00190-TASK.md) | Consolidate current guides and retire superseded notes | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | done | [TASK-00189](00189-TASK.md) | — |

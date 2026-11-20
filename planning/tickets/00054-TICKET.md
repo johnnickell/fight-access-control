@@ -30,7 +30,7 @@ John approved the three-TASK split: build the branded site first, then consolida
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
 | 512 | [TASK-00189](../tasks/00189-TASK.md) | Build the branded consumer docs site and shorten the README | done |
-| 513 | [TASK-00190](../tasks/00190-TASK.md) | Consolidate current guides and retire superseded notes | ready-for-agent |
+| 513 | [TASK-00190](../tasks/00190-TASK.md) | Consolidate current guides and retire superseded notes | done |
 | 514 | [TASK-00191](../tasks/00191-TASK.md) | Validate and publish consumer docs automatically | ready-for-agent |
 ## Acceptance Evidence
 
