@@ -45,6 +45,7 @@ use Fight\AccessControl\Domain\AccessControl\Permission\PermissionId;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionName;
 use Fight\AccessControl\Domain\AccessControl\Permission\PermissionTier;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
+use Fight\AccessControl\Domain\AccessControl\RefreshSession\SessionRevocationReason;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleId;
 use Fight\AccessControl\Domain\AccessControl\Role\RoleRevision;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
@@ -178,7 +179,8 @@ abstract class AuditStorageConformance extends TestCase
             [$user, AuditAction::SESSION_ADMINISTRATIVELY_REVOKED, new AuditSessionRevocation(
                 RefreshSessionId::generate(),
                 4,
-                5
+                5,
+                SessionRevocationReason::fromString('Compromised device')
             )],
             [new AuditSubject(AgentId::generate()), AuditAction::AGENT_PROVISIONED, new AuditAgentOutcome(
                 null,

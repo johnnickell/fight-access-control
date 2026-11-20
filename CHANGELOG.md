@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking changes
+
+- Administrative session revocation audit evidence now retains the exact trimmed explanation in `facts.reason`.
+  Readback requires the field for `refresh_session.administratively_revoked`; other revocation audit records and
+  success events are unchanged. See [typed audit evidence](docs/audit-evidence.md#admitted-facts).
+
 ## [0.10.1] - 2026-11-19
 
 Prepared on this date; see the [release overview](docs/release-0.10.1.md).

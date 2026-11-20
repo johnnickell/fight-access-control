@@ -9,7 +9,7 @@ use Fight\AccessControl\Domain\AccessControl\RefreshSession\Exception\SessionRev
 /**
  * Class SessionRevocationReason
  *
- * Represents bounded, secret-free evidence explaining an administrative session revocation.
+ * Represents a bounded explanation for an administrative session revocation.
  */
 final readonly class SessionRevocationReason
 {

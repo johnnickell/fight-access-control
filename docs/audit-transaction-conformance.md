@@ -118,10 +118,10 @@ equality cannot detect loss of a populated value never supplied to a binding.
 ## Safety and qualification limits
 
 The corpus contains only synthetic typed facts, no raw credentials, hashes, ciphertext, messages, entity snapshots,
-sink payloads or diagnostic text in exported assertions. Current facts admit bounded enums/IDs/counters, not arbitrary
-free-text reasons. A future free-text field needs field-specific safety admission; a string type or regex is not a
-sanitizer. Evidence and identifiers are not automatically public/log-safe: protect storage access, retention, test
-artifacts and publication independently. Re-thrown faults still need consumer response/log sanitation.
+sink payloads or diagnostic text in exported assertions. The administrative session revocation fixture includes a
+synthetic explanation to check that the `reason` field survives storage readback. A length limit is not a sanitizer;
+administrators must not enter secrets. Evidence and identifiers are not automatically public/log-safe: protect
+storage access, retention, test artifacts and publication independently. Re-thrown faults still need consumer response/log sanitation.
 
 Family proof remains with its original owners: TASK-00123–00127 and TASK-00153–00165 retain independently accepted
 no-change, retained-key resolution, changed-subject batch and external send/cleanup proof on their exact subjects.

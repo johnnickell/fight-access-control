@@ -41,8 +41,9 @@ Disabled calls need no new audit-only actor. Enabled benign refresh conflicts an
 need none either. Supply refresh provenance up front when terminal replay must be handled with auditing enabled.
 Evidence records the actual committed replay revocation, not successful refresh or token receipt. Helpers return the
 actual changed predecessor/successor (null predecessor for a concurrent winner/no-change) and never write evidence.
-Administrative reasons remain business-required but are deliberately omitted from audit facts; arbitrary text is
-not safe merely because it is bounded. See [typed evidence](audit-evidence.md).
+Administrative reasons remain required even when audit is disabled. With audit enabled, the same transaction
+retains the exact trimmed explanation in the administrative revocation record, not in the success event.
+Administrators must not enter secrets. See [typed evidence](audit-evidence.md).
 
 ## Explicit composition
 

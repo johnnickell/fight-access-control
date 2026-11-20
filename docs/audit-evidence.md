@@ -100,10 +100,11 @@ correlation; record identity/correlation is neither authority nor universal dedu
   revisions. Activation additionally retains the exact consumed grant/delivery generation. Login and rotation do not
   invent grant changes; refresh preserves User counters. Issuance has no session predecessor and starts at zero;
   rotation advances exactly once. Actions distinguish activation, login and successful refresh; none claims token receipt.
-- `AuditSessionRevocation` admits only session identity and actual before/after revisions for logout, terminal replay,
-  self-service management and administrative management. Business-required
-  free-text reasons still undergo their existing validation, but are deliberately omitted from durable evidence.
-  Neither string typing nor a regular expression can establish that arbitrary reason text is secret-free.
+- `AuditSessionRevocation` retains the session identity and actual before/after revisions. Only
+  `refresh_session.administratively_revoked` requires a `reason` field: the exact trimmed 1–500 character
+  explanation. The current reader rejects administrative evidence without it. Self-service revocation, logout
+  and terminal replay omit the field. Administrators must not enter secrets; the package does not scan or redact
+  the explanation.
 - `AuditRoleRevisions` preserves the complete incarnation/sequence with explicit absent creation/removal state.
   Creation requires sequence one of the supplied incarnation, without generating or replacing it. Changes retain
   that incarnation and advance exactly once; removal retains any authoritative predecessor and no successor.
@@ -129,8 +130,9 @@ storage is supplied. Helpers, planners and schedulers do not independently recor
 also support that subject; accepting an identity alone does not add a new outcome or audit-writing path.
 Family-owned admission and executable writer proof remain distinct from shared value construction/hydration.
 
-No facts type accepts credentials, tokens, hashes, ciphertext, raw messages/entities, exceptions or arbitrary
-text/context. Evidence and its identifiers are nevertheless not automatically authorized public response/log data.
+Facts do not accept credential, token, hash, ciphertext, raw message/entity, exception or arbitrary context
+fields. Administrative session revocation is the only fact that accepts a free-text explanation. Evidence and its
+identifiers are not automatically authorized public response/log data.
 
 ## Provenance versus authority
 

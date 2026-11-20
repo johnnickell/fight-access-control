@@ -156,7 +156,7 @@ Synchronous password change/reset remains exclusively TASK-00127; this slice doe
 
 | Entry | Observed audit and outcome disposition |
 | --- | --- |
-| [RevokeSession](../src/Application/AccessControl/RefreshSession/CommandHandler/RevokeSessionHandler.php) | W self-service `refresh_session.revoked` and administrative `refresh_session.administratively_revoked`, with actual session/revision facts and no free-text reason capture. Required User actor; cross-User authorization and reason required. Current session is prohibited here (use logout); unusable session rejects. Business reason remains mandatory where required, but the shared replacement omits it from evidence. |
+| [RevokeSession](../src/Application/AccessControl/RefreshSession/CommandHandler/RevokeSessionHandler.php) | W self-service `refresh_session.revoked` and administrative `refresh_session.administratively_revoked`, with actual session/revision facts. Only the administrative record retains the exact trimmed reason ([TASK-00188](../planning/tasks/00188-TASK.md)). Required User actor; cross-User authorization and reason required. Current session is prohibited here (use logout); unusable session rejects. |
 
 ## Administration handlers (11)
 

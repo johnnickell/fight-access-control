@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-No non-terminal Task exists. Any future release decision requires separate human authorization.
+First ready Task: [TASK-00188](00188-TASK.md) — Save the reason for administrative session revocation.
 
 ## In Progress
 
@@ -13,7 +13,9 @@ No Tasks are currently in this state.
 
 ## Ready Frontier
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 511 | [TASK-00188](00188-TASK.md) | Save the reason for administrative session revocation | — (standalone bug) | ready-for-agent | — | — |
 
 ## Waiting
 
