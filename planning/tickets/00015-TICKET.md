@@ -181,7 +181,7 @@ all-path Permission-removal proof or actual guarded-deletion/reintroduction comp
 and does not qualify consumer activation.
 
 TASK-00067 now implements the retained guarded-deletion/reintroduction composition under TICKET-00017 from the
-main checkout baseline `09abe1f`. Its [complete evidence inventory](../../docs/feature-evidence.md) links each
+main checkout baseline `09abe1f`. Its [complete evidence inventory](https://github.com/johnnickell/fight-access-control/blob/38feee76132230152de549c46418bc41b17e9518/docs/feature-evidence.md) links each
 preceding TASK's actual acceptance subject and tests, while keeping TASK-00067's own independent review/QA and
 actual consumer qualification distinct. This does not reinterpret earlier seeded-absence fixtures as guarded
 deletion or infer scenario acceptance from this TICKET's mechanically completed status.

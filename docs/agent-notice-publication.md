@@ -7,7 +7,7 @@ business Command, mutation, broadcaster, notice store, worker, retry loop or aut
 ## Explicit composition
 
 Use Common **^1.5.0**, sufficient tagged source `06fb5cd3720af9cf8295198f74040d95b64c5155`; see the
-[contract inventory](common-contracts.md). Optional Mercure composition uses **symfony/mercure ^0.7** (qualified
+[Common adoption record](../planning/tasks/00110-TASK.md). Optional Mercure composition uses **symfony/mercure ^0.7** (qualified
 minimum 0.7.0). Mercure is development-only here for real adapter integration tests, suggested rather than a
 mandatory runtime dependency. All transport implementation stays in Common `Adapter/Socket`, not Application.
 

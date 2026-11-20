@@ -182,7 +182,7 @@ with focused fixture and separate runner-qualification evidence in its ignored W
 nonvisual QA and final acceptance remain outstanding. This does not complete TASK-00150's inventory, TASK-00152's
 sufficient integrated rules/reconciliation, or the dispatch/Event semantic owners' supplier/runtime proof.
 
-TASK-00150's Work now implements the early [structural inventory foundation](../../docs/contract-inventory.md)
+TASK-00150's Work now implements the early [structural inventory foundation](../../docs/engineering/contract-inventory.md)
 with independent Review/nonvisual QA still pending. Enumeration and drift enforcement do not complete semantic
 review or final reconciliation; TASK-00151 and every correction supplier retain their existing scope/ownership.
 The planning-only checkpoints below are historical, not a claim that the current foundation is unimplemented.

@@ -40,8 +40,11 @@ plus planning integrity and the complete package gate. It requires a clean check
 and command logs under ignored `.runs/`. Certification does not merge, tag, push,
 or publish anything.
 
-The [current declaration-to-component map](public-payload-catalog.md) accounts for every public Command/Query,
-safe result, synchronous User payload and deliberate non-wire boundary. The default `PublicPayloadContractTest`
+## Schema sources
+
+Use the [shipped component definitions](../openapi) and their owning [PHP declarations](../src) for exact wire
+shapes. Do not assume every PHP contract has a schema: synchronous secret inputs and internal persistence values
+are not public messages. The default `PublicPayloadContractTest`
 validates real canonical round trips and explicit safe consumer projections against generated OpenAPI 3.1 using
 Opis JSON Schema 2020-12 (development-only). Validator defaults are disabled: a documented default cannot hide a
 missing required canonical field. Invalid values exercise required/null branches, typed elements, references,

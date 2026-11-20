@@ -19,7 +19,7 @@ A persistence placement pattern is not permission to implement production persis
 
 ## Consumed Common contracts
 
-The [complete affected contract inventory](../../docs/common-contracts.md) owns TASK-00110's canonical spelling,
+The [Common adoption record](../tasks/00110-TASK.md) owns TASK-00110's canonical spelling,
 getter, construction/serialization/error semantics and future-feature boundaries. [Composer](../../composer.json)
 now requires `johnnickell/fight-common: ^1.5.1` for TASK-00089's scoped activity aggregates.
 Exact-minimum and ordinary composition are qualified separately;

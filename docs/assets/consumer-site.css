@@ -1,0 +1,75 @@
+:root {
+  --md-text-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --md-code-font: ui-monospace, Menlo, Consolas, monospace;
+}
+
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: #182126;
+  --md-primary-fg-color--light: #26333a;
+  --md-primary-fg-color--dark: #10181c;
+  --md-primary-bg-color: #fff;
+}
+
+[data-md-color-scheme="default"] {
+  --md-typeset-a-color: #9a3412;
+  --md-accent-fg-color: #7c2d12;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-typeset-a-color: #ffb58f;
+  --md-accent-fg-color: #ffd0b7;
+}
+
+.md-typeset h1 {
+  color: var(--md-default-fg-color);
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+  font-weight: 720;
+  letter-spacing: -.035em;
+  line-height: 1.12;
+}
+
+.md-typeset h2 {
+  font-weight: 650;
+}
+
+.md-typeset a:not(.md-button):not(.headerlink) {
+  text-decoration: underline;
+  text-underline-offset: .16em;
+}
+
+.md-typeset .md-button {
+  color: var(--md-typeset-a-color);
+}
+
+.md-typeset .md-button--primary {
+  background: var(--md-typeset-a-color);
+  border-color: var(--md-typeset-a-color);
+  color: var(--md-default-bg-color);
+}
+
+.md-typeset pre > code {
+  font-size: .72rem;
+  line-height: 1.55;
+}
+
+.md-typeset .fight-brand {
+  display: block;
+  width: min(100%, 20rem);
+  height: auto;
+  border-radius: .5rem;
+  background: #182126;
+}
+
+.md-typeset .fight-lead {
+  font-size: 1rem;
+  max-width: 43ch;
+}
+
+.md-typeset .grid.cards > ul > li {
+  border-radius: .5rem;
+}
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}

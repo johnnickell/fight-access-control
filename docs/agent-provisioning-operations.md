@@ -89,8 +89,8 @@ if (!$view->isConfirmed()) {
 
 Register `ProvisionAgentHandler::commandRegistration()` with the configured Common CommandBus, and
 `GetAgentOperationHandler::queryRegistration()` with its QueryBus. No direct handler/result channel is needed.
-The [issuance dispatch contract map](agent-issuance-dispatch-contracts.md) records exact payload/metadata/void and
-annotated optional outcome types, concrete Common composition and executable static/runtime proof.
+See [issuance dispatch composition](agent-integration.md#public-composition-map) for Common message routing,
+envelopes and authority boundaries.
 Commands may be serialized, delayed, restarted and redelivered without an active submitting transport. Authenticate
 the actual executing invoker or explicitly delegated worker independently of the serialized scope and metadata;
 recheck current authority inside the package transaction on every attempt. Consumers own broker routing, worker
@@ -115,7 +115,7 @@ before comparing the request; unsupported markers reject without fallback. Unsee
 Unicode-aware normalization owned by `AgentName::fromString()`, for both binding and Agent name; rename consumes
 that same value rule. Canonicalization translates invalid names to safe `INVALID_REQUEST` without chaining Domain
 diagnostics. Retained bindings are never rewritten; there is no
-historical reader or runtime version choice. See the [canonical contract](agent-canonical-upgrades.md).
+historical reader or runtime version choice. See the [canonical request and name contract](agent-integration.md#canonical-request-and-name).
 
 `AgentCredentialOperationRepository` owns operation persistence and destination write reservations. Reserve monotonically
 increasing versions under the destination ownership fence shared with reassignment; the counter belongs to the stable
@@ -172,8 +172,8 @@ No publication warning is returned, persisted or reconstructed by status. Lost c
 `AgentOperationUncertainException` without chaining diagnostics; retain the original key/request and reconcile
 through authorized status and same-key retry. Uncertain and pre-commit failure publish only sanitized failure
 evidence, never a success fact. Durable operation
-and prepared state survive absent notifications; [TASK-00049 conformance](agent-issuance-conformance.md) exercises
-scheduler-only discovery with TASK-00052's actual path, not merely this slice's prepared-state fixtures. Failure evidence contains no request strings or arbitrary provider messages.
+and prepared state survive absent notifications. Qualify scheduler-only recovery with both publishers failing,
+not only with prepared-state fixtures. Failure evidence contains no request strings or arbitrary provider messages.
 
 ## Finite bounds
 
@@ -195,32 +195,7 @@ new issuance capacity must never gate existing-operation status, claims or recov
 
 ## Package evidence and consumer qualification
 
-`AgentOperationTest` proves values, canonicalization, bounds, safe material and tombstone identity.
-`ProvisionAgentHandlerTest` proves observable persisted outcomes using transaction-aware Domain repository and
-consumer-capability doubles. `ProvisioningEnvironment`, `InMemoryAgentCredentialOperationRepository`,
-`InMemoryAgentOperationAuthorization`, `BoundAgentDeliveryCipher` and `UncertainAgentUnitOfWork` are reusable test
-fixtures under `tests/Application/AccessControl/Agent/`, not production adapters. The cipher fixture is deliberately
-not cryptography. Consumers must independently qualify authenticated encryption and the actual shared connection,
-locking, unique constraints and concurrent transactions before adoption. TASK-00049 now exposes the
-[cross-operation consumer-bindable suite](agent-issuance-conformance.md), separately from these focused fixtures.
-
-| Requirement | Focused package evidence |
-| --- | --- |
-| I1, I7 complete issuance and safe result | `test_it_commits_one_complete_issuance_before_publication_and_returns_no_secret` |
-| I2 loss/restart, equivalent canonical request | `test_lost_response_and_restart_resolve_without_generation_audit_or_another_fact` |
-| I2 concurrent identical/conflicting keys | `test_unique_loser_rolls_back_then_resolves_or_conflicts_with_winner` |
-| I2 changed fields/unknown version | `test_changed_binding_or_unknown_version_rejects_without_generation` |
-| I3 uncertain committed/rolled-back outcomes | `test_uncertain_commit_never_guesses_and_restart_resolves_the_original_key` |
-| I3 pre-commit rollback across all write/encryption boundaries | `test_precommit_faults_roll_back_every_record_and_never_expose_provider_details` |
-| I4 success/both publisher failure | `test_publication_failure_preserves_committed_work_without_reconstructed_warnings` |
-| I5 denied new/retry before lookup | `test_current_authority_denies_before_lookup` |
-| I5 shared authority fence/delegated identity | `test_authorization_writer_waits_for_issuance_and_next_retry_observes_revocation` |
-| I5 authority capability rollback | `test_authorization_participant_failure_rolls_back_its_own_writes` |
-| I5 cross-scope delivery identity and reassigned-slot order | `test_cross_scope_ids_and_reassignment_preserve_delivery_identity_and_slot_order` |
-| I6 default/override bounds, capacity isolation and retained keys | `AgentOperationTest` and `test_capacity_rejects_new_work_but_preserves_resolution_under_lowered_limits_and_tombstones` |
-| I7 mandatory cancellation after Permission changes | `test_recoverable_agent_rejects_unfenced_lifecycle_even_after_permission_changes`, `AgentCredentialRetirementTest` |
-
-Interleavings model a winner becoming visible after loser rollback and an authority writer waiting for the shared
-fence. They are not parallel database sessions or PostgreSQL proof. No no-caller scheduler, sink, activation/use,
-real encryption adapter, release or consumer-adoption result is claimed here. Current Agent authentication,
-Permission, hydration and lifecycle tests remain part of the complete package gate.
+Qualify authenticated encryption, shared database connection and transaction, locking, uniqueness and concurrency
+with the actual adapters. Bind the [issuance recovery suite](agent-integration.md#restoration-and-consumer-evidence-handoff)
+to those adapters; in-memory interleavings and the package test cipher do not qualify them. Qualify the scheduler,
+sink and independent activation/use separately.

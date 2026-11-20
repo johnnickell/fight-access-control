@@ -38,10 +38,10 @@ This adoption does not certify all existing code against the baseline. Its compa
 - **Scope:** This replaces only the local CONTEXT-as-orientation/vocabulary convention in AGENTS, Architecture,
   Naming and Governance. All non-vocabulary requirements, inward dependencies, security/transaction/recovery rules,
   independent acceptance, runtime admission and delivery authority remain in force.
-- **History:** [CONTEXT.historical.md](../../CONTEXT.historical.md) preserves the original checkpoints and vocabulary
-  at the TASK base, outside mandatory orientation. It remains at root to preserve its original relative links;
-  it is not a current-status owner or second orientation document. TASK-owned ignored Work evidence accounts for
-  each section and its current requirement owner. Existing ADR locations/identities and planning records remain.
+- **History:** The [historical context snapshot](https://github.com/johnnickell/fight-access-control/blob/38feee76132230152de549c46418bc41b17e9518/CONTEXT.historical.md)
+  preserves checkpoints, vocabulary and relative links at its original Git path. TASK-00190 removed the working-tree
+  copy; the snapshot is neither current guidance nor required orientation. TASK-00184's Work inventory identifies
+  current owners by section. ADRs and planning records retain their original decisions and evidence.
 - **Approval/reference:** John explicitly selected a strict domain glossary and approved the bounded migration in
   [TASK-00184](../../planning/tasks/00184-TASK.md). Only local adopted guidance changes; provider resources and source
   baseline digests remain untouched. Installed Architecture, Naming and Governance digests identify the amended bytes.

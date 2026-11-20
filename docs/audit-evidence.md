@@ -8,7 +8,7 @@ TASK-00125 adds [optional reset request/delivery/expiry composition](credential-
 TASK-00126 adds [optional email-change composition](credential-delivery.md#optional-email-change-audit-composition-unreleased)
 for request/cancel/delivery/expiry, including self-service outcomes.
 TASK-00127 adds [optional synchronous User/session composition](user-authentication.md#optional-atomic-audit).
-TASK-00168 demonstrates [ordinary Role lifecycle composition and consumer mapping/retirement prerequisites](role-audit-composition.md),
+TASK-00168 demonstrates [Role lifecycle audit composition](role-revisions.md#optional-lifecycle-audit-unreleased),
 using TASK-00153's implemented optional lifecycle writers.
 TASK-00154 adds [optional custom Role Permission grant/revoke composition](role-membership-contracts.md#optional-role-permission-audit-composition).
 TASK-00155 adds [optional User Role membership composition](role-membership-contracts.md#optional-user-membership-audit-composition).
@@ -32,6 +32,25 @@ Time preserves microseconds and offset in `Y-m-d\TH:i:s.uP` form. Writers supply
 not envelope creation or insertion time. Correlation holds the incoming `MessageId` and/or complete retained
 `AgentOperationKey`, including namespace/caller scope. Synchronous paths without either use null. Never invent
 correlation; record identity/correlation is neither authority nor universal deduplication.
+
+## Fixed actor identities
+
+`SystemId` and `AnonymousId` are direct Fight Common `UniqueId` values in
+`Fight\AccessControl\Domain\AccessControl\Audit`. They need no account, registry, singleton or actor wrapper.
+Both `generate()` and `fromString(Uuid::NIL)` create typed values containing the same canonical nil UUID
+(`00000000-0000-0000-0000-000000000000`), not random IDs. `fromString()` rejects every other spelling or value,
+including whitespace, braces and URNs, with Common's Domain `DomainException`.
+
+Persist the actor kind separately and reconstruct with the known concrete type's `fromString($id->toString())`.
+String casts and JSON contain only the nil text. Equality and hashing distinguish concrete kinds even when
+UUID text matches; do not assume cross-kind ordering. Native PHP object deserialization and reflection are
+not supported hydration paths. Neither identity can substitute for the unique non-nil evidence ID, a message
+ID or a deduplication key.
+
+Use `SystemId` for deliberate autonomous work and `AnonymousId` for a deliberately unauthenticated origin.
+Keep an admitted `UserId` or `AgentId` when a worker continues that caller's work. Missing actor data is not
+permission to choose either fixed identity. Attribution grants no authority and package value tests do not
+qualify consumer storage or provenance authentication.
 
 ## Admitted facts
 
@@ -123,8 +142,7 @@ operation revisions, bounded wrapping labels and closed failure classification. 
 credential envelopes, policy snapshots, authority epochs or diagnostics.
 
 All current family owners explicitly insert their supported facts inside their actual mutation transactions when
-storage is supplied. Helpers, planners and schedulers do not independently record those outcomes. The
-[complete outcome matrix](audit-outcome-coverage.md) identifies each owner and conditional disposition.
+storage is supplied. Helpers, planners and schedulers do not independently record those outcomes.
 
 `AuditSubject` admits only the supported User, Agent, Role, Permission and Feature identities. Action/facts must
 also support that subject; accepting an identity alone does not add a new outcome or audit-writing path.
@@ -190,10 +208,16 @@ password/email paths. TASK-00185 later added the participant after audit in `Ema
 outcomes are covered. Benign refresh conflicts, rejected work and concurrent helper no-change have no new mutation record;
 terminal replay's actually committed revocation is recorded before outward refusal. Helpers never add evidence.
 All remaining covered Role, membership, Agent administration/credential/delivery/maintenance and Feature/policy
-owners also take audit as a final nullable dependency. See the [complete matrix](audit-outcome-coverage.md) for signatures,
-provenance, typed facts and executable proof; binding one writer never enables another owner implicitly.
-TASK-00167 adds reusable [transaction/storage conformance](audit-transaction-conformance.md) around the enabled
-writer, reopened modeled representation and wrong-connection controls. It does not qualify family optionality,
-SQL storage or physical restart. TICKET-00048 retains complete cross-family reconciliation and real consumer qualification.
+owners also take audit as a final nullable dependency. Binding one writer never enables another implicitly.
+
+### Qualify the audit transaction
+
+Bind [transaction conformance](../tests/Application/AccessControl/Audit/Conformance/AuditTransactionConformance.php)
+and [storage conformance](../tests/Application/AccessControl/Audit/Conformance/AuditStorageConformance.php) from
+the same revision's development test tree to the real writer, repositories and UoW. Keep test fixtures out of
+production autoload. Verify the underlying connection/transaction identities, whole rollback after faults on
+both sides of the audit write, fail-closed unsupported hydration and independent reopen/readback of exact facts.
+Use the actual SQL adapter and process boundary for claims about SQL or restart. Package fixtures do not qualify
+those boundaries or every family's optional composition.
 Consumers still own persistence,
 access/retention, schema/deployment and actual connection/race/restore qualification; no backfill is provided.

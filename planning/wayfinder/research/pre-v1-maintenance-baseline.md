@@ -1,0 +1,20 @@
+# Pre-v1 maintenance baseline
+
+## Question
+
+What already exists, and which contracts must be preserved when simplifying documentation, verification and tooling?
+
+## Findings
+
+- **Docs:** Fight Common's `README.md`, `docs/README.md`, `mkdocs.yml` and `.github/workflows/docs.yml` in the local sibling checkout (`697d322c`) demonstrate a short quick-start README, a separate capability landing page, grouped MkDocs navigation and a Pages build for PRs and `main` with deployment only from `main` pushes. AccessControl's [README](../../../README.md) currently mixes adoption with integration detail. Keep the managed release panel, pinned install guidance and tag-specific docs links ([release runbook](../../../docs/releasing.md)). Verify which pages and anchors are used by consumers, tooling and internal planning before pruning. Docs publication on `main` is distinct from ordinary integration to `develop` ([contribution guide](../../../CONTRIBUTING.md)). Pages settings were not checked.
+- **Historical context:** [TASK-00184](../../tasks/00184-TASK.md) retained the previous context as evidence, not orientation. Active guidance and historical records still point to that file; account for them before removal. A stable reference to the preserved Git version is a candidate, not yet a link migration plan.
+- **Quality gate:** [Hosted tests](../../../.github/workflows/tests.yml) and [local builds](../../../bin/build) both use [the shared gate](../../../bin/quality). CI restores `vendor/` but runs a latest-compatible Composer update; a fresh local build does preparation after offline planning validation and the shared gate checks planning again. PHPUnit discovers cases and executes them once, with coverage. These are measurement candidates, not proven savings. Existing local receipts do not systematically break out phase timings, and a recorded timeout without exit evidence is not a proven flaky test. No hosted logs or tests were run for this baseline.
+- **Type contracts:** [`type-contracts/`](../../../type-contracts/cases.json) holds PHPStan fixtures, not PHPUnit tests. Positive cases assert exact inferred types; negative cases assert rejection and exact diagnostics. The [fixture contract](../../../docs/type-contracts.md) describes the runner, separate analysis inputs, cache and qualification. The directory does not have to live at root in principle, but the proof is required today. Relocation must account for the runner, PHPCS, syntax checks and links. The runner invokes PHPStan per case; measure that cost before changing the gate.
+- **Scripts:** [Local tooling](../../../docs/engineering/LOCAL_TOOLING.md) documents checkout identity, build receipt reuse and safe shutdown. [`bin/planning-check`](../../../bin/planning-check), [`bin/archive-planning`](../../../bin/archive-planning) and release docs checks have host/offline or pre-container use. [`bin/.container-run`](../../../bin/.container-run) already delegates through the selected worktree's Compose stack. [`composer.json`](../../../composer.json) can support a separate dev namespace, but container delegation and Composer bootstrapping are not interchangeable.
+- **Common helpers:** The [locked Fight Common version](../../../composer.lock) is v1.5.1. The installed `src/Domain/functions.php` is loaded by Common's Composer `autoload.files`. `email()` delegates directly to `EmailAddress::fromString()`; [RegisterUser](../../../src/Domain/AccessControl/User/Command/RegisterUser.php) is one apparent candidate. Collection helpers declare `mixed` element types even with a class argument, so do not assume they preserve caller inference. `uuid()` generates a COMB UUID; it does not parse an existing ID. No call-site sweep or verification was run.
+
+## Open questions
+
+- What should the public docs publish, and which current links and release details need stable destinations?
+- Which empirically measured costs and failures have the cheapest equivalent proof?
+- Where can Composer PHP or Common helpers simplify code without breaking offline use or weakening static guarantees?

@@ -59,7 +59,7 @@ changes. Authorization changes observed before the final check deny. Later chang
 already authorized response. This is **not** the transactional admission fence required for delivery or activation.
 Consumers must check current authority again for those operations and each credential use.
 
-See [exact Query contracts](agent-query-contracts.md) for the unreleased read-adapter and failure distinction.
+See [Query and read-adapter composition](agent-integration.md#operation-ownership-and-readwrite-composition-unreleased) for the unreleased read-adapter and failure distinction.
 
 ## Query and result shapes
 
@@ -85,7 +85,7 @@ no permissive casts from numeric strings, booleans or floats. `AgentOperationKey
 | --- | --- | --- |
 | `key` | Original namespace/caller type/caller ID/operation ID | Same retained key |
 | `issuance_outcome` | `confirmed` | `indeterminate` |
-| `canonical_version` | Persisted request marker `2` only (see the [canonical contract](agent-canonical-upgrades.md)) | `null` |
+| `canonical_version` | Persisted request marker `2` only (see the [canonical request and name contract](agent-integration.md#canonical-request-and-name)) | `null` |
 | `issuance` | Original `AgentIssuance::toArray()` | `null` |
 | `delivery_disposition` | Recorded delivery enum below | `null` |
 | `credential_disposition` | Recorded credential enum below | `null` |
@@ -158,32 +158,7 @@ traces. Consumers remain responsible for their own logging and caller-stack argu
 
 ## Executable evidence and limits
 
-[AgentOperationViewTest](../tests/Domain/AccessControl/AgentCredentialOperation/AgentOperationViewTest.php) proves canonical round trips,
-required fields, strict types, finite identifiers, date/enum rejection, historical version/binding checks and safe
-retirement projection. [GetAgentOperationHandlerTest](../tests/Application/AccessControl/AgentCredentialOperation/QueryHandler/GetAgentOperationHandlerTest.php)
-proves the public read path against controlled repository/consumer-policy fixtures:
-
-| TICKET-00012 evidence | Test |
-| --- | --- |
-| I1, I7 lost response/restart, original pending identity and no effects | `test_lost_response_and_restart_read_original_issuance_without_repeating_any_effect` |
-| I5 worker's own identity and current explicit delegation | `test_explicit_delegated_worker_retains_original_scope_and_target_authorization` |
-| I5 concealment for existing, missing and terminal work | `test_denied_requests_conceal_existing_missing_and_terminal_state_before_lookup` |
-| I5 target checks and authority changes during lookup | `test_target_denial_and_authority_changes_during_lookup_prevent_disclosure` |
-| I1 safe persisted dispositions and unchanged original identity | `test_persisted_disposition_fixtures_preserve_original_issuance_without_worker_claims` |
-| I6 retained/tombstoned and unknown-version keys | `test_tombstones_and_unknown_versions_preserve_request_binding_without_canonicalization` |
-| I5, I7 wrong repository correlation and destination binding | `test_mismatched_repository_key_or_destination_never_exposes_other_operation` |
-| I1, I7 actual provision commit uncertainty and known pre-commit rejection | `test_uncertain_commit_and_known_precommit_rejection_never_turn_absence_into_rollback` |
-| I1, I7 both publishers failing, no inferred delivery | `test_both_publishers_failing_cannot_hide_issuance_or_prove_delivery` |
-| I6 new-work capacity and invalid overrides preserve status/retry | `test_new_work_capacity_and_override_validation_do_not_gate_existing_status` |
-| I7 safe storage/authorization failure, no material reads or writes | `test_storage_and_authorization_faults_preserve_internal_or_known_intent_not_absence` |
-
-Provision-to-read and uncertain-provision-to-read cases exercise real package code with in-memory persistence and
-transaction fixtures. All delivered, superseded, revoked, expired, retryable and terminal **disposition fixtures**
-prove read projection only, not their downstream writers or valid lifecycle transitions. Separately,
-[TASK-00050's tests](agent-credential-retirement.md#package-evidence-and-remaining-qualification) exercise actual
-revocation/cancellation and controlled direct supersession. [TASK-00051's delivery tests](agent-credential-delivery.md)
-now exercise actual package claim/admission/outcome writers and safe disposition. TASK-00049/00054 integrate actual
-rotation/delivery transitions; the [complete evidence inventory](agent-operation-evidence.md) maps both owning sides.
-The status tests alone do not prove scheduler recovery, real database concurrency, consumer authorization policy,
-sink, encryption, activation or launch qualification.
-This contract has no HTTP endpoint/envelope or UI; executable state/failure evidence is the useful before/after proof.
+When qualifying status with [real adapters](agent-integration.md#restoration-and-consumer-evidence-handoff),
+check provision-to-read and uncertain-provision-to-read, concealment before lookup and retention of original
+issuance identity. A disposition returned by a read does not qualify the corresponding write or downstream
+lifecycle, scheduler, sink, encryption or activation path.

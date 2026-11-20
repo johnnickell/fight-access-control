@@ -1,5 +1,11 @@
 # Roadmap
 
+## Current planning handoff — pre-v1 documentation and developer tooling
+
+[EPIC-00019](epics/00019-EPIC.md) has five approved TICKETs and all 15 TASKs are written. Consult the
+[Task Board](tasks/BOARD.md) with `/skill:next` for execution selection. This handoff does not authorize
+implementation or release.
+
 ## TASK-00182 accepted implementation checkpoint
 
 TASK-00182's integrated void Agent Command conversion has independent Review ACCEPT and nonvisual QA PASS; TICKET-00053 closes with its sole child. TASK-00110's independently accepted Common adoption now completes the remaining TICKET-00034 and EPIC-00015. Publication and final delivery verification were pending at closeout; current results are in `.runs/handoffs/TASK-00182/land.md` and the actual PR. The planning handoffs below retain their historical checkpoints.
@@ -97,9 +103,8 @@ QA in their owning records. Completing audit planning neither supplied that acce
 ## Explicit optional atomic audit — package scope complete
 
 All six [EPIC-00017](epics/00017-EPIC.md) TICKETs are complete for package scope. The
-[current matrix](../docs/audit-outcome-coverage.md) accounts for 39 handlers, seven synchronous User entries and six
-remaining Agent entries with candidate-compatible family evidence. Optional audit is implemented everywhere in
-scope; actual consumer mapping/connections/locks/processes/sinks/restoration/activation/use and workaround removal
+[audit guide](../docs/audit-evidence.md#atomicity-and-explicit-optionality) explains current composition. Optional audit
+is implemented throughout package scope; actual consumer mapping/connections/locks/processes/sinks/restoration/activation/use and workaround removal
 remain separate. The planning account below preserves its historical counts and allocation, not current open work.
 
 ### Historical TASK-planning handoff
@@ -568,11 +573,11 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.11.0 prepared
+## Current release handoff — v0.11.0 published
 
-[v0.11.0](../docs/release-0.11.0.md) prepares the [TASK-00188](tasks/00188-TASK.md) audit repair as a new minor:
-admin revocation evidence requires `facts.reason` on readback. Independent release review and QA, integration,
-final certification and publication are separate. v0.10.1 remains the latest published version at preparation.
+[v0.11.0](../docs/release-0.11.0.md) was published on 2026-11-20 (UTC) from the certified `main` merge in
+[PR #269](https://github.com/johnnickell/fight-access-control/pull/269). The signed tag, immutable GitHub release,
+and Packagist source and archive references were verified. Consumer installation was not tested.
 
 ## v0.10.1 published release checkpoint
 
@@ -867,6 +872,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.11.0` | 2026-11-20 (UTC) | Administrative session revocation audit records now require the exact trimmed reason on readback. See the [release overview](../docs/release-0.11.0.md). |
 | `v0.10.1` | 2026-11-19 (UTC) | Fixed atomic delivery-failed audit recording when retryable invitation, password-reset or email-change delivery ends in expiry. See the [release overview](../docs/release-0.10.1.md). |
 | `v0.10.0` | 2026-11-19 (UTC) | Published trusted User Role assignments with system attribution and widened actor getters. Existing User payloads are unchanged. See the [release overview](../docs/release-0.10.0.md). |
 | `v0.9.0` | 2026-11-18 | Published breaking User and Agent contracts, optional atomic audit, portable HTTP admission and current OpenAPI components. See the [release overview](../docs/release-0.9.0.md) for consumer obligations. |
@@ -902,4 +908,5 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00016](epics/00016-EPIC.md) | unassigned | done | 6 | 31 |
 | [EPIC-00017](epics/00017-EPIC.md) | unassigned | done | 6 | 24 |
 | [EPIC-00018](epics/00018-EPIC.md) | unassigned | done | 4 | 12 |
+| [EPIC-00019](epics/00019-EPIC.md) | unassigned | ready-for-agent | 5 | 15 |
 <!-- generated:epic-status:end -->

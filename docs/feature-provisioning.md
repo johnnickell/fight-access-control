@@ -7,7 +7,7 @@ existing identities/settings. It does **not** establish activation readiness or 
 [availability evaluation](feature-availability.md) is implemented separately by TASK-00064. Permission-removal
 guards ([TASK-00065](feature-permission-references.md)), [management](feature-management.md) (TASK-00066), and guarded retirement/final
 lifecycle evidence ([TASK-00067](feature-retirement.md)) remain distinct; package reference proof does not qualify
-consumer adapters. See the [complete scenario inventory](feature-evidence.md) for acceptance subjects and remaining qualification.
+consumer adapters. See the [Feature consumer checks](feature-management.md#consumer-workflow-and-evidence) for further checks before adoption.
 
 ## Composition and invocation
 

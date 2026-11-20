@@ -1,0 +1,64 @@
+site_name: Fight AccessControl
+site_description: Framework-neutral identity and authorization for PHP applications.
+repo_url: https://github.com/johnnickell/fight-access-control
+repo_name: johnnickell/fight-access-control
+edit_uri: ''
+docs_dir: docs
+strict: true
+
+hooks:
+  - etc/docs-site/consumer_files.py
+
+nav:
+  - Home: index.md
+  - Get started: getting-started.md
+  - Capabilities:
+      - Overview: capabilities.md
+      - Users and sessions: users.md
+  - Framework setup: frameworks.md
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    anchors: warn
+    absolute_links: warn
+    unrecognized_links: warn
+
+theme:
+  name: material
+  font: false
+  palette:
+    - scheme: default
+      primary: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+extra_css:
+  - assets/consumer-site.css
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.highlight:
+      extend_pygments_lang:
+        - name: php-inline
+          lang: php
+          options:
+            startinline: true
+  - pymdownx.superfences
+  - toc:
+      permalink: true

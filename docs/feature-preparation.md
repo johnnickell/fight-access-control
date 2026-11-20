@@ -99,10 +99,8 @@ transaction implementation, deployment hooks, runtime checks, UI and entry-point
 model a complete scan and transactional writes but qualify **no real scanner, database race, framework, application
 or deployment**. [Permission guards](feature-permission-references.md), [management/rebinding](feature-management.md)
 and [guarded retirement/reintroduction](feature-retirement.md) now have package implementations, as does
-[runtime evaluation](feature-availability.md). The [complete evidence inventory](feature-evidence.md) identifies
-each slice's independent acceptance/QA, including TASK-00067, and unexecuted actual consumer race/scanner
-qualification. There is **no supported partial Feature release**, and preparation does not establish complete
-Feature acceptance.
+[runtime evaluation](feature-availability.md). Qualify your scanner and actual database races separately; preparation
+alone is not complete Feature acceptance.
 
 ## Reusable scenario and compatibility inventory
 
@@ -121,8 +119,8 @@ publication behavior (`FeatureTest`, `FeatureMessagesTest`, `ProvisionFeaturesHa
 `FeatureComponentsTest`). This TASK adds `ValidateFeaturePreparationHandlerTest` for every fresh read and rejection,
 plus the executable composed conformance above and generated schema checks. It does **not** retroactively prove
 those preceding slices or establish downstream Permission-removal and actual deletion/reintroduction
-acceptance under TICKET-00017. The [complete evidence map](feature-evidence.md) links those distinct TASK receipts
-and TASK-00067's new composition rather than inferring evidence from parent status. No consumer integration proof is claimed.
+acceptance under TICKET-00017. See the [Feature consumer checks](feature-management.md#consumer-workflow-and-evidence)
+for related integration checks.
 
 The new PHP query/result/issue types and opt-in `Fight.AccessControl.ValidateFeaturePreparation`,
 `Fight.AccessControl.FeaturePreparationResult` and `Fight.AccessControl.FeaturePreparationIssue` OpenAPI components

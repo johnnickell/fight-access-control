@@ -134,7 +134,7 @@ Implements [WF-017](../wayfinder/tickets/WF-017-feature-availability-and-preview
 [WF-019](../wayfinder/tickets/WF-019-missing-feature-records.md),
 [WF-021](../wayfinder/tickets/WF-021-feature-evaluation-freshness.md), and
 [WF-022](../wayfinder/tickets/WF-022-feature-package-integration-scope.md). Existing principal/assignment boundaries
-remain as described in [historical CONTEXT](../../CONTEXT.historical.md) and
+remain as described in [historical context vocabulary](https://github.com/johnnickell/fight-access-control/blob/38feee76132230152de549c46418bc41b17e9518/CONTEXT.historical.md#vocabulary) and
 [ADR 0010](../adr/0010-permission-eligibility-and-caller-authorization.md).
 John approved TASK-00064 as one complete evaluator slice, with existing User/Agent snapshots or null as input,
 ID-based preview checks, and boolean availability plus distinguishable configuration/operational errors. At the

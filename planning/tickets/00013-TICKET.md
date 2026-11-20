@@ -238,7 +238,7 @@ John's landing request published [PR #87](https://github.com/johnnickell/fight-a
 at initial head `4b79cee`, with the fresh gate passing 1047 tests / 8980 assertions and exact 6245/6245 statements.
 The TASK's ignored landing handoff owns final metadata/remote verification; no merge or release is claimed.
 John authorized TASK-00054 in the main checkout from `develop` `f4d43e5` on
-`feature/task-00054-delivery-conformance`. Its [consumer binding and D1–D7 evidence map](../../docs/agent-delivery-conformance.md)
+`feature/task-00054-delivery-conformance`. Its [consumer binding and D1–D7 evidence map](https://github.com/johnnickell/fight-access-control/blob/7b58fbe77dadf608afc7525b8c68f9ba5b9ecf59/docs/agent-delivery-conformance.md)
 connect actual delivery/lifecycle/maintenance/status and sink-order tests to all acceptance groups. New reusable
 suites exercise modeled persisted interleavings with and without optional receipt lookup; their reference runs do
 not qualify real database, key, sink, activation/use or restoration behavior. Independent review accepted `7b58fbe`

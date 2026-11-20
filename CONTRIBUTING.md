@@ -56,6 +56,41 @@ This check covers only the package's local CLI build runtime. Consumers must ind
 web-serving PHP-FPM/Apache/other runtimes and perform required service restarts through their own procedures.
 A local CLI pass is neither consumer remediation nor proof of exploitability or compromise.
 
+## Consumer documentation site
+
+Run `./bin/docs-build` with [uv](https://docs.astral.sh/uv/) and Python 3.12. uv uses the locked dependencies in
+`etc/docs-site/uv.lock`; it can download Python if needed. Docker and Composer are not needed for the site.
+The command checks navigation, local links and anchors through a strict MkDocs build. On success it prints the
+absolute path to a new static artifact under ignored `site/`. To preview, serve that directory locally:
+
+```bash
+site_dir=$(./bin/docs-build) && python3 -m http.server --bind 127.0.0.1 --directory "$site_dir" 8000
+```
+
+Open `http://127.0.0.1:8000/`. On failure, the command exits nonzero without returning an artifact path or
+replacing an earlier successful artifact. The site command never deploys. Keep navigation in `mkdocs.yml` aligned
+with the allowlist in `etc/docs-site/consumer_files.py`: publish only consumer pages and the assets they need. Repository guides, release procedures,
+engineering standards, planning and evidence are not part of the site artifact. Run `./bin/documentation-check`
+separately for repository Markdown links.
+
+The **Consumer docs** Actions workflow runs this build on pull requests. A push to `main` also uploads the
+successful build and deploys that artifact to GitHub Pages. Pull requests and `develop` do not deploy. If the
+build, upload, or deployment fails, check the failed job in Actions; a failed run does not replace the last
+successful site.
+
+At delivery, ask the authorized repository owner to confirm that Pages uses **GitHub Actions** as its source,
+that the `github-pages` environment allows deployment from `main`, and that the intended readers can access the
+site. After changes reach `main` through the existing authorized merge process, match the successful Actions run
+and Pages deployment to the exact `main` commit and open the URL reported by the deployment. Until then, use the
+[repository docs entry point](docs/index.md). The workflow does not change repository settings or branch policy.
+
+Put integration summaries and entry points in the consumer pages. Put detailed behavior in the guide for the
+owning capability and link to it from the site rather than copying it. Use the [project profile](planning/agents/project-profile.md)
+for current package and engineering rules, the [release runbook](docs/releasing.md) for release preparation, and
+planning records for approved decisions and acceptance. Cite superseded material at its original commit instead
+of keeping a second set of guides. When removing or merging a page, check inbound links and preserve the referenced
+section or link to its historical snapshot, as appropriate.
+
 ## Quality and review
 
 Use the repository-owned `./bin/*` wrappers. Run focused tests while iterating, then run both:
@@ -84,7 +119,7 @@ Coding style composes Fight Common's published PHPCS ruleset through [phpcs.xml]
 repository's documented exclusions and extensions. It covers the package's required strict types, layout,
 naming, spacing, arrays, and documentation checks; do not copy Fight Common sniffs into this repository.
 
-Production declaration/contract changes also reconcile the required [structural ownership inventory](docs/contract-inventory.md).
+Production declaration/contract changes also reconcile the required [structural ownership inventory](docs/engineering/contract-inventory.md).
 Its compact fingerprints run in `bin/quality`; detailed candidate evidence stays ignored and pending semantic judgments
 remain with the existing correction owners. Qualify changes to the inventory tool separately from product PHPUnit.
 
