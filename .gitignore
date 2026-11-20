@@ -5,6 +5,7 @@ phpunit.xml
 /vendor
 /memory
 /site
+/etc/docs-site/.venv/
 /graphify-out
 /.phpcs-cache
 /.claude
