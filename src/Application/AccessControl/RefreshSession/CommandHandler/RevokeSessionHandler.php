@@ -91,6 +91,7 @@ final readonly class RevokeSessionHandler implements CommandHandler
                 }
 
                 $administrative = !$refreshSession->getUserId()->equals($command->getActorId());
+                $reason = null;
                 if ($administrative) {
                     try {
                         $this->sessionAdministrationAuthorization->assertCanManageSessions(
@@ -128,7 +129,8 @@ final readonly class RevokeSessionHandler implements CommandHandler
                         new AuditSessionRevocation(
                             $revokedSession->getId(),
                             $refreshSession->getRevision(),
-                            $revokedSession->getRevision()
+                            $revokedSession->getRevision(),
+                            $reason
                         ),
                         new AuditCorrelation($commandMessage->id(), null)
                     ));

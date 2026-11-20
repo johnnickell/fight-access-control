@@ -144,6 +144,8 @@ class AuditEvidence implements Arrayable
                 AuditAction::SESSION_LOGGED_OUT, AuditAction::SESSION_REPLAY_REVOKED
             ], true)
         ) {
+            $facts->assertOutcome($action);
+
             return;
         }
 
