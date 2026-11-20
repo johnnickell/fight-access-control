@@ -238,4 +238,4 @@ No Tasks are currently in this state.
 | 509 | [TASK-00186](00186-TASK.md) | Cancel only the identified email-change request | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/260 |
 | 510 | [TASK-00187](00187-TASK.md) | Record retryable delivery failures that end in expiry | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/265 |
 | 511 | [TASK-00188](00188-TASK.md) | Save the reason for administrative session revocation | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/268 |
-| 512 | [TASK-00189](00189-TASK.md) | Build the branded consumer docs site and shorten the README | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | done | — | — |
+| 512 | [TASK-00189](00189-TASK.md) | Build the branded consumer docs site and shorten the README | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | done | — | https://github.com/johnnickell/fight-access-control/pull/272 |
