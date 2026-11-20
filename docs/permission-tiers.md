@@ -2,7 +2,9 @@
 
 Only the current pre-v1 contract is supported under
 [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md). Consumers own persistence, composition and entry-point
-authorization. This guide does not define historical conversions, migrations or a consumer adoption result.
+authorization. The earlier v0.4.0 conversion guidance does not apply to the current package. The package supplies
+no legacy row conversion or compatibility shim, and this contract does not qualify or authorize consumer adoption,
+data reset or deployment.
 
 `Permission::getTier()` and `PermissionView::getTier()` return non-null `PermissionTier`; safe arrays contain
 `ADMIN_SAFE` or `SUPER_ADMIN_ONLY`. Custom `Permission::define()` creates `ADMIN_SAFE`. Managed definitions and

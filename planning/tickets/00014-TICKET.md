@@ -411,7 +411,7 @@ handoff; consumer qualification remains separate.
 
 John authorized TASK-00055 in the main checkout from `develop` `ea1e316`, after TASK-00047/00048 completed. It is now
 done for independently accepted implementation/local verification on `feature/task-00055-legacy-compatibility`. The
-[existing-data/API contract](../../docs/agent-existing-data-v0.5-migration.md) and executable M1 scenarios cover explicit
+[then-current existing-data/API contract](https://github.com/johnnickell/fight-access-control/blob/ebc396c502d53c60ca6fb370ec619636a7eeac7c/docs/agent-existing-data-v0.5-migration.md) and executable M1 scenarios cover explicit
 legacy reconstitution, preserved authentication, safe marker reads and new authorized rotation through the existing
 transaction. No historical operation/delivery is manufactured. Its local gate passes 1318 tests / 18169 assertions and
 exact 6270/6270 statements; focused Agent/OpenAPI checks pass 797 tests / 14246 assertions with exception arguments

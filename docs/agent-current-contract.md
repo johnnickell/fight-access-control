@@ -1,7 +1,9 @@
 # Current Agent contract (v0.5.0)
 
 [ADR 0011](../planning/adr/0011-pre-v1-current-contract-only.md) selects one current pre-v1 API and persisted model.
-TASK-00068 removes previous-iteration support; this is not a migration, release or consumer qualification.
+TASK-00068 removed TASK-00055's legacy Agent path, including the recovery marker, adoption transition and
+retired rotation stubs. The package supplies no old-data conversion, backfill or cross-version rollback path.
+The earlier acceptance is historical; removal does not authorize a consumer data reset, release or deployment.
 
 ## One authority model
 

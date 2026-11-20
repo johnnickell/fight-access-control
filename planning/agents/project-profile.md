@@ -141,8 +141,8 @@ previous-iteration support; completed TASKs and earlier guidance cannot require 
 ## Package boundary and contracts
 
 [Domain definitions](../../GLOSSARY.md) are separate from current behavior/composition and ADR decisions.
-The former CONTEXT is retained only as [historical evidence](../../CONTEXT.historical.md), not required orientation
-or a current delivery queue. Read the relevant capability guides below for behavior and state-transition contracts.
+The former CONTEXT is available only as a [historical snapshot](https://github.com/johnnickell/fight-access-control/blob/38feee76132230152de549c46418bc41b17e9518/CONTEXT.historical.md),
+not current guidance or a delivery queue. Read the relevant capability guides below for behavior and state-transition contracts.
 
 Consumers protect every Command entry point, including HTTP, CLI, workers and direct bus invocation. Outer layers
 normally authenticate, validate, authorize, choose synchronous/asynchronous invocation and translate failures;

@@ -73,6 +73,13 @@ with the allowlist in `etc/docs-site/consumer_files.py`: publish only consumer p
 engineering standards, planning and evidence are not part of the site artifact. Run `./bin/documentation-check`
 separately for repository Markdown links.
 
+Put integration summaries and entry points in the consumer pages. Put detailed behavior in the guide for the
+owning capability and link to it from the site rather than copying it. Use the [project profile](planning/agents/project-profile.md)
+for current package and engineering rules, the [release runbook](docs/releasing.md) for release preparation, and
+planning records for approved decisions and acceptance. Cite superseded material at its original commit instead
+of keeping a second set of guides. When removing or merging a page, check inbound links and preserve the referenced
+section or link to its historical snapshot, as appropriate.
+
 ## Quality and review
 
 Use the repository-owned `./bin/*` wrappers. Run focused tests while iterating, then run both:

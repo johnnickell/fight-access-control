@@ -22,8 +22,9 @@ with actual application UI, adapters, and CMS migration planned separately?
 
 ## Required evidence
 
-- The inspected [project profile](../../agents/project-profile.md), [README](../../../README.md), and
-  [historical CONTEXT](../../../CONTEXT.historical.md) restrict production code to Domain/Application. Consumers own persistence,
+- At the inspected revision, [project context](https://github.com/johnnickell/fight-access-control/blob/ea1e316c0cfa3499e73b213f538257bfd1ee3888/CONTEXT.md) and
+  [README](https://github.com/johnnickell/fight-access-control/blob/ea1e316c0cfa3499e73b213f538257bfd1ee3888/README.md)
+  restricted production code to Domain/Application. At that checkpoint consumers owned persistence,
   transport, framework composition, UI, runtime, and entry-point authorization.
 - [Composer](../../../composer.json) autoloads only Domain/Application production namespaces and has no production
   framework dependency. [Deptrac](../../../deptrac.yaml) allows Application to depend on Domain, public Common

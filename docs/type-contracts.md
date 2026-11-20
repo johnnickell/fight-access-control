@@ -13,7 +13,9 @@ Add PHP fixtures under `type-contracts/` and register each file exactly once in
 or `negative`), relative PHP `file` and nonempty `diagnostics` list. Each diagnostic specifies its exact `line`,
 PHPStan `identifier` and full `message`. All PHP files in that directory must be registered, and the suite must
 contain both kinds. Empty/missing files or declarations fail. Keep these fixtures static: the runner analyzes
-but never executes their PHP.
+but never executes their PHP. [TASK-00195](../planning/tasks/00195-TASK.md) owns the move planned in
+[TICKET-00056](../planning/tickets/00056-TICKET.md). Until that move ships, the paths above describe the current checkout;
+update fixture links when moving the manifest and cases.
 
 - **Positive:** use PHPStan's built-in `PHPStan\dumpType()` at each inference boundary. Declare only
   `phpstan.dumpType` diagnostics with the exact useful inferred type. A merely error-free expression is not a
@@ -111,7 +113,7 @@ Common's actual Payload return and string registration shape, three EventMessage
 instant and all eight locally annotated payload contracts. Five incompatible uses reject a Command as an Event,
 CommandMessage as EventMessage, an unrefined payload getter, nullable restoration generation and cross-purpose ID.
 These local annotations do not prove registration inference or validate untrusted payloads. Every actual mapping and
-real dispatcher/bus behavior has separate [runtime composition proof](delivery-event-contracts.md), including
+real dispatcher/bus behavior has separate [runtime composition proof](credential-delivery.md#human-delivery-event-composition), including
 minimum/ordinary lanes. Dummy/direct handlers cannot substitute for those real production routes.
 
 TASK-00128 adds 82 exact Query probes and 28 rejected incompatible uses across all 22 declared handler results,

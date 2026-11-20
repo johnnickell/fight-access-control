@@ -33,6 +33,25 @@ not envelope creation or insertion time. Correlation holds the incoming `Message
 `AgentOperationKey`, including namespace/caller scope. Synchronous paths without either use null. Never invent
 correlation; record identity/correlation is neither authority nor universal deduplication.
 
+## Fixed actor identities
+
+`SystemId` and `AnonymousId` are direct Fight Common `UniqueId` values in
+`Fight\AccessControl\Domain\AccessControl\Audit`. They need no account, registry, singleton or actor wrapper.
+Both `generate()` and `fromString(Uuid::NIL)` create typed values containing the same canonical nil UUID
+(`00000000-0000-0000-0000-000000000000`), not random IDs. `fromString()` rejects every other spelling or value,
+including whitespace, braces and URNs, with Common's Domain `DomainException`.
+
+Persist the actor kind separately and reconstruct with the known concrete type's `fromString($id->toString())`.
+String casts and JSON contain only the nil text. Equality and hashing distinguish concrete kinds even when
+UUID text matches; do not assume cross-kind ordering. Native PHP object deserialization and reflection are
+not supported hydration paths. Neither identity can substitute for the unique non-nil evidence ID, a message
+ID or a deduplication key.
+
+Use `SystemId` for deliberate autonomous work and `AnonymousId` for a deliberately unauthenticated origin.
+Keep an admitted `UserId` or `AgentId` when a worker continues that caller's work. Missing actor data is not
+permission to choose either fixed identity. Attribution grants no authority and package value tests do not
+qualify consumer storage or provenance authentication.
+
 ## Admitted facts
 
 - `AuditUserOutcome` captures actual before/after `AuditUserRevisions` and applicable typed grant relationships.

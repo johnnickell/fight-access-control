@@ -12,7 +12,12 @@ Check which version Composer installed:
 composer show johnnickell/fight-access-control
 ```
 
-Use the matching tag's `docs/` for version-specific API and wiring examples. This site describes the development checkout and can mention changes that are not yet released.
+### Read the guide for your installed version
+
+From the release panel, open **Tagged documentation** if you installed the version shown there. Otherwise,
+find your exact version in the [release list](https://github.com/johnnickell/fight-access-control/releases)
+and open `docs/` at that tag. Use those guides for version-specific API and wiring examples. This site and the
+linked development guides can describe unreleased changes.
 
 ## Try a Permission declaration
 

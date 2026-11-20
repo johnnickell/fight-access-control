@@ -86,4 +86,4 @@ owns the detailed decision; WF-014 separately decides Super Admin Role assignmen
 [TASK-00042](../tasks/00042-TASK.md), [TASK-00043](../tasks/00043-TASK.md), and
 [TASK-00044](../tasks/00044-TASK.md) implemented and verified this boundary for Role lifecycle, User Role assignment,
 custom-Role grants, and direct Agent assignments. Consumer entry-point protection and composition changes are
-documented in the [v0.4.0 migration guide](../../docs/permission-tier-v0.4-migration.md); adoption remains separate.
+documented in the [historical v0.4.0 migration guide](https://github.com/johnnickell/fight-access-control/blob/380b134b35c722e6416787b13f5c20c64bd05388/docs/permission-tier-v0.4-migration.md); adoption remains separate.

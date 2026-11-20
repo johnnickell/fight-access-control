@@ -31,7 +31,7 @@ suppliers below; use the [ordinary Role example](role-audit-composition.md) and 
   terminal transition inside an apparent claim path. Discovery/validation may precede it. Disabled and pure no-change
   paths gain no new audit-only actor requirement; existing business-required provenance remains required.
 - A UserId/AgentId identifies origin, not authority. TASK-00121 now supplies the distinct fixed-nil SystemId and
-  AnonymousId values; [identity guidance](actor-identities.md) and the shared replacement distinguish
+  AnonymousId values; [identity guidance](audit-evidence.md#fixed-actor-identities) and the shared replacement distinguish
   value construction from completed writer/caller/consumer qualification. They are not accounts, fallback actors or privileges. Trusted callers establish
   origin; workers do not replace an admitted origin with their own identity. Real invoker authorization, target
   policy and transaction-duration fences remain.
