@@ -2,7 +2,7 @@
 id: TICKET-00056
 epic: EPIC-00019
 title: Relocate static type-contract fixtures without losing proof
-status: ready-for-agent
+status: done
 ---
 
 # Relocate static type-contract fixtures without losing proof
@@ -25,7 +25,7 @@ Relocation precedes the static-runner port in [TICKET-00057](00057-TICKET.md). C
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 518 | [TASK-00195](../tasks/00195-TASK.md) | Move the PHPStan type-contract fixtures without changing what they prove | ready-for-agent |
+| 518 | [TASK-00195](../tasks/00195-TASK.md) | Move the PHPStan type-contract fixtures without changing what they prove | done |
 ## Acceptance Evidence
 
 - [ ] Verify all 52 cases with unchanged expected file binding, lines, identifiers, messages and multiplicity. Qualify failures and timeouts through the owning checks.
