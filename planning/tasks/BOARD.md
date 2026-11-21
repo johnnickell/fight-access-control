@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00194](00194-TASK.md) — Replace timing-sensitive test setup where proof is equivalent.
+First ready Task: [TASK-00195](00195-TASK.md) — Move the PHPStan type-contract fixtures without changing what they prove.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 517 | [TASK-00194](00194-TASK.md) | Replace timing-sensitive test setup where proof is equivalent | [TICKET-00055](../tickets/00055-TICKET.md) — Make the quality gate faster and more reliable | ready-for-agent | — | — |
 | 518 | [TASK-00195](00195-TASK.md) | Move the PHPStan type-contract fixtures without changing what they prove | [TICKET-00056](../tickets/00056-TICKET.md) — Relocate static type-contract fixtures without losing proof | ready-for-agent | — | — |
 | 519 | [TASK-00196](00196-TASK.md) | Inventory repository Python and port the structural contract inventory | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP or document exceptions | ready-for-agent | — | — |
 | 526 | [TASK-00203](00203-TASK.md) | Adopt equivalent Fight Common Domain helpers | [TICKET-00058](../tickets/00058-TICKET.md) — Adopt equivalent Fight Common Domain helpers | ready-for-agent | — | — |
@@ -239,3 +238,4 @@ No Tasks are currently in this state.
 | 514 | [TASK-00191](00191-TASK.md) | Validate and publish consumer docs automatically | [TICKET-00054](../tickets/00054-TICKET.md) — Publish and streamline consumer documentation | done | [TASK-00189](00189-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/274 |
 | 515 | [TASK-00192](00192-TASK.md) | Make stale planning failures diagnosable | [TICKET-00055](../tickets/00055-TICKET.md) — Make the quality gate faster and more reliable | done | — | https://github.com/johnnickell/fight-access-control/pull/277 |
 | 516 | [TASK-00193](00193-TASK.md) | Reduce PHPUnit overhead without weakening coverage | [TICKET-00055](../tickets/00055-TICKET.md) — Make the quality gate faster and more reliable | done | — | https://github.com/johnnickell/fight-access-control/pull/278 |
+| 517 | [TASK-00194](00194-TASK.md) | Replace timing-sensitive test setup where proof is equivalent | [TICKET-00055](../tickets/00055-TICKET.md) — Make the quality gate faster and more reliable | done | — | https://github.com/johnnickell/fight-access-control/pull/279 |

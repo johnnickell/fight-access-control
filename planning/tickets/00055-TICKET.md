@@ -2,7 +2,7 @@
 id: TICKET-00055
 epic: EPIC-00019
 title: Make the quality gate faster and more reliable
-status: ready-for-agent
+status: done
 ---
 
 # Make the quality gate faster and more reliable
@@ -27,7 +27,7 @@ Coordinate baseline and candidate runs with [fixture relocation](00056-TICKET.md
 | --- | --- | --- | --- |
 | 515 | [TASK-00192](../tasks/00192-TASK.md) | Make stale planning failures diagnosable | done |
 | 516 | [TASK-00193](../tasks/00193-TASK.md) | Reduce PHPUnit overhead without weakening coverage | done |
-| 517 | [TASK-00194](../tasks/00194-TASK.md) | Replace timing-sensitive test setup where proof is equivalent | ready-for-agent |
+| 517 | [TASK-00194](../tasks/00194-TASK.md) | Replace timing-sensitive test setup where proof is equivalent | done |
 ## Acceptance Evidence
 
 - [ ] Preserve exact statement coverage, Unit-only line coverage, shipped OpenAPI coverage and unique behavior checks.
