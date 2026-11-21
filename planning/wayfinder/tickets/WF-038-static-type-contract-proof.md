@@ -19,7 +19,7 @@ What useful caller guarantees do the PHPStan fixtures prove, what is their cost,
 
 ## Required evidence
 
-Use the [fixture contract](../../../docs/type-contracts.md), [case manifest](../../../type-contracts/cases.json), [quality gate](../../../bin/quality) and WF-037 timing. Show which guarantees ordinary PHPStan and runtime tests cover and which require explicit static probes.
+Use the [fixture contract](../../../docs/type-contracts.md), [case manifest](../../../etc/phpstan/type-contracts/cases.json), [quality gate](../../../bin/quality) and WF-037 timing. Show which guarantees ordinary PHPStan and runtime tests cover and which require explicit static probes.
 
 ## Resolution boundary
 
