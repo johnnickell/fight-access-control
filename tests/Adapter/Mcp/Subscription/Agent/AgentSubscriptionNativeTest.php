@@ -35,6 +35,10 @@ final class AgentSubscriptionNativeTest extends TestCase
         self::assertIsResource($listener);
         $address = stream_socket_get_name($listener, false);
         self::assertIsString($address);
+        $controlListener = stream_socket_server('tcp://127.0.0.1:0');
+        self::assertIsResource($controlListener);
+        $controlAddress = stream_socket_get_name($controlListener, false);
+        self::assertIsString($controlAddress);
         fclose($listener);
         $process = new Process([
             PHP_BINARY,
@@ -45,10 +49,11 @@ final class AgentSubscriptionNativeTest extends TestCase
             '-S',
             $address,
             __DIR__.'/native-server.php'
-        ], dirname(__DIR__, 5), timeout: 10);
-        $process->start();
+        ], dirname(__DIR__, 5), ['SUBSCRIPTION_DELIVERY_CONTROL' => $controlAddress], timeout: 10);
+        $socket = false;
+        $control = false;
         try {
-            $socket = false;
+            $process->start();
             for ($attempt = 0; $attempt < 100 && $socket === false; ++$attempt) {
                 $socket = @stream_socket_client('tcp://'.$address, $errorCode, $error, 0.05);
                 if ($socket === false) {
@@ -82,8 +87,10 @@ final class AgentSubscriptionNativeTest extends TestCase
                 '',
                 $json
             ]);
-            $started = hrtime(true);
             fwrite($socket, $request);
+            // The next recovery read holds the stream open until the HTTP client has read the frames.
+            $control = @stream_socket_accept($controlListener, 3);
+            self::assertIsResource($control, 'No live-delivery signal: '.$process->getErrorOutput());
             $wire = '';
             $frames = [];
             $expectedFrames = $path === '/prompt' ? 3 : 2;
@@ -97,9 +104,7 @@ final class AgentSubscriptionNativeTest extends TestCase
                 }
             }
 
-            $early = (hrtime(true) - $started) / 1000000000;
-            // Allow cold Composer/bootstrap time while still requiring frames well before finite closure.
-            self::assertLessThan(2.5, $early, $wire.$process->getErrorOutput());
+            self::assertCount($expectedFrames, $frames);
             self::assertStringNotContainsString('"resultType":"complete"', $wire);
             self::assertFalse(feof($socket));
             self::assertSame('notifications/subscriptions/acknowledged', $frames[0]['method']);
@@ -119,10 +124,11 @@ final class AgentSubscriptionNativeTest extends TestCase
             self::assertSame('notifications/tools/list_changed', $frames[1]['method']);
             self::assertStringContainsString('HTTP/1.1 200 OK', $wire);
             self::assertStringContainsString('X-Accel-Buffering: no', $wire);
+            self::assertSame(1, fwrite($control, '1'));
+            fclose($control);
             $wire .= stream_get_contents($socket);
+            self::assertTrue(feof($socket), 'The finite stream did not close.');
             fclose($socket);
-            // Exclude native server/bootstrap latency; bytes must arrive well before stream closure.
-            self::assertGreaterThanOrEqual($early + 1.0, (hrtime(true) - $started) / 1000000000);
             self::assertStringContainsString('"resultType":"complete"', $wire);
             self::assertStringNotContainsString('private-', $wire);
             self::assertStringNotContainsString('Controlled native failure', $process->getErrorOutput());
@@ -134,12 +140,22 @@ final class AgentSubscriptionNativeTest extends TestCase
                 'Accept: application/json',
                 $request
             );
+            stream_set_timeout($socket, 3);
             fwrite($socket, $rejectedRequest);
             $rejection = stream_get_contents($socket);
             fclose($socket);
             self::assertStringContainsString('406 Not Acceptable', $rejection);
             self::assertStringNotContainsString('acknowledged', $rejection);
         } finally {
+            if (is_resource($socket)) {
+                fclose($socket);
+            }
+
+            if (is_resource($control)) {
+                fclose($control);
+            }
+
+            fclose($controlListener);
             $process->stop();
         }
     }

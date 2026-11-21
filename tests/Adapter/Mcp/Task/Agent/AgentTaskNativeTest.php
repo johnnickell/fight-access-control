@@ -19,24 +19,36 @@ final class AgentTaskNativeTest extends TestCase
     public function test_real_disconnect_independent_producer_and_new_guarded_http_read(): void
     {
         $database = tempnam(sys_get_temp_dir(), 'task-serving-');
-        $marker = $database.'.committed';
-        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $database]);
-        new DbalTaskSchema()->install($connection);
-        $connection->close();
-        $listener = stream_socket_server('tcp://127.0.0.1:0', $errorCode, $error);
-        self::assertIsResource($listener);
-        $address = stream_socket_get_name($listener, false);
-        self::assertIsString($address);
-        fclose($listener);
-        $process = new Process([
-            PHP_BINARY, '-S', $address, __DIR__.'/native-server.php'
-        ], dirname(__DIR__, 5), [
-            'TASK_SERVING_DATABASE' => $database,
-            'TASK_SERVING_MARKER'   => $marker
-        ], timeout: 10);
-        $process->start();
+        $listener = false;
+        $controlListener = false;
+        $socket = false;
+        $control = false;
+        $process = null;
         try {
-            $socket = false;
+            self::assertIsString($database);
+            $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $database]);
+            try {
+                new DbalTaskSchema()->install($connection);
+            } finally {
+                $connection->close();
+            }
+
+            $listener = stream_socket_server('tcp://127.0.0.1:0', $errorCode, $error);
+            self::assertIsResource($listener);
+            $address = stream_socket_get_name($listener, false);
+            self::assertIsString($address);
+            $controlListener = stream_socket_server('tcp://127.0.0.1:0');
+            self::assertIsResource($controlListener);
+            $controlAddress = stream_socket_get_name($controlListener, false);
+            self::assertIsString($controlAddress);
+            fclose($listener);
+            $process = new Process([
+                PHP_BINARY, '-S', $address, __DIR__.'/native-server.php'
+            ], dirname(__DIR__, 5), [
+                'TASK_SERVING_DATABASE' => $database,
+                'TASK_SERVING_CONTROL'  => $controlAddress
+            ], timeout: 10);
+            $process->start();
             for ($attempt = 0; $attempt < 100 && $socket === false; ++$attempt) {
                 $socket = @stream_socket_client('tcp://'.$address, $errorCode, $error, 0.05);
                 if ($socket === false) {
@@ -46,18 +58,15 @@ final class AgentTaskNativeTest extends TestCase
 
             self::assertIsResource($socket, $process->getErrorOutput());
             fwrite($socket, $this->request($address, 'tools/call', ['name' => 'example.operation']));
-            $deadline = microtime(true) + 3;
-            while (!is_file($marker) && microtime(true) < $deadline && $process->isRunning()) {
-                usleep(1000);
-            }
+            $control = @stream_socket_accept($controlListener, 3);
+            self::assertIsResource($control, 'No after-commit signal: '.$process->getErrorOutput());
 
-            if (!is_file($marker)) {
-                self::fail($process->getErrorOutput().stream_get_contents($socket));
-            }
-
-            // Close the TCP connection while submission is deliberately paused after actual durable commit,
-            // before an acknowledgment is emitted. No request provider is available to the new producer.
-            fclose($socket);
+            // Release only after closing the original HTTP client, and verify the fixture received it.
+            self::assertTrue(fclose($socket));
+            self::assertSame(1, fwrite($control, '1'));
+            self::assertTrue(stream_set_timeout($control, 3));
+            self::assertSame('A', fread($control, 1), 'Task fixture did not confirm release after HTTP disconnect.');
+            fclose($control);
             $producer = new Process([PHP_BINARY, __DIR__.'/task-producer.php', $database], timeout: 5);
             self::assertSame(0, $producer->run(), $producer->getErrorOutput());
             $wire = $this->exchange($address, $this->request($address, 'tasks/get', [
@@ -86,9 +95,16 @@ final class AgentTaskNativeTest extends TestCase
                 self::assertStringNotContainsString('"structuredContent"', $wire, $guard);
             }
         } finally {
-            $process->stop();
-            @unlink($marker);
-            unlink($database);
+            foreach ([$socket, $control, $controlListener, $listener] as $stream) {
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+            }
+
+            $process?->stop();
+            if (is_string($database)) {
+                unlink($database);
+            }
         }
     }
 
