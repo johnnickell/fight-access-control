@@ -124,7 +124,7 @@ final class RecoveryFixture
         $this->userId = $userId ?? UserId::generate();
         if ($userId === null) {
             $user = User::invite($this->userId, EmailAddress::fromString('recovery@example.test'), $this->now);
-            $user->activate(PasswordHash::fromString(password_hash('correct-secret', PASSWORD_DEFAULT)), $this->now);
+            $user->activate(PasswordHash::fromString(TestPasswordSecurity::fixtureHash('correct-secret')), $this->now);
             $this->userRepository->add($user);
         }
     }
@@ -188,7 +188,7 @@ final class RecoveryFixture
             $passwords,
             $passwords,
             $this->tokenIssuer(),
-            PasswordHash::fromString(password_hash('dummy', PASSWORD_DEFAULT)),
+            PasswordHash::fromString($passwords->hash('dummy')),
             $this->eventDispatcher
         );
     }
@@ -205,7 +205,7 @@ final class RecoveryFixture
             new FixedClock($this->now),
             $passwords,
             $passwords,
-            PasswordHash::fromString(password_hash('dummy', PASSWORD_DEFAULT)),
+            PasswordHash::fromString($passwords->hash('dummy')),
             $this->eventDispatcher,
             $this->auditEvidenceRepository
         );

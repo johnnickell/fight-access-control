@@ -13,9 +13,15 @@ final readonly class TestPasswordSecurity implements PasswordHasher, PasswordVal
     {
     }
 
+    public static function fixtureHash(string $password): string
+    {
+        // Keep real salted hashes and verification without exercising production work factors.
+        return password_hash($password, PASSWORD_BCRYPT, ['cost' => 4]);
+    }
+
     public function hash(string $password): string
     {
-        return password_hash($password, PASSWORD_DEFAULT);
+        return self::fixtureHash($password);
     }
 
     public function validate(string $password, string $hash): bool

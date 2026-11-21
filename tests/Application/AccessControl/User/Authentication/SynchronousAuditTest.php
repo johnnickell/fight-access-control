@@ -428,7 +428,7 @@ final class SynchronousAuditTest extends TestCase
             $passwords,
             $passwords,
             $tokenIssuer,
-            PasswordHash::fromString(password_hash('dummy', PASSWORD_DEFAULT)),
+            PasswordHash::fromString($passwords->hash('dummy')),
             $events,
             $repository
         );
@@ -452,7 +452,7 @@ final class SynchronousAuditTest extends TestCase
             $clock,
             $passwords,
             $passwords,
-            PasswordHash::fromString(password_hash('dummy', PASSWORD_DEFAULT)),
+            PasswordHash::fromString($passwords->hash('dummy')),
             $events,
             $repository
         );
