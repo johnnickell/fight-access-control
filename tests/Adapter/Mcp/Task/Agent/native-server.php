@@ -47,9 +47,12 @@ $fixture = new TaskServingFixture(
         }
 
         try {
-            stream_set_timeout($control, 3);
-            if (fread($control, 1) !== '1') {
+            if (!stream_set_timeout($control, 3) || fread($control, 1) !== '1') {
                 throw new RuntimeException('HTTP client did not release Task submission after disconnect.');
+            }
+
+            if (fwrite($control, 'A') !== 1) {
+                throw new RuntimeException('Cannot confirm Task submission release.');
             }
         } finally {
             fclose($control);

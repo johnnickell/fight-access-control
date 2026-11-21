@@ -19,27 +19,35 @@ final class AgentTaskNativeTest extends TestCase
     public function test_real_disconnect_independent_producer_and_new_guarded_http_read(): void
     {
         $database = tempnam(sys_get_temp_dir(), 'task-serving-');
-        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $database]);
-        new DbalTaskSchema()->install($connection);
-        $connection->close();
-        $listener = stream_socket_server('tcp://127.0.0.1:0', $errorCode, $error);
-        self::assertIsResource($listener);
-        $address = stream_socket_get_name($listener, false);
-        self::assertIsString($address);
-        $controlListener = stream_socket_server('tcp://127.0.0.1:0');
-        self::assertIsResource($controlListener);
-        $controlAddress = stream_socket_get_name($controlListener, false);
-        self::assertIsString($controlAddress);
-        fclose($listener);
-        $process = new Process([
-            PHP_BINARY, '-S', $address, __DIR__.'/native-server.php'
-        ], dirname(__DIR__, 5), [
-            'TASK_SERVING_DATABASE' => $database,
-            'TASK_SERVING_CONTROL'  => $controlAddress
-        ], timeout: 10);
+        $listener = false;
+        $controlListener = false;
         $socket = false;
         $control = false;
+        $process = null;
         try {
+            self::assertIsString($database);
+            $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $database]);
+            try {
+                new DbalTaskSchema()->install($connection);
+            } finally {
+                $connection->close();
+            }
+
+            $listener = stream_socket_server('tcp://127.0.0.1:0', $errorCode, $error);
+            self::assertIsResource($listener);
+            $address = stream_socket_get_name($listener, false);
+            self::assertIsString($address);
+            $controlListener = stream_socket_server('tcp://127.0.0.1:0');
+            self::assertIsResource($controlListener);
+            $controlAddress = stream_socket_get_name($controlListener, false);
+            self::assertIsString($controlAddress);
+            fclose($listener);
+            $process = new Process([
+                PHP_BINARY, '-S', $address, __DIR__.'/native-server.php'
+            ], dirname(__DIR__, 5), [
+                'TASK_SERVING_DATABASE' => $database,
+                'TASK_SERVING_CONTROL'  => $controlAddress
+            ], timeout: 10);
             $process->start();
             for ($attempt = 0; $attempt < 100 && $socket === false; ++$attempt) {
                 $socket = @stream_socket_client('tcp://'.$address, $errorCode, $error, 0.05);
@@ -53,9 +61,11 @@ final class AgentTaskNativeTest extends TestCase
             $control = @stream_socket_accept($controlListener, 3);
             self::assertIsResource($control, 'No after-commit signal: '.$process->getErrorOutput());
 
-            // The fixture cannot acknowledge the request until the HTTP client closes and releases it.
-            fclose($socket);
+            // Release only after closing the original HTTP client, and verify the fixture received it.
+            self::assertTrue(fclose($socket));
             self::assertSame(1, fwrite($control, '1'));
+            self::assertTrue(stream_set_timeout($control, 3));
+            self::assertSame('A', fread($control, 1), 'Task fixture did not confirm release after HTTP disconnect.');
             fclose($control);
             $producer = new Process([PHP_BINARY, __DIR__.'/task-producer.php', $database], timeout: 5);
             self::assertSame(0, $producer->run(), $producer->getErrorOutput());
@@ -85,17 +95,16 @@ final class AgentTaskNativeTest extends TestCase
                 self::assertStringNotContainsString('"structuredContent"', $wire, $guard);
             }
         } finally {
-            if (is_resource($socket)) {
-                fclose($socket);
+            foreach ([$socket, $control, $controlListener, $listener] as $stream) {
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
             }
 
-            if (is_resource($control)) {
-                fclose($control);
+            $process?->stop();
+            if (is_string($database)) {
+                unlink($database);
             }
-
-            fclose($controlListener);
-            $process->stop();
-            unlink($database);
         }
     }
 
