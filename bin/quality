@@ -10,7 +10,7 @@ composer validate --strict --no-interaction
 printf '[quality] PHP syntax\n'
 {
     find . -maxdepth 1 -type f -name '*.php' -print
-    find openapi src tests scripts type-contracts -type f -name '*.php' -print
+    find openapi src tests scripts etc/phpstan/type-contracts -type f -name '*.php' -print
 } | LC_ALL=C sort | while IFS= read -r php_file; do
     php -l "${php_file#./}"
 done

@@ -114,7 +114,7 @@ fixtures and guide examples) is retained with the TASK Work evidence; documentat
 
 ## Executable proof and limits
 
-`type-contracts/query-dispatch-positive.php` contains 82 exact probes: all 22 direct declared results, all 22
+[The Query dispatch fixture](../etc/phpstan/type-contracts/query-dispatch-positive.php) contains 82 exact probes: all 22 direct declared results, all 22
 annotated fetch results, all 22 annotated metadata-dispatch results, ten collection/list elements, and six explicit
 `mixed` results across interface/routing/pipeline fetch and dispatch. These separately prove declaration precision
 and caller annotation use; they do not claim inference from a mixed bus. The negative file checks 28 exact

@@ -121,7 +121,7 @@ def run_suite(root, suite, timeout=120):
 def main():
     root = Path(__file__).resolve().parent.parent
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--suite', type=Path, default=root / 'type-contracts')
+    parser.add_argument('--suite', type=Path, default=root / 'etc/phpstan/type-contracts')
     parser.add_argument('--timeout', type=float, default=120)
     arguments = parser.parse_args()
     try:

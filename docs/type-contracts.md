@@ -8,14 +8,12 @@ manifest, analyzer configuration and installed dependencies.
 
 ## Declaring a contract
 
-Add PHP fixtures under `type-contracts/` and register each file exactly once in
-[`type-contracts/cases.json`](../type-contracts/cases.json). Each case declares a unique `id`, `kind` (`positive`
+Add PHP fixtures under `etc/phpstan/type-contracts/` and register each file exactly once in
+[`cases.json`](../etc/phpstan/type-contracts/cases.json). Each case declares a unique `id`, `kind` (`positive`
 or `negative`), relative PHP `file` and nonempty `diagnostics` list. Each diagnostic specifies its exact `line`,
 PHPStan `identifier` and full `message`. All PHP files in that directory must be registered, and the suite must
 contain both kinds. Empty/missing files or declarations fail. Keep these fixtures static: the runner analyzes
-but never executes their PHP. [TASK-00195](../planning/tasks/00195-TASK.md) owns the move planned in
-[TICKET-00056](../planning/tickets/00056-TICKET.md). Until that move ships, the paths above describe the current checkout;
-update fixture links when moving the manifest and cases.
+but never executes their PHP.
 
 - **Positive:** use PHPStan's built-in `PHPStan\dumpType()` at each inference boundary. Declare only
   `phpstan.dumpType` diagnostics with the exact useful inferred type. A merely error-free expression is not a
@@ -60,8 +58,9 @@ When changing the runner, qualify its failure handling separately:
 ./bin/exec python3 scripts/qualify_type_contracts.py
 ```
 
-This explicit tooling qualification runs real PHPStan against temporary fixture mutations, including valid-case
-regression/lost precision, accepted invalid use, extra errors and missing/empty inputs. It separately challenges
+This explicit tooling qualification checks the full tracked suite and runs real PHPStan against a temporary
+positive/negative pair for mutation probes, including valid-case regression, lost precision, accepted invalid
+use, extra errors and missing/empty inputs. It separately challenges
 report matching, missing executables, process signals and timeout handling. It is not in default PHPUnit, coverage,
 `bin/quality` or ordinary CI. Save its complete output and actual exit under the owning TASK's ignored run evidence.
 A qualification pass does not replace the required product fixture check or canonical build.

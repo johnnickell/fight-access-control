@@ -21,43 +21,54 @@ import check_type_contracts as runner
 
 
 ROOT = Path(__file__).resolve().parent.parent
+SUITE = ROOT / 'etc/phpstan/type-contracts'
+MUTATION_FILES = {'positive.php', 'negative.php'}
 
 
 @contextmanager
 def suite_copy():
     with tempfile.TemporaryDirectory(prefix='type-contract-qualification-') as directory:
         suite = Path(directory) / 'suite'
-        shutil.copytree(ROOT / 'type-contracts', suite)
+        suite.mkdir()
+        cases = [case for case in runner.load_cases(SUITE) if case['file'] in MUTATION_FILES]
+        for name in MUTATION_FILES:
+            shutil.copyfile(SUITE / name, suite / name)
+        (suite / 'cases.json').write_text(json.dumps({'cases': cases}))
         yield suite
 
 
 class RealAnalyzerQualification(unittest.TestCase):
     """Mutate actual fixtures and execute the ordinary runner/analyzer path."""
 
-    def execute(self, suite, expected_success=False):
+    def execute(self, suite, expected_summary=None, timeout=180):
         result = subprocess.run([sys.executable, str(ROOT / 'scripts/check_type_contracts.py'),
-                                 '--suite', str(suite)], cwd=ROOT, capture_output=True, text=True, timeout=180)
+                                 '--suite', str(suite)], cwd=ROOT, capture_output=True, text=True, timeout=timeout)
         print(f'\nScenario {self.id()}: exit {result.returncode}\n{result.stdout}{result.stderr}', flush=True)
-        self.assertEqual(result.returncode == 0, expected_success)
-        if expected_success:
-            self.assertIn('Passed 2 cases; 12 exact diagnostics', result.stdout)
+        self.assertEqual(result.returncode == 0, expected_summary is not None)
+        if expected_summary is not None:
+            self.assertIn(expected_summary, result.stdout)
         else:
             self.assertNotIn('[type-contracts] Passed', result.stdout)
         return result
 
     def test_current_contracts_pass(self):
-        self.execute(ROOT / 'type-contracts', expected_success=True)
+        cases = runner.load_cases(SUITE)
+        diagnostics = sum(len(case['diagnostics']) for case in cases)
+        # Each case has its own 120-second analyzer timeout, not a suite-wide budget.
+        self.execute(SUITE, f'Passed {len(cases)} cases; {diagnostics} exact diagnostics',
+                     timeout=120 * len(cases) + 30)
 
     def test_valid_case_regression_and_recovery_do_not_reuse_a_stale_pass(self):
         with suite_copy() as suite:
             positive = suite / 'positive.php'
             original = positive.read_text()
-            self.execute(suite, expected_success=True)
+            expected_summary = 'Passed 2 cases; 12 exact diagnostics'
+            self.execute(suite, expected_summary)
             positive.write_text(original.replace('dumpType($userView->getUserId());',
                                                  'dumpType($userView->getEmail());'))
             self.execute(suite)
             positive.write_text(original)
-            self.execute(suite, expected_success=True)
+            self.execute(suite, expected_summary)
 
     def test_lost_positive_precision_fails(self):
         with suite_copy() as suite:
@@ -118,7 +129,7 @@ class RealAnalyzerQualification(unittest.TestCase):
     def test_unavailable_analyzer_fails(self):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(runner.ContractFailure, 'Missing analyzer'):
-                runner.run_suite(Path(directory), ROOT / 'type-contracts')
+                runner.run_suite(Path(directory), SUITE)
 
 
 class AnalyzerProtocolQualification(unittest.TestCase):
@@ -126,8 +137,8 @@ class AnalyzerProtocolQualification(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.case = runner.load_cases(ROOT / 'type-contracts')[0]
-        cls.file = (ROOT / 'type-contracts' / cls.case['file']).resolve()
+        cls.case = runner.load_cases(SUITE)[0]
+        cls.file = (SUITE / cls.case['file']).resolve()
         cls.result = runner.analyze(ROOT, cls.file, 120)
         runner.check_result(cls.case, cls.file, cls.result)
 
