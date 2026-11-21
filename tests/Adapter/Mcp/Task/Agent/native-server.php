@@ -17,9 +17,9 @@ use Slim\Psr7\Factory\StreamFactory;
 require dirname(__DIR__, 5).'/vendor/autoload.php';
 
 $database = getenv('TASK_SERVING_DATABASE');
-$marker = getenv('TASK_SERVING_MARKER');
-if (!is_string($database) || !is_string($marker)) {
-    throw new RuntimeException('Missing controlled fixture storage.');
+$controlAddress = getenv('TASK_SERVING_CONTROL');
+if (!is_string($database) || !is_string($controlAddress)) {
+    throw new RuntimeException('Missing controlled fixture configuration.');
 }
 
 // Controlled request authentication/crypto inputs; real authority, nonce and independently admitted
@@ -40,9 +40,20 @@ $guard = new readonly class ($method) implements McpInvocationGuard {
 $fixture = new TaskServingFixture(
     DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $database]),
     $start ? ['TOOL_START', 'TASK_CREATE', 'TASK_ACK'] : ['TASK_READ'],
-    submit: $start ? static function () use ($marker): void {
-        file_put_contents($marker, 'committed');
-        usleep(300000);
+    submit: $start ? static function () use ($controlAddress): void {
+        $control = stream_socket_client('tcp://'.$controlAddress, $errorCode, $error, 1);
+        if ($control === false) {
+            throw new RuntimeException('Cannot signal durable Task commit.');
+        }
+
+        try {
+            stream_set_timeout($control, 3);
+            if (fread($control, 1) !== '1') {
+                throw new RuntimeException('HTTP client did not release Task submission after disconnect.');
+            }
+        } finally {
+            fclose($control);
+        }
     } : null,
     guard: $guard
 );

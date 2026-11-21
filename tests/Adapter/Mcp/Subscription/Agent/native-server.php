@@ -134,11 +134,15 @@ $admission = new class implements NoticeAdmission {
 $dispatcher = new SimpleEventDispatcher();
 $recorder = new NoticeRecorder(new DbalNoticeRepository($transaction), $transaction, $admission, $dispatcher);
 $promptEnabled = ($_SERVER['REQUEST_URI'] ?? '') === '/prompt';
-$source = new class ($recorder, $promptEnabled) implements NoticeReadAdmission {
+$deliveryControl = getenv('SUBSCRIPTION_DELIVERY_CONTROL');
+$source = new class ($recorder, $promptEnabled, $deliveryControl) implements NoticeReadAdmission {
     private int $calls = 0;
 
-    public function __construct(private readonly NoticeRecorder $recorder, private readonly bool $prompts)
-    {
+    public function __construct(
+        private readonly NoticeRecorder $recorder,
+        private readonly bool $prompts,
+        private readonly string|false $deliveryControl
+    ) {
     }
 
     public function currentAccess(NoticeSelection $selection): NoticeAccess
@@ -168,6 +172,23 @@ $source = new class ($recorder, $promptEnabled) implements NoticeReadAdmission {
                     'action'     => null
                 ]
                 ]));
+            }
+        }
+
+        // The first read establishes the continuation; the second emits the fixture notices.
+        if ($this->calls === 3 && $this->deliveryControl !== false) {
+            $control = stream_socket_client('tcp://'.$this->deliveryControl, $errorCode, $error, 1);
+            if ($control === false) {
+                throw new RuntimeException('Cannot signal pending native stream completion.');
+            }
+
+            try {
+                stream_set_timeout($control, 3);
+                if (fread($control, 1) !== '1') {
+                    throw new RuntimeException('HTTP client did not confirm live Subscription delivery.');
+                }
+            } finally {
+                fclose($control);
             }
         }
 
