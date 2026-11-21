@@ -77,7 +77,7 @@ trait SynchronousAuthenticationFixture
                 new DateTimeImmutable('2026-01-01T00:00:00+00:00')
             );
             $user->activate(
-                PasswordHash::fromString(password_hash('correct-secret', PASSWORD_DEFAULT)),
+                PasswordHash::fromString(TestPasswordSecurity::fixtureHash('correct-secret')),
                 new DateTimeImmutable('2026-01-01T00:00:00+00:00')
             );
 
@@ -165,7 +165,7 @@ trait SynchronousAuthenticationFixture
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
         $user->activate(
-            PasswordHash::fromString(password_hash('correct-secret', PASSWORD_DEFAULT)),
+            PasswordHash::fromString(TestPasswordSecurity::fixtureHash('correct-secret')),
             new DateTimeImmutable('2026-01-01T00:00:00+00:00')
         );
 
@@ -323,7 +323,7 @@ trait SynchronousAuthenticationFixture
                 $tokenEncoder ?? new RecordingTokenEncoder(),
                 $tokenPolicy ?? AuthenticationTokenPolicy::starterDefaults(new DateInterval('PT5S'))
             ),
-            PasswordHash::fromString(password_hash('dummy-password', PASSWORD_DEFAULT)),
+            PasswordHash::fromString($passwordSecurity->hash('dummy-password')),
             $eventDispatcher,
             $auditEvidenceRepository
         );
@@ -350,7 +350,7 @@ trait SynchronousAuthenticationFixture
             $authenticationClock ?? new FixedClock(new DateTimeImmutable('2026-08-19T12:00:00+00:00')),
             $passwordHasher ?? $passwordSecurity,
             $passwordValidator ?? $passwordSecurity,
-            PasswordHash::fromString(password_hash('dummy-password', PASSWORD_DEFAULT)),
+            PasswordHash::fromString($passwordSecurity->hash('dummy-password')),
             $eventDispatcher,
             $auditEvidenceRepository ?? new InMemoryAuditEvidenceRepository($unitOfWork)
         );
