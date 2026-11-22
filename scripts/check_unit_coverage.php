@@ -6,7 +6,8 @@ use Fight\AccessControl\Tooling\UnitCoverage\Coverage;
 use Fight\AccessControl\Tooling\UnitCoverage\Enumeration;
 use Fight\AccessControl\Tooling\UnitCoverage\Timing;
 
-$usage = 'Usage: php scripts/check_unit_coverage.php [--coverage PATH] [--tests PATH] [--timing PATH] [--output PATH]';
+$inputs = '[--coverage PATH] [--clover PATH] [--tests PATH] [--timing PATH]';
+$usage = 'Usage: php scripts/check_unit_coverage.php '.$inputs.' [--output PATH]';
 if ($argc === 2 && in_array($argv[1], ['-h', '--help'], true)) {
     echo $usage."\n";
     exit(0);
@@ -14,6 +15,7 @@ if ($argc === 2 && in_array($argv[1], ['-h', '--help'], true)) {
 
 $options = [
     '--coverage' => 'var/reports/coverage/coverage.php',
+    '--clover'   => 'var/reports/coverage/clover.xml',
     '--tests'    => 'var/reports/coverage/tests.xml',
     '--timing'   => 'var/reports/coverage/teamcity.log',
     '--output'   => 'var/reports/coverage/unit.json'
@@ -38,7 +40,7 @@ try {
     $root = dirname(__DIR__);
     require $root.'/vendor/autoload.php';
     $identities = Enumeration::read($options['--tests'], $root.'/etc/test-categories.json');
-    $report = Coverage::read($root, $options['--coverage'], $identities);
+    $report = Coverage::read($root, $options['--coverage'], $options['--clover'], $identities);
     [$report['categories'], $report['failed_cases']] = Timing::read($options['--timing'], $identities);
     $qualified = $report['covered'] === $report['total'] && $report['failed_cases'] === 0
         && array_sum(array_column($report['categories'], 'skipped')) === 0;

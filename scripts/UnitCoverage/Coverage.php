@@ -11,7 +11,7 @@ use SebastianBergmann\CodeCoverage\Serialization\Unserializer;
 
 final class Coverage
 {
-    public static function read(string $root, string $path, array $identities): array
+    public static function read(string $root, string $path, string $cloverPath, array $identities): array
     {
         if (!str_starts_with($path, '/')) {
             $path = $root.'/'.$path;
@@ -24,6 +24,11 @@ final class Coverage
         }
 
         $data = $artifact['codeCoverage'];
+        $lineCoverage = $data->lineCoverage();
+        $cloverFiles = Clover::read($root, $cloverPath);
+        if (array_diff_key($lineCoverage, $cloverFiles) !== [] || array_diff_key($cloverFiles, $lineCoverage) !== []) {
+            throw new RuntimeException('Coverage source files do not match Clover');
+        }
 
         $unit = [];
         $seen = [];
@@ -45,7 +50,7 @@ final class Coverage
 
         $knownIndexes = array_fill_keys(array_keys($testIds), true);
         $files = [];
-        foreach ($data->lineCoverage() as $path => $lines) {
+        foreach ($lineCoverage as $path => $lines) {
             $missing = [];
             $total = 0;
             if (!is_array($lines)) {
@@ -68,6 +73,7 @@ final class Coverage
                 }
             }
 
+            Clover::verifyLines($path, $lines, $cloverFiles[$path]);
             $files['src/'.$path] = ['covered' => $total - count($missing), 'total' => $total, 'missing' => $missing];
         }
 

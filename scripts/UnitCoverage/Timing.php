@@ -127,7 +127,7 @@ final class Timing
     private static function attributes(string $text): array
     {
         $fields = [];
-        $pattern = "/\\A ([A-Za-z][A-Za-z0-9]*)='((?:\\|[nr'\\[\\]|]|[^'|\\r\\n])*)'/";
+        $pattern = "/\\A ([A-Za-z][A-Za-z0-9]*)='((?:\\|[nr'\\[\\]|]|[^'|\\[\\]\\r\\n])*)'/";
         $escapes = ['|n' => "\n", '|r' => "\r", "|'" => "'", '|[' => '[', '|]' => ']', '||' => '|'];
         while ($text !== '') {
             if (
