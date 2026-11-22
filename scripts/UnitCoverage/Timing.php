@@ -10,12 +10,23 @@ final class Timing
 {
     public static function read(string $path, array $identities): array
     {
+        $contents = file_get_contents($path);
+        if ($contents === false) {
+            throw new RuntimeException('Cannot read timing log');
+        }
+
+        // Match Python's splitlines() and validate UTF-8 even on lines without test events.
+        $lines = preg_split('/\r\n|[\r\n\v\f\x1C-\x1E\x{85}\x{2028}\x{2029}]/u', $contents);
+        if ($lines === false) {
+            throw new RuntimeException('Cannot split timing log: '.preg_last_error_msg());
+        }
+
         $counts = array_fill_keys(Enumeration::CATEGORIES, ['runnable' => 0, 'skipped' => 0, 'milliseconds' => 0]);
         $current = null;
         $seen = [];
         $ignored = false;
         $failures = 0;
-        foreach (file($path, FILE_IGNORE_NEW_LINES) as $line) {
+        foreach ($lines as $line) {
             if (preg_match('/\A##teamcity\[test(?:Started|Failed|Ignored|Finished)/', $line) !== 1) {
                 continue;
             }
