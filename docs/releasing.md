@@ -51,7 +51,9 @@ From the selected checkout, substitute the approved version:
 git diff --check
 ```
 
-`check-docs` is read-only, works on an uncommitted tree and requires Python 3 but not Docker or publication access.
+`check-docs` is read-only and works on an uncommitted tree. It uses Bash, `dirname`, and host Python 3.9+
+(standard library only). It needs no Git, PHP, Composer, `vendor/`, Docker or network access. Release maintainers
+[retain the Python checker](engineering/python-tooling-inventory.md) so the preflight can run before package setup.
 It rejects a mismatched README panel/install command/runtime requirement, missing or invalid dated Changelog entry,
 a candidate that is not the first release, stale comparison links, a missing/wrong-titled overview and a hardcoded
 Composer version. It does not decide release scope, validate arbitrary prose, query hosting/Packagist or certify
@@ -64,7 +66,9 @@ python3 scripts/qualify_release_docs.py
 ```
 
 This tooling qualification is not part of product PHPUnit, ordinary CI or `./bin/build`. It uses disposable fixtures
-and covers metadata failures, no-write behavior and early certification rejection; it is not release certification.
+and covers metadata failures and read-only behavior. The full suite also needs Git: one test invokes `certify` in a
+fixture and expects it to stop at invalid metadata, before package gates. To avoid invoking `certify` at all, run
+only the other qualification methods by name. Neither `check-docs` nor its qualification certifies a release candidate.
 Implementation/build-input changes still require the normal full build and independent Review/QA.
 
 After independent release-content acceptance and authorized integration, run on the **exact clean main release
