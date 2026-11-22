@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if (( $# != 0 )); then
+    echo 'Usage: ./bin/qualify-release-docs' >&2
+    exit 2
+fi
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOCKER_BIN="${DOCKER_BIN:-docker}"
+ID_BIN="${ID_BIN:-id}"
+source "${ROOT_DIR}/bin/.release-docs"
+run_release_docs qualify_release_docs.php

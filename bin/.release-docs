@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# Shared by standalone preflight, certification and explicit qualification.
+run_release_docs() {
+    local script="$1" image
+    shift
+
+    # Use the package's supported PHP base without building the package image or starting Compose.
+    image="${FIGHT_ACCESS_CONTROL_RELEASE_DOCS_IMAGE:-php:8.5-cli}"
+    local PHP_IMAGE
+    if ! PHP_IMAGE="$("${DOCKER_BIN}" image inspect --format '{{.Id}}' "${image}")"; then
+        echo "Release documentation tooling image unavailable: ${image}. Prepare it before running the check (default: docker pull php:8.5-cli)." >&2
+        return 1
+    fi
+    source "${ROOT_DIR}/bin/.php-runtime"
+    admit_php_runtime >/dev/null || return
+
+    local -a scratch=()
+    if [[ "${script}" == 'qualify_release_docs.php' ]]; then
+        scratch=(--tmpfs /tmp:rw,noexec,nosuid,nodev,mode=1777)
+    fi
+
+    "${DOCKER_BIN}" container run --rm --pull=never --network=none --read-only \
+        --cap-drop ALL --security-opt no-new-privileges ${scratch[@]+"${scratch[@]}"} \
+        --mount "type=bind,source=${ROOT_DIR},target=${ROOT_DIR},readonly" --workdir "${ROOT_DIR}" \
+        --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" --entrypoint php \
+        "${PHP_IMAGE}" -n "scripts/${script}" "$@"
+}
