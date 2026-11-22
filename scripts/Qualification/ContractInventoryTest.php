@@ -335,6 +335,40 @@ final class ContractInventoryTest extends TestCase
         }
     }
 
+    public function testHelpIgnoresExtrasButNotEarlierParserErrors(): void
+    {
+        $command = [PHP_BINARY, self::ROOT.'/scripts/contract_inventory.php'];
+        $output = $this->fixture.'/help.json';
+        $cases = [
+            ['--unknown --help', 0, 'usage:'],
+            ['--help --unknown', 0, 'usage:'],
+            ['stray --he', 0, 'usage:'],
+            ['--unknown', 2, 'unrecognized argument'],
+            ['--root --help', 2, 'expected one argument'],
+            ['--r --help', 2, 'ambiguous option'],
+            ['--unknown --r', 2, 'ambiguous option'],
+            ['--help --r', 0, 'usage:'],
+            ['--=bad --help', 2, 'ambiguous option'],
+            ['--refresh=bad --help', 2, 'ignored explicit argument'],
+            ['-- --help', 2, 'unrecognized argument'],
+            ['--help -- --unknown', 0, 'usage:'],
+            ['-hh', 0, 'usage:'],
+            ['-hfoo', 0, 'usage:'],
+            ['-h=', 2, 'ignored explicit argument'],
+            ['-hh-h', 2, 'ignored explicit argument'],
+            ['-hh=bad --help', 2, 'ignored explicit argument']
+        ];
+        foreach ($cases as [$arguments, $exit, $message]) {
+            $process = new Process([...$command, '--output', $output, ...explode(' ', $arguments)]);
+            self::assertSame($exit, $process->run(), $arguments.': '.$process->getErrorOutput());
+            $stdout = $process->getOutput();
+            $stderr = $process->getErrorOutput();
+            self::assertStringContainsString($message, $exit === 0 ? $stdout : $stderr);
+            self::assertSame('', $exit === 0 ? $stderr : $stdout);
+            self::assertFileDoesNotExist($output);
+        }
+    }
+
     public function testLongOptionPrefixesPreserveCliBehavior(): void
     {
         $command = [PHP_BINARY, self::ROOT.'/scripts/contract_inventory.php'];

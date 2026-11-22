@@ -30,12 +30,33 @@ $isSeparatePathValue = static function (string $token) use ($names): bool {
 };
 
 $refresh = false;
+$extras = [];
 try {
     for ($i = 1; $i < $argc; $i++) {
         $argument = $argv[$i];
-        [$flag, $value] = array_pad(explode('=', $argument === '-h' ? '--help' : $argument, 2), 2, null);
-        if (!str_starts_with($flag, '--') || $flag === '--') {
-            throw new InvalidArgumentException('unrecognized argument: '.$argument);
+        if ($argument === '--') {
+            array_push($extras, ...array_slice($argv, $i));
+            break;
+        }
+
+        [$flag, $value] = array_pad(explode('=', $argument, 2), 2, null);
+        if (str_starts_with($argument, '-h')) {
+            // Argparse expands repeated short help flags before running help, even if a suffix is unknown.
+            $suffix = ltrim(substr($argument, 2), 'h');
+            if (str_starts_with($suffix, '=') || str_starts_with($suffix, '-')) {
+                $explicit = str_starts_with($suffix, '=') ? substr($suffix, 1) : $suffix;
+                throw new InvalidArgumentException(
+                    'argument -h/--help: ignored explicit argument '.var_export($explicit, true)
+                );
+            }
+
+            $flag = '--help';
+            $value = null;
+        }
+
+        if (!str_starts_with($flag, '--')) {
+            $extras[] = $argument;
+            continue;
         }
 
         $name = substr($flag, 2);
@@ -48,7 +69,12 @@ try {
                 throw new InvalidArgumentException('ambiguous option: '.$argument.' could match --'.$choices);
             }
 
-            $name = $matches[0] ?? throw new InvalidArgumentException('unrecognized argument: '.$argument);
+            if ($matches === []) {
+                $extras[] = $argument;
+                continue;
+            }
+
+            $name = $matches[0];
         }
 
         if ($value !== null && in_array($name, $switches, true)) {
@@ -79,6 +105,11 @@ try {
         }
 
         $options[$name] = $value;
+    }
+
+    // Unrecognized extras are rejected only after actions such as help have had a chance to exit.
+    if ($extras !== []) {
+        throw new InvalidArgumentException('unrecognized arguments: '.implode(' ', $extras));
     }
 } catch (InvalidArgumentException $invalidArgumentException) {
     fwrite(STDERR, $usage."\ncontract_inventory.php: error: ".$invalidArgumentException->getMessage()."\n");
