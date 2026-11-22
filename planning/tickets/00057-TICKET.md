@@ -26,7 +26,7 @@ Start with the contract inventory, then coverage checker. Port the static fixtur
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 519 | [TASK-00196](../tasks/00196-TASK.md) | Inventory repository Python and port the structural contract inventory | ready-for-agent |
+| 519 | [TASK-00196](../tasks/00196-TASK.md) | Inventory repository Python and port the structural contract inventory | done |
 | 520 | [TASK-00197](../tasks/00197-TASK.md) | Port the Unit coverage checker to PHP | ready-for-agent |
 | 521 | [TASK-00198](../tasks/00198-TASK.md) | Port the static fixture runner and its qualification helper to PHP | ready-for-agent |
 | 522 | [TASK-00199](../tasks/00199-TASK.md) | Resolve Python planning and archive tooling | ready-for-agent |
