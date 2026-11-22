@@ -7,7 +7,7 @@ namespace Fight\AccessControl\Tooling\UnitCoverage;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
-use SebastianBergmann\CodeCoverage\Data\ProcessedCodeCoverageData;
+use SebastianBergmann\CodeCoverage\Serialization\Unserializer;
 
 final class Coverage
 {
@@ -18,21 +18,19 @@ final class Coverage
         }
 
         // Native PHPUnit serialization is executable PHP. Load only trusted, locally generated artifacts.
-        $artifact = require $path;
-        if (($artifact['buildInformation']['phpCodeCoverage']['serializationFormat'] ?? null) !== 4) {
-            throw new RuntimeException('Unsupported coverage serialization format');
+        $artifact = new Unserializer()->unserialize($path);
+        if ($artifact['basePath'] !== $root.'/src') {
+            throw new RuntimeException('Coverage source root does not match this checkout');
         }
 
         $data = $artifact['codeCoverage'];
-        if (!$data instanceof ProcessedCodeCoverageData) {
-            throw new RuntimeException('Invalid serialized coverage data');
-        }
 
         $unit = [];
         $seen = [];
-        foreach ($data->testIds() as $index => $identity) {
-            if (!isset($identities[$identity])) {
-                throw new RuntimeException('Unknown expanded coverage test: '.$identity);
+        $testIds = $data->testIds();
+        foreach ($testIds as $index => $identity) {
+            if (!is_int($index) || $index < 0 || !is_string($identity) || !isset($identities[$identity])) {
+                throw new RuntimeException('Invalid or unknown expanded coverage test ID');
             }
 
             if (isset($seen[$identity])) {
@@ -45,12 +43,20 @@ final class Coverage
             }
         }
 
-        $knownIndexes = array_fill_keys(array_keys($data->testIds()), true);
+        $knownIndexes = array_fill_keys(array_keys($testIds), true);
         $files = [];
         foreach ($data->lineCoverage() as $path => $lines) {
             $missing = [];
             $total = 0;
+            if (!is_array($lines)) {
+                throw new RuntimeException('Invalid line coverage for '.$path);
+            }
+
             foreach ($lines as $line => $hits) {
+                if (!is_int($line) || $line < 1) {
+                    throw new RuntimeException('Invalid source line number in '.$path);
+                }
+
                 if ($hits === null) {
                     continue;
                 }

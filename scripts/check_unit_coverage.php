@@ -6,143 +6,46 @@ use Fight\AccessControl\Tooling\UnitCoverage\Coverage;
 use Fight\AccessControl\Tooling\UnitCoverage\Enumeration;
 use Fight\AccessControl\Tooling\UnitCoverage\Timing;
 
-$root = dirname(__DIR__);
-$usage = 'usage: check_unit_coverage.php [-h] [--coverage COVERAGE] [--tests TESTS]';
-$usage .= ' [--timing TIMING] [--output OUTPUT] [--inspect]';
+$usage = 'Usage: php scripts/check_unit_coverage.php [--coverage PATH] [--tests PATH] [--timing PATH] [--output PATH]';
+if ($argc === 2 && in_array($argv[1], ['-h', '--help'], true)) {
+    echo $usage."\n";
+    exit(0);
+}
+
 $options = [
-    'coverage' => 'var/reports/coverage/coverage.php',
-    'tests'    => 'var/reports/coverage/tests.xml',
-    'timing'   => 'var/reports/coverage/teamcity.log',
-    'output'   => 'var/reports/coverage/unit.json'
+    '--coverage' => 'var/reports/coverage/coverage.php',
+    '--tests'    => 'var/reports/coverage/tests.xml',
+    '--timing'   => 'var/reports/coverage/teamcity.log',
+    '--output'   => 'var/reports/coverage/unit.json'
 ];
-$names = [...array_keys($options), 'inspect', 'help'];
-$isSeparatePath = static function (string $token) use ($names): bool {
-    // Argparse treats lone hyphens and negative numbers as values, not options.
-    if ($token === '-' || !str_starts_with($token, '-') || preg_match('/\A-(?:\d+|\d*\.\d+)\z/u', $token) === 1) {
-        return true;
+for ($i = 1; $i < $argc; ++$i) {
+    [$flag, $path] = array_pad(explode('=', $argv[$i], 2), 2, null);
+    $path ??= $argv[++$i] ?? '';
+    if (!isset($options[$flag]) || $path === '' || str_starts_with($path, '--')) {
+        fwrite(STDERR, $usage."\nInvalid option or missing path: ".$flag."\n");
+        exit(2);
     }
 
-    if (!str_contains($token, ' ') || str_starts_with($token, '-h')) {
-        return false;
-    }
-
-    $flag = explode('=', $token, 2)[0];
-
-    return !str_starts_with($flag, '--')
-        || !array_any($names, static fn (string $name): bool => str_starts_with('--'.$name, $flag));
-};
-$inspect = false;
-$extras = [];
-try {
-    for ($i = 1; $i < $argc; ++$i) {
-        $argument = $argv[$i];
-        if ($argument === '--') {
-            array_push($extras, ...array_slice($argv, $i + 1));
-            break;
-        }
-
-        [$flag, $value] = array_pad(explode('=', $argument, 2), 2, null);
-        if (str_starts_with($argument, '-h')) {
-            $suffix = ltrim(substr($argument, 2), 'h');
-            if (str_starts_with($suffix, '=') || str_starts_with($suffix, '-')) {
-                $explicit = str_starts_with($suffix, '=') ? substr($suffix, 1) : $suffix;
-                $message = 'argument -h/--help: ignored explicit argument '.var_export($explicit, true);
-                throw new InvalidArgumentException($message);
-            }
-
-            $flag = '--help';
-            $value = null;
-        }
-
-        $name = str_starts_with($flag, '--') ? substr($flag, 2) : null;
-        // Retain argparse's unique long-option abbreviations.
-        $matches = $name === null ? [] : array_values(array_filter(
-            $names,
-            static fn (string $option): bool => str_starts_with($option, $name)
-        ));
-        if (count($matches) > 1) {
-            throw new InvalidArgumentException('ambiguous option: '.$flag.' could match --'.implode(', --', $matches));
-        }
-
-        if ($matches === []) {
-            $extras[] = $argument;
-            continue;
-        }
-
-        $name = $matches[0];
-        if (in_array($name, ['inspect', 'help'], true) && $value !== null) {
-            $explicit = var_export($value, true);
-            throw new InvalidArgumentException('argument --'.$name.': ignored explicit argument '.$explicit);
-        }
-
-        if ($name === 'help') {
-            echo $usage."\n\nQualify Unit-attributed executable lines from the one canonical PHPUnit run.\n\n";
-            echo "options:\n  -h, --help           show this help message and exit\n";
-            echo "  --coverage COVERAGE\n  --tests TESTS\n  --timing TIMING\n  --output OUTPUT\n";
-            echo "  --inspect            Report gaps without awarding a gate pass\n";
-            exit(0);
-        }
-
-        if ($name === 'inspect') {
-            $inspect = true;
-            continue;
-        }
-
-        if ($value === null) {
-            $value = $argv[++$i] ?? null;
-            if ($value === null || !$isSeparatePath($value)) {
-                throw new InvalidArgumentException('argument --'.$name.': expected one argument');
-            }
-        }
-
-        $options[$name] = $value;
-    }
-
-    if ($extras !== []) {
-        throw new InvalidArgumentException('unrecognized arguments: '.implode(' ', $extras));
-    }
-} catch (InvalidArgumentException $invalidArgumentException) {
-    fwrite(STDERR, $usage."\ncheck_unit_coverage.php: error: ".$invalidArgumentException->getMessage()."\n");
-    exit(2);
+    $options[$flag] = $path;
 }
 
 ini_set('memory_limit', '1G');
-set_error_handler(static function (int $severity, string $message, string $file, int $line): bool {
-    if ((error_reporting() & $severity) === 0) {
-        return false;
-    }
-
+set_error_handler(static function (int $severity, string $message, string $file, int $line): never {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
 try {
+    $root = dirname(__DIR__);
     require $root.'/vendor/autoload.php';
-    $identities = Enumeration::read($options['tests'], $root.'/etc/test-categories.json', $inspect);
-    $report = Coverage::read($root, $options['coverage'], $identities);
-    [$report['categories'], $failures] = Timing::read($options['timing'], $identities);
-    $report['identity_admission'] = [
-        'enumerated'                 => count($identities),
-        'executed'                   => count($identities),
-        'coverage_subset_verified'   => true,
-        'timing_membership_verified' => true
-    ];
-    $report['failed_cases'] = $failures;
-    $report['branches']['collected'] = $report['branches']['total'] > 0;
-    $qualified = $report['covered'] === $report['total'] && $failures === 0
+    $identities = Enumeration::read($options['--tests'], $root.'/etc/test-categories.json');
+    $report = Coverage::read($root, $options['--coverage'], $identities);
+    [$report['categories'], $report['failed_cases']] = Timing::read($options['--timing'], $identities);
+    $qualified = $report['covered'] === $report['total'] && $report['failed_cases'] === 0
         && array_sum(array_column($report['categories'], 'skipped')) === 0;
-    $report['result'] = $inspect ? 'inspection' : ($qualified ? 'passed' : 'failed');
+    $report['result'] = $qualified ? 'passed' : 'failed';
 
-    // Render exact decimal totals as JSON numbers, without PHP integer or float conversion.
     $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR;
-    $categories = json_encode($report['categories'], $flags);
-    $categories = preg_replace('/("milliseconds": )"([0-9]+)"/', '$1$2', $categories);
-    $categories = str_replace("\n", "\n    ", $categories);
-    $document = $report;
-    $document['categories'] = null;
-    $json = json_encode($document, $flags);
-    $json = str_replace("\n    \"categories\": null,", "\n    \"categories\": ".$categories.',', $json);
-    $json = preg_replace('/^( +)\1/m', '$1', $json);
-    file_put_contents($options['output'], $json."\n");
+    file_put_contents($options['--output'], json_encode($report, $flags)."\n");
 } catch (Throwable $throwable) {
     fwrite(STDERR, 'Unit coverage qualification failed: '.$throwable->getMessage()."\n");
     exit(1);
@@ -154,20 +57,19 @@ printf(
     $report['total'],
     $report['source_files']
 );
-if ($report['branches']['collected']) {
+if ($report['branches']['total'] > 0) {
     printf(
-        "Unit branch blocks (separate, no percentage mandate): {'covered': %d, 'total': %d, 'collected': True}\n",
+        "Unit branch blocks (reported separately): %d/%d\n",
         $report['branches']['covered'],
         $report['branches']['total']
     );
 } else {
-    echo "Branch data not collected in this line-only execution; report separate qualification and limits\n";
+    echo "Branch data not collected\n";
 }
 
-$summary = [];
 foreach ($report['categories'] as $category => $counts) {
-    $summary[] = sprintf(
-        "'%s': {'runnable': %d, 'skipped': %d, 'milliseconds': %s}",
+    printf(
+        "%s: %d runnable, %d skipped, %d ms\n",
         $category,
         $counts['runnable'],
         $counts['skipped'],
@@ -175,11 +77,10 @@ foreach ($report['categories'] as $category => $counts) {
     );
 }
 
-echo 'Expanded cases and measured per-test milliseconds (includes setup/teardown): {'.implode(', ', $summary)."}\n";
 foreach ($report['files'] as $path => $data) {
     if ($data['missing'] !== []) {
         echo $path.' missing Unit lines: '.implode(', ', $data['missing'])."\n";
     }
 }
 
-exit($inspect || $qualified ? 0 : 1);
+exit($qualified ? 0 : 1);

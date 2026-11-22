@@ -11,27 +11,22 @@ final class Timing
     public static function read(string $path, array $identities): array
     {
         $contents = file_get_contents($path);
-        if ($contents === false) {
-            throw new RuntimeException('Cannot read timing log');
+        if ($contents === false || !mb_check_encoding($contents, 'UTF-8') || str_contains($contents, "\0")) {
+            throw new RuntimeException('Invalid PHPUnit TeamCity log');
         }
 
-        // Match Python's splitlines() and validate UTF-8 even on lines without test events.
-        $lines = preg_split('/\r\n|[\r\n\v\f\x1C-\x1E\x{85}\x{2028}\x{2029}]/u', $contents);
-        if ($lines === false) {
-            throw new RuntimeException('Cannot split timing log: '.preg_last_error_msg());
-        }
-
-        $counts = array_fill_keys(Enumeration::CATEGORIES, ['runnable' => 0, 'skipped' => 0, 'milliseconds' => '0']);
+        $counts = array_fill_keys(Enumeration::CATEGORIES, ['runnable' => 0, 'skipped' => 0, 'milliseconds' => 0]);
         $current = null;
         $seen = [];
         $ignored = false;
         $failures = 0;
-        foreach ($lines as $line) {
+        foreach (explode("\n", $contents) as $line) {
             if (preg_match('/\A##teamcity\[test(?:Started|Failed|Ignored|Finished)/', $line) !== 1) {
                 continue;
             }
 
-            $pattern = '/\A##teamcity\[(testStarted|testFailed|testIgnored|testFinished)( .*)\]\z/u';
+            $line = rtrim($line, "\r");
+            $pattern = '/\A##teamcity\[(testStarted|testFailed|testIgnored|testFinished)( .*)\]\z/';
             if (preg_match($pattern, $line, $parts) !== 1) {
                 throw new RuntimeException('Malformed TeamCity test event');
             }
@@ -66,11 +61,19 @@ final class Timing
                 continue;
             }
 
-            $duration = Milliseconds::parse($fields['duration']);
+            $duration = filter_var($fields['duration'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+            if ($duration === false || !ctype_digit($fields['duration'])) {
+                throw new RuntimeException('Invalid PHPUnit test duration');
+            }
+
             $identity = $current['identity'];
             $category = $identities[$identity];
             ++$counts[$category][$ignored ? 'skipped' : 'runnable'];
-            $counts[$category]['milliseconds'] = Milliseconds::add($counts[$category]['milliseconds'], $duration);
+            if ($duration > PHP_INT_MAX - $counts[$category]['milliseconds']) {
+                throw new RuntimeException('PHPUnit timing total exceeds the integer range');
+            }
+
+            $counts[$category]['milliseconds'] += $duration;
 
             $seen[$identity] = true;
             $current = null;
@@ -100,8 +103,10 @@ final class Timing
 
         [$file, $class, $name] = $parts;
         // Keep the complete data-set label. Inherited tests can name their declaring file.
-        $method = preg_replace('/\A(\w+) with data set #([0-9]+)\z/u', '$1#$2', $name);
-        $method = preg_replace('/\A(\w+) with data set "(.*)"\z/u', '$1#$2', $method);
+        $method = $name;
+        if (preg_match('/\A(.*?) with data set (?:#([0-9]+)|"(.*)")\z/s', $name, $match) === 1) {
+            $method = $match[1].'#'.($match[3] ?? $match[2]);
+        }
 
         $identity = ltrim($class, '\\').'::'.$method;
         if (!isset($identities[$identity])) {
@@ -122,10 +127,11 @@ final class Timing
     private static function attributes(string $text): array
     {
         $fields = [];
+        $pattern = "/\\A ([A-Za-z][A-Za-z0-9]*)='((?:\\|[nr'\\[\\]|]|[^'|\\r\\n])*)'/";
         $escapes = ['|n' => "\n", '|r' => "\r", "|'" => "'", '|[' => '[', '|]' => ']', '||' => '|'];
         while ($text !== '') {
             if (
-                preg_match("/\\A (\\w+)='((?:\\|[nr'\\[\\]|]|[^'|\\r\\n])*)'/u", $text, $parts) !== 1
+                preg_match($pattern, $text, $parts) !== 1
                 || isset($fields[$parts[1]])
             ) {
                 throw new RuntimeException('Malformed or duplicate TeamCity attribute');
