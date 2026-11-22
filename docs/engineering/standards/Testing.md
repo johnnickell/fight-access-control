@@ -23,7 +23,7 @@ changing tests. Class defaults apply to discovered methods; use explicit method 
 Unknown classes and stale entries fail. CI4 tests with only controlled collaborators are Unit; tests that boot
 its real Permission pipeline are Integration and do not supply Unit hits.
 
-The [coverage checker](../../../scripts/check_unit_coverage.py) reconciles expanded PHPUnit IDs and native
+The [coverage checker](../../../scripts/check_unit_coverage.php) reconciles expanded PHPUnit IDs and native
 per-test line hits. Read `var/reports/coverage/unit.json` for Unit gaps, category counts and measured case time;
 use `clover.xml` for statement coverage and the native receipt for test and gate provenance. Normal runs collect
 lines, not branch data. Qualify explicit branch probes separately; partial or failed collection is not a pass.
