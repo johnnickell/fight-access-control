@@ -20,9 +20,11 @@ run_release_docs() {
         scratch=(--tmpfs /tmp:rw,noexec,nosuid,nodev,mode=1777)
     fi
 
+    # Docker parses --mount as CSV; quote each whole path field and double embedded quotes.
+    local mount_path="${ROOT_DIR//\"/\"\"}"
     "${DOCKER_BIN}" container run --rm --pull=never --network=none --read-only \
         --cap-drop ALL --security-opt no-new-privileges ${scratch[@]+"${scratch[@]}"} \
-        --mount "type=bind,source=${ROOT_DIR},target=${ROOT_DIR},readonly" --workdir "${ROOT_DIR}" \
+        --mount "type=bind,\"source=${mount_path}\",\"target=${mount_path}\",readonly" --workdir "${ROOT_DIR}" \
         --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" --entrypoint php \
         "${PHP_IMAGE}" -n "scripts/${script}" "$@"
 }
