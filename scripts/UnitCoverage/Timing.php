@@ -21,7 +21,7 @@ final class Timing
             throw new RuntimeException('Cannot split timing log: '.preg_last_error_msg());
         }
 
-        $counts = array_fill_keys(Enumeration::CATEGORIES, ['runnable' => 0, 'skipped' => 0, 'milliseconds' => 0]);
+        $counts = array_fill_keys(Enumeration::CATEGORIES, ['runnable' => 0, 'skipped' => 0, 'milliseconds' => '0']);
         $current = null;
         $seen = [];
         $ignored = false;
@@ -66,15 +66,11 @@ final class Timing
                 continue;
             }
 
-            $duration = self::duration($fields['duration']);
-
+            $duration = Milliseconds::parse($fields['duration']);
             $identity = $current['identity'];
             $category = $identities[$identity];
             ++$counts[$category][$ignored ? 'skipped' : 'runnable'];
-            $counts[$category]['milliseconds'] += $duration;
-            if (!is_int($counts[$category]['milliseconds'])) {
-                throw new RuntimeException('Total test duration exceeds integer range');
-            }
+            $counts[$category]['milliseconds'] = Milliseconds::add($counts[$category]['milliseconds'], $duration);
 
             $seen[$identity] = true;
             $current = null;
@@ -121,22 +117,6 @@ final class Timing
         }
 
         return ['identity' => $identity, 'name' => $name, 'flowId' => $fields['flowId']];
-    }
-
-    private static function duration(string $duration): int
-    {
-        $duration = trim($duration);
-        if (preg_match('/\A[+\-]?[0-9](?:_?[0-9])*\z/', $duration) !== 1) {
-            throw new RuntimeException('Invalid test duration');
-        }
-
-        $digits = ltrim(str_replace('_', '', $duration), '+-0');
-        $milliseconds = (int) $digits;
-        if ($digits !== '' && (str_starts_with($duration, '-') || (string) $milliseconds !== $digits)) {
-            throw new RuntimeException('Negative or out-of-range test duration');
-        }
-
-        return $milliseconds;
     }
 
     private static function attributes(string $text): array

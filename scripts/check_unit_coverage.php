@@ -132,7 +132,15 @@ try {
         && array_sum(array_column($report['categories'], 'skipped')) === 0;
     $report['result'] = $inspect ? 'inspection' : ($qualified ? 'passed' : 'failed');
 
-    $json = json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+    // Render exact decimal totals as JSON numbers, without PHP integer or float conversion.
+    $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR;
+    $categories = json_encode($report['categories'], $flags);
+    $categories = preg_replace('/("milliseconds": )"([0-9]+)"/', '$1$2', $categories);
+    $categories = str_replace("\n", "\n    ", $categories);
+    $document = $report;
+    $document['categories'] = null;
+    $json = json_encode($document, $flags);
+    $json = str_replace("\n    \"categories\": null,", "\n    \"categories\": ".$categories.',', $json);
     $json = preg_replace('/^( +)\1/m', '$1', $json);
     file_put_contents($options['output'], $json."\n");
 } catch (Throwable $throwable) {
@@ -159,7 +167,7 @@ if ($report['branches']['collected']) {
 $summary = [];
 foreach ($report['categories'] as $category => $counts) {
     $summary[] = sprintf(
-        "'%s': {'runnable': %d, 'skipped': %d, 'milliseconds': %d}",
+        "'%s': {'runnable': %d, 'skipped': %d, 'milliseconds': %s}",
         $category,
         $counts['runnable'],
         $counts['skipped'],

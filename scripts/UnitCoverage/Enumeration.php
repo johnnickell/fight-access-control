@@ -15,9 +15,11 @@ final class Enumeration
     public static function read(string $tests, string $manifest, bool $inspect): array
     {
         $classes = json_decode(file_get_contents($manifest), true, flags: JSON_THROW_ON_ERROR)['classes'];
+        $xml = file_get_contents($tests);
         $document = new DOMDocument();
         if (
-            !$document->load($tests, LIBXML_NONET) || $document->doctype !== null
+            $xml === false || self::hasNullCharacter($xml)
+            || !$document->loadXML($xml, LIBXML_NONET) || $document->doctype !== null
             || $document->documentElement?->localName !== 'testSuite'
         ) {
             throw new RuntimeException('Invalid PHPUnit enumeration XML');
@@ -25,7 +27,11 @@ final class Enumeration
 
         $discovered = [];
         $identities = [];
-        foreach ($document->getElementsByTagNameNS('*', 'testClass') as $class) {
+        foreach ($document->getElementsByTagName('*') as $class) {
+            if (!str_ends_with($class->localName, 'testClass')) {
+                continue;
+            }
+
             $name = $class->getAttribute('name');
             $entry = $classes[$name] ?? throw new RuntimeException('Unknown enumerated class: '.$name);
             if (!str_ends_with($class->getAttribute('file'), '/'.$entry['file'])) {
@@ -58,11 +64,24 @@ final class Enumeration
         return $identities;
     }
 
+    private static function hasNullCharacter(string $xml): bool
+    {
+        // libxml can stop at NUL and accept an otherwise complete document. UTF-16
+        // may contain zero bytes in valid code units, so check the decoded text there.
+        if (str_starts_with($xml, "\xFE\xFF") || str_starts_with($xml, "\x00<")) {
+            $xml = mb_convert_encoding($xml, 'UTF-8', 'UTF-16BE');
+        } elseif (str_starts_with($xml, "\xFF\xFE") || str_starts_with($xml, "<\x00")) {
+            $xml = mb_convert_encoding($xml, 'UTF-8', 'UTF-16LE');
+        }
+
+        return str_contains($xml, "\0");
+    }
+
     private static function admitMethods(DOMElement $class, string $name, array $entry, array &$identities): array
     {
         $methods = [];
         foreach ($class->childNodes as $method) {
-            if (!$method instanceof DOMElement || $method->localName !== 'testMethod') {
+            if (!$method instanceof DOMElement || !str_ends_with($method->localName, 'testMethod')) {
                 continue;
             }
 
