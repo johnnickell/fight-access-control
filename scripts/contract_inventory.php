@@ -11,6 +11,24 @@ $usage .= ' [--previous PREVIOUS] [--judgments JUDGMENTS] [--refresh]';
 $options = ['root' => $toolRoot, 'output' => null, 'previous' => null, 'judgments' => null];
 $switches = ['help', 'refresh'];
 $names = [...array_keys($options), ...$switches];
+$isSeparatePathValue = static function (string $token) use ($names): bool {
+    // Match argparse in the baseline runtime: lone hyphens and negative integers/decimals are values.
+    $negativeNumber = '/^-(?:\p{Nd}+|\p{Nd}*\.\p{Nd}+)$/u';
+    if ($token === '-' || !str_starts_with($token, '-') || preg_match($negativeNumber, $token) === 1) {
+        return true;
+    }
+
+    // A token containing a space is a value only if it does not match an option first.
+    if (!str_contains($token, ' ') || str_starts_with($token, '-h')) {
+        return false;
+    }
+
+    $flag = explode('=', $token, 2)[0];
+
+    return !str_starts_with($flag, '--')
+        || !array_any($names, static fn (string $name): bool => str_starts_with('--'.$name, $flag));
+};
+
 $refresh = false;
 try {
     for ($i = 1; $i < $argc; $i++) {
@@ -55,7 +73,7 @@ try {
 
         if ($value === null) {
             $value = $argv[++$i] ?? null;
-            if ($value === null || str_starts_with($value, '-')) {
+            if ($value === null || !$isSeparatePathValue($value)) {
                 throw new InvalidArgumentException('argument --'.$name.': expected one argument');
             }
         }

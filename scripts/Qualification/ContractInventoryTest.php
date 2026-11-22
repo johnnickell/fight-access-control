@@ -371,6 +371,35 @@ final class ContractInventoryTest extends TestCase
         }
     }
 
+    public function testSeparatePathValuesPreserveFailureClassificationAndReport(): void
+    {
+        $command = [PHP_BINARY, self::ROOT.'/scripts/contract_inventory.php'];
+        $output = $this->fixture.'/diagnostic.json';
+        foreach (['-1', '-0.5', '-.5', '-', '-missing folder'] as $value) {
+            $expected = new Process([...$command, '--root='.$value, '--output', $output], $this->fixture);
+            self::assertSame(1, $expected->run(), $expected->getErrorOutput());
+            $report = json_decode(file_get_contents($output), true, flags: JSON_THROW_ON_ERROR);
+
+            $this->put('diagnostic.json', '{"discovery_complete":true}');
+            $separate = new Process([...$command, '--root', $value, '--output', $output], $this->fixture);
+            self::assertSame(1, $separate->run(), $separate->getErrorOutput());
+            self::assertSame($report, json_decode(file_get_contents($output), true, flags: JSON_THROW_ON_ERROR));
+            self::assertSame(1, $report['schema']);
+            self::assertFalse($report['discovery_complete']);
+            self::assertFalse($report['semantic_audit_complete']);
+            self::assertStringContainsString($value.'/etc/contract-owners.json', $report['error']);
+        }
+
+        unlink($output);
+        $invalidValues = [[], ['--'], ['-h'], ['--he'], ['--output=other file'], ['--unknown'], ['-1.txt'], ['-1e3']];
+        foreach ($invalidValues as $next) {
+            $invalid = new Process([...$command, '--output', $output, '--root', ...$next], $this->fixture);
+            self::assertSame(2, $invalid->run(), $invalid->getErrorOutput());
+            self::assertStringContainsString('argument --root: expected one argument', $invalid->getErrorOutput());
+            self::assertFileDoesNotExist($output);
+        }
+    }
+
     private function config(array $rules = [self::RULE], array $concerns = [], array $roots = ['src', 'openapi']): void
     {
         $config = ['schema' => 1, 'rules' => $rules, 'roots' => $roots, 'concerns' => $concerns];
