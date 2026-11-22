@@ -54,7 +54,7 @@ printf '[quality] Exact all-suite statement coverage\n'
 ./bin/coverage
 
 printf '[quality] Independent Unit-only executable line coverage and suite balance\n'
-python3 scripts/check_unit_coverage.py
+php scripts/check_unit_coverage.php
 
 printf '[quality] Documentation links\n'
 ./bin/documentation-check
