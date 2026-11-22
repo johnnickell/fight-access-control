@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\AccessControl\Tooling\TypeContracts;
 
 use stdClass;
-use Symfony\Component\Process\Process;
 
 final class Analyzer
 {
@@ -84,40 +83,67 @@ final class Analyzer
     {
         $this->requireNotInterrupted();
         // PHPStan can restart itself without Xdebug, so give it a separate process group.
-        $process = new Process(['setsid', ...$command], $root, timeout: null);
         $deadline = hrtime(true) + $timeout * 1_000_000_000;
-        $process->start();
-        $pid = $process->getPid();
-        try {
-            while (true) {
-                $this->requireNotInterrupted();
-                if (!$process->isRunning()) {
-                    break;
-                }
-
-                if (hrtime(true) >= $deadline) {
-                    throw new ContractFailure('Analyzer timed out');
-                }
-
-                usleep(10_000);
-            }
-        } catch (ContractFailure $contractFailure) {
-            if ($pid !== null) {
-                // Stop the leader even if it has not entered the new group yet, then kill its descendants.
-                posix_kill($pid, SIGKILL);
-                posix_kill(-$pid, SIGKILL);
-            }
-
-            $process->stop(0, SIGKILL);
-            throw new ContractFailure(
-                $contractFailure->getMessage()." for $file\n".$process->getOutput()."\n".$process->getErrorOutput(),
-                previous: $contractFailure
-            );
+        $process = proc_open(['setsid', ...$command], [
+            0 => ['file', '/dev/null', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w']
+        ], $pipes, $root);
+        if (!is_resource($process)) {
+            throw new ContractFailure("Cannot launch analyzer for $file");
         }
 
-        $this->requireNotInterrupted();
+        $status = proc_get_status($process);
+        $pid = $status['pid'];
+        $output = [1 => '', 2 => ''];
+        try {
+            foreach ($pipes as $pipe) {
+                FixtureSuite::require(stream_set_blocking($pipe, false), 'Cannot configure analyzer pipe');
+            }
 
-        return [$process->getExitCode(), $process->getOutput(), $process->getErrorOutput()];
+            while (true) {
+                $this->requireNotInterrupted();
+                $remaining = $deadline - hrtime(true);
+                FixtureSuite::require($remaining > 0, 'Analyzer timed out');
+                if (!$status['running'] && $pipes === []) {
+                    $code = $status['signaled'] ? 128 + $status['termsig'] : $status['exitcode'];
+
+                    return [$code, $output[1], $output[2]];
+                }
+
+                // Bound each wait so SIGINT and exit are observed even with idle pipes.
+                $wait = (int) min(10_000, ceil($remaining / 1_000));
+                $this->readOutput($pipes, $output, $wait);
+                if ($status['running']) {
+                    $status = proc_get_status($process);
+                }
+            }
+        } catch (ContractFailure $contractFailure) {
+            if ($status['running']) {
+                // Stop the leader even if it has not entered the new group yet.
+                posix_kill($pid, SIGKILL);
+            }
+
+            // Descendants can still hold the pipes after the leader has exited.
+            posix_kill(-$pid, SIGKILL);
+            foreach ($pipes as $fd => $pipe) {
+                // Collect pending output without waiting for EOF or an escaped writer.
+                if (stream_set_blocking($pipe, false)) {
+                    $output[$fd] .= stream_get_contents($pipe, 65_536);
+                }
+            }
+
+            throw new ContractFailure(
+                $contractFailure->getMessage()." for $file\n".$output[1]."\n".$output[2],
+                previous: $contractFailure
+            );
+        } finally {
+            foreach ($pipes as $pipe) {
+                fclose($pipe);
+            }
+
+            proc_close($process);
+        }
     }
 
     private static function diagnosticCounts(array $messages): array
@@ -134,5 +160,33 @@ final class Analyzer
         }
 
         return $counts;
+    }
+
+    private function readOutput(array &$pipes, array &$output, int $wait): void
+    {
+        if ($pipes === []) {
+            usleep($wait);
+
+            return;
+        }
+
+        $readable = $pipes;
+        $write = null;
+        $except = null;
+        if (@stream_select($readable, $write, $except, 0, $wait) === false) {
+            // An interrupted select is expected on SIGINT; preserve the controlled failure.
+            $this->requireNotInterrupted();
+            throw new ContractFailure('Cannot wait for analyzer output');
+        }
+
+        foreach ($readable as $fd => $pipe) {
+            $chunk = fread($pipe, 8192);
+            FixtureSuite::require($chunk !== false, 'Cannot read analyzer output');
+            $output[$fd] .= $chunk;
+            if (feof($pipe)) {
+                fclose($pipe);
+                unset($pipes[$fd]);
+            }
+        }
     }
 }

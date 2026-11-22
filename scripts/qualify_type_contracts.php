@@ -139,6 +139,42 @@ try {
         'Analyzer timed out'
     );
 
+    $rejects(
+        'completion after a sub-poll deadline',
+        static fn (): array => $analyzer->capture(
+            ['/bin/sh', '-c', 'sleep 0.005; printf done; exit 1'],
+            $root,
+            $positive,
+            0.003
+        ),
+        'Analyzer timed out'
+    );
+
+    $lateOutput = ['/bin/sh', '-c', '(sleep 0.2; printf late-out; printf late-err >&2) & printf early; exit 1'];
+    if ($analyzer->capture($lateOutput, $root, $positive, 2) !== [1, 'earlylate-out', 'late-err']) {
+        throw new RuntimeException('Did not capture both streams through EOF with the original leader exit status');
+    }
+
+    echo "PASS delayed stdout and stderr after leader exit\n";
+    $rejects(
+        'timeout after EOF while leader still runs',
+        static fn (): array => $analyzer->capture(
+            ['/bin/sh', '-c', 'exec 1>&- 2>&-; sleep 2; exit 1'],
+            $root,
+            $positive,
+            0.2
+        ),
+        'Analyzer timed out'
+    );
+
+    $openStreamFinished = $suite.'/open-stream-finished';
+    $openStream = ['/bin/sh', '-c', '(sleep 1; touch "$1") & exit 1', 'qualification', $openStreamFinished];
+    $rejects(
+        'timeout with pipes still open after leader exit',
+        static fn (): array => $analyzer->capture($openStream, $root, $positive, 0.2),
+        'Analyzer timed out'
+    );
+
     $descendantFinished = $suite.'/descendant-finished';
     $leaderFinished = $suite.'/leader-finished';
     $interruptCommand = [
@@ -159,6 +195,11 @@ try {
         throw new RuntimeException('Interrupted analyzer or descendant reached its completion marker');
     }
 
+    if (is_file($openStreamFinished)) {
+        throw new RuntimeException('Timed-out descendant reached its completion marker after its leader exited');
+    }
+
+    echo "PASS timed-out descendant did not finish after leader exit\n";
     echo "PASS interrupted analyzer group did not finish\n";
     echo "Static runner qualification passed.\n";
 } finally {
