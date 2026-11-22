@@ -335,6 +335,42 @@ final class ContractInventoryTest extends TestCase
         }
     }
 
+    public function testLongOptionPrefixesPreserveCliBehavior(): void
+    {
+        $command = [PHP_BINARY, self::ROOT.'/scripts/contract_inventory.php'];
+        $output = $this->fixture.'/abbreviated.json';
+        $this->put('judgments.json', json_encode([
+            'candidate' => $this->baseline['candidate'],
+            'records'   => [$this->judgment()]
+        ], JSON_THROW_ON_ERROR));
+        unlink($this->fixture.'/etc/contract-inventory.json');
+        $process = new Process([
+            ...$command, '--roo='.$this->fixture, '--o', $output, '--p', $this->fixture.'/previous.json',
+            '--j', $this->fixture.'/judgments.json', '--ref'
+        ]);
+        self::assertSame(0, $process->run(), $process->getErrorOutput());
+        $report = json_decode(file_get_contents($output), true, flags: JSON_THROW_ON_ERROR);
+        self::assertTrue($report['structural_match']);
+        self::assertSame(['added' => [], 'changed' => [], 'moved' => [], 'removed' => []], $report['difference']);
+        $boundaries = array_column($report['boundaries'], null, 'id');
+        self::assertSame('unchanged', $boundaries['type:Fixture\\Port']['judgments']['TASK-00115']['status']);
+
+        $help = new Process([...$command, '--roo='.$this->fixture.'/missing', '--he']);
+        self::assertSame(0, $help->run(), $help->getErrorOutput());
+        self::assertStringContainsString('usage:', $help->getOutput());
+
+        $invalidOptions = [
+            '--r=unused'   => 'ambiguous',
+            '--rooo'       => 'unrecognized',
+            '--ref=unused' => 'ignored explicit'
+        ];
+        foreach ($invalidOptions as $flag => $message) {
+            $invalid = new Process([...$command, $flag]);
+            self::assertSame(2, $invalid->run(), $invalid->getErrorOutput());
+            self::assertStringContainsString($message, $invalid->getErrorOutput());
+        }
+    }
+
     private function config(array $rules = [self::RULE], array $concerns = [], array $roots = ['src', 'openapi']): void
     {
         $config = ['schema' => 1, 'rules' => $rules, 'roots' => $roots, 'concerns' => $concerns];

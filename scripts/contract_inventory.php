@@ -9,11 +9,36 @@ $toolRoot = dirname(__DIR__);
 $usage = 'usage: contract_inventory.php [--root ROOT] [--output OUTPUT]';
 $usage .= ' [--previous PREVIOUS] [--judgments JUDGMENTS] [--refresh]';
 $options = ['root' => $toolRoot, 'output' => null, 'previous' => null, 'judgments' => null];
+$switches = ['help', 'refresh'];
+$names = [...array_keys($options), ...$switches];
 $refresh = false;
 try {
     for ($i = 1; $i < $argc; $i++) {
         $argument = $argv[$i];
-        if ($argument === '--help' || $argument === '-h') {
+        [$flag, $value] = array_pad(explode('=', $argument === '-h' ? '--help' : $argument, 2), 2, null);
+        if (!str_starts_with($flag, '--') || $flag === '--') {
+            throw new InvalidArgumentException('unrecognized argument: '.$argument);
+        }
+
+        $name = substr($flag, 2);
+        if (!in_array($name, $names, true)) {
+            // The Python CLI accepted unique long-option prefixes.
+            $prefixMatches = array_filter($names, static fn (string $option): bool => str_starts_with($option, $name));
+            $matches = array_values($prefixMatches);
+            if (count($matches) > 1) {
+                $choices = implode(', --', $matches);
+                throw new InvalidArgumentException('ambiguous option: '.$argument.' could match --'.$choices);
+            }
+
+            $name = $matches[0] ?? throw new InvalidArgumentException('unrecognized argument: '.$argument);
+        }
+
+        if ($value !== null && in_array($name, $switches, true)) {
+            $explicit = var_export($value, true);
+            throw new InvalidArgumentException('argument --'.$name.': ignored explicit argument '.$explicit);
+        }
+
+        if ($name === 'help') {
             echo $usage."\n\nDiscover PHP contracts without executing source; reconcile structural ownership only.\n\n";
             echo "  --root       Candidate checkout (defaults to this repository)\n";
             echo "  --output     Ignored candidate evidence JSON\n";
@@ -23,21 +48,15 @@ try {
             exit(0);
         }
 
-        if ($argument === '--refresh') {
+        if ($name === 'refresh') {
             $refresh = true;
             continue;
-        }
-
-        [$flag, $value] = array_pad(explode('=', $argument, 2), 2, null);
-        $name = substr($flag, 2);
-        if (!str_starts_with($flag, '--') || !array_key_exists($name, $options)) {
-            throw new InvalidArgumentException('unrecognized argument: '.$argument);
         }
 
         if ($value === null) {
             $value = $argv[++$i] ?? null;
             if ($value === null || str_starts_with($value, '-')) {
-                throw new InvalidArgumentException('argument '.$flag.': expected one argument');
+                throw new InvalidArgumentException('argument --'.$name.': expected one argument');
             }
         }
 
