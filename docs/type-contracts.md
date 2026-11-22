@@ -55,15 +55,14 @@ and PHPCS checks include fixtures. Intentionally invalid static uses do not beco
 When changing the runner, qualify its failure handling separately:
 
 ```sh
-./bin/exec python3 scripts/qualify_type_contracts.py
+./bin/exec php scripts/qualify_type_contracts.php
 ```
 
-This explicit tooling qualification checks the full tracked suite and runs real PHPStan against a temporary
-positive/negative pair for mutation probes, including valid-case regression, lost precision, accepted invalid
-use, extra errors and missing/empty inputs. It separately challenges
-report matching, missing executables, process signals and timeout handling. It is not in default PHPUnit, coverage,
-`bin/quality` or ordinary CI. Save its complete output and actual exit under the owning TASK's ignored run evidence.
-A qualification pass does not replace the required product fixture check or canonical build.
+This standalone qualification uses synthetic tool output and temporary declarations to check exact report
+matching, malformed or incomplete output, invalid suite inputs, process failures and timeout handling. It does
+not execute fixtures. It is outside default PHPUnit, coverage, `bin/quality` and ordinary CI. Save its output
+and exit status under the owning TASK's ignored run evidence. Run `./bin/type-contracts` separately for the
+full tracked suite against PHPStan; neither focused command replaces the canonical build.
 
 For isolated probes only, `./bin/type-contracts --suite /absolute/container/path` selects a copied suite with its own
 `cases.json`; it still uses this checkout's analyzer/config/autoloading. Canonical `bin/quality` supplies no override.
