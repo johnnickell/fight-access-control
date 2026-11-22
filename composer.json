@@ -46,6 +46,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "Fight\\AccessControl\\Tooling\\": "scripts/",
             "Fight\\Test\\AccessControl\\": "tests"
         }
     },

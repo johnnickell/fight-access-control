@@ -8,8 +8,8 @@ qualifies Common or consumers, or supplies independent Review/QA.
 ## Required structural check
 
 Prepare the [isolated PHP runtime](LOCAL_TOOLING.md) and ordinary Composer dependencies first.
-`bin/quality` is the sole gate definition and runs `python3 scripts/contract_inventory.py` without ignored evidence
-or private criteria. `nikic/php-parser` is an explicit development dependency; source is parsed, never included.
+`bin/quality` is the sole gate definition and runs `php scripts/contract_inventory.php` directly in the prepared
+environment without ignored evidence or private criteria. `nikic/php-parser` is an explicit development dependency; source is parsed, never included.
 The existing syntax, style, static/dependency, Rector, default PHPUnit/OpenAPI and exact coverage gates are unchanged.
 
 The checker recursively discovers **all** PHP files under `src` and `openapi`, including declaration-free bootstrap
@@ -48,9 +48,9 @@ already assigns its owner. A fresh checkout can check the tracked fingerprints w
 For a TASK-owned change, retain a complete before inventory **before editing**, then inspect after drift:
 
 ```sh
-./bin/exec python3 scripts/contract_inventory.py --output .runs/tasks/TASK-00150/runs/before.json
+./bin/exec php scripts/contract_inventory.php --output .runs/tasks/TASK-00150/runs/before.json
 # Make only your authorized changes; substitute your actual TASK ID in evidence paths.
-./bin/exec python3 scripts/contract_inventory.py --previous .runs/tasks/TASK-00150/runs/before.json \
+./bin/exec php scripts/contract_inventory.php --previous .runs/tasks/TASK-00150/runs/before.json \
   --output .runs/tasks/TASK-00150/runs/after.json
 ```
 
@@ -63,8 +63,8 @@ Resolve new/ambiguous ownership with the actual correction owner, inspect the de
 source, then explicitly refresh the compact fingerprints and inspect their Git diff:
 
 ```sh
-./bin/exec python3 scripts/contract_inventory.py --refresh --output .runs/tasks/TASK-00150/runs/current.json
-./bin/exec python3 scripts/contract_inventory.py
+./bin/exec php scripts/contract_inventory.php --refresh --output .runs/tasks/TASK-00150/runs/current.json
+./bin/exec php scripts/contract_inventory.php
 ```
 
 Refresh acknowledges structural changes only. It does not make a correction, validate supplied evidence or accept
@@ -75,7 +75,8 @@ merely to hide an unexplained omission. Other correction slices need not wait fo
 
 `--output` writes deterministic detailed JSON under ignored TASK evidence. It includes the observed Git head,
 production file SHA-256 map, configuration/tool hashes, resolved Composer lock/installed-package identities and a
-combined `candidate` hash. The hash, not a HEAD label alone, identifies tested content; precommit snapshots need a
+combined `candidate` hash. The PHP port changes the tool hashes: Python reports still work with `--previous`,
+but judgments must be rebound to a fresh PHP candidate after owner verification. The hash, not a HEAD label alone, identifies tested content; precommit snapshots need a
 Git mapping in the handoff. Output timestamps are deliberately absent. Records include parent/location, actual
 native/static declaration, primary owner, secondary concerns and explicit pending judgment slots for every concern.
 All initial slots remain pending. No count or discovery result means semantic review is complete.
@@ -105,7 +106,7 @@ into tracked configuration, public logs or PR prose. Review detailed artifacts b
 Run this separately when changing discovery/reconciliation behavior:
 
 ```sh
-./bin/exec python3 scripts/qualify_contract_inventory.py
+./bin/exec vendor/bin/phpunit --no-configuration scripts/Qualification/ContractInventoryTest.php
 ```
 
 It exercises real PHP AST parsing and command exit/output behavior against isolated generated source/metadata

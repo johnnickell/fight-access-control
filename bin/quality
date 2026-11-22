@@ -19,7 +19,7 @@ printf '[quality] Planning integrity\n'
 ./bin/planning-check
 
 printf '[quality] Structural contract ownership (not semantic audit completion)\n'
-python3 scripts/contract_inventory.py
+php scripts/contract_inventory.php
 
 printf '[quality] PHPCS\n'
 php vendor/bin/phpcs
