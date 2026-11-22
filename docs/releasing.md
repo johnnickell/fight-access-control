@@ -42,7 +42,8 @@ untracked release files in `git status` as well. Never globally replace every ol
 
 ## Check and certify
 
-From the selected checkout, substitute the approved version:
+Prepare the local tooling image once with `docker pull php:8.5-cli`. From the selected checkout,
+substitute the approved version:
 
 ```bash
 ./bin/release check-docs <version>
@@ -51,7 +52,10 @@ From the selected checkout, substitute the approved version:
 git diff --check
 ```
 
-`check-docs` is read-only, works on an uncommitted tree and requires Python 3 but not Docker or publication access.
+`check-docs` is read-only and works on an uncommitted tree. It uses Docker with a local PHP CLI image
+(stable 8.5.12 or newer on the 8.5 line). It does not pull an image, use the network, start Compose, or need
+Git, host PHP, Python, Composer or `vendor/`. The release-docs image can be selected with
+`FIGHT_ACCESS_CONTROL_RELEASE_DOCS_IMAGE`; it must already be local and meet the same PHP floor.
 It rejects a mismatched README panel/install command/runtime requirement, missing or invalid dated Changelog entry,
 a candidate that is not the first release, stale comparison links, a missing/wrong-titled overview and a hardcoded
 Composer version. It does not decide release scope, validate arbitrary prose, query hosting/Packagist or certify
@@ -60,11 +64,13 @@ consumer adapters. The inventory and manual search above cover semantic referenc
 When changing the release tooling, run its separate qualification explicitly:
 
 ```bash
-python3 scripts/qualify_release_docs.py
+./bin/qualify-release-docs
 ```
 
-This tooling qualification is not part of product PHPUnit, ordinary CI or `./bin/build`. It uses disposable fixtures
-and covers metadata failures, no-write behavior and early certification rejection; it is not release certification.
+In an already prepared PHP environment, run `php -n scripts/check_release_docs.php <version>` or
+`php -n scripts/qualify_release_docs.php` directly. Neither script invokes Docker. The qualifier uses disposable
+fixtures to exercise the production checker and verify its output, exit codes and read-only behavior. It is not part
+of product PHPUnit, ordinary CI or `./bin/build`. Neither command invokes certification.
 Implementation/build-input changes still require the normal full build and independent Review/QA.
 
 After independent release-content acceptance and authorized integration, run on the **exact clean main release
@@ -74,8 +80,8 @@ merge commit**, not merely a tree-equivalent earlier candidate:
 ./bin/release certify <version>
 ```
 
-Certification checks current version metadata first, then planning, the full package build and OpenAPI consumer
-composition. It records `release-docs.log`, the other logs and `certification.json` under
+Prepare the release-docs image as above before certification. Certification checks current version metadata first
+with the same checker as `check-docs`, then runs planning, the full package build and OpenAPI consumer composition. It records `release-docs.log`, the other logs and `certification.json` under
 `.runs/release-<version>-<commit>/`. An existing evidence directory stops a retry: preserve failed attempts and move
 only the proven-owned failed directory to a purpose-named ignored archive before a separately identified rerun.
 Never overwrite a successful receipt or infer a successful run from a partial log. Certification makes no commit,
