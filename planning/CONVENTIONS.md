@@ -149,6 +149,18 @@ to an existing Ticket leaves `ticket` empty and declares `kind: bug` or `kind: c
 order, lifecycle, acceptance, verification, blocker, and optional PR metadata. Do not invent a Ticket or EPIC
 parent for this exception.
 
+## Offline planning toolchain
+
+Use `python3` (Python 3.9 or newer) and Git to validate and regenerate planning views or apply an archive.
+The planning tools use only the Python standard library and local checkout files. They do not need PHP,
+Docker, Composer, `vendor/` or network access. The prepared local and hosted quality gates also need Python
+for `./bin/planning-check`. The [migration inventory](../docs/engineering/python-tooling-inventory.md) records
+why the planning maintainers retain these tools.
+
+Run `python3 -B scripts/qualify_planning_portfolio.py` to check Board next-action precedence against synthetic
+records without writing planning files. To qualify archive apply, use a disposable checkout with no local
+work or dependency tree; never apply an archive to live work just to test it.
+
 ## Generated planning views
 
 Task frontmatter is canonical. planning/tasks/README.md, planning/tasks/BOARD.md, EPIC/TICKET child lists, and the
