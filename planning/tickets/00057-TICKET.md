@@ -30,7 +30,7 @@ Start with the contract inventory, then coverage checker. Port the static fixtur
 | 520 | [TASK-00197](../tasks/00197-TASK.md) | Port the Unit coverage checker to PHP | done |
 | 521 | [TASK-00198](../tasks/00198-TASK.md) | Port the static fixture runner and its qualification helper to PHP | done |
 | 522 | [TASK-00199](../tasks/00199-TASK.md) | Resolve Python planning and archive tooling | done |
-| 523 | [TASK-00200](../tasks/00200-TASK.md) | Resolve Python release-docs preflight tooling | ready-for-agent |
+| 523 | [TASK-00200](../tasks/00200-TASK.md) | Resolve Python release-docs preflight tooling | done |
 | 524 | [TASK-00201](../tasks/00201-TASK.md) | Resolve Python host build runtime and worktree tooling | ready-for-agent |
 | 525 | [TASK-00202](../tasks/00202-TASK.md) | Resolve Python documentation diagram generators | ready-for-agent |
 ## Acceptance Evidence
