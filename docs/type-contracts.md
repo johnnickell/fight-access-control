@@ -28,7 +28,10 @@ Both modes deliberately require analyzer **exit 1**: positive probes are themsel
 cases must be rejected. The runner additionally checks complete JSON, exact file/error totals and no global errors
 or unexpected stderr. Exit 0, other exits, signals, timeouts, missing analyzer/dependencies, malformed/partial output
 and unexpected diagnostics fail. It prints overall success only after every declared case passes. The per-process
-default timeout is 120 seconds; focused runs can set `--timeout SECONDS`.
+default timeout is 120 seconds; focused runs can set `--timeout SECONDS`. The same deadline covers analyzer exit and
+end-of-file on both output streams, even when a child keeps writing after the analyzer exits. On timeout or SIGINT,
+the runner stops PHPStan and its process group and reports failure (exit 1). The prepared PHP tooling runtime supplies `pcntl`
+for SIGINT handling; it is not a library or host dependency.
 
 The fixture configuration [`phpstan-type-contracts.neon`](../phpstan-type-contracts.neon) inherits the ordinary
 production/caller rules in [`phpstan.neon.dist`](../phpstan.neon.dist). Explicit file arguments select each fixture;
@@ -55,15 +58,15 @@ and PHPCS checks include fixtures. Intentionally invalid static uses do not beco
 When changing the runner, qualify its failure handling separately:
 
 ```sh
-./bin/exec python3 scripts/qualify_type_contracts.py
+./bin/exec php scripts/qualify_type_contracts.php
 ```
 
-This explicit tooling qualification checks the full tracked suite and runs real PHPStan against a temporary
-positive/negative pair for mutation probes, including valid-case regression, lost precision, accepted invalid
-use, extra errors and missing/empty inputs. It separately challenges
-report matching, missing executables, process signals and timeout handling. It is not in default PHPUnit, coverage,
-`bin/quality` or ordinary CI. Save its complete output and actual exit under the owning TASK's ignored run evidence.
-A qualification pass does not replace the required product fixture check or canonical build.
+This standalone qualification uses synthetic tool output and temporary declarations to check exact report
+matching, malformed or incomplete output, invalid suite inputs, process failures, delayed output, deadline enforcement
+and process-group cleanup on timeout or SIGINT. It does
+not execute fixtures. It is outside default PHPUnit, coverage, `bin/quality` and ordinary CI. Save its output
+and exit status under the owning TASK's ignored run evidence. Run `./bin/type-contracts` separately for the
+full tracked suite against PHPStan; neither focused command replaces the canonical build.
 
 For isolated probes only, `./bin/type-contracts --suite /absolute/container/path` selects a copied suite with its own
 `cases.json`; it still uses this checkout's analyzer/config/autoloading. Canonical `bin/quality` supplies no override.

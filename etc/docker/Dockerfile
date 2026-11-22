@@ -25,7 +25,7 @@ COPY --from=composer:2.8.12 /usr/bin/composer /usr/local/bin/composer
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl libexpat1 libpcre2-8-0 openssh-client perl zlib1g libicu-dev python3 unzip \
-    && docker-php-ext-install intl \
+    && docker-php-ext-install intl pcntl \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
     && apt-get clean \
