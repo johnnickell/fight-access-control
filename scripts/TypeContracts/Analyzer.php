@@ -9,47 +9,16 @@ use Symfony\Component\Process\Process;
 
 final class Analyzer
 {
-    public static function run(string $root, string $file, float $timeout): array
+    private bool $interrupted = false;
+
+    public function __construct()
     {
-        return self::capture([
-            PHP_BINARY,
-            '-d',
-            'memory_limit=512M',
-            $root.'/vendor/bin/phpstan',
-            'analyse',
-            '-c',
-            $root.'/phpstan-type-contracts.neon',
-            '--no-progress',
-            '--no-ansi',
-            '--error-format=json',
-            $file
-        ], $root, $file, $timeout);
-    }
-
-    public static function capture(array $command, string $root, string $file, float $timeout): array
-    {
-        // PHPStan can restart itself without Xdebug. Terminate its whole session on timeout.
-        $process = new Process(['setsid', ...$command], $root, timeout: null);
-        $deadline = hrtime(true) + $timeout * 1_000_000_000;
-        $process->start();
-        $pid = $process->getPid();
-        while ($process->isRunning()) {
-            if (hrtime(true) >= $deadline) {
-                if ($pid !== null) {
-                    posix_kill(-$pid, 9);
-                }
-
-                // Also stops the leader if the deadline fired before setsid created the group.
-                $process->stop(0, 9);
-                throw new ContractFailure(
-                    "Analyzer timed out for $file\n".$process->getOutput()."\n".$process->getErrorOutput()
-                );
-            }
-
-            usleep(10_000);
+        $interrupt = function (): void {
+            $this->interrupted = true;
+        };
+        if (!function_exists('pcntl_signal') || !pcntl_signal(SIGINT, $interrupt)) {
+            throw new ContractFailure('Analyzer requires pcntl SIGINT handling in the tooling runtime');
         }
-
-        return [$process->getExitCode(), $process->getOutput(), $process->getErrorOutput()];
     }
 
     public static function check(stdClass $case, array $result): void
@@ -84,6 +53,71 @@ final class Analyzer
         $expected = self::diagnosticCounts($case->diagnostics);
         $actual = self::diagnosticCounts($output->messages);
         FixtureSuite::require($expected == $actual, "$id: diagnostic mismatch against case manifest");
+    }
+
+    public function run(string $root, string $file, float $timeout): array
+    {
+        return $this->capture([
+            PHP_BINARY,
+            '-d',
+            'memory_limit=512M',
+            $root.'/vendor/bin/phpstan',
+            'analyse',
+            '-c',
+            $root.'/phpstan-type-contracts.neon',
+            '--no-progress',
+            '--no-ansi',
+            '--error-format=json',
+            $file
+        ], $root, $file, $timeout);
+    }
+
+    public function requireNotInterrupted(): void
+    {
+        pcntl_signal_dispatch();
+        if ($this->interrupted) {
+            throw new ContractFailure('Analyzer interrupted');
+        }
+    }
+
+    public function capture(array $command, string $root, string $file, float $timeout): array
+    {
+        $this->requireNotInterrupted();
+        // PHPStan can restart itself without Xdebug, so give it a separate process group.
+        $process = new Process(['setsid', ...$command], $root, timeout: null);
+        $deadline = hrtime(true) + $timeout * 1_000_000_000;
+        $process->start();
+        $pid = $process->getPid();
+        try {
+            while (true) {
+                $this->requireNotInterrupted();
+                if (!$process->isRunning()) {
+                    break;
+                }
+
+                if (hrtime(true) >= $deadline) {
+                    throw new ContractFailure('Analyzer timed out');
+                }
+
+                usleep(10_000);
+            }
+        } catch (ContractFailure $contractFailure) {
+            if ($pid !== null) {
+                // Stop the leader even if it has not entered the new group yet, then kill its descendants.
+                posix_kill($pid, SIGKILL);
+                posix_kill(-$pid, SIGKILL);
+            }
+
+            $process->stop(0, SIGKILL);
+            throw new ContractFailure(
+                $contractFailure->getMessage()." for $file\n".$process->getOutput()."\n".$process->getErrorOutput(),
+                previous: $contractFailure
+            );
+        }
+
+        $this->requireNotInterrupted();
+
+        return [$process->getExitCode(), $process->getOutput(), $process->getErrorOutput()];
     }
 
     private static function diagnosticCounts(array $messages): array

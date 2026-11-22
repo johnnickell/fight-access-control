@@ -8,8 +8,29 @@ use Fight\AccessControl\Tooling\TypeContracts\FixtureSuite;
 
 $root = dirname(__DIR__);
 $suite = $root.'/etc/phpstan/type-contracts';
-$timeout = '120';
+$timeout = 120.0;
 $usage = 'usage: check_type_contracts.php [-h] [--suite SUITE] [--timeout TIMEOUT]';
+$parseTimeout = static function (string $value): float {
+    // Match float syntax, including digit separators and Unicode decimal digits.
+    $number = preg_replace('/\A[\p{Z}\x09-\x0d\x{85}]+|[\p{Z}\x09-\x0d\x{85}]+\z/u', '', $value);
+    if ($number !== null && preg_match('/\A[+-]?(?:inf(?:inity)?|nan)\z/i', $number) === 1) {
+        return NAN;
+    }
+
+    $digits = '\p{Nd}(?:_?\p{Nd})*';
+    $decimal = "(?:$digits(?:\\.(?:$digits)?)?|\\.$digits)";
+    if ($number === null || preg_match("/\A[+-]?$decimal(?:[eE][+-]?$digits)?\z/u", $number) !== 1) {
+        throw new InvalidArgumentException("invalid timeout: $value");
+    }
+
+    $normalized = preg_replace_callback(
+        '/\p{Nd}/u',
+        static fn (array $match): string => (string) IntlChar::digit($match[0]),
+        $number
+    );
+
+    return (float) str_replace('_', '', $normalized);
+};
 
 try {
     for ($index = 1; $index < count($argv); ++$index) {
@@ -38,7 +59,10 @@ try {
 
         if ($value === null) {
             $value = $argv[++$index] ?? null;
-            if ($value === null || (str_starts_with($value, '-') && !is_numeric($value))) {
+            if (
+                $value === null || (str_starts_with($value, '-')
+                    && preg_match('/\A-(?:\p{Nd}+|\p{Nd}*\.\p{Nd}+)\z/u', $value) !== 1)
+            ) {
                 throw new InvalidArgumentException("expected a value for $option");
             }
         }
@@ -46,11 +70,7 @@ try {
         if ($matches[0] === '--suite') {
             $suite = $value;
         } else {
-            if (!is_numeric($value) && preg_match('/^[+-]?(?:inf(?:inity)?|nan)$/iD', trim($value)) !== 1) {
-                throw new InvalidArgumentException("invalid timeout: $value");
-            }
-
-            $timeout = $value;
+            $timeout = $parseTimeout($value);
         }
     }
 } catch (InvalidArgumentException $invalidArgumentException) {
@@ -66,14 +86,14 @@ try {
     }
 
     require $root.'/vendor/autoload.php';
-    $seconds = (float) $timeout;
-    FixtureSuite::require(is_finite($seconds) && $seconds > 0, 'Analyzer timeout must be finite and positive');
+    $analyzer = new Analyzer();
+    FixtureSuite::require(is_finite($timeout) && $timeout > 0, 'Analyzer timeout must be finite and positive');
     $suitePath = realpath($suite === '' ? '.' : $suite);
     FixtureSuite::require($suitePath !== false && is_dir($suitePath), 'Missing suite directory: '.$suite);
     $cases = FixtureSuite::load($suitePath);
     $diagnostics = 0;
     foreach ($cases as $case) {
-        $result = Analyzer::run($root, $case->file, $seconds);
+        $result = $analyzer->run($root, $case->file, $timeout);
         try {
             Analyzer::check($case, $result);
         } catch (ContractFailure | JsonException $failure) {
@@ -89,6 +109,7 @@ try {
         flush();
     }
 
+    $analyzer->requireNotInterrupted();
     printf("[type-contracts] Passed %d cases; %d exact diagnostics\n", count($cases), $diagnostics);
 } catch (RuntimeException | JsonException | ValueError $failure) {
     fwrite(STDERR, '[type-contracts] FAIL '.$failure->getMessage().PHP_EOL);

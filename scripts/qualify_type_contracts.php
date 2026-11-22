@@ -118,6 +118,7 @@ try {
     unlink($manifest);
     $rejects('missing manifest', static fn (): array => FixtureSuite::load($suite), 'Cannot read UTF-8 input');
 
+    $analyzer = new Analyzer();
     foreach (
         [
         'unavailable analyzer' => [$suite.'/unavailable'],
@@ -126,7 +127,7 @@ try {
     ) {
         $rejects(
             $scenario,
-            static fn () => Analyzer::check($case, Analyzer::capture($command, $root, $positive, 5)),
+            static fn () => Analyzer::check($case, $analyzer->capture($command, $root, $positive, 5)),
             'diagnostic exit 1'
         );
     }
@@ -134,9 +135,31 @@ try {
     $slowCommand = ['/bin/sh', '-c', 'printf "{"; sleep 20 & wait'];
     $rejects(
         'native timeout on partial output with descendant',
-        static fn (): array => Analyzer::capture($slowCommand, $root, $positive, 0.2),
+        static fn (): array => $analyzer->capture($slowCommand, $root, $positive, 0.2),
         'Analyzer timed out'
     );
+
+    $descendantFinished = $suite.'/descendant-finished';
+    $leaderFinished = $suite.'/leader-finished';
+    $interruptCommand = [
+        '/bin/sh',
+        '-c',
+        '(sleep 1; touch "$1") & kill -INT "$PPID"; wait; touch "$2"',
+        'qualification',
+        $descendantFinished,
+        $leaderFinished
+    ];
+    $rejects(
+        'controlled SIGINT failure',
+        static fn (): array => $analyzer->capture($interruptCommand, $root, $positive, 5),
+        'Analyzer interrupted'
+    );
+    usleep(1_250_000);
+    if (is_file($descendantFinished) || is_file($leaderFinished)) {
+        throw new RuntimeException('Interrupted analyzer or descendant reached its completion marker');
+    }
+
+    echo "PASS interrupted analyzer group did not finish\n";
     echo "Static runner qualification passed.\n";
 } finally {
     foreach (glob($suite.'/*') as $file) {
