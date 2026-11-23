@@ -50,38 +50,73 @@ tracked_inputs() {
 
 umask 077
 pipes=$(mktemp -d)
-trap 'rm -f -- "$pipes/request" "$pipes/reply"; rmdir -- "$pipes"' EXIT
+trap '
+    if [[ -s "$pipes/worker.err" ]]; then head -c 65536 "$pipes/worker.err" >&2 || :; fi
+    rm -f -- "$pipes/request" "$pipes/reply" "$pipes/worker.err" "$pipes/worker.cid"; rmdir -- "$pipes"
+' EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 mkfifo "$pipes/request" "$pipes/reply"
 mount=${root//\"/\"\"}
-worker_status=0
+# Keep the transport in its own host group, with no caller output pipe.
+# Even a transport that cannot be reaped must not delay the caller's EOF.
+set -m
 "$DOCKER_BIN" container run -i --rm --pull=never --network=none --read-only --label com.docker.compose.project= \
-    --cap-drop ALL --security-opt no-new-privileges \
+    --cidfile "$pipes/worker.cid" --cap-drop ALL --security-opt no-new-privileges \
     --mount "type=bind,\"source=$mount\",\"target=$mount\"" --workdir "$root" \
     --user "$(id -u):$(id -g)" --env HOME=/tmp --entrypoint php \
-    "$PHP_IMAGE" -n scripts/build_cache.php "$@" < "$pipes/request" > "$pipes/reply" &
+    "$PHP_IMAGE" -n scripts/build_cache.php "$@" < "$pipes/request" > "$pipes/reply" 2> "$pipes/worker.err" &
 worker=$!
+set +m
 exec 7> "$pipes/request" 8< "$pipes/reply"
 
 # The protocol admits only fixed transitions, never worker-supplied commands.
 receive() { IFS= read -r reply <&8 || return; }
 send() { printf '%s\n' "$1" >&7; }
 finish() {
+    local worker_status=0
     exec 7>&- 8<&-
     wait "$worker" || worker_status=$?
+    cat "$pipes/worker.err" >&2 || :
+    rm -f -- "$pipes/worker.err"
     exit "$worker_status"
+}
+worker_group_stopped() {
+    local polls="$1"
+    while kill -0 -- "-$worker" 2>/dev/null; do
+        (( polls > 0 )) || return 1
+        polls=$((polls - 1))
+        sleep 0.1
+    done
+    wait "$worker" 2>/dev/null || :
+}
+stop_phase_worker() {
+    local outcome='exited after EOF request' container=''
+    # Read the ID before Docker has a chance to remove its cidfile on exit.
+    if [[ -f "$pipes/worker.cid" ]]; then IFS= read -r container < "$pipes/worker.cid" || :; fi
+    [[ "$container" =~ ^[0-9a-f]{64}$ ]] || container='unknown ID'
+    exec 7>&- 8<&-
+    if ! worker_group_stopped 20; then
+        # Kill only the host transport group; do not proxy TERM to Docker
+        # or infer the container stopped when the client disconnects.
+        kill -KILL -- "-$worker" 2>/dev/null || :
+        outcome='exited after host KILL request'
+        worker_group_stopped 10 || outcome='shutdown not confirmed after host KILL request'
+    fi
+    printf 'Evidence worker group %s: %s (container %s).\n' "$worker" "$outcome" "$container" >&2
+    printf 'Reobserve the exact worker, Docker runtime and build lock (%s) before retrying.\n' "$root/var/build.lock" >&2
 }
 run_phase() {
     local status=0
     bounded 1800 "$@" 7>&- 8<&- || status=$?
     (( status != 0 )) || return 0
-    exec 7>&- 8<&-
-    wait "$worker" || :
     if (( status == 124 )); then
-        incomplete "Command timed out; reobserve actual state before retrying: ${*:1:3}"
+        printf 'Build incomplete: Command timed out: %s\n' "${*:1:3}" >&2
+    else
+        printf 'Build incomplete: Command failed (exit %s): %s\n' "$status" "${*:1:3}" >&2
     fi
-    incomplete "Command failed (exit $status): ${*:1:3}"
+    stop_phase_worker
+    exit 1
 }
 receive || finish
 [[ "$reply" == PLAN ]] || incomplete 'Unexpected planning protocol state'

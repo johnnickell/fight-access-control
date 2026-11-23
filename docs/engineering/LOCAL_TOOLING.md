@@ -71,8 +71,12 @@ again with that fresh list. A hit skips build preparation, including dependency 
 builds.
 On a miss, configured preparation runs first and its resulting dependency contents become the gate inputs.
 Planning validation, preparation and each Git snapshot have 30-minute host deadlines. If planning or preparation
-times out, the gate does not start. Reobserve actual state before retrying; stopping the host process does not
-prove the Docker daemon made no changes.
+times out, the wrapper reports it before waiting for the evidence worker, and the gate does not start. It closes
+worker input, allows about two seconds for the host transport group to exit, then sends KILL to that local group
+if it remains and waits about one more second for confirmation. The diagnostic names the group, the container
+when known, and the checkout lock. Reobserve those and the selected runtime before retrying. Local transport
+exit does not prove the container stopped, the lock was released, or the Docker daemon made no changes. The
+wrapper does not retry or clean up Docker resources on this path.
 An unavailable Git snapshot is not an empty tracked list. It prevents reuse, but does not stop the full gate.
 Without a pre-gate fingerprint the result is not reusable. A failed gate keeps its exit without a final snapshot.
 If a passing gate cannot be verified against its pre-gate fingerprint, the receipt records both the passing gate
