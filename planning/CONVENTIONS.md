@@ -151,15 +151,18 @@ parent for this exception.
 
 ## Offline planning toolchain
 
-Use `python3` (Python 3.9 or newer) and Git to validate and regenerate planning views or apply an archive.
-The planning tools use only the Python standard library and local checkout files. They do not need PHP,
-Docker, Composer, `vendor/` or network access. The prepared local and hosted quality gates also need Python
-for `./bin/planning-check`. The [migration inventory](../docs/engineering/python-tooling-inventory.md) records
-why the planning maintainers retain these tools.
+On the host, `./bin/planning-check` and `./bin/archive-planning` use Git and the prepared package PHP image.
+Prepare the default image with `./bin/up --build-only` in main; for an already prepared alternate package image,
+set `FIGHT_ACCESS_CONTROL_PLANNING_IMAGE` to its name. The wrappers do not pull, start Compose, use the network,
+or require host PHP, Python, Composer or `vendor/`. Validation and archive dry runs mount the checkout read-only.
 
-Run `python3 -B scripts/qualify_planning_portfolio.py` to check Board next-action precedence against synthetic
-records without writing planning files. To qualify archive apply, use a disposable checkout with no local
-work or dependency tree; never apply an archive to live work just to test it.
+In a prepared PHP environment, use `php -n scripts/planning_portfolio.php [--write]` or
+`php -n scripts/archive_planning.php` with the same archive arguments listed below. These commands use Git and
+local files; they never call Docker. The shared quality gate uses the direct PHP validator.
+
+Run `php -n scripts/qualify_planning_portfolio.php` in a prepared PHP environment to check Board next-action
+precedence against synthetic records without writing planning files. Qualify archive apply only in a disposable
+checkout without local work or a dependency tree; never apply an archive to live work just to test it.
 
 ## Generated planning views
 

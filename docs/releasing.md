@@ -42,7 +42,8 @@ untracked release files in `git status` as well. Never globally replace every ol
 
 ## Check and certify
 
-Prepare the local tooling image once with `docker pull php:8.5-cli`. From the selected checkout,
+Prepare the release-docs image once with `docker pull php:8.5-cli`. For planning validation and certification,
+prepare the [package planning image](../planning/CONVENTIONS.md#offline-planning-toolchain) as well. From the selected checkout,
 substitute the approved version:
 
 ```bash

@@ -16,7 +16,7 @@ printf '[quality] PHP syntax\n'
 done
 
 printf '[quality] Planning integrity\n'
-./bin/planning-check
+php -n scripts/planning_portfolio.php
 
 printf '[quality] Structural contract ownership (not semantic audit completion)\n'
 php scripts/contract_inventory.php

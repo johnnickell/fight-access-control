@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+# Reuse the prepared package image without starting Compose or preparing dependencies.
+run_planning() {
+    local script="$1" write_flag="$2" access=,readonly arg
+    shift 2
+    for arg in "$@"; do
+        [[ "$arg" != -- ]] || break
+        if [[ "$arg" == "$write_flag" ]]; then
+            access=
+        fi
+    done
+
+    local DOCKER_BIN="${DOCKER_BIN:-docker}" GIT_BIN="${GIT_BIN:-git}" ID_BIN="${ID_BIN:-id}"
+    local image="${FIGHT_ACCESS_CONTROL_PLANNING_IMAGE:-fight-access-control-php}" PHP_IMAGE
+    if ! PHP_IMAGE="$("$DOCKER_BIN" image inspect --format '{{.Id}}' "$image")"; then
+        echo 'Planning tooling image unavailable. Prepare it with ./bin/up --build-only (main), or select a prepared package image with FIGHT_ACCESS_CONTROL_PLANNING_IMAGE.' >&2
+        return 1
+    fi
+    source "$ROOT_DIR/bin/.php-runtime"
+    # Compose-built images carry a project label. The one-shot check is not a Compose resource.
+    local label=com.docker.compose.project=
+    admit_php_runtime --pull=never --label "$label" >/dev/null || return
+
+    local common path workdir target
+    common="$("$GIT_BIN" rev-parse --path-format=absolute --git-common-dir)" || return
+    workdir=/app
+    local -a mounts=()
+    if [[ "$common" != "$ROOT_DIR/"* ]]; then
+        workdir="$ROOT_DIR"
+        path="${common//\"/\"\"}"
+        mounts+=(--mount "type=bind,\"source=$path\",\"target=$path\",readonly")
+    fi
+    path="${ROOT_DIR//\"/\"\"}"
+    target="${workdir//\"/\"\"}"
+    mounts+=(--mount "type=bind,\"source=$path\",\"target=$target\"$access")
+    exec "$DOCKER_BIN" container run --rm --pull=never --network=none --read-only --label "$label" \
+        --cap-drop ALL --security-opt no-new-privileges "${mounts[@]}" --workdir "$workdir" \
+        --user "$("$ID_BIN" -u):$("$ID_BIN" -g)" --env HOME=/tmp --entrypoint php \
+        "$PHP_IMAGE" -n "scripts/$script" "$@"
+}
