@@ -60,5 +60,5 @@ This generated index is a projection; individual records remain canonical.
 | [TICKET-00054](00054-TICKET.md) | Publish and streamline consumer documentation | done |
 | [TICKET-00055](00055-TICKET.md) | Make the quality gate faster and more reliable | done |
 | [TICKET-00056](00056-TICKET.md) | Relocate static type-contract fixtures without losing proof | done |
-| [TICKET-00057](00057-TICKET.md) | Migrate repository Python tooling to PHP | ready-for-agent |
+| [TICKET-00057](00057-TICKET.md) | Migrate repository Python tooling to PHP | done |
 | [TICKET-00058](00058-TICKET.md) | Adopt equivalent Fight Common Domain helpers | ready-for-agent |

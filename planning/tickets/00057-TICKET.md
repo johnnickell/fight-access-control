@@ -2,7 +2,7 @@
 id: TICKET-00057
 epic: EPIC-00019
 title: Migrate repository Python tooling to PHP
-status: ready-for-agent
+status: done
 ---
 
 # Migrate repository Python tooling to PHP
@@ -32,7 +32,7 @@ Start with the contract inventory, then coverage checker. Port the static fixtur
 | 522 | [TASK-00199](../tasks/00199-TASK.md) | Resolve Python planning and archive tooling | done |
 | 523 | [TASK-00200](../tasks/00200-TASK.md) | Resolve Python release-docs preflight tooling | done |
 | 524 | [TASK-00201](../tasks/00201-TASK.md) | Resolve Python host build runtime and worktree tooling | done |
-| 525 | [TASK-00202](../tasks/00202-TASK.md) | Resolve Python documentation diagram generators | ready-for-agent |
+| 525 | [TASK-00202](../tasks/00202-TASK.md) | Resolve Python documentation diagram generators | done |
 ## Acceptance Evidence
 
 - [ ] Reconcile the inventory with PHP replacements, verified removals and the approved consumer docs exception. Check tracked files, automation, dependency manifests and documented commands for Python tooling or requirements outside that exception.
