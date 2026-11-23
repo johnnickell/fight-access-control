@@ -154,7 +154,8 @@ parent for this exception.
 On the host, `./bin/planning-check` and `./bin/archive-planning` use Git and the prepared package PHP image.
 Prepare the default image with `./bin/up --build-only` in main; for an already prepared alternate package image,
 set `FIGHT_ACCESS_CONTROL_PLANNING_IMAGE` to its name. The wrappers do not pull, start Compose, use the network,
-or require host PHP, Python, Composer or `vendor/`. Validation and archive dry runs mount the checkout read-only.
+or require host PHP, Python, Composer or `vendor/`. Each wrapper starts one container, which checks for stable
+PHP 8.5.12 or later on the 8.5 line before loading the script. Validation and archive dry runs mount the checkout read-only.
 
 In a prepared PHP environment, use `php -n scripts/planning_portfolio.php [--write]` or
 `php -n scripts/archive_planning.php` with the same archive arguments listed below. These commands use Git and

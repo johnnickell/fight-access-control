@@ -52,10 +52,8 @@ run_planning() {
         echo 'Planning tooling image unavailable. Prepare it with ./bin/up --build-only (main), or select a prepared package image with FIGHT_ACCESS_CONTROL_PLANNING_IMAGE.' >&2
         return 1
     fi
-    source "$ROOT_DIR/bin/.php-runtime"
-    # Compose-built images carry a project label. The one-shot check is not a Compose resource.
+    # Compose-built images carry a project label. This one-shot is not a Compose resource.
     local label=com.docker.compose.project=
-    admit_php_runtime --pull=never --label "$label" >/dev/null || return
 
     local common path workdir target
     common="$("$GIT_BIN" rev-parse --path-format=absolute --git-common-dir)" || return
@@ -72,5 +70,16 @@ run_planning() {
     exec "$DOCKER_BIN" container run --rm --pull=never --network=none --read-only --label "$label" \
         --cap-drop ALL --security-opt no-new-privileges "${mounts[@]}" --workdir "$workdir" \
         --user "$("$ID_BIN" -u):$("$ID_BIN" -g)" --env HOME=/tmp --entrypoint php \
-        "$PHP_IMAGE" -n "scripts/$script" "$@"
+        "$PHP_IMAGE" -n -r '
+            if (!preg_match("/^8\\.5\\.[1-9][0-9]*$/D", PHP_VERSION) || PHP_VERSION_ID < 80512) {
+                fwrite(STDERR, "[runtime] Rejected PHP version: require stable PHP 8.5.12 or newer on the supported 8.5 build line.\n");
+                fwrite(STDERR, "[runtime] Refresh the package image and check image overrides.\n");
+                exit(1);
+            }
+
+            // Drop the inline entrypoint name so the script sees its usual arguments.
+            array_shift($argv);
+            --$argc;
+            require $argv[0];
+        ' -- "scripts/$script" "$@"
 }
