@@ -4,12 +4,22 @@
 run_planning() {
     local script="$1" write_flag="$2" access=,readonly arg
     shift 2
-    for arg in "$@"; do
-        [[ "$arg" != -- ]] || break
-        if [[ "$arg" == "$write_flag" ]]; then
-            access=
-        fi
-    done
+    if [[ "$script" == planning_portfolio.php ]]; then
+        # Grant writes only when every argument is a planner write flag or its legacy abbreviation.
+        for arg in "$@"; do
+            case "$arg" in
+                --w|--wr|--wri|--writ|--write) access= ;;
+                *) access=,readonly; break ;;
+            esac
+        done
+    else
+        for arg in "$@"; do
+            [[ "$arg" != -- ]] || break
+            if [[ "$arg" == "$write_flag" ]]; then
+                access=
+            fi
+        done
+    fi
 
     local DOCKER_BIN="${DOCKER_BIN:-docker}" GIT_BIN="${GIT_BIN:-git}" ID_BIN="${ID_BIN:-id}"
     local image="${FIGHT_ACCESS_CONTROL_PLANNING_IMAGE:-fight-access-control-php}" PHP_IMAGE
