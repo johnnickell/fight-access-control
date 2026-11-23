@@ -204,8 +204,9 @@ review the dry run, then use --apply only after the proposed moves are correct:
 
 The tool fails closed unless selected records are terminal: a TICKET also requires terminal child TASKs, an EPIC also
 requires terminal child TICKETs and TASKs, and a Wayfinder map requires closed decisions, an empty frontier, and an
-implementation handoff. It repairs local Markdown links when applying. After an applied archive, regenerate and
-validate planning views before committing the move.
+implementation handoff. When applying, the tool repairs maintained Markdown links. Archive link repair deliberately
+leaves `.runs`, `var`, and `graphify-out` untouched, so links there may still point to old paths. After an applied
+archive, regenerate and validate planning views before committing the move.
 
 ## Delivery hygiene
 
