@@ -1,0 +1,161 @@
+# Run native teardown before checking source and live publication. Source from bin/runtime.
+source "$root/bin/.runtime-source"
+
+ref_oid() {
+    if [[ -n "$ref" ]]; then
+        capture git -C "$safe" for-each-ref --format='%(refname) %(objectname)' "$ref" |
+            awk -v ref="$ref" '$1 == ref {print $2}'
+    fi
+}
+
+current_entry() {
+    registrations "$safe" | jq -sc --arg path "$checkout" 'map(select(.path == $path)) | .[0]'
+}
+
+source_state() {
+    local current entries recorded
+    if [[ "$present" == yes ]]; then
+        current=$(current_entry)
+        recorded=$(jq -c '{path, branch}' <<< "$entry")
+        [[ "$current" == "$recorded" ]] || hold 'Source registration changed before removal'
+        [[ $(capture git -C "$checkout" rev-parse HEAD) == "$published_oid" ]] || hold 'Source OID changed; unique work retained'
+        current=$(capture git -C "$checkout" status --porcelain --untracked-files=all)
+        [[ -z "$current" ]] || hold 'Dirty/unique source retained'
+        current=$(capture git -C "$checkout" ls-files --others --ignored --exclude-standard)
+        [[ -z "$current" ]] || hold 'Ignored/private output remains; dispose only known temporary output after consumers end'
+    else
+        entries=$(registrations "$safe" | jq -sc .)
+        [[ ! -e "$checkout" && ! -L "$checkout" ]] && jq -e --arg p "$checkout" 'all(.[]; .path != $p)' <<< "$entries" >/dev/null ||
+            hold 'Absent source path/registration changed before removal'
+        jq -e --arg b "$branch" 'all(.[]; .branch != $b)' <<< "$entries" >/dev/null ||
+            hold 'Surviving ref is checked out in a registered worktree; source/ref retained'
+    fi
+    if [[ -n "$ref" ]]; then
+        [[ $(ref_oid) == "$published_oid" ]] || hold 'Exact source ref/OID changed; unique work retained'
+    fi
+}
+
+check_publication() {
+    local resolved origin repo proof state base merged remote
+    resolved=$(canonical "$outcome") || hold 'Record final outcomes outside disposable source first'
+    [[ -f "$resolved" && "$resolved" != "$checkout"/* ]] || hold 'Record final outcomes outside disposable source first'
+    [[ -n "$ref" ]] || hold 'exact owned full remote ref required'
+    origin=$(capture git -C "$safe" remote get-url origin)
+    case "$origin" in
+        git@github.com:*) repo=${origin#git@github.com:} ;;
+        https://github.com/*) repo=${origin#https://github.com/} ;;
+        *) hold 'supported exact GitHub origin required for publication proof' ;;
+    esac
+    repo=${repo%.git}
+    [[ "$repo" =~ ^[^/]+/[^/]+$ ]] || hold 'supported exact GitHub origin required for publication proof'
+    [[ "$pr" == "https://github.com/$repo/pull/"* && "${pr##*/}" =~ ^[1-9][0-9]*$ && "$pr" == "https://github.com/$repo/pull/${pr##*/}" ]] || hold 'exact origin-owned PR required'
+    proof=$(cd "$safe" && capture gh pr view "$pr" --json url,state,isDraft,headRefName,headRefOid,baseRefName,mergedAt,mergeCommit)
+    jq -e --arg u "$pr" --arg id "$published_oid" --arg b "$branch" '
+        .url == $u and .headRefOid == $id and .headRefName == $b and .baseRefName == "develop"
+    ' <<< "$proof" >/dev/null || hold 'live PR repository/base/head identity mismatch'
+    state=$(jq -r '.state' <<< "$proof")
+    if [[ "$state" == OPEN ]]; then
+        jq -e '.isDraft == false' <<< "$proof" >/dev/null || hold 'draft evidence publication is not delivery completion'
+        remote=$(capture git -C "$safe" ls-remote --exit-code origin "$ref")
+        [[ "$remote" == "$published_oid"$'\t'"$ref" ]] || hold 'published source unavailable or changed'
+    else
+        merged=$(jq -er 'select(.state == "MERGED" and (.mergedAt | type == "string" and length > 0)) |
+            .mergeCommit.oid | select(type == "string" and length > 0)' <<< "$proof") || hold 'PR not delivered; preserve local source'
+        base=$(jq -r '.baseRefName' <<< "$proof")
+        native git -C "$safe" merge-base --is-ancestor "$merged" "refs/remotes/origin/$base"
+    fi
+}
+
+check_removal_hooks() {
+    local directory phase hooks context template='{{ primary_worktree_path }}/bin/down --worktree {{ worktree_path }}'
+    for directory in "$safe" "${1:-$safe}"; do
+        context=target
+        if [[ "$directory" == "$safe" ]]; then context=canonical; fi
+        for phase in pre-remove post-remove; do
+            hooks=$(cd "$directory" && capture wt hook show "$phase" --format=json)
+            jq -e 'type == "array"' <<< "$hooks" >/dev/null || hold 'Worktrunk hook inventory unavailable'
+            jq -e --arg phase "$phase" --arg template "$template" '
+                all(.[]; type == "object" and $phase == "pre-remove" and .type == $phase and
+                    .source == "project" and .name == "runtime" and .template == $template)
+            ' <<< "$hooks" >/dev/null || hold "Unqualified Worktrunk $phase hook in $context context; source retained, Docker teardown completed"
+        done
+        if [[ "$1" == "$safe" ]]; then break; fi
+    done
+}
+
+postconditions() {
+    local entries current expected=
+    entries=$(registrations "$safe" | jq -sc .)
+    [[ ! -e "$checkout" && ! -L "$checkout" ]] && jq -e --arg p "$checkout" --arg b "$branch" '
+        all(.[]; .path != $p and ($b == "" or .branch != $b))
+    ' <<< "$entries" >/dev/null || hold 'Worktrunk retained/recreated source or registered owner; inspect actual outcome, never force'
+    current=$(ref_oid)
+    if [[ "$branch_outcome" == retained_unmerged ]]; then expected=$published_oid; fi
+    [[ "$current" == "$expected" ]] || hold 'Worktrunk ref postcondition changed; source/config closeout incomplete'
+}
+
+complete_removal() {
+    local branch_outcome="$1"
+    postconditions
+    native "$safe/bin/down" --worktree "$checkout"
+    postconditions
+    [[ $(canonical "$state") == "$state" && ! -L "$state" ]] || hold 'Runtime state alias refused'
+    if [[ -d "$state" ]]; then rm -r -- "$state"; fi
+    jq -cn --arg p "$project" --arg ref "$ref" --arg outcome "$branch_outcome" --arg id "$published_oid" '
+        {project:$p,eligible_closeout:true,source_absent:true,registration_absent:true,runtime_absent:true,config_absent:true,
+         ref:($ref|if . == "" then null else . end),branch_outcome:$outcome,retained_oid:(if $outcome == "retained_unmerged" then $id else null end)}'
+}
+
+runtime_finish() {
+    local branch ref present=no current help option target kind result status=0
+    [[ "$root" == "$safe" ]] || hold 'Run source removal from canonical safe checkout'
+    native "$safe/bin/down" --worktree "$checkout"
+    current=$(current_entry)
+    if [[ "$entry" == null ]]; then
+        [[ ! -e "$state" ]] || hold 'Unlocated generated configuration remains; inspect exact state, never infer retirement'
+        [[ ! -e "$checkout" && ! -L "$checkout" && "$current" == null ]] ||
+            hold 'No locator; original source path/registration must remain absent'
+        jq -cn --arg p "$project" '{project:$p,eligible_closeout:true,already_absent:true,source_absent:true,
+            registration_absent:true,runtime_absent:true,config_absent:true,branch_outcome:"not_observed"}'
+        return
+    fi
+    [[ "$checkout" != "$safe" && "$checkout" != "$root" ]] || hold 'Main/current checkout is never disposable; runtime qualification completed'
+    branch=$(jq -r '.branch' <<< "$entry")
+    ref=
+    if [[ -n "$branch" ]]; then ref=refs/heads/$branch; fi
+    if [[ "$current" != null ]]; then
+        [[ -e "$checkout" ]] || hold 'Source path/registration mismatch; inspect partial effects'
+        present=yes
+    else
+        [[ ! -e "$checkout" ]] || hold 'Source path/registration mismatch; inspect partial effects'
+        current=$(ref_oid)
+        if [[ -z "$current" ]]; then complete_removal already_absent; return; fi
+    fi
+    source_state
+    check_publication
+    help=$(capture wt remove --help)
+    for option in --yes --foreground --format; do
+        [[ "$help" == *"$option"* ]] || hold 'Installed Worktrunk lacks qualified noninteractive removal support'
+    done
+    if [[ "$present" == yes ]]; then check_source_consumers; fi
+    source_state
+    if [[ "$present" == yes ]]; then
+        check_removal_hooks "$checkout"
+        target=$checkout kind=worktree
+    else
+        check_removal_hooks "$safe"
+        target=$branch kind=branch_only
+    fi
+    source_state
+    [[ -n "$target" ]] || hold 'No exact native removal target'
+    result=$(bounded 120 wt remove --foreground --format=json --yes -- "$target" </dev/null) || status=$?
+    [[ "$status" != 124 ]] || hold 'Worktrunk removal timed out; outcome uncertain. Reobserve source, registration, ref and runtime before retrying'
+    [[ "$status" == 0 ]] || hold 'Worktrunk removal failed; inspect partial effects without force'
+    current=$(jq -er --arg kind "$kind" --arg b "$branch" --arg p "$checkout" '
+        select(type == "array" and length == 1 and (.[0]|type == "object")) | .[0] |
+        select(.kind == $kind and .branch == $b and has("branch_checked_out_at") and .branch_checked_out_at == null and
+            (if $kind == "worktree" then .path == $p else has("detached_worktree") and .detached_worktree == null and (.pruned|type == "boolean") end)) |
+        .branch_outcome | select(. == "deleted" or . == "retained_unmerged")
+    ' <<< "$result") || hold 'Unqualified Worktrunk removal outcome; inspect actual source/ref/registration, never force'
+    complete_removal "$current"
+}

@@ -1,0 +1,319 @@
+# Host-only selection and native Docker inventory. Source from bin/runtime.
+
+hold() { printf 'Runtime incomplete: %s\n' "$*" >&2; exit 1; }
+
+source "${BASH_SOURCE[0]%/*}/.host-deadline"
+
+native_status() {
+    local status="$1"
+    shift
+    if (( status == 124 )); then
+        hold "Command timed out; reobserve actual state before retrying: ${*:1:3}"
+    fi
+    (( status == 0 )) || hold "Command failed (exit $status): ${*:1:3}"
+}
+
+native() {
+    local status=0
+    bounded 1800 "$@" || status=$?
+    native_status "$status" "$@"
+}
+
+capture() {
+    local status=0
+    bounded 1800 "$@" 2>/dev/null || status=$?
+    native_status "$status" "$@"
+}
+
+# Canonicalize existing prefixes without assuming GNU realpath -m on macOS.
+canonical() {
+    local path="$1" base parent
+    if [[ -e "$path" || -L "$path" ]]; then
+        realpath "$path"
+    else
+        [[ "$path" == /* && "$path" != / ]] || return 1
+        parent=${path%/*}
+        base=$(canonical "${parent:-/}") || return
+        printf '%s/%s\n' "${base%/}" "${path##*/}"
+    fi
+}
+
+registrations() (
+    local listing field path= branch=
+    listing=$(mktemp) || return
+    trap 'rm -f -- "$listing"' EXIT
+    native git -C "$1" worktree list --porcelain -z > "$listing" || return
+    while IFS= read -r -d '' field; do
+        case "$field" in
+            'worktree '*) path=$(canonical "${field#worktree }") || return ;;
+            'branch '*) branch=${field#branch refs/heads/} ;;
+            '')
+                if [[ -n "$path" ]]; then
+                    jq -cn --arg path "$path" --arg branch "$branch" '{path:$path,branch:$branch}' || return
+                fi
+                path= branch= ;;
+        esac
+    done < "$listing"
+)
+
+select_checkout() {
+    local mode="$1" removed="$2" entries matches locator sum
+    entries=$(registrations "$root" | jq -se 'select(length > 0)') || hold 'No registered Git worktrees'
+    safe=$(jq -r '.[0].path' <<< "$entries")
+    local choice="$selector"
+    if [[ -z "$choice" && "$mode" == current ]]; then choice=$root; fi
+    if [[ -z "$choice" ]]; then
+        entry=$(jq -c '.[0]' <<< "$entries")
+    else
+        matches=$(jq -c --arg s "$choice" '[.[] | select(.path == $s or .branch == $s or (.path | split("/")[-1]) == $s)]' <<< "$entries")
+        (( $(jq length <<< "$matches") <= 1 )) || hold 'Ambiguous worktree; use the exact registered path'
+        entry=$(jq -c '.[0]' <<< "$matches")
+    fi
+    if [[ "$entry" == null ]]; then
+        [[ "$removed" == yes && "$choice" == /* ]] || hold 'Expected a registered worktree or exact retired absolute path'
+        checkout=$choice
+    else
+        checkout=$(jq -r '.path' <<< "$entry")
+    fi
+    isolated=no
+    if [[ "$checkout" != "$safe" ]]; then
+        isolated=yes
+        sum=$(printf '%s\0%s' "$safe" "$checkout" | shasum -a 256) || hold 'Cannot hash checkout identity'
+        project=fight-wt-${sum:0:12}
+    else
+        project=$(config -er '.project')
+    fi
+    state="$safe/var/worktrees/$project"
+    if [[ "$entry" == null && -f "$state/locator.json" ]]; then
+        locator=$(jq -ce --arg p "$checkout" --arg n "$project" 'select(.path == $p and .project == $n)' "$state/locator.json") || hold 'Locator identity mismatch'
+        entry=$locator
+    fi
+}
+
+config() { jq "$@" "$root/etc/local-tooling.json"; }
+
+private_write() (
+    local path="$1" tmp="$1.tmp"
+    [[ ! -L "$path" ]] || hold "Refusing aliased runtime configuration: $path"
+    mkdir -p -- "${path%/*}"
+    set -C
+    cat > "$tmp" || hold 'Cannot write runtime configuration'
+    mv -f -- "$tmp" "$path"
+)
+
+# Compose config is private: never emit the captured document or its diagnostics.
+compose_environment() {
+    local name
+    while IFS= read -r name; do unset "$name"; done < <(compgen -e COMPOSE_)
+    export FIGHT_CHECKOUT="$checkout" FIGHT_PROJECT="$project" FIGHT_UID FIGHT_GID
+    FIGHT_UID=$(id -u)
+    FIGHT_GID=$(id -g)
+}
+
+native_ids() {
+    case "$1" in
+        containers) capture docker ps -aq --filter "label=com.docker.compose.project=$project" ;;
+        networks) capture docker network ls -q --filter "label=com.docker.compose.project=$project" ;;
+        volumes) capture docker volume ls -q --filter "label=com.docker.compose.project=$project" ;;
+    esac
+}
+
+container_inventory() {
+    local ids current attempt status
+    for attempt in 1 2 3; do
+        ids=$(capture docker ps -aq) || return
+        [[ -n "$ids" ]] || { printf '[]\n'; return; }
+        # Docker emits one validated hex ID per line.
+        status=0
+        bounded 1800 docker inspect $ids 2>/dev/null || status=$?
+        if (( status == 0 )); then return; fi
+        if (( status == 124 )); then native_status "$status" docker inspect; fi
+        current=$(capture docker ps -aq) || return
+        [[ $(printf '%s\n' "$ids" | sort) != "$(printf '%s\n' "$current" | sort)" ]] || hold 'Docker container inventory unavailable'
+    done
+    hold 'Docker container inventory changed repeatedly; retry after concurrent jobs finish'
+}
+
+check_resource_ownership() {
+    local containers mounts source resolved kind ids id resource noun
+    containers=$(container_inventory) || hold 'Docker container inventory unavailable'
+    jq -e --arg p "$project" --arg c "$checkout" '
+        type == "array" and all(.[] | select(.Config.Labels["com.docker.compose.project"] == $p);
+            .Config.Labels["io.fight.checkout"] == $c)
+    ' <<< "$containers" >/dev/null || hold 'Unknown/foreign project container; retain it'
+    mounts=$(jq -cr --arg p "$project" '.[] | select(.Config.Labels["com.docker.compose.project"] == $p) |
+        .Mounts[] | select(.Type == "bind" and .Destination == "/app") | .Source | @json' <<< "$containers")
+    if [[ -n "$mounts" ]]; then
+        while IFS= read -r source; do
+            source=$(jq -r . <<< "$source")
+            resolved=$(canonical "$source") || hold 'Project container mount identity unavailable'
+            [[ "$resolved" == "$checkout" ]] || hold 'Project container mounts another checkout'
+        done <<< "$mounts"
+    fi
+    for kind in volumes networks; do
+        ids=$(native_ids "$kind") || hold "Docker $kind inventory unavailable"
+        noun=${kind%s}
+        local display=Volume
+        if [[ "$noun" == network ]]; then display=Network; fi
+        for id in $ids; do
+            resource=$(capture docker "$noun" inspect "$id") || hold "Docker $noun inventory unavailable"
+            jq -e --arg c "$checkout" 'length == 1 and .[0].Labels["io.fight.checkout"] == $c' <<< "$resource" >/dev/null || hold "Unknown/foreign project $kind; retain it"
+            jq -e --arg p "$project" --arg kind "$kind" --argjson resource "$resource" '
+                all(.[] | select(.Config.Labels["com.docker.compose.project"] != $p);
+                    if $kind == "volumes" then all(.Mounts[]; .Name != $resource[0].Name)
+                    else
+                        # Docker may leave the endpoint ID empty before a stopped container starts.
+                        .HostConfig.NetworkMode != $resource[0].Name and .HostConfig.NetworkMode != $resource[0].Id and
+                        all((.NetworkSettings.Networks // {}) | to_entries[];
+                            .key != $resource[0].Name and .value.NetworkID != $resource[0].Id)
+                    end)
+            ' <<< "$containers" >/dev/null || hold "$display has a foreign/stopped consumer"
+        done
+    done
+}
+
+image_tags() {
+    local tags
+    tags=$(capture docker image ls --format '{{.Repository}}:{{.Tag}}') || return
+    config -r --arg p "$project" --arg tags "$tags" '
+        [(.images // [])[] | $p + "-" + . + ":latest"] | sort[] | select(. as $tag | $tags | split("\n") | index($tag))'
+}
+
+check_mutable_trees() {
+    local name base paths path target
+    for name in vendor var client/node_modules; do
+        base="$checkout/$name"
+        [[ ! -L "$base" && ( ! -e "$base" || -d "$base" ) ]] || hold "Mutable tree must belong to this checkout: $name"
+        [[ -d "$base" ]] || continue
+        paths=$(mktemp)
+        if ! find "$base" -type l -print0 > "$paths"; then
+            rm -f -- "$paths"
+            hold 'Mutable-tree inventory unavailable'
+        fi
+        while IFS= read -r -d '' path; do
+            if ! target=$(canonical "$path") || [[ "$target" != "$checkout"/* && "$target" != "$checkout" ]]; then
+                rm -f -- "$paths"
+                hold 'Mutable-tree symlink escapes this checkout'
+            fi
+        done < "$paths"
+        rm -f -- "$paths"
+    done
+}
+
+compose_setup() {
+    local model env_file=/dev/null common= sources source_path target values key value
+    [[ -d "$checkout" ]] || hold 'Selected source is absent'
+    check_mutable_trees
+    values=$(config -cr '(.environment // {}) | to_entries[]')
+    if [[ -n "$values" ]]; then
+        while IFS= read -r value; do
+            key=$(jq -er '.key' <<< "$value")
+            value=$(jq -er --arg p "$project" --arg c "$checkout" --arg uid "$FIGHT_UID" --arg gid "$FIGHT_GID" '
+                .value | gsub("\\{project\\}";$p) | gsub("\\{checkout\\}";$c) | gsub("\\{uid\\}";$uid) | gsub("\\{gid\\}";$gid)' <<< "$value")
+            export "$key=$value"
+        done <<< "$values"
+    fi
+    if [[ "$isolated" == no && -f "$checkout/.env" ]]; then env_file="$checkout/.env"; fi
+    compose=(docker compose --project-directory "$checkout" --project-name "$project" --env-file "$env_file" --file "$checkout/compose.yaml")
+    model=$(cd "$checkout" && capture "${compose[@]}" config --format=json)
+    jq -e 'all((.volumes // {}), (.networks // {}); all(.[]; (.external | not)))' <<< "$model" >/dev/null ||
+        hold 'Shared external resources require a separate operator'
+    sources=$(jq -cr '.services[] | (.volumes // [])[] | select(.type == "bind") | .source | @json' <<< "$model")
+    if [[ -n "$sources" ]]; then
+        while IFS= read -r source_path; do
+            target=$(canonical "$(jq -r . <<< "$source_path")") || hold 'Source storage identity unavailable'
+            [[ "$target" == "$checkout" || "$target" == "$checkout"/* ]] ||
+                hold 'Source configuration references storage outside this checkout'
+        done <<< "$sources"
+    fi
+    if [[ $(config -r 'if has("mount_git") then .mount_git else true end') == true && -f "$checkout/.git" ]]; then
+        common=$(capture git -C "$checkout" rev-parse --path-format=absolute --git-common-dir)
+    fi
+    [[ $(canonical "$state") == "$state" ]] || hold 'Runtime configuration alias refused'
+    jq -r --arg c "$checkout" --arg p "$project" --arg isolated "$isolated" --arg common "$common" '
+        def labels: {"io.fight.checkout": $c};
+        . as $model | "services:",
+        (.services | to_entries[] | .key as $name | .value |
+            "  \($name):", "    labels: \(labels|tojson)",
+            (if .build then "    image: \($p)-\($name)" else empty end),
+            (if $isolated == "yes" and ((.ports // []) | length)>0 then
+                "    ports: !override \(.ports | map({target,published:"0",host_ip:"127.0.0.1",protocol:(.protocol // "tcp")}) | tojson)"
+                else empty end),
+            (if $common != "" then
+                "    volumes: \([{type:"bind",source:$common,target:$common,read_only:true}] | tojson)"
+                else empty end)),
+        (("volumes", "networks") as $group | ($model[$group] // {}) | select(length > 0) |
+            "\($group):", (keys_unsorted[] | "  \(.):", "    name: \(($p+"_"+.) | tojson)", "    labels: \(labels|tojson)"))
+    ' <<< "$model" | private_write "$state/override.yaml"
+    jq -c --arg p "$project" '. + {project:$p}' <<< "$entry" | private_write "$state/locator.json"
+    compose+=(--file "$state/override.yaml")
+    cd "$checkout"
+}
+
+run_configured() {
+    local encoded item command=()
+    encoded=$(config -c --arg key "$1" '(.[$key] // [])[] | @json')
+    if [[ -n "$encoded" ]]; then
+        while IFS= read -r item; do command+=("$(jq -r 'fromjson' <<< "$item")"); done <<< "$encoded"
+        native "${command[@]}" "${@:2}"
+    fi
+}
+
+run_configured_startup() {
+    local directories name
+    directories=$(config -r '(.directories // [])[]')
+    if [[ -n "$directories" ]]; then
+        while IFS= read -r name; do mkdir -p -- "$checkout/$name"; done <<< "$directories"
+    fi
+    run_configured startup
+}
+
+runtime_down() (
+    local kind ids id tags= resources= command
+    run_configured legacy_down "$checkout"
+    check_resource_ownership
+    for kind in containers networks volumes; do
+        ids=$(native_ids "$kind")
+        resources+=$ids
+    done
+    if [[ "$isolated" == yes ]]; then tags=$(image_tags); fi
+    if [[ ! -e "$state" && ! -L "$state" && -z "$resources$tags" ]]; then
+        printf '%s\n' 'Runtime already absent; shared images and caches retained'
+        return
+    fi
+    [[ $(canonical "$state") == "$state" ]] || hold 'Runtime configuration alias refused'
+    jq -cn --arg p "$project" '{services:{},name:$p}' | private_write "$state/down.json"
+    compose_environment
+    command=(docker compose --project-directory "$safe" --project-name "$project" --env-file /dev/null --file "$state/down.json" down --remove-orphans)
+    if [[ "$isolated" == yes ]]; then command+=(--volumes); fi
+    cd "$safe"
+    native "${command[@]}"
+    check_resource_ownership
+    ids=$(native_ids containers)
+    if [[ -n "$ids" ]]; then
+        native docker container stop $ids
+        check_resource_ownership
+        ids=$(native_ids containers)
+        if [[ -n "$ids" ]]; then native docker container rm $ids; fi
+    fi
+    for kind in networks volumes; do
+        if [[ "$kind" == volumes && "$isolated" == no ]]; then continue; fi
+        ids=$(native_ids "$kind")
+        for id in $ids; do
+            check_resource_ownership
+            native docker "${kind%s}" rm "$id"
+        done
+    done
+    for kind in containers networks volumes; do
+        if [[ "$kind" == volumes && "$isolated" == no ]]; then continue; fi
+        ids=$(native_ids "$kind")
+        [[ -z "$ids" ]] || hold "Remaining project resources: $kind"
+    done
+    if [[ "$isolated" == yes ]]; then
+        tags=$(image_tags)
+        for id in $tags; do native docker image rm "$id"; done
+        tags=$(image_tags)
+        [[ -z "$tags" ]] || hold 'Remaining task image tags'
+    fi
+    printf '%s\n' 'Runtime retired; shared images and build caches retained'
+)

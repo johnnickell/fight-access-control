@@ -1,0 +1,102 @@
+# Host-only source and consumer visibility checks. Source from .runtime-finish.
+
+parent_mount_unused() {
+    local id="$1" target="$2" status=0
+    # Run as the configured container user. Inspect every process without returning private data.
+    bounded 60 docker exec "$id" sh -c '
+for process in /proc/[0-9]*; do
+    [ "$process" = "/proc/$$" ] && continue
+    [ -d "$process" ] || continue
+    [ -r "$process/cmdline" ] && [ -r "$process/maps" ] && [ -r "$process/fd" ] || exit 2
+    grep -F -q -- "$1" "$process/cmdline" "$process/maps"
+    status=$?
+    [ "$status" -eq 0 ] && exit 3
+    [ "$status" -eq 1 ] || exit 2
+    for descriptor in "$process/cwd" "$process/exe" "$process"/fd/*; do
+        [ -L "$descriptor" ] || continue
+        value=$(readlink "$descriptor") || { [ ! -L "$descriptor" ] && continue; exit 2; }
+        case "$value" in "$1"|"$1"/*) exit 3 ;; esac
+    done
+done' source-consumer-check "$target" >/dev/null 2>&1 || status=$?
+    [[ "$status" != 124 ]] || hold "Parent-mounted container observation timed out: ${id:0:12}"
+    [[ "$status" != 3 ]] || hold "Parent-mounted container consumes candidate source: ${id:0:12}"
+    [[ "$status" == 0 ]] || hold "Parent-mounted container process visibility unavailable with configured identity: ${id:0:12}"
+}
+
+qualify_descriptor() {
+    local executable handles disk
+    [[ -n "$descriptor" ]] || return 0
+    count=$((count + 1))
+    [[ "$access" == r && ( "$type" == REG || "$type" == DIR ) && "${descriptor#\*}" =~ ^[0-9]+$ && "$uid" == "$owner" && "$pid" =~ ^[0-9]+$ ]] ||
+        hold 'Source has active/unknown cwd, writer or reader; retain source'
+    if [[ "$qualified" != "$pid" ]]; then
+        executable=$(capture ps -p "$pid" -o comm=)
+        [[ "$executable" == /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine ]] ||
+            hold 'Source reader is not qualified Docker file sharing'
+        handles=$(capture lsof -nP -p "$pid" -Fn)
+        disk="$HOME/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw"
+        [[ -f "$disk" ]] && grep -Fxq -- "n$disk" <<< "$handles" ||
+            hold 'Virtualization reader lacks actual Docker runtime backing evidence'
+        qualified=$pid
+    fi
+}
+
+readonly_docker_handles() {
+    local line pid= uid= descriptor= access= type= qualified= count=0
+    while IFS= read -r line; do
+        case "$line" in
+            p*) qualify_descriptor; pid=${line:1}; descriptor= uid= ;;
+            u*) uid=${line:1} ;;
+            f*) qualify_descriptor; descriptor=${line:1}; access= type= ;;
+            a*) access=${line:1} ;;
+            t*) type=${line:1} ;;
+        esac
+    done <<< "$1"
+    qualify_descriptor
+    (( count > 0 )) || hold 'Source consumer visibility unavailable'
+}
+
+check_source_consumers() (
+    local containers mount mounts source target id listing diagnostics status=0 owner
+    local path metadata acl platform
+    containers=$(container_inventory) || hold 'Docker container inventory unavailable'
+    mounts=$(jq -c '.[] as $c | $c.Mounts[] | select(.Type == "bind") | {mount:., id:$c.Id, running:$c.State.Running,
+        config:($c.Config | {WorkingDir,Entrypoint,Cmd} | tojson)}' <<< "$containers")
+    if [[ -n "$mounts" ]]; then
+        while IFS= read -r mount; do
+            source=$(canonical "$(jq -er '.mount.Source' <<< "$mount")") || hold 'Source bind identity unavailable'
+            [[ "$source" != "$checkout" && "$source" != "$checkout"/* ]] ||
+                hold 'Source bind dependency remains; qualify the actual consumer before source removal'
+            if [[ "$checkout" == "${source%/}"/* ]]; then
+                jq -e '.running == true' <<< "$mount" >/dev/null || hold 'Parent source mount requires live consumer qualification'
+                target=$(jq -er '.mount.Destination' <<< "$mount")
+                target="${target%/}/${checkout#"${source%/}/"}"
+                jq -e --arg t "$target" '.config | contains($t) | not' <<< "$mount" >/dev/null ||
+                    hold 'Container configuration consumes candidate source'
+                id=$(jq -er '.id' <<< "$mount")
+                parent_mount_unused "$id" "$target"
+            fi
+        done <<< "$mounts"
+    fi
+    diagnostics=$(mktemp)
+    trap 'rm -f -- "$diagnostics"' EXIT
+    listing=$(bounded 60 lsof -nP -Fpuaftn +D "$checkout" 2> "$diagnostics") || status=$?
+    [[ "$status" != 124 ]] || hold 'Source consumer visibility timed out; retain source'
+    [[ "$status" == 0 || "$status" == 1 ]] && [[ ! -s "$diagnostics" ]] || hold 'Source consumer visibility unavailable'
+    owner=$(id -u)
+    if [[ -n "$listing" ]]; then readonly_docker_handles "$listing"; fi
+    platform=$(uname -s)
+    # Reading with NUL separators keeps path bytes out of shell parsing and diagnostics.
+    find "$checkout" -print0 | while IFS= read -r -d '' path; do
+        [[ ! -S "$path" ]] || hold 'Source socket remains'
+        if [[ "$platform" == Darwin ]]; then
+            metadata=$(capture stat -f '%u %f' "$path")
+            [[ "$metadata" == "$owner 0" ]] || hold 'Source filesystem protection/foreign owner'
+            acl=$(capture ls -lde "$path")
+            [[ "$acl" != *$'\n'* ]] || hold 'Source ACL protection; no automatic stripping'
+        else
+            metadata=$(capture stat -c '%u' -- "$path")
+            [[ "$metadata" == "$owner" ]] || hold 'Source filesystem protection/foreign owner'
+        fi
+    done
+)

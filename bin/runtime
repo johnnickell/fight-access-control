@@ -1,4 +1,126 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -eo pipefail
 cd "$(dirname "$0")/.."
-exec python3 -B scripts/runtime.py "$@"
+root=$(pwd -P)
+umask 077
+source "$root/bin/.runtime-native"
+
+usage() {
+    printf '%s\n' 'usage: runtime.py [-h] [--worktree WORKTREE] [--build-only]' \
+        '                  [--outcome OUTCOME] [--published-oid PUBLISHED_OID]' \
+        '                  [--pr PR]' '                  {up,down,docker,inspect,finish,image-name}'
+}
+
+argument_error() { usage >&2; printf 'runtime.py: error: %s\n' "$*" >&2; exit 2; }
+
+selector= action= outcome= published_oid= pr= build_only=no empty_selector=no
+argv=()
+while (( $# )); do
+    arg=$1; shift
+    case "${arg%%=*}" in
+        -h|--h|--he|--hel|--help)
+            usage
+            printf '\n%s\n\n%s\n  %s\n\n%s\n' \
+                'Explicit checkout-scoped Compose operations; shared caches are never pruned.' \
+                'positional arguments:' '{up,down,docker,inspect,finish,image-name}' \
+                'options:' '  -h, --help            show this help message and exit' \
+                '  --worktree WORKTREE' '  --build-only' '  --outcome OUTCOME' \
+                '  --published-oid PUBLISHED_OID' '  --pr PR'
+            exit 0 ;;
+        --w|--wo|--wor|--work|--workt|--worktr|--worktre|--worktree|--o|--ou|--out|--outc|--outco|--outcom|--outcome|--pu|--pub|--publ|--publi|--publis|--publish|--publishe|--published|--published-|--published-o|--published-oi|--published-oid|--pr)
+            if [[ "$arg" == *=* ]]; then
+                value=${arg#*=}
+            else
+                [[ $# -gt 0 && $1 != -* ]] || argument_error "argument $arg: expected one argument"
+                value=$1; shift
+            fi
+            case "$arg" in
+                --w*)
+                    selector=$value
+                    if [[ -z "$value" ]]; then empty_selector=yes; fi ;;
+                --o*) outcome=$value ;;
+                --pu*) published_oid=$value ;;
+                --pr*) pr=$value ;;
+            esac ;;
+        --b|--bu|--bui|--buil|--build|--build-|--build-o|--build-on|--build-onl|--build-only)
+            [[ "$arg" != *=* ]] || argument_error "argument ${arg%%=*}: ignored explicit argument '${arg#*=}'"
+            build_only=yes ;;
+        --p) argument_error 'ambiguous option: --p could match --published-oid, --pr' ;;
+        --)
+            if [[ -z "$action" && $# -gt 0 ]]; then action=$1; shift; else argv+=(--); fi
+            argv+=("$@"); break ;;
+        *)
+            if [[ -z "$action" && "$arg" != -* ]]; then action=$arg; else argv+=("$arg"); fi ;;
+    esac
+done
+case "$action" in
+    up|down|docker|inspect|finish|image-name) ;;
+    '') argument_error 'the following arguments are required: action' ;;
+    *) argument_error "argument action: invalid choice: '$action' (choose from 'up', 'down', 'docker', 'inspect', 'finish', 'image-name')" ;;
+esac
+
+[[ "$empty_selector" == no ]] || hold 'Expected a registered worktree or exact retired absolute path'
+case "$action" in
+    up) select_checkout main no ;;
+    down|finish) select_checkout main yes ;;
+    docker)
+        case "${argv[0]}" in
+            compose|ps|run) select_checkout current no ;;
+            *) exec docker "${argv[@]}" ;;
+        esac ;;
+    *) select_checkout current no ;;
+esac
+
+case "$action" in
+    image-name)
+        role=${argv[0]//-/}
+        [[ ${#argv[@]} == 1 && "$role" =~ ^[[:alnum:]]+$ ]] || hold 'Expected one image role'
+        printf '%s-%s\n' "$project" "${argv[0]}"
+        exit 0 ;;
+    down)
+        [[ ${#argv[@]} == 0 ]] || hold 'Unexpected down arguments'
+        runtime_down
+        exit 0 ;;
+    finish)
+        [[ ${#argv[@]} == 0 && -n "$selector" && -n "$outcome" && -n "$published_oid" && -n "$pr" ]] ||
+            hold 'finish requires --worktree, --outcome, --published-oid and --pr'
+        source "$root/bin/.runtime-finish"
+        runtime_finish
+        exit 0 ;;
+    docker)
+        case "${argv[0]}" in
+            ps)
+                check_resource_ownership
+                exec docker ps --filter "label=com.docker.compose.project=$project" "${argv[@]:1}" ;;
+            run)
+                check_resource_ownership
+                options=(--label "com.docker.compose.project=$project" --label "io.fight.checkout=$checkout")
+                if [[ $(config -r 'if has("mount_git") then .mount_git else true end') == true && -f "$checkout/.git" ]]; then
+                    common=$(capture git -C "$checkout" rev-parse --path-format=absolute --git-common-dir)
+                    options+=(--mount "type=bind,source=$common,target=$common,readonly")
+                fi
+                exec docker run "${options[@]}" "${argv[@]:1}" ;;
+        esac ;;
+esac
+
+compose_environment
+compose_setup
+check_resource_ownership
+case "$action" in
+    up)
+        [[ ${#argv[@]} == 0 ]] || hold 'Unexpected up arguments'
+        run_configured_startup
+        BUILDX_NO_DEFAULT_ATTESTATIONS=1 native "${compose[@]}" build --pull
+        run_configured setup
+        if [[ "$build_only" == no ]]; then
+            native "${compose[@]}" up --detach --no-build --wait --wait-timeout 120
+            printf 'Compose ready: %s; inspect published ports with ./bin/runtime docker compose ps\n' "$project"
+        fi ;;
+    inspect)
+        containers=$(native_ids containers); networks=$(native_ids networks); volumes=$(native_ids volumes)
+        jq -n --arg c "$checkout" --arg p "$project" --arg a "$containers" --arg b "$networks" --arg d "$volumes" '
+            def ids: split("\n") | map(select(length > 0));
+            {checkout:$c,project:$p,resources:{containers:($a|ids),networks:($b|ids),volumes:($d|ids)}}' |
+            jq -c . ;;
+    docker) exec "${compose[@]}" "${argv[@]:1}" ;;
+esac
