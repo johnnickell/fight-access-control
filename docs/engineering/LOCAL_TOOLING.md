@@ -70,6 +70,13 @@ Before accepting a hit, the host rechecks which excluded paths Git tracks, and P
 again with that fresh list. A hit skips build preparation, including dependency installation/update and image
 builds.
 On a miss, configured preparation runs first and its resulting dependency contents become the gate inputs.
+Planning validation, preparation and each Git snapshot have 30-minute host deadlines. If planning or preparation
+times out, the gate does not start. Reobserve actual state before retrying; stopping the host process does not
+prove the Docker daemon made no changes.
+An unavailable Git snapshot is not an empty tracked list. It prevents reuse, but does not stop the full gate.
+Without a pre-gate fingerprint the result is not reusable. A failed gate keeps its exit without a final snapshot.
+If a passing gate cannot be verified against its pre-gate fingerprint, the receipt records both the passing gate
+and the failed verification; no success pointer is written.
 A miss executes the entire existing gate and reports its reason and original exit. `--force` invalidates the
 pointer before fresh execution; failures never publish a success. Changing Pi roles or recreating runtime
 services does not invalidate an otherwise qualifying receipt. Old cache formats require one fresh build.

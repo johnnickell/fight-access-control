@@ -34,7 +34,10 @@ final class BuildCache
                 $original = self::reusable($root, $cache, $source, $evidence);
                 self::notify('RECHECK');
                 $tracked = self::receive();
-                BuildEvidence::require($source === $evidence->source($tracked), 'Inputs changed during reuse checks');
+                BuildEvidence::require(
+                    $source === self::source($evidence, $tracked),
+                    'Inputs changed during reuse checks'
+                );
                 BuildEvidence::require($planning === $evidence->planning(), 'Planning changed during reuse checks');
                 self::notify('HIT '.$original);
 
@@ -112,10 +115,11 @@ final class BuildCache
         $receipt['exit'] = $status;
         $receipt['finished'] = microtime(true);
         $cacheable = $status === 0 && $source !== null;
-        if ($cacheable) {
+        if ($result->log_exit !== 0 || $cacheable) {
             try {
+                BuildEvidence::require($result->log_exit === 0, 'Could not save the complete gate log');
                 BuildEvidence::require(
-                    $source === $evidence->source($result->tracked),
+                    $source === self::source($evidence, $result->tracked),
                     'Build inputs changed during execution; no cache published'
                 );
                 BuildEvidence::require(
@@ -129,7 +133,7 @@ final class BuildCache
                 $receipt['verification_error'] = $error->getMessage();
                 fwrite(STDERR, 'Build verification incomplete: '.$error->getMessage()."\n");
                 $cacheable = false;
-                $status = 1;
+                $status = $status === 0 ? 1 : $status;
             }
         }
 
@@ -171,10 +175,17 @@ final class BuildCache
         }
     }
 
-    private static function fingerprint(BuildEvidence $evidence, array $tracked, bool $prepared = false): ?string
+    private static function source(BuildEvidence $evidence, ?array $tracked): string
+    {
+        BuildEvidence::require($tracked !== null, 'Git input snapshot unavailable');
+
+        return $evidence->source($tracked);
+    }
+
+    private static function fingerprint(BuildEvidence $evidence, ?array $tracked, bool $prepared = false): ?string
     {
         try {
-            return $evidence->source($tracked);
+            return self::source($evidence, $tracked);
         } catch (Throwable $throwable) {
             $when = $prepared ? ' after preparation' : '';
             $next = $prepared ? '' : '; executing full gate';

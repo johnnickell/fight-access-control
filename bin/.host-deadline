@@ -1,0 +1,62 @@
+# Host-only process-group watchdog. The caller supplies its own hold diagnostic.
+
+# Ask a child for its parent's group: $$ in a Bash subshell can name the outer shell.
+process_group() {
+    local group
+    group=$(sh -c 'exec ps -o pgid= -p "$PPID"') || return
+    group=${group//[[:space:]]/}
+    [[ "$group" =~ ^[1-9][0-9]*$ ]] || return 1
+    printf '%s\n' "$group"
+}
+
+# Nested commands (including preparation's runtime up and the admitted
+# Worktrunk hook) must stay in the outer watchdog's process group.
+bounded() (
+    local seconds="$1" status=0 marker command_pid= timer_pid= group limit
+    shift
+    if [[ -n "${FIGHT_RUNTIME_SUPERVISION:-}" ]]; then
+        group=$(process_group) || hold 'Cannot verify supervision of nested runtime command'
+        limit=${FIGHT_RUNTIME_SUPERVISION#*:}
+        [[ "$FIGHT_RUNTIME_SUPERVISION" == "$group:$limit" && "$limit" =~ ^[1-9][0-9]*$ ]] ||
+            hold 'Nested runtime command left the supervised process group'
+        (( seconds >= limit )) || hold 'Nested runtime command requires a shorter deadline than its supervisor'
+        set +m
+        "$@"
+        return
+    fi
+    marker=$(mktemp) || return 1
+    set -m
+    trap '
+        if [[ -n "$timer_pid" ]]; then kill -KILL -- "-$timer_pid" 2>/dev/null || :; fi
+        if [[ -n "$command_pid" ]]; then kill -KILL -- "-$command_pid" 2>/dev/null || :; fi
+        rm -f -- "$marker"
+    ' EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    (
+        set +m
+        group=$(process_group) || hold 'Cannot locate supervised runtime process group'
+        export FIGHT_RUNTIME_SUPERVISION="$group:$seconds"
+        "$@"
+    ) <&0 & # Do not replace the caller's stdin with /dev/null.
+    command_pid=$!
+    (
+        sleep "$seconds" || :
+        printf 'expired\n' > "$marker"
+        kill -TERM -- "-$command_pid" 2>/dev/null || :
+        sleep 2
+        kill -KILL -- "-$command_pid" 2>/dev/null || :
+    ) &
+    timer_pid=$!
+    wait "$command_pid" 2>/dev/null || status=$?
+    if [[ -s "$marker" ]]; then
+        wait "$timer_pid" 2>/dev/null || :
+        return 124
+    fi
+    kill -KILL -- "-$timer_pid" 2>/dev/null || :
+    wait "$timer_pid" 2>/dev/null || :
+    timer_pid=
+    if [[ -s "$marker" ]]; then return 124; fi
+    command_pid=
+    return "$status"
+)
