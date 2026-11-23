@@ -32,6 +32,8 @@ final class BuildCache
         if (!$force && $source !== null && is_file($cache)) {
             try {
                 $original = self::reusable($root, $cache, $source, $evidence);
+                self::notify('RECHECK');
+                $tracked = self::receive();
                 BuildEvidence::require($source === $evidence->source($tracked), 'Inputs changed during reuse checks');
                 BuildEvidence::require($planning === $evidence->planning(), 'Planning changed during reuse checks');
                 self::notify('HIT '.$original);

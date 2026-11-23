@@ -54,7 +54,7 @@ worker_status=0
 worker=$!
 exec 7> "$pipes/request" 8< "$pipes/reply"
 
-# The protocol admits only four fixed transitions, never worker-supplied commands.
+# The protocol admits only fixed transitions, never worker-supplied commands.
 receive() { IFS= read -r reply <&8 || return; }
 send() { printf '%s\n' "$1" >&7; }
 finish() {
@@ -70,8 +70,18 @@ if (( status != 0 )); then incomplete "Command failed (exit $status): $root/bin/
 tracked=$(tracked_inputs)
 send "$tracked"
 receive || finish
+rechecked=no
+if [[ "$reply" == RECHECK ]]; then
+    tracked=$(tracked_inputs)
+    send "$tracked"
+    rechecked=yes
+    receive || finish
+fi
 case "$reply" in
-    'HIT '*) printf 'Planning validated freshly. Application gate reused: %s\n' "${reply#HIT }"; finish ;;
+    'HIT '*)
+        [[ "$rechecked" == yes ]] || incomplete 'Cache hit without fresh Git inputs'
+        printf 'Planning validated freshly. Application gate reused: %s\n' "${reply#HIT }"
+        finish ;;
     'MISS '*) printf 'Build cache miss: %s\n' "${reply#MISS }" ;;
     *) incomplete 'Unexpected cache protocol state' ;;
 esac

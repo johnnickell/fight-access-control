@@ -66,7 +66,9 @@ excluded from application inputs; planning conventions, agent instructions, ADRs
 planning inputs remain covered. Symlink targets and bytes/modes are covered. Missing, changed or unreadable
 evidence cannot qualify a hit. Concurrent builds refuse the same checkout's lock.
 
-A cache hit skips build preparation, including dependency installation/update and image builds.
+Before accepting a hit, the host rechecks which excluded paths Git tracks, and PHP fingerprints the inputs
+again with that fresh list. A hit skips build preparation, including dependency installation/update and image
+builds.
 On a miss, configured preparation runs first and its resulting dependency contents become the gate inputs.
 A miss executes the entire existing gate and reports its reason and original exit. `--force` invalidates the
 pointer before fresh execution; failures never publish a success. Changing Pi roles or recreating runtime
@@ -103,9 +105,10 @@ Native per-invocation consent never persists trust or skips a hook. A canonical 
 circumvent that hold.
 
 Parent-mount and host source-consumer probes have 60-second deadlines. Foreground Worktrunk removal has a
-120-second deadline; native lifecycle commands and inventories have a 30-minute limit. A timeout stops the
-attempt. It does not prove that no effect occurred. Reobserve source, registration, ref and runtime before
-another removal attempt; never retry blindly.
+120-second deadline; native lifecycle commands and inventories have a 30-minute limit. Nested `bin/down`
+commands, including the admitted pre-remove hook, stay in the process group governed by the outer deadline.
+The watchdog stops that group on timeout. This does not prove that the Docker daemon made no changes.
+Reobserve source, registration, ref and runtime before another removal attempt; never retry blindly.
 
 Native Worktrunk owns non-force source/ref removal. Verify source, registration, runtime and generated config
 absence separately. An exact unchanged `retained_unmerged` local ref is reported as retained, not deleted or
