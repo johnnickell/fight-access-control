@@ -14,6 +14,7 @@ $usage = <<<'USAGE'
     USAGE;
 $apply = false;
 $options = true;
+$identifiersEnded = false;
 $positional = [];
 $unknown = [];
 foreach (array_slice($argv, 1) as $argument) {
@@ -25,11 +26,20 @@ foreach (array_slice($argv, 1) as $argument) {
         exit(0);
     }
 
-    if ($options && $argument === '--apply') {
-        $apply = true;
-    } elseif ($options && $argument === '--') {
+    if ($options && $argument === '--') {
         $options = false;
+        if ($identifiersEnded) {
+            $unknown[] = $argument;
+        }
     } elseif ($options && strlen($argument) > 1 && str_starts_with($argument, '-')) {
+        // Once an option follows at least one identifier, the positional group cannot resume.
+        $identifiersEnded = count($positional) > 1;
+        if ($argument === '--apply') {
+            $apply = true;
+        } else {
+            $unknown[] = $argument;
+        }
+    } elseif ($identifiersEnded) {
         $unknown[] = $argument;
     } else {
         $positional[] = $argument;

@@ -7,12 +7,18 @@ use Fight\AccessControl\Tooling\Planning\Views;
 
 require __DIR__.'/Planning/bootstrap.php';
 
-$task = static fn (int $order, string $status, string $title, string $blocker = ''): Record => new Record(
-    sprintf('planning/tasks/%05d-TASK.md', $order),
+$task = static fn (
+    int $number,
+    string $status,
+    string $title,
+    string $blocker = '',
+    ?string $order = null
+): Record => new Record(
+    sprintf('planning/tasks/%05d-TASK.md', $number),
     [
-        'id'         => sprintf('TASK-%05d', $order),
+        'id'         => sprintf('TASK-%05d', $number),
         'kind'       => 'bug',
-        'order'      => (string) $order,
+        'order'      => $order ?? (string) $number,
         'status'     => $status,
         'title'      => $title,
         'blocked_by' => $blocker
@@ -53,5 +59,14 @@ $expectNext('First ready Task: [TASK-00037](00037-TASK.md) — Execute the ready
 $expectNext($running, $active, $ready, $info, $triage);
 $expectNext($decision, $human, $active, $ready, $info, $triage);
 $expectNext('No non-terminal Task exists. Any future release decision requires separate human authorization.');
+
+$larger = $task(1, 'ready-for-agent', 'Larger order', order: '9223372036854775809');
+$smaller = $task(2, 'ready-for-agent', 'Smaller order', order: '+9_223_372_036_854_775_808');
+$tied = $task(3, 'ready-for-agent', 'Equal order', order: '09223372036854775808');
+$expectNext('First ready Task: [TASK-00002](00002-TASK.md) — Smaller order.', $tied, $larger, $smaller);
+
+$negative = $task(4, 'ready-for-agent', 'Negative order', order: '-9223372036854775808');
+$moreNegative = $task(5, 'ready-for-agent', 'More negative order', order: '-9_223_372_036_854_775_809');
+$expectNext('First ready Task: [TASK-00005](00005-TASK.md) — More negative order.', $negative, $moreNegative);
 
 echo "Planning portfolio next-action qualification passed.\n";

@@ -23,7 +23,13 @@ final class Record
     public static function select(array $records, callable $matches): array
     {
         $selected = array_values(array_filter($records, $matches));
-        usort($selected, static fn (self $a, self $b): int => [$a->order(), $a->id()] <=> [$b->order(), $b->id()]);
+        usort($selected, static function (self $a, self $b): int {
+            [$leftSign, $leftDigits] = $a->order();
+            [$rightSign, $rightDigits] = $b->order();
+            $magnitude = (strlen($leftDigits) <=> strlen($rightDigits)) ?: strcmp($leftDigits, $rightDigits);
+
+            return ($leftSign <=> $rightSign) ?: ($leftSign * $magnitude) ?: strcmp($a->id(), $b->id());
+        });
 
         return $selected;
     }
@@ -45,8 +51,12 @@ final class Record
         return array_values(array_filter($ids, static fn (string $id): bool => $id !== ''));
     }
 
-    private function order(): int|float
+    private function order(): array
     {
-        return str_replace('_', '', $this->fields['order'] ?? substr($this->id(), -5)) + 0;
+        $order = str_replace('_', '', $this->fields['order'] ?? substr($this->id(), -5));
+        $digits = ltrim($order, '+-0');
+        $sign = $digits !== '' && str_starts_with($order, '-') ? -1 : 1;
+
+        return [$sign, $digits];
     }
 }
