@@ -13,7 +13,7 @@ usage() {
 
 argument_error() { usage >&2; printf 'runtime.py: error: %s\n' "$*" >&2; exit 2; }
 
-selector= action= outcome= published_oid= pr= build_only=no
+selector= action= outcome= published_oid= pr= build_only=no empty_selector=no
 argv=()
 while (( $# )); do
     arg=$1; shift
@@ -35,7 +35,9 @@ while (( $# )); do
                 value=$1; shift
             fi
             case "$arg" in
-                --w*) selector=$value ;;
+                --w*)
+                    selector=$value
+                    if [[ -z "$value" ]]; then empty_selector=yes; fi ;;
                 --o*) outcome=$value ;;
                 --pu*) published_oid=$value ;;
                 --pr*) pr=$value ;;
@@ -57,6 +59,7 @@ case "$action" in
     *) argument_error "argument action: invalid choice: '$action' (choose from 'up', 'down', 'docker', 'inspect', 'finish', 'image-name')" ;;
 esac
 
+[[ "$empty_selector" == no ]] || hold 'Expected a registered worktree or exact retired absolute path'
 case "$action" in
     up) select_checkout main no ;;
     down|finish) select_checkout main yes ;;

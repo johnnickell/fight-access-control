@@ -20,7 +20,8 @@ choose a target; the wrapper selects files, project and environment explicitly.
 ./bin/down --worktree /absolute/registered/path
 ```
 
-Git registrations resolve paths, branches and unambiguous short names. Ambiguity fails before effects. Each
+Git registrations resolve paths, branches and unambiguous short names. An explicitly empty selector or
+ambiguous match fails before Docker effects. Each
 worktree's project hashes the canonical repository and exact checkout path, so branches may change without
 renaming its resources. Worktree ports bind dynamically on loopback; inspect the actual published port with
 `./bin/runtime docker compose ps`. Compose health is not proof of an application/browser journey. No shared
@@ -100,6 +101,11 @@ in `.config/wt.toml` are admitted; unknown/user/changed hooks retain source with
 Native per-invocation consent never persists trust or skips a hook. A canonical checkout missing the supported
 `bin/down` must adopt it through normal delivery before removal; do not patch an active main checkout to
 circumvent that hold.
+
+Parent-mount and host source-consumer probes have 60-second deadlines. Foreground Worktrunk removal has a
+120-second deadline; native lifecycle commands and inventories have a 30-minute limit. A timeout stops the
+attempt. It does not prove that no effect occurred. Reobserve source, registration, ref and runtime before
+another removal attempt; never retry blindly.
 
 Native Worktrunk owns non-force source/ref removal. Verify source, registration, runtime and generated config
 absence separately. An exact unchanged `retained_unmerged` local ref is reported as retained, not deleted or

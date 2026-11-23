@@ -97,7 +97,7 @@ postconditions() {
 complete_removal() {
     local branch_outcome="$1"
     postconditions
-    "$safe/bin/down" --worktree "$checkout"
+    native "$safe/bin/down" --worktree "$checkout"
     postconditions
     [[ $(canonical "$state") == "$state" && ! -L "$state" ]] || hold 'Runtime state alias refused'
     if [[ -d "$state" ]]; then rm -r -- "$state"; fi
@@ -107,9 +107,9 @@ complete_removal() {
 }
 
 runtime_finish() {
-    local branch ref present=no current help option target kind result
+    local branch ref present=no current help option target kind result status=0
     [[ "$root" == "$safe" ]] || hold 'Run source removal from canonical safe checkout'
-    "$safe/bin/down" --worktree "$checkout"
+    native "$safe/bin/down" --worktree "$checkout"
     current=$(current_entry)
     if [[ "$entry" == null ]]; then
         [[ ! -e "$state" ]] || hold 'Unlocated generated configuration remains; inspect exact state, never infer retirement'
@@ -148,8 +148,9 @@ runtime_finish() {
     fi
     source_state
     [[ -n "$target" ]] || hold 'No exact native removal target'
-    result=$(wt remove --foreground --format=json --yes -- "$target" </dev/null) ||
-        hold 'Worktrunk removal failed; inspect partial effects without force'
+    result=$(bounded 120 wt remove --foreground --format=json --yes -- "$target" </dev/null) || status=$?
+    [[ "$status" != 124 ]] || hold 'Worktrunk removal timed out; outcome uncertain. Reobserve source, registration, ref and runtime before retrying'
+    [[ "$status" == 0 ]] || hold 'Worktrunk removal failed; inspect partial effects without force'
     current=$(jq -er --arg kind "$kind" --arg b "$branch" --arg p "$checkout" '
         select(type == "array" and length == 1 and (.[0]|type == "object")) | .[0] |
         select(.kind == $kind and .branch == $b and has("branch_checked_out_at") and .branch_checked_out_at == null and

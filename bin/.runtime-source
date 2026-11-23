@@ -3,7 +3,7 @@
 parent_mount_unused() {
     local id="$1" target="$2" status=0
     # Run as the configured container user. Inspect every process without returning private data.
-    docker exec "$id" sh -c '
+    bounded 60 docker exec "$id" sh -c '
 for process in /proc/[0-9]*; do
     [ "$process" = "/proc/$$" ] && continue
     [ -d "$process" ] || continue
@@ -18,6 +18,7 @@ for process in /proc/[0-9]*; do
         case "$value" in "$1"|"$1"/*) exit 3 ;; esac
     done
 done' source-consumer-check "$target" >/dev/null 2>&1 || status=$?
+    [[ "$status" != 124 ]] || hold "Parent-mounted container observation timed out: ${id:0:12}"
     [[ "$status" != 3 ]] || hold "Parent-mounted container consumes candidate source: ${id:0:12}"
     [[ "$status" == 0 ]] || hold "Parent-mounted container process visibility unavailable with configured identity: ${id:0:12}"
 }
@@ -79,7 +80,8 @@ check_source_consumers() (
     fi
     diagnostics=$(mktemp)
     trap 'rm -f -- "$diagnostics"' EXIT
-    listing=$(lsof -nP -Fpuaftn +D "$checkout" 2> "$diagnostics") || status=$?
+    listing=$(bounded 60 lsof -nP -Fpuaftn +D "$checkout" 2> "$diagnostics") || status=$?
+    [[ "$status" != 124 ]] || hold 'Source consumer visibility timed out; retain source'
     [[ "$status" == 0 || "$status" == 1 ]] && [[ ! -s "$diagnostics" ]] || hold 'Source consumer visibility unavailable'
     owner=$(id -u)
     if [[ -n "$listing" ]]; then readonly_docker_handles "$listing"; fi
