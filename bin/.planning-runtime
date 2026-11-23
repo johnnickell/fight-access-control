@@ -1,5 +1,35 @@
 #!/usr/bin/env bash
 
+# Mirror archive CLI admission, not record eligibility. Help and malformed calls stay read-only.
+archive_requests_write() {
+    local write_flag="$1" apply=false options=true identifiers_ended=false positionals=0 arg
+    local negative_number='^-([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?$'
+    shift
+    for arg in "$@"; do
+        if $options; then
+            case "${arg%%=*}" in
+                "$write_flag"|--a|--ap|--app|--appl)
+                    [[ "$arg" != *=* ]] || return 1
+                    apply=true
+                    if (( positionals > 1 )); then identifiers_ended=true; fi
+                    continue ;;
+                --)
+                    [[ "$arg" == -- ]] && ! $identifiers_ended || return 1
+                    options=false
+                    continue ;;
+                -h*|--h|--he|--hel|--help) return 1 ;;
+            esac
+            if [[ "$arg" == -?* && "$arg" != *' '* && ! "$arg" =~ $negative_number ]]; then return 1; fi
+        fi
+        if $identifiers_ended; then return 1; fi
+        if (( positionals == 0 )); then
+            case "$arg" in tasks|tickets|epics|wayfinder) ;; *) return 1 ;; esac
+        fi
+        positionals=$((positionals + 1))
+    done
+    $apply && (( positionals > 1 ))
+}
+
 # Reuse the prepared package image without starting Compose or preparing dependencies.
 run_planning() {
     local script="$1" write_flag="$2" access=,readonly arg
@@ -12,13 +42,8 @@ run_planning() {
                 *) access=,readonly; break ;;
             esac
         done
-    else
-        for arg in "$@"; do
-            [[ "$arg" != -- ]] || break
-            if [[ "$arg" == "$write_flag" ]]; then
-                access=
-            fi
-        done
+    elif archive_requests_write "$write_flag" "$@"; then
+        access=
     fi
 
     local DOCKER_BIN="${DOCKER_BIN:-docker}" GIT_BIN="${GIT_BIN:-git}" ID_BIN="${ID_BIN:-id}"
