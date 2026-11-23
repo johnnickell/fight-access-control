@@ -104,6 +104,16 @@ declaration to an external map or replace it with a multiline annotation. These 
 configured route, not validation of arbitrary decoded/injected data. Preserve existing dynamic-boundary validation
 and runtime guards; annotations neither create native payload narrowing nor make those checks redundant at runtime.
 
+## Fight Common Domain helpers
+
+Prefer explicit imports such as `use function Fight\Common\Domain\email;` when the helper in the minimum supported Fight Common version preserves the result type, normalization, exception behavior and evaluation order. Keep class imports used in declarations. Do not add a lint rule or introduce wrappers just to use a helper.
+
+- `email()` in Common v1.5.1 delegates directly to `EmailAddress::fromString()`. Use it for the existing command and event hydration calls and login parsing, without moving validation or changing exception handling.
+- `string()` and `mb_string()` create Common string value objects. There are no equivalent production factory calls; leave native strings and package-specific values as they are.
+- For typed `array_list()` and `hash_set()` substitutions, pass the element class as the second argument and verify runtime element enforcement and PHPStan inference at each changed caller. In v1.5.1 those helpers return `ArrayList<mixed>` and `HashSet<mixed>` even with a class argument. Keep the typed `::of()` factories in the six list query handlers and the `User` and `Role` aggregates. Do not force inference with casts or annotations.
+
+Keep factories when the helper does something different. For example, `uuid()` generates a COMB UUID rather than parsing an identifier or generating a random UUID, and `json_data()` returns a `JsonObject`, not a serialized string.
+
 ## Expressions
 
 Use guard clauses and early returns to reduce nesting. Multiple returns are welcome. No space follows unary `!`. Prefer a default assignment followed by an explicit conditional for choices like:

@@ -10,6 +10,8 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
+use function Fight\Common\Domain\email;
+
 /**
  * Class PendingInvitationCorrected
  *
@@ -45,7 +47,7 @@ final readonly class PendingInvitationCorrected implements Event
         return new static(
             UserId::fromString($data['actor_id']),
             UserId::fromString($data['user_id']),
-            EmailAddress::fromString($data['email']),
+            email($data['email']),
             ActivationDeliveryId::fromString($data['activation_delivery_id'])
         );
     }

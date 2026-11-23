@@ -9,6 +9,8 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
+use function Fight\Common\Domain\email;
+
 /**
  * Class RegisterUser
  *
@@ -37,7 +39,7 @@ final readonly class RegisterUser implements Command
             throw new DomainException('Registration requires only a User ID and email address.');
         }
 
-        return new static(UserId::fromString($data['user_id']), EmailAddress::fromString($data['email']));
+        return new static(UserId::fromString($data['user_id']), email($data['email']));
     }
 
     /**

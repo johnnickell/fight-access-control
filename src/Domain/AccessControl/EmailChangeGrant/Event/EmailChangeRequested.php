@@ -12,6 +12,8 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
+use function Fight\Common\Domain\email;
+
 /**
  * Class EmailChangeRequested
  *
@@ -52,7 +54,7 @@ final readonly class EmailChangeRequested implements Event
             UserId::fromString($data['actor_id']),
             UserId::fromString($data['user_id']),
             EmailChangeDeliveryId::fromString($data['email_change_delivery_id']),
-            EmailAddress::fromString($data['email']),
+            email($data['email']),
             CredentialDeliveryTimestamp::fromString($data['issued_at'])->toDateTimeImmutable()
         );
     }

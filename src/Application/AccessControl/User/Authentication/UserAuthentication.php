@@ -38,10 +38,11 @@ use Fight\Common\Application\Error\Exception\StateConflict;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Value\Internet\EmailAddress;
 use LogicException;
 use SensitiveParameter;
 use Throwable;
+
+use function Fight\Common\Domain\email;
 
 /**
  * Class UserAuthentication
@@ -204,7 +205,7 @@ final readonly class UserAuthentication
                 $remember
             ): array {
                 try {
-                    $emailAddress = EmailAddress::fromString($email);
+                    $emailAddress = email($email);
                 } catch (DomainException) {
                     throw new AuthenticationRequired('Login rejected.');
                 }

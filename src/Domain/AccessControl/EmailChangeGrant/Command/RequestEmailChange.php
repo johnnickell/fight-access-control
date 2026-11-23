@@ -9,6 +9,8 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
+use function Fight\Common\Domain\email;
+
 /**
  * Class RequestEmailChange
  *
@@ -46,7 +48,7 @@ final readonly class RequestEmailChange implements Command
         return new static(
             UserId::fromString($data['actor_id']),
             UserId::fromString($data['user_id']),
-            EmailAddress::fromString($data['email'])
+            email($data['email'])
         );
     }
 
