@@ -10,6 +10,8 @@ The TASK in each row owns the migration decision; the named maintainer area owns
 finishes, update its rows with the final replacement or exception, retained prerequisites and qualification locator.
 Imports below are repository-local unless a library is named; ordinary Python standard-library imports are implicit.
 
+The existing MkDocs pipeline for consumer docs and GitHub Pages is the [only approved Python exception](../../planning/wayfinder/tickets/WF-039-host-and-composer-tooling-split.md#approved-exception--consumer-docs-and-pages). The retained rows below cover its hook, locked build tools and optional local preview. All three maintained diagram generators use PHP.
+
 | Tracked Python file at baseline | Owner | Entrypoint, callers and dependencies | Disposition |
 | --- | --- | --- | --- |
 | `scripts/contract_inventory.py` | Structural inventory maintainers | `bin/quality` locally and in hosted tests; focused maintainer commands; qualification imported `ROOT` and `SEMANTICS`. Used `inventory_ast.php`, Git, installed dev dependencies and `nikic/php-parser`. | [TASK-00196](../../planning/tasks/00196-TASK.md): replaced by `scripts/contract_inventory.php` and `scripts/ContractInventory/`; same prepared gate, no Python subprocess. |
