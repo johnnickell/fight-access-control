@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00201](00201-TASK.md) — Resolve Python host build runtime and worktree tooling.
+First ready Task: [TASK-00202](00202-TASK.md) — Resolve Python documentation diagram generators.
 
 ## In Progress
 
@@ -15,7 +15,6 @@ No Tasks are currently in this state.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 524 | [TASK-00201](00201-TASK.md) | Resolve Python host build runtime and worktree tooling | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP | ready-for-agent | [TASK-00196](00196-TASK.md) | — |
 | 525 | [TASK-00202](00202-TASK.md) | Resolve Python documentation diagram generators | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP | ready-for-agent | [TASK-00196](00196-TASK.md) | — |
 | 526 | [TASK-00203](00203-TASK.md) | Adopt equivalent Fight Common Domain helpers | [TICKET-00058](../tickets/00058-TICKET.md) — Adopt equivalent Fight Common Domain helpers | ready-for-agent | — | — |
 
@@ -238,3 +237,4 @@ No Tasks are currently in this state.
 | 521 | [TASK-00198](00198-TASK.md) | Port the static fixture runner and its qualification helper to PHP | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP | done | [TASK-00197](00197-TASK.md), [TASK-00195](00195-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/283 |
 | 522 | [TASK-00199](00199-TASK.md) | Resolve Python planning and archive tooling | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP | done | [TASK-00196](00196-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/286 |
 | 523 | [TASK-00200](00200-TASK.md) | Resolve Python release-docs preflight tooling | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP | done | [TASK-00196](00196-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/285 |
+| 524 | [TASK-00201](00201-TASK.md) | Resolve Python host build runtime and worktree tooling | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP | done | [TASK-00196](00196-TASK.md) | — |

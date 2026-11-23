@@ -179,6 +179,27 @@ source removal. The previous Python guards were adopted from Fight Agent OS `scr
 boundary without depending on the provider at runtime. `bin/build` owns host orchestration and
 [`scripts/build_cache.php`](../../scripts/build_cache.php) owns filesystem evidence. Qualify guard changes
 explicitly; no private-path dependency, symlink or automatic synchronization is installed.
+
+### Host build and lifecycle flow
+
+Existing implementation at `ce3cb65b6afdd06be66f0ef48721fdcfcf71a217`. Arrows show calls in the
+named direction; the view omits transport deadlines, Docker ownership checks and cache fingerprint details.
+
+```mermaid
+flowchart TD
+    Build["Host: bin/build"] --> Worker["Tooling container: scripts/build_cache.php"]
+    Build --> Plan["Host: bin/planning-check"]
+    Build --> Decision{"Receipt still matches after planning?"}
+    Decision -->|Yes| Reuse["Reuse application gate evidence"]
+    Decision -->|No| Prepare["Host: bin/.build-prepare"]
+    Prepare --> Gate["Host: bin/.build-full, once"]
+    Runtime["Host: bin/runtime"] --> Native["Native Git, Docker Compose and Worktrunk"]
+```
+
+[`bin/build`](../../bin/build) requests evidence from the PHP worker, runs planning, and rechecks Git
+membership before confirming a hit. [`bin/runtime`](../../bin/runtime) and the host `.runtime-*` helpers
+own checkout selection, Docker teardown and guarded source removal. The PHP worker does not call Docker or Git.
+
 Validate these tools directly with native Compose/Worktrunk and normal gates, outside product test suites.
 
 AccessControl retains its stable PHP 8.5 security floor (minimum 8.5.12). Image refresh and native admission run without a source mount before package work; an unavailable refresh or unsupported PHP stops the command. Ordinary gate preparation retains `composer update`; `--latest` remains accepted. The library owns a CLI tooling service and requires no HTTP stack or application database.
