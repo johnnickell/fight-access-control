@@ -20,7 +20,7 @@ Eliminate every repository-owned Python script, module and embedded helper, incl
 
 ## Sequencing and exclusions
 
-Start with the contract inventory, then coverage checker. Port the static fixture runner after [TICKET-00056](00056-TICKET.md), keeping exact per-file diagnostics and separate qualification. Inventory the rest up front and sequence ports by dependencies and operational risk. Coordinate timing with [TICKET-00055](00055-TICKET.md). No production autoloading or unrelated redesign. The exception-only completions for TASK-00199 and TASK-00200 were reopened. TASK-00200 is now accepted for the PHP port; TASK-00199 remains open, and TASK-00201 and TASK-00202 must still remove their remaining Python. The consumer docs and Pages pipeline (MkDocs hook, Python/uv build and preview) needs a dedicated migration TASK before this TICKET can close; preserve validation, published docs and deployment rules.
+Start with the contract inventory, then coverage checker. Port the static fixture runner after [TICKET-00056](00056-TICKET.md), keeping exact per-file diagnostics and separate qualification. Inventory the rest up front and sequence ports by dependencies and operational risk. Coordinate timing with [TICKET-00055](00055-TICKET.md). No production autoloading or unrelated redesign. The exception-only completions for TASK-00199 and TASK-00200 were reopened. TASK-00199 and TASK-00200 are now accepted for their PHP ports. TASK-00201 and TASK-00202 must still remove their remaining Python. The consumer docs and Pages pipeline (MkDocs hook, Python/uv build and preview) needs a dedicated migration TASK before this TICKET can close; preserve validation, published docs and deployment rules.
 
 ## Child Tasks
 
@@ -29,7 +29,7 @@ Start with the contract inventory, then coverage checker. Port the static fixtur
 | 519 | [TASK-00196](../tasks/00196-TASK.md) | Inventory repository Python and port the structural contract inventory | done |
 | 520 | [TASK-00197](../tasks/00197-TASK.md) | Port the Unit coverage checker to PHP | done |
 | 521 | [TASK-00198](../tasks/00198-TASK.md) | Port the static fixture runner and its qualification helper to PHP | done |
-| 522 | [TASK-00199](../tasks/00199-TASK.md) | Resolve Python planning and archive tooling | ready-for-agent |
+| 522 | [TASK-00199](../tasks/00199-TASK.md) | Resolve Python planning and archive tooling | done |
 | 523 | [TASK-00200](../tasks/00200-TASK.md) | Resolve Python release-docs preflight tooling | done |
 | 524 | [TASK-00201](../tasks/00201-TASK.md) | Resolve Python host build runtime and worktree tooling | ready-for-agent |
 | 525 | [TASK-00202](../tasks/00202-TASK.md) | Resolve Python documentation diagram generators | ready-for-agent |

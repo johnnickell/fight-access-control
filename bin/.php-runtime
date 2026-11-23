@@ -6,7 +6,7 @@ admit_php_runtime() {
 
     if ! version="$("${DOCKER_BIN}" container run --rm \
         --network none --read-only --cap-drop ALL \
-        --security-opt no-new-privileges --entrypoint php \
+        --security-opt no-new-privileges "$@" --entrypoint php \
         "${PHP_IMAGE}" -r 'echo PHP_VERSION;')"; then
         echo '[runtime] Cannot inspect actual PHP version; check that the selected image runs PHP CLI.' >&2
         return 1

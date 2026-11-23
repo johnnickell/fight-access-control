@@ -48,7 +48,10 @@ removes only reserved task image tags, project containers, private networks and 
 Main down preserves named data volumes. Unknown resource labels and foreign consumers, including stopped
 containers, hold the affected teardown instead of being treated as disposable.
 
-A normal `bin/build` first runs offline planning validation freshly. The checkout-local `var/build.json` points
+A normal `bin/build` first runs offline planning validation freshly. On a host without the default package PHP
+image, prepare it once with `./bin/up --build-only` in main, or select an already prepared package image as
+[documented for planning](../../planning/CONVENTIONS.md#offline-planning-toolchain). This does not start services
+or install project dependencies. The checkout-local `var/build.json` points
 to the original successful full-gate receipt and log under ignored `.runs/build/`. Reuse requires identical
 source, installed dependencies/lockfile, governing instructions and generated artifacts, plus unchanged
 original evidence. Database contents/schema/identity, containers, runtime tools and inherited environment

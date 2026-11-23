@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+# Mirror archive CLI admission, not record eligibility. Help and malformed calls stay read-only.
+archive_requests_write() {
+    local write_flag="$1" apply=false options=true identifiers_ended=false positionals=0 arg
+    local negative_number='^-([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?$'
+    shift
+    for arg in "$@"; do
+        if $options; then
+            case "${arg%%=*}" in
+                "$write_flag"|--a|--ap|--app|--appl)
+                    [[ "$arg" != *=* ]] || return 1
+                    apply=true
+                    if (( positionals > 1 )); then identifiers_ended=true; fi
+                    continue ;;
+                --)
+                    [[ "$arg" == -- ]] && ! $identifiers_ended || return 1
+                    options=false
+                    continue ;;
+                -h*|--h|--he|--hel|--help) return 1 ;;
+            esac
+            if [[ "$arg" == -?* && "$arg" != *' '* && ! "$arg" =~ $negative_number ]]; then return 1; fi
+        fi
+        if $identifiers_ended; then return 1; fi
+        if (( positionals == 0 )); then
+            case "$arg" in tasks|tickets|epics|wayfinder) ;; *) return 1 ;; esac
+        fi
+        positionals=$((positionals + 1))
+    done
+    $apply && (( positionals > 1 ))
+}
+
+# Reuse the prepared package image without starting Compose or preparing dependencies.
+run_planning() {
+    local script="$1" write_flag="$2" access=,readonly arg
+    shift 2
+    if [[ "$script" == planning_portfolio.php ]]; then
+        # Grant writes only when every argument is a planner write flag or its legacy abbreviation.
+        for arg in "$@"; do
+            case "$arg" in
+                --w|--wr|--wri|--writ|--write) access= ;;
+                *) access=,readonly; break ;;
+            esac
+        done
+    elif archive_requests_write "$write_flag" "$@"; then
+        access=
+    fi
+
+    local DOCKER_BIN="${DOCKER_BIN:-docker}" GIT_BIN="${GIT_BIN:-git}" ID_BIN="${ID_BIN:-id}"
+    local image="${FIGHT_ACCESS_CONTROL_PLANNING_IMAGE:-fight-access-control-php}" PHP_IMAGE
+    if ! PHP_IMAGE="$("$DOCKER_BIN" image inspect --format '{{.Id}}' "$image")"; then
+        echo 'Planning tooling image unavailable. Prepare it with ./bin/up --build-only (main), or select a prepared package image with FIGHT_ACCESS_CONTROL_PLANNING_IMAGE.' >&2
+        return 1
+    fi
+    # Compose-built images carry a project label. This one-shot is not a Compose resource.
+    local label=com.docker.compose.project=
+
+    local common path workdir target
+    common="$("$GIT_BIN" rev-parse --path-format=absolute --git-common-dir)" || return
+    workdir=/app
+    local -a mounts=()
+    if [[ "$common" != "$ROOT_DIR/"* ]]; then
+        workdir="$ROOT_DIR"
+        path="${common//\"/\"\"}"
+        mounts+=(--mount "type=bind,\"source=$path\",\"target=$path\",readonly")
+    fi
+    path="${ROOT_DIR//\"/\"\"}"
+    target="${workdir//\"/\"\"}"
+    mounts+=(--mount "type=bind,\"source=$path\",\"target=$target\"$access")
+    exec "$DOCKER_BIN" container run --rm --pull=never --network=none --read-only --label "$label" \
+        --cap-drop ALL --security-opt no-new-privileges "${mounts[@]}" --workdir "$workdir" \
+        --user "$("$ID_BIN" -u):$("$ID_BIN" -g)" --env HOME=/tmp --entrypoint php \
+        "$PHP_IMAGE" -n -r '
+            if (!preg_match("/^8\\.5\\.[1-9][0-9]*$/D", PHP_VERSION) || PHP_VERSION_ID < 80512) {
+                fwrite(STDERR, "[runtime] Rejected PHP version: require stable PHP 8.5.12 or newer on the supported 8.5 build line.\n");
+                fwrite(STDERR, "[runtime] Refresh the package image and check image overrides.\n");
+                exit(1);
+            }
+
+            // Drop the inline entrypoint name so the script sees its usual arguments.
+            array_shift($argv);
+            --$argc;
+            require $argv[0];
+        ' -- "scripts/$script" "$@"
+}
