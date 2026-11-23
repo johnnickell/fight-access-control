@@ -6,7 +6,7 @@ in the [owning guide](../http-feature-admission.md), not a complete framework or
 
 ![Existing bounded Feature admission runtime flow](runtime-flow.png)
 
-[Editable Python](runtime-flow.py) · [Open PNG](runtime-flow.png)
+[Editable PHP](runtime-flow.php) · [Regenerate the PNG](../engineering/diagram-rendering.md) · [Open PNG](runtime-flow.png)
 
 All arrows are dotted, numbered runtime interactions, **not static dependency arrows**. The layout shows ordered
 calls plus failure propagation; it does not imply that Application depends on Adapter or Common presentation.
@@ -25,6 +25,3 @@ Omitted: provider internals, cryptography/nonce stores, repositories/transaction
 Common fallback internals, eager bootstrap, other native adapters and consumer installations. Source traces were
 inspected, not inferred from layout. This image proves neither runtime execution nor consumer safety; the native
 behavioral tests and independent reports own those claims. No proposed behavior is depicted.
-
-The renderer uses Python Diagrams and Graphviz, writes adjacent PNG with `show=False`, and performs no application
-operations or network fetch. Generated DOT is scratch rather than a maintained artifact.

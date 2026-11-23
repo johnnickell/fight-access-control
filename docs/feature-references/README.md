@@ -6,7 +6,7 @@ see the owning [declaration/discovery guide](../feature-references.md) for the s
 
 ![Existing effective Feature metadata ownership](declaration-ownership.png)
 
-[Editable Python source](declaration-ownership.py) · [Open PNG](declaration-ownership.png)
+[Editable PHP](declaration-ownership.php) · [Regenerate the PNG](#rendering) · [Open PNG](declaration-ownership.png)
 
 ## Source and arrow traces
 
@@ -37,8 +37,5 @@ correctness, security, runtime ordering, independent acceptance or consumer qual
 
 ## Rendering
 
-Rendered with the already available `fight-agent-os-diagrams:latest` image, without installing tooling or starting
-provider services: one disposable, network-disabled container in the existing task project, with this feature
-directory mounted at `/docs` and `python /docs/declaration-ownership.py`. The image provides Python Diagrams,
-Graphviz and DejaVu Sans. Actual versions, image identity, render output and image inspection are retained in the
-TASK-00170 Land evidence; this renderer is documentation tooling, not a product gate or sandbox guarantee.
+See the [diagram rendering guide](../engineering/diagram-rendering.md) for prerequisites and the command to
+regenerate this PNG.

@@ -34,3 +34,7 @@ Use [local tooling guidance](../../../docs/engineering/LOCAL_TOOLING.md) and the
 ## Resolution boundary
 
 Set the command boundary and priorities. Do not port scripts, add dependencies or declare all Python removable without evidence.
+
+## Approved exception — consumer docs and Pages
+
+The operator superseded the [no-Python amendment](#approved-amendment--no-python) only for the existing consumer docs and GitHub Pages pipeline. Keep MkDocs, its Python hook, and the existing Python/uv build and preview tooling without changing validation, publication or runtime behavior. [TICKET-00057](../../tickets/00057-TICKET.md) does not need a migration TASK for that pipeline. The three maintained diagram generators in [TASK-00202](../../tasks/00202-TASK.md) remain in PHP. The rest of the tooling decision stands.
