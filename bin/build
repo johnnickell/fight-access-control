@@ -1,4 +1,102 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -eo pipefail
 cd "$(dirname "$0")/.."
-exec python3 -B scripts/build.py "$@"
+root=$(pwd -P)
+config="$root/etc/local-tooling.json"
+
+incomplete() { printf 'Build incomplete: %s\n' "$*" >&2; exit 1; }
+
+for arg in "$@"; do
+    if [[ "$arg" != --force ]]; then
+        jq -e --arg arg "$arg" '(.build_options // []) | index($arg) != null' "$config" >/dev/null ||
+            incomplete 'Usage: ./bin/build [--force]'
+    fi
+done
+
+# All Git and Docker effects stay on the host. The supplied PHP environment
+# owns the checkout lock, fingerprint, and evidence; it sees no Docker socket.
+DOCKER_BIN=${DOCKER_BIN:-docker}
+image=${FIGHT_ACCESS_CONTROL_PLANNING_IMAGE:-fight-access-control-php}
+PHP_IMAGE=$("$DOCKER_BIN" image inspect --format '{{.Id}}' "$image") ||
+    incomplete 'Planning tooling image unavailable. Prepare it with ./bin/up --build-only (main), or select a prepared package image with FIGHT_ACCESS_CONTROL_PLANNING_IMAGE.'
+
+command_from_config() {
+    local rows row
+    rows=$(jq -c --arg key "$1" '(.[$key] // [])[] | @json' "$config")
+    command=()
+    if [[ -n "$rows" ]]; then
+        while IFS= read -r row; do command+=("$(jq -r 'fromjson' <<< "$row")"); done <<< "$rows"
+    fi
+}
+
+tracked_inputs() {
+    local rows path paths=(var)
+    rows=$(jq -c '(.outputs // [])[] | @json' "$config")
+    if [[ -n "$rows" ]]; then
+        while IFS= read -r path; do paths+=("$(jq -r 'fromjson' <<< "$path")"); done <<< "$rows"
+    fi
+    git ls-files -z -- "${paths[@]}" | jq -Rsc 'split("\u0000")'
+}
+
+umask 077
+pipes=$(mktemp -d)
+trap 'rm -f -- "$pipes/request" "$pipes/reply"; rmdir -- "$pipes"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+mkfifo "$pipes/request" "$pipes/reply"
+mount=${root//\"/\"\"}
+worker_status=0
+"$DOCKER_BIN" container run -i --rm --pull=never --network=none --read-only --label com.docker.compose.project= \
+    --cap-drop ALL --security-opt no-new-privileges \
+    --mount "type=bind,\"source=$mount\",\"target=$mount\"" --workdir "$root" \
+    --user "$(id -u):$(id -g)" --env HOME=/tmp --entrypoint php \
+    "$PHP_IMAGE" -n scripts/build_cache.php "$@" < "$pipes/request" > "$pipes/reply" &
+worker=$!
+exec 7> "$pipes/request" 8< "$pipes/reply"
+
+# The protocol admits only four fixed transitions, never worker-supplied commands.
+receive() { IFS= read -r reply <&8 || return; }
+send() { printf '%s\n' "$1" >&7; }
+finish() {
+    exec 7>&- 8<&-
+    wait "$worker" || worker_status=$?
+    exit "$worker_status"
+}
+receive || finish
+[[ "$reply" == PLAN ]] || incomplete 'Unexpected planning protocol state'
+status=0
+./bin/planning-check 7>&- 8<&- || status=$?
+if (( status != 0 )); then incomplete "Command failed (exit $status): $root/bin/planning-check"; fi
+tracked=$(tracked_inputs)
+send "$tracked"
+receive || finish
+case "$reply" in
+    'HIT '*) printf 'Planning validated freshly. Application gate reused: %s\n' "${reply#HIT }"; finish ;;
+    'MISS '*) printf 'Build cache miss: %s\n' "${reply#MISS }" ;;
+    *) incomplete 'Unexpected cache protocol state' ;;
+esac
+command_from_config build_prepare
+if (( ${#command[@]} )); then
+    status=0
+    "${command[@]}" 7>&- 8<&- || status=$?
+    if (( status != 0 )); then incomplete "Command failed (exit $status): ${command[*]:0:3}"; fi
+    tracked=$(tracked_inputs)
+    send "$tracked"
+fi
+receive || finish
+log=${reply#GATE }
+[[ "$reply" == 'GATE '* && "$log" =~ ^\.runs/build/[0-9TZ-]+[a-f0-9]+/build\.log$ ]] || incomplete 'Unexpected gate protocol state'
+command_from_config gate
+(( ${#command[@]} )) || incomplete 'No configured gate'
+set +e
+"${command[@]}" 7>&- 8<&- 2>&1 | tee -- "$log" 7>&- 8<&-
+results=("${PIPESTATUS[@]}")
+set -e
+(( results[1] == 0 )) || incomplete 'Could not save the complete gate log'
+tracked=$(tracked_inputs)
+result=$(jq -cn --argjson status "${results[0]}" --argjson tracked "$tracked" '{status:$status,tracked:$tracked}')
+send "$result"
+receive || finish
+[[ "$reply" == 'RECEIPT '* ]] || incomplete 'Unexpected receipt protocol state'
+printf 'Build receipt: %s\n' "${reply#RECEIPT }"
+finish

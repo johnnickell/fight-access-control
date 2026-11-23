@@ -1,8 +1,10 @@
 # Local Docker, worktrees and build evidence
 
-Use these commands when preparing, validating or retiring this repository. Python 3, Git, Docker with native
-Compose v2 `!override` support, and the target's normal dependency access are prerequisites. Worktrunk is needed
-only for guarded source removal and must support `remove --foreground --format=json --yes`.
+Use these commands when preparing, validating or retiring this repository. The host wrappers require Bash, Git,
+Docker with native Compose `!override` support, and `jq` for native JSON inventories. Fresh preparation needs
+the package's normal dependency access. Guarded source removal also uses Worktrunk
+(`remove --foreground --format=json --yes`), `lsof` and, for publication proof, `gh`. Local package tooling
+needs neither host PHP nor Python. The separate [consumer docs workflow](../../CONTRIBUTING.md) still uses Python.
 
 ## Select the checkout
 
@@ -51,7 +53,10 @@ containers, hold the affected teardown instead of being treated as disposable.
 A normal `bin/build` first runs offline planning validation freshly. On a host without the default package PHP
 image, prepare it once with `./bin/up --build-only` in main, or select an already prepared package image as
 [documented for planning](../../planning/CONVENTIONS.md#offline-planning-toolchain). This does not start services
-or install project dependencies. The checkout-local `var/build.json` points
+or install project dependencies. The build starts a one-shot PHP process from that image with no Docker socket,
+network or `vendor/` requirement. PHP owns the checkout lock and hashes, and the host wrapper runs planning,
+preparation and the single gate. A symlink whose target is not visible in that checkout mount disables reuse.
+The checkout-local `var/build.json` points
 to the original successful full-gate receipt and log under ignored `.runs/build/`. Reuse requires identical
 source, installed dependencies/lockfile, governing instructions and generated artifacts, plus unchanged
 original evidence. Database contents/schema/identity, containers, runtime tools and inherited environment
@@ -134,19 +139,10 @@ Unknown/writable handles or incomplete visibility still hold. Elapsed time, stab
 not admission. No blind retry loop, retry queue, forced removal, writer exemption or routine shared restart.
 If conditions remain unqualified, report the exact consumer/visibility prerequisite to its owner and stop.
 
-This is local runtime/runbook adoption, not a shared guard fix. TASK-00183 left local `source.py` byte-identical
-to the inspected Agent OS supplier and left the local remover unchanged. Existing supplier provenance below
-still applies; no new supplier assent or supported per-export release contract is claimed.
-
-## Runtime-free qualification fixtures
-
-An owning qualification caller can pass `runtime_free_fixture=True` to
-`scripts/local_tooling/worktrunk.py`'s guarded `remove` with the fixture's canonical primary, exact linked
-checkout and expected commit. This is for generated local Git fixtures. The caller must establish ownership.
-The guard requires absent remotes, application declarations, runtime settings and project Docker resources,
-successful native inventories and absent effective removal hooks. The existing source, ancestry, consumer
-and protection checks still apply. Retry only with the original absolute path. Published delivery and
-application or QA environments use the Docker-first path above.
+TASK-00183 verified the shared guard on this backend. TASK-00201 moved local host operations to the wrappers;
+no new supplier assent or supported per-export release contract is claimed. The old Python-only runtime-free
+fixture entrypoint had no repository caller and was removed. This repository's registered application worktrees
+still use the Docker-first retirement path above.
 
 ## Local QA
 
@@ -157,11 +153,12 @@ runtime and this repository's test services in their respective Compose projects
 ## Maintainer ownership
 
 `etc/local-tooling.json` binds local runtime setup, the gate and artifact paths. Update it whenever
-those contracts change. `scripts/local_tooling` owns this checkout's adapters. Guarded native removal modules
-(`resources.py`, `source.py`, `publication.py`, `worktrunk.py`) were adopted verbatim from Fight Agent OS
-`scripts/resource_lifecycle` at `cbdf91562b2a5a8afb1c67cb83f24891f52015c5` (2026-11-02). Runtime selection and
-build evidence are local adaptations, not copied provider application services. Changes require explicit
-comparison and qualification; no private-path dependency, symlink or automatic synchronization is installed.
+those contracts change. `bin/runtime` and its `.runtime-*` files own native selection, Docker, publication and
+source removal. The previous Python guards were adopted from Fight Agent OS `scripts/resource_lifecycle` at
+`cbdf91562b2a5a8afb1c67cb83f24891f52015c5` (2026-11-02); the current local wrappers preserve that ownership
+boundary without depending on the provider at runtime. `bin/build` owns host orchestration and
+[`scripts/build_cache.php`](../../scripts/build_cache.php) owns filesystem evidence. Qualify guard changes
+explicitly; no private-path dependency, symlink or automatic synchronization is installed.
 Validate these tools directly with native Compose/Worktrunk and normal gates, outside product test suites.
 
 AccessControl retains its stable PHP 8.5 security floor (minimum 8.5.12). Image refresh and native admission run without a source mount before package work; an unavailable refresh or unsupported PHP stops the command. Ordinary gate preparation retains `composer update`; `--latest` remains accepted. The library owns a CLI tooling service and requires no HTTP stack or application database.
