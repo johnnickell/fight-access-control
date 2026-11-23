@@ -250,9 +250,10 @@ final readonly class Portfolio
 
     private function git(string ...$arguments): ?string
     {
+        // Inherit stderr: passing the PHP stream can seek the shared file offset under 2>&1.
         $process = proc_open(
             ['git', '-c', "safe.directory=$this->root", ...$arguments],
-            [1 => ['pipe', 'w'], 2 => STDERR],
+            [1 => ['pipe', 'w']],
             $pipes,
             $this->root
         );
