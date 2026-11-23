@@ -8,6 +8,8 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 
+use function Fight\Common\Domain\email;
+
 /**
  * Class RequestPasswordReset
  *
@@ -37,7 +39,7 @@ final readonly class RequestPasswordReset implements Command
             throw new DomainException('Invalid type for "email" in data array');
         }
 
-        return new static(EmailAddress::fromString($data['email']));
+        return new static(email($data['email']));
     }
 
     /**

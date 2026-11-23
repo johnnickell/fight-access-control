@@ -65,7 +65,7 @@ including the Fight logo and Fight Common as the site's visual benchmark. The fi
 the EPIC owns the later amendments to Python and helper scope. All five TICKETs have approved TASK plans.
 Map closure does not imply implementation, publication, or release readiness.
 
-Next: `/skill:next` to consult the [Task Board](../tasks/BOARD.md).
+The linked EPIC records completion of the approved implementation scope.
 
 ## Downstream planning details
 

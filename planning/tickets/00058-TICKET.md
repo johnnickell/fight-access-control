@@ -2,7 +2,7 @@
 id: TICKET-00058
 epic: EPIC-00019
 title: Adopt equivalent Fight Common Domain helpers
-status: ready-for-agent
+status: done
 ---
 
 # Adopt equivalent Fight Common Domain helpers
@@ -25,8 +25,8 @@ Independent of the other requirements. No dependency bump, blanket lint rule, te
 
 | Order | TASK ID | Title | Status |
 | --- | --- | --- | --- |
-| 526 | [TASK-00203](../tasks/00203-TASK.md) | Adopt equivalent Fight Common Domain helpers | ready-for-agent |
+| 526 | [TASK-00203](../tasks/00203-TASK.md) | Adopt equivalent Fight Common Domain helpers | done |
 ## Acceptance Evidence
 
-- [ ] Record candidates and justified exceptions for all five helpers against Common v1.5.1.
-- [ ] Verify ordinary analysis, affected type-contract probes and existing behavior at changed sites, including hydration, authentication failure and typed collection precision where applicable.
+- [x] Record candidates and justified exceptions for all five helpers against Common v1.5.1.
+- [x] Verify ordinary analysis, affected type-contract probes and existing behavior at changed sites, including hydration, authentication failure and typed collection precision where applicable.

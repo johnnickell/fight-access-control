@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00203](00203-TASK.md) — Adopt equivalent Fight Common Domain helpers.
+No non-terminal Task exists. Any future release decision requires separate human authorization.
 
 ## In Progress
 
@@ -13,9 +13,7 @@ No Tasks are currently in this state.
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 526 | [TASK-00203](00203-TASK.md) | Adopt equivalent Fight Common Domain helpers | [TICKET-00058](../tickets/00058-TICKET.md) — Adopt equivalent Fight Common Domain helpers | ready-for-agent | — | — |
+No Tasks are currently in this state.
 
 ## Waiting
 
@@ -238,3 +236,4 @@ No Tasks are currently in this state.
 | 523 | [TASK-00200](00200-TASK.md) | Resolve Python release-docs preflight tooling | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP | done | [TASK-00196](00196-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/285 |
 | 524 | [TASK-00201](00201-TASK.md) | Resolve Python host build runtime and worktree tooling | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP | done | [TASK-00196](00196-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/287 |
 | 525 | [TASK-00202](00202-TASK.md) | Resolve Python documentation diagram generators | [TICKET-00057](../tickets/00057-TICKET.md) — Migrate repository Python tooling to PHP | done | [TASK-00196](00196-TASK.md) | https://github.com/johnnickell/fight-access-control/pull/288 |
+| 526 | [TASK-00203](00203-TASK.md) | Adopt equivalent Fight Common Domain helpers | [TICKET-00058](../tickets/00058-TICKET.md) — Adopt equivalent Fight Common Domain helpers | done | — | https://github.com/johnnickell/fight-access-control/pull/289 |

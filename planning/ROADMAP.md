@@ -1,10 +1,8 @@
 # Roadmap
 
-## Current planning handoff — pre-v1 documentation and developer tooling
+## Pre-v1 documentation and developer tooling — complete
 
-[EPIC-00019](epics/00019-EPIC.md) has five approved TICKETs and all 15 TASKs are written. Consult the
-[Task Board](tasks/BOARD.md) with `/skill:next` for execution selection. This handoff does not authorize
-implementation or release.
+All five [EPIC-00019](epics/00019-EPIC.md) TICKETs are complete. That closes the approved scope; it does not authorize a release.
 
 ## TASK-00182 accepted implementation checkpoint
 
@@ -908,5 +906,5 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 | [EPIC-00016](epics/00016-EPIC.md) | unassigned | done | 6 | 31 |
 | [EPIC-00017](epics/00017-EPIC.md) | unassigned | done | 6 | 24 |
 | [EPIC-00018](epics/00018-EPIC.md) | unassigned | done | 4 | 12 |
-| [EPIC-00019](epics/00019-EPIC.md) | unassigned | ready-for-agent | 5 | 15 |
+| [EPIC-00019](epics/00019-EPIC.md) | unassigned | done | 5 | 15 |
 <!-- generated:epic-status:end -->
