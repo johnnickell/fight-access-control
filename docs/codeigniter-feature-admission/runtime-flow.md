@@ -7,7 +7,7 @@ Work handoff records the final candidate and its tested-content bridge. This bou
 
 ![Bounded CI4 Feature admission runtime flow](runtime-flow.png)
 
-[Editable Python](runtime-flow.py) · [Open PNG](runtime-flow.png)
+[Editable PHP](runtime-flow.php) · [Regenerate the PNG](../engineering/diagram-rendering.md) · [Open PNG](runtime-flow.png)
 
 Dotted arrows are numbered runtime interactions, **not static dependency directions**. Layer ownership remains
 Adapter → Application → Domain. The error box compresses response propagation, not a new inward error dependency.
@@ -28,5 +28,4 @@ TASK-00168's [coverage amendment](../codeigniter-feature-admission.md#current-ve
 removes the native application fixture and bootstrap-dependent integration tests. The unchanged diagram describes
 intended runtime wiring, not current native journey proof. Controlled units do not prove route/alias conversion,
 short-circuit/controller order, required filters, downstream interception or bootstrap reset. Earlier independent
-native reports remain historical. Rendering uses local Python/Pillow with no network or
-application effects; source and PNG are maintained together.
+native reports remain historical.
