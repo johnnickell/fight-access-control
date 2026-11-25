@@ -1,10 +1,10 @@
 # Agent-protected MCP Prompts
 
-[TASK-00087](../planning/tasks/00087-TASK.md) adds opt-in Prompt Permission composition in
+[TASK-00087](../planning/tasks/archive/00087-TASK.md) adds opt-in Prompt Permission composition in
 `Fight\AccessControl\Adapter\Mcp\Prompt\Agent`. Common **v1.5.0** is the first sufficient supported stable
 Prompt minimum, source `06fb5cd3720af9cf8295198f74040d95b64c5155`; the existing manifest `^1.5.0` already supplies it.
-[Common adoption record](../planning/tasks/00110-TASK.md) records independent acceptance and the published-tag bridge.
-This unreleased feature does not complete or select a version for the combined [EPIC-00014](../planning/epics/00014-EPIC.md).
+[Common adoption record](../planning/tasks/archive/00110-TASK.md) records independent acceptance and the published-tag bridge.
+This unreleased feature does not complete or select a version for the combined [EPIC-00014](../planning/epics/archive/00014-EPIC.md).
 
 ## Explicit definition associations
 

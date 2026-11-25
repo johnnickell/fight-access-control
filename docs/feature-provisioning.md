@@ -1,6 +1,6 @@
 # Atomic Feature provisioning
 
-[TASK-00062](../planning/tasks/00062-TASK.md) adds the stored Feature model and create-if-absent provisioning.
+[TASK-00062](../planning/tasks/archive/00062-TASK.md) adds the stored Feature model and create-if-absent provisioning.
 It consumes [complete candidate discovery](feature-references.md), creates only missing names OFF, and preserves
 existing identities/settings. It does **not** establish activation readiness or a supported partial Feature release:
 [preparation validation](feature-preparation.md) is supplied by TASK-00063;
@@ -65,7 +65,7 @@ return.
 
 ## Optional atomic audit (Unreleased)
 
-[TASK-00160](../planning/tasks/00160-TASK.md) adds the required Application `Clock` constructor dependency and an
+[TASK-00160](../planning/tasks/archive/00160-TASK.md) adds the required Application `Clock` constructor dependency and an
 optional last nullable `AuditEvidenceRepository`. Omitted/null intentionally disables durable audit; it does not
 require new audit-only provenance. A configured repository must join the **same actual connection and transaction**
 as Feature insertion. An active transaction flag alone does not prove that composition. Storage failure never

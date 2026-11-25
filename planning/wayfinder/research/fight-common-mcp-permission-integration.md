@@ -191,7 +191,7 @@ and updates ADR 0019's namespace destinations. Runtime adapters remain capabilit
 
 At follow-up intake AccessControl required explicit approval for a production Adapter layer. John subsequently
 selected optional integrations **inside AccessControl's `src/Adapter`**, modeled on Common's capability-first layer,
-while retaining DDD organization inward. [WF-035](../tickets/WF-035-framework-permission-adapter-ownership.md) and
+while retaining DDD organization inward. [WF-035](../tickets/archive/WF-035-framework-permission-adapter-ownership.md) and
 the [profile](../../agents/project-profile.md#package-boundary-and-contracts) record the narrow approved amendment.
 This does not adopt Common's 1.x aliases, approve unrelated infrastructure/persistence or supply adapter code.
 No starter source was edited.
@@ -229,7 +229,7 @@ subclass automatically matches an MCP Tool failure map. OAuth responses likewise
 Reusing safe principles is not merging transport envelopes. [E1], [E2]
 
 The user requested safe-error compatibility/adoption consideration as a constraint on this planning.
-[WF-035](../tickets/WF-035-framework-permission-adapter-ownership.md) now records approved same-package optional
+[WF-035](../tickets/archive/WF-035-framework-permission-adapter-ownership.md) now records approved same-package optional
 adapter ownership and capability-first layout. Exact failure mapping/migration, supported versions, selected release
 tranches and runtime evidence remain downstream. No consumer migration or implementation follows from the approved
 structural boundary. No runtime suites were run for this follow-up.
@@ -238,7 +238,7 @@ structural boundary. No runtime suites were run for this follow-up.
 
 The staged-release recommendation below is retained as research history, not the current release plan. John
 subsequently selected **one combined release including Subscriptions and durable Tasks** in
-[WF-034](../tickets/WF-034-mcp-integration-release-scope.md), waiting for required Common implementation,
+[WF-034](../tickets/archive/WF-034-mcp-integration-release-scope.md), waiting for required Common implementation,
 qualification and tagged contracts. He also selected all five framework families: Slim, Yii 3, Symfony, Laravel
 and CodeIgniter 4. WF-033/WF-035 own accepted tooling/adapter guarantees. John subsequently approved the single
 **Permission-Aware MCP Integration and Framework Adapters** EPIC destination, leaving the release number unassigned.
@@ -286,28 +286,28 @@ Actual dependency minima and supported framework ranges require later evidence; 
 
 ## Open questions and handoff
 
-[WF-032](../tickets/WF-032-common-mcp-permission-seams.md) records the completed factual investigation.
-[WF-033](../tickets/WF-033-common-owned-mcp-permission-bindings.md) now records accepted bindings/ownership/freshness.
-[WF-035](../tickets/WF-035-framework-permission-adapter-ownership.md) records approved optional `src/Adapter`
+[WF-032](../tickets/archive/WF-032-common-mcp-permission-seams.md) records the completed factual investigation.
+[WF-033](../tickets/archive/WF-033-common-owned-mcp-permission-bindings.md) now records accepted bindings/ownership/freshness.
+[WF-035](../tickets/archive/WF-035-framework-permission-adapter-ownership.md) records approved optional `src/Adapter`
 ownership, capability-first organization and safe-error compatibility constraints.
-[WF-034](../tickets/WF-034-mcp-integration-release-scope.md) now records the approved combined release/all-five-framework
+[WF-034](../tickets/archive/WF-034-mcp-integration-release-scope.md) now records the approved combined release/all-five-framework
 scope and single EPIC destination, with no assigned release number. Grill subsequently wrote that destination as
-[EPIC-00014](../../epics/00014-EPIC.md); all map decisions/EPIC handoffs are complete and the map is Closed. John
-subsequently approved the complete eight-TICKET split, now written as [TICKET-00025](../../tickets/00025-TICKET.md)
-through [TICKET-00032](../../tickets/00032-TICKET.md). John subsequently approved TICKET-00025's single-TASK plan,
-written as [TASK-00084](../../tasks/00084-TASK.md), needs-info for actual qualified/tagged Common execution contracts
+[EPIC-00014](../../epics/archive/00014-EPIC.md); all map decisions/EPIC handoffs are complete and the map is Closed. John
+subsequently approved the complete eight-TICKET split, now written as [TICKET-00025](../../tickets/archive/00025-TICKET.md)
+through [TICKET-00032](../../tickets/archive/00032-TICKET.md). John subsequently approved TICKET-00025's single-TASK plan,
+written as [TASK-00084](../../tasks/archive/00084-TASK.md), needs-info for actual qualified/tagged Common execution contracts
 and dependency-minimum evidence. John then approved TICKET-00026's complete plan, written as
-[TASK-00085](../../tasks/00085-TASK.md) → [TASK-00086](../../tasks/00086-TASK.md), Resource then whole-Skill/member
+[TASK-00085](../../tasks/archive/00085-TASK.md) → [TASK-00086](../../tasks/archive/00086-TASK.md), Resource then whole-Skill/member
 admission; neither depends on TASK-00084. Their named hooks appear in inspected Common tags, with actual minimum/
 behavior qualification left to implementation. John then approved TICKET-00027's full single-TASK plan, written as
-[TASK-00087](../../tasks/00087-TASK.md), needs-info for qualified/tagged Common Prompt contracts and minimum evidence,
+[TASK-00087](../../tasks/archive/00087-TASK.md), needs-info for qualified/tagged Common Prompt contracts and minimum evidence,
 with no local TASK dependency. John then approved TICKET-00028's full plan, written as
-[TASK-00088](../../tasks/00088-TASK.md), ready with no local blocker or new Common runtime API prerequisite; actual
+[TASK-00088](../../tasks/archive/00088-TASK.md), ready with no local blocker or new Common runtime API prerequisite; actual
 consumer handoff/lifetime/scope/fence qualification remains separate. John then approved TICKET-00029's full plan,
-written as [TASK-00089](../../tasks/00089-TASK.md) / [TASK-00090](../../tasks/00090-TASK.md) for scoped timeline and
+written as [TASK-00089](../../tasks/archive/00089-TASK.md) / [TASK-00090](../../tasks/archive/00090-TASK.md) for scoped timeline and
 independent protected metadata/body reads. Both consume TASK-00084 and are needs-info for qualified/tagged Common
 scoped reads/minimum evidence, neither consuming the other or TASK-00088 for ordinary requests. John then approved
-TICKET-00030's full six-TASK plan, written as [TASK-00091](../../tasks/00091-TASK.md)–[TASK-00096](../../tasks/00096-TASK.md)
+TICKET-00030's full six-TASK plan, written as [TASK-00091](../../tasks/archive/00091-TASK.md)–[TASK-00096](../../tasks/archive/00096-TASK.md)
 for recording/removal, retained inspection/recovery, live Tool/Resource/Skill disclosure, Prompt signals, subscriber
 inspection and optional publication. All retain qualified/tagged Common/minimum holds and approved local supplier
 edges; the owning TICKET records the matrix. At this To Tasks inspection Common HEAD was
@@ -315,16 +315,16 @@ edges; the owning TICKET records the matrix. At this To Tasks inspection Common 
 publication remain planned, and latest inspected local tag v1.4.0 has no Notice declarations. Existing raw Mercure
 publishers are not the full notice-publication seam. This is bounded local evidence, not remote release/consumer
 qualification. John then approved TICKET-00031's full six-feature plan, written as
-[TASK-00097](../../tasks/00097-TASK.md)–[TASK-00102](../../tasks/00102-TASK.md), creation/producer/protected reads,
+[TASK-00097](../../tasks/archive/00097-TASK.md)–[TASK-00102](../../tasks/archive/00102-TASK.md), creation/producer/protected reads,
 removal, input/continuation, cancellation/intent, complete MCP start/reconnect and optional full-state live output.
 All retain qualified/tagged Common/minimum holds and approved local supplier edges; its owning TICKET records the
 matrix. Proposal inspected Common `bb734378b48925fd2648937739d9d82102d2db17`; approval persistence rechecked
 `13cd3ea76327dd8776a445c9436b4da1d2b7eef1`: durable Task suppliers remain planned, no corresponding production APIs/
 method handlers were found, and latest inspected local tag v1.4.0 supplies no durable Task APIs. This is bounded local
 evidence, not remote release/independent acceptance/consumer qualification. John then approved TICKET-00032's full
-four-feature plan, written as [TASK-00103](../../tasks/00103-TASK.md) shared PSR-15 with separate Slim/Yii 3 qualification,
-[TASK-00104](../../tasks/00104-TASK.md) Symfony, [TASK-00105](../../tasks/00105-TASK.md) Laravel and
-[TASK-00106](../../tasks/00106-TASK.md) CodeIgniter 4. All ready-for-agent: A has no local blocker; native peers consume
+four-feature plan, written as [TASK-00103](../../tasks/archive/00103-TASK.md) shared PSR-15 with separate Slim/Yii 3 qualification,
+[TASK-00104](../../tasks/archive/00104-TASK.md) Symfony, [TASK-00105](../../tasks/archive/00105-TASK.md) Laravel and
+[TASK-00106](../../tasks/archive/00106-TASK.md) CodeIgniter 4. All ready-for-agent: A has no local blocker; native peers consume
 only its inward contract/initial Adapter wiring and share order 104. Existing SecurityContext and tagged Common
 v1.4.0 safe policy/PSR-15/Symfony/Laravel/native response APIs supply the direction, not blanket native qualification.
 Symfony controller resolution precedes kernel.controller; Laravel controller-middleware discovery can instantiate

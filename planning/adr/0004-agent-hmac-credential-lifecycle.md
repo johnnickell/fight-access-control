@@ -5,7 +5,7 @@
 
 ## Planned replacement amendment — 2026-09-27
 
-John ratified [EPIC-00009 decision D1](../epics/00009-EPIC.md#d1--breaking-replacement-and-adr-0004wf-002-amendment):
+John ratified [EPIC-00009 decision D1](../epics/archive/00009-EPIC.md#d1--breaking-replacement-and-adr-0004wf-002-amendment):
 replace raw-return provision/rotation APIs in a separately versioned pre-1.0 breaking minor release, without a legacy
 raw-return escape path. The replacement requires scoped operation identity and authorized protected delivery,
 returns safe metadata, and permits bounded package-owned recovery through a public sensitive sink invocation.
@@ -14,11 +14,11 @@ terminal revocation and authentication's current-authority fence remain unchange
 
 This amends the future raw-once return, authentication-only unwrap and consumer-only delivery boundary below;
 it does not claim that recovery is implemented. John also ratified
-[EPIC-00009 decision D2](../epics/00009-EPIC.md#d2--transactional-authorization-and-protected-sink-integration)
+[EPIC-00009 decision D2](../epics/archive/00009-EPIC.md#d2--transactional-authorization-and-protected-sink-integration)
 on 2026-09-27: transactional authorization shares the package-owned transaction and authority fences; protected sinks
 must support immutable ordered staging, stable delivery-ID deduplication and exact verifiable receipts. Unsupported
 integrations fail closed. Post-admission calls may stage inert bytes but cannot authorize stale activation or use.
-John ratified [EPIC-00009 decision D3](../epics/00009-EPIC.md#d3--post-commit-result-behavior) on 2026-09-27:
+John ratified [EPIC-00009 decision D3](../epics/archive/00009-EPIC.md#d3--post-commit-result-behavior) on 2026-09-27:
 only replacement recoverable provision and rotation return confirmed committed metadata with a typed, sanitized
 publication warning on post-commit publication failure. Pre-commit failures and indeterminate commits stay distinct;
 same-key and authorized scheduler recovery survive even both publishers failing. Issuance does not imply credential
@@ -26,7 +26,7 @@ delivery, enrollment activation or launch permission; each needs its own confirm
 The failure/restart tests in D3 are required before implementation acceptance. Revocation and other operations retain
 their existing behavior.
 
-John ratified [EPIC-00009 decision D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy) with an
+John ratified [EPIC-00009 decision D4](../epics/archive/00009-EPIC.md#d4--bounded-operation-and-integration-policy) with an
 amendment on 2026-09-27: documented finite defaults and optional validated overrides, without mandatory manual
 configuration or additional human approval for routine credential operation/recovery. Capacity exhaustion rejects or
 defers new work with a clear retryable outcome while preserving authorized status and existing-operation recovery.
@@ -55,8 +55,8 @@ writer/sink/key/activation/use and restore qualification remain unexecuted. No r
 ## Approved Command caller-contract amendment — EPIC-00015
 
 John explicitly chose void provisioning/rotation Commands and independent outcome Queries, with no assumed transport
-and with sync or async invocation at any time. [TICKET-00053](../tickets/00053-TICKET.md)/
-[TASK-00182](../tasks/00182-TASK.md) own this future conversion; existing service implementations/acceptance stay baseline
+and with sync or async invocation at any time. [TICKET-00053](../tickets/archive/00053-TICKET.md)/
+[TASK-00182](../tasks/archive/00182-TASK.md) own this future conversion; existing service implementations/acceptance stay baseline
 history until replaced. This supersedes D3's returned-result/warning shape for the converted callers and the later
 proposed result-capable Common bus hold, not the safety of retained keys, atomicity or committed issuance.
 

@@ -39,7 +39,7 @@ record only an allowlisted class name; that does not qualify an actual consumer 
 
 Use the linked framework guides for current constructors and registration. An authority factory is trusted
 configuration: return `RequestAuthority` or genuine absence, never a copied SecurityContext or principal.
-Static inference does not validate native route, action or filter metadata. See [TASK-00146](../planning/tasks/00146-TASK.md)
+Static inference does not validate native route, action or filter metadata. See [TASK-00146](../planning/tasks/archive/00146-TASK.md)
 for the earlier safe-error qualification checkpoint.
 
 ## Native selection and lifetime limits

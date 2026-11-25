@@ -17,7 +17,7 @@ failures. Select both services as shown below; no vendor change or native Attrib
 Native Permission checks cover actual routing, required filters and response handling. They do not qualify the
 [Feature-native or combined lifecycle](codeigniter-feature-admission.md#current-verification-boundary--task-00168-amendment).
 Qualify installed routes, authentication, storage, cryptography, sinks, front controller and worker reset separately.
-See [TASK-00179](../planning/tasks/00179-TASK.md) for package evidence.
+See [TASK-00179](../planning/tasks/archive/00179-TASK.md) for package evidence.
 
 ## Trusted declaration and native filter wiring
 

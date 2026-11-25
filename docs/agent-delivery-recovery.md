@@ -1,6 +1,6 @@
 # Agent delivery discovery and restart recovery (v0.5.0)
 
-[TASK-00052](../planning/tasks/00052-TASK.md) adds authorized bounded discovery and receipt-first recovery to the
+[TASK-00052](../planning/tasks/archive/00052-TASK.md) adds authorized bounded discovery and receipt-first recovery to the
 [protected delivery path](agent-credential-delivery.md). It does not issue credentials, rotate, activate enrollment,
 launch an Agent or provide secret retrieval. Maintenance/rewrapping, reusable consumer conformance and restoration
 are implemented by their owning slices; the [integration guide](agent-integration.md) connects them. This package is

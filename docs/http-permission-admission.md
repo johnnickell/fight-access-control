@@ -82,7 +82,7 @@ authentication/signature canonicalization and nonce storage, persistence/cache/l
 diagnostic redaction/delivery, proxies and outer response handling. When combining gates check both orders,
 PUBLIC plus Feature, ON plus denied Permission, and one authentication/nonce on the shared request. Fresh Feature
 settings do not refresh captured grants. Keep ADR 0010 protected-tier membership and independent Symfony IsGranted;
-MCP/OAuth keep their own envelopes. For the package evidence reconciliation, see [TASK-00181](../planning/tasks/00181-TASK.md).
+MCP/OAuth keep their own envelopes. For the package evidence reconciliation, see [TASK-00181](../planning/tasks/archive/00181-TASK.md).
 
 ## Inward contract and trusted composition
 

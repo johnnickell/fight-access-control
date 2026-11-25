@@ -1,6 +1,6 @@
 # Agent credential-state restoration safety (v0.5.0)
 
-[TASK-00058](../planning/tasks/00058-TASK.md) adds restoration readiness to the existing
+[TASK-00058](../planning/tasks/archive/00058-TASK.md) adds restoration readiness to the existing
 [cohort contract](agent-operation-cohorts.md), plus consumer-bindable M4 scenarios. This is the single
 [current contract](agent-current-contract.md), not an old-format reader, migration engine, restore Command,
 automatic rollback detector or deployment authorization. No production adapter, database, ledger provider or lock

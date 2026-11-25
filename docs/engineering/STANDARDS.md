@@ -43,7 +43,7 @@ This adoption does not certify all existing code against the baseline. Its compa
   copy; the snapshot is neither current guidance nor required orientation. TASK-00184's Work inventory identifies
   current owners by section. ADRs and planning records retain their original decisions and evidence.
 - **Approval/reference:** John explicitly selected a strict domain glossary and approved the bounded migration in
-  [TASK-00184](../../planning/tasks/00184-TASK.md). Only local adopted guidance changes; provider resources and source
+  [TASK-00184](../../planning/tasks/archive/00184-TASK.md). Only local adopted guidance changes; provider resources and source
   baseline digests remain untouched. Installed Architecture, Naming and Governance digests identify the amended bytes.
 
 ### AccessControl run layout
@@ -75,14 +75,14 @@ This adoption does not certify all existing code against the baseline. Its compa
 - **Rationale:** Consumers use these distributed schemas in production. Contract drift must fail the ordinary
   library gate, not wait for optional release qualification.
 - **Approval/reference:** John explicitly required main-pipeline PHPUnit integration coverage on 2026-09-28 in
-  [TASK-00060](../../planning/tasks/00060-TASK.md#approved-verification-amendment). That TASK owns implementation;
+  [TASK-00060](../../planning/tasks/archive/00060-TASK.md#approved-verification-amendment). That TASK owns implementation;
   recording the rule does not assert that the tests or suite wiring already exist.
 
 ## Aggregate-first architecture and dependency naming amendment — TASK-00107
 
 - **Rule and scope:** The local [Architecture placement/dependency rules](standards/Architecture.md#accesscontrol-placement-and-dependency-rules)
   and [Naming rule](standards/Naming.md#descriptive-collaborators-and-collections), with PHP's explicit aggregate
-  extensibility exception, codify the approved [EPIC-00015](../../planning/epics/00015-EPIC.md) target. Domain is
+  extensibility exception, codify the approved [EPIC-00015](../../planning/epics/archive/00015-EPIC.md) target. Domain is
   aggregate-first, Application mirrors ownership with semantic capabilities, and protocol Adapter presentation may
   group by capability/surface/aggregate. Framework mechanisms retain capability/framework homes. Properties,
   parameters and locals describe collaborators; actual collections retain plurals.
@@ -99,7 +99,7 @@ This adoption does not certify all existing code against the baseline. Its compa
   current-contract safety and all transaction/recovery/post-commit exceptions. Common owns its protocol engines,
   neutral ports and use cases; actual canonical adoption remains TASK-00110, not a guessed API/version.
 - **Approval/reference:** John approved EPIC-00015's explicit policy amendments and the guidance-only
-  [TASK-00107](../../planning/tasks/00107-TASK.md). TASK-00108/00109 and TASK-00111–00114 own later source changes;
+  [TASK-00107](../../planning/tasks/archive/00107-TASK.md). TASK-00108/00109 and TASK-00111–00114 own later source changes;
   no implementation conformance or independent acceptance is asserted here. Local Architecture/Naming/PHP installed
   digests identify the amended bytes; all source columns preserve their original baseline/refresh identities.
   Delivery's installed digest is also corrected to its actual unchanged bytes: the prior recorded digest already
@@ -122,7 +122,7 @@ retains the adopted baseline. No provider standard or executable check is weaken
 
 John explicitly chose void Commands and independent outcome Queries for Agent provisioning/rotation, invocable
 sync or async at any time without a transport assumption. The scoped Architecture correction links
-[TICKET-00053](../../planning/tickets/00053-TICKET.md)/[TASK-00182](../../planning/tasks/00182-TASK.md) rather than
+[TICKET-00053](../../planning/tickets/archive/00053-TICKET.md)/[TASK-00182](../../planning/tasks/archive/00182-TASK.md) rather than
 requiring a future result-capable CommandBus. ADR 0004/profile distinguish the existing direct-service baseline from
 this approved conversion; original-key recovery, execution/read authority, atomicity and safe commit/publication
 outcomes remain mandatory. This supersedes returned issuance/warning requirements for the future converted callers,
@@ -143,7 +143,7 @@ restriction for aggregate-oriented protocol presentation without broadening infr
 - **Rationale:** Share reusable transport/framework glue without duplicating permission policy across consumers or
   forcing a framework-specific structure into Domain/Application.
 - **Approval/reference:** John explicitly selected `src/Adapter` inside AccessControl and Common-style capability-first
-  directories in [WF-035](../../planning/wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md).
+  directories in [WF-035](../../planning/wayfinder/tickets/archive/WF-035-framework-permission-adapter-ownership.md).
   This supersedes the earlier Domain/Application-only production restriction within that narrow scope, not the
   historical adoption records below. No adapters, Composer mapping or gate changes are implemented by this amendment.
 
@@ -164,7 +164,7 @@ unchanged. This is an explicit local amendment, not automatic synchronization of
 
 ## Agent OS workflow alignment — 2026-10-20
 
-Approved scope: [TASK-00081](../../planning/tasks/00081-TASK.md). Compared the installed provider's Build, Next,
+Approved scope: [TASK-00081](../../planning/tasks/archive/00081-TASK.md). Compared the installed provider's Build, Next,
 Work and Writing for Agents entrypoints, target-context/execution/handoff guidance, relevant quality/QA/landing
 sections and installed harness access rule against this checkout's existing adoption and local amendments.
 The SHA-256 of the ordered comparison manifest (each resource's SHA-256, two spaces, provider-relative path and

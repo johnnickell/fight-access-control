@@ -2,7 +2,7 @@
 
 ## Pre-v1 documentation and developer tooling — complete
 
-All five [EPIC-00019](epics/00019-EPIC.md) TICKETs are complete. That closes the approved scope; it does not authorize a release.
+All five [EPIC-00019](epics/archive/00019-EPIC.md) TICKETs are complete. That closes the approved scope; it does not authorize a release.
 
 ## TASK-00182 accepted implementation checkpoint
 
@@ -10,7 +10,7 @@ TASK-00182's integrated void Agent Command conversion has independent Review ACC
 
 ## Portable Feature and Permission admission — package scope complete
 
-All four [EPIC-00018](epics/00018-EPIC.md) TICKETs are complete for independently accepted package scope.
+All four [EPIC-00018](epics/archive/00018-EPIC.md) TICKETs are complete for independently accepted package scope.
 The [current evidence map](../docs/http-permission-admission.md#current-portable-admission-reconciliation-unreleased)
 connects five families and three capability selections without another test programme. CI4's amended Feature/combined
 controlled proof remains distinct from Permission-native journeys; actual consumer lifecycle qualification, adoption
@@ -18,7 +18,7 @@ and release remain separate. The Board owns execution routing, not the historica
 
 ### Historical completed TASK-planning handoff
 
-John approved [EPIC-00018 — Portable Feature and Permission Admission](epics/00018-EPIC.md): separate opt-in Feature
+John approved [EPIC-00018 — Portable Feature and Permission Admission](epics/archive/00018-EPIC.md): separate opt-in Feature
 and Permission admission capabilities across Slim, Yii 3, Symfony, Laravel and CodeIgniter 4. Extend FeatureFlag and
 introduce AccessControl-owned portable RequiresPermission with repeatable class/method declarations. Class, method,
 inherited and trusted route requirements combine conjunctively; deduplicate identical requirements, reject conflicts
@@ -33,14 +33,14 @@ Thin optional native adapters qualify real order/controller limits, request/subr
 optional/minimum dependencies, full gate/exact coverage and independent Review/behavioral QA.
 
 Grill and the complete four-TICKET requirement split are approved/written as
-[TICKET-00049](tickets/00049-TICKET.md) declarations/discovery, [TICKET-00050](tickets/00050-TICKET.md) five-framework
-Feature admission, [TICKET-00051](tickets/00051-TICKET.md) five-framework portable Permission integration and
-[TICKET-00052](tickets/00052-TICKET.md) independent/combined conformance/guidance. Declarations supply the independent
+[TICKET-00049](tickets/archive/00049-TICKET.md) declarations/discovery, [TICKET-00050](tickets/archive/00050-TICKET.md) five-framework
+Feature admission, [TICKET-00051](tickets/archive/00051-TICKET.md) five-framework portable Permission integration and
+[TICKET-00052](tickets/archive/00052-TICKET.md) independent/combined conformance/guidance. Declarations supply the independent
 capabilities; conformance foundations begin early, final reconciliation consumes accepted integration, and every
 slice keeps its own callers/docs/tests/full gate/exact coverage/independent acceptance. These are requirements, not
 four PRs or qualified runtime. TICKET-00049's two-TASK plan is now approved/written as
-[TASK-00170](tasks/00170-TASK.md) complete effective Feature declarations/discovery/current callers (order 501, no
-blocker) and [TASK-00171](tasks/00171-TASK.md) portable Permission declarations/composition (order 502, dependency on
+[TASK-00170](tasks/archive/00170-TASK.md) complete effective Feature declarations/discovery/current callers (order 501, no
+blocker) and [TASK-00171](tasks/archive/00171-TASK.md) portable Permission declarations/composition (order 502, dependency on
 TASK-00170). Both declaration TASKs are now independently accepted with nonvisual QA and done; TICKET-00049 is
 complete. The shared/Slim/Yii Feature slice is now accepted under TASK-00172; remaining native admission/integration
 and consumer qualification stay unfinished under their separate tickets.
@@ -51,9 +51,9 @@ current callers and existing raw PermissionDeclaration validation. No partial At
 implicit public fallback, redundant route repetition or native enforcement is introduced. Counts/ownership establish
 no source/native/scanner/consumer qualification.
 
-TICKET-00050's four-TASK plan is approved/written as [TASK-00172](tasks/00172-TASK.md) shared inward Feature/context
-and PSR-15 (separate Slim/Yii proof), [TASK-00173](tasks/00173-TASK.md) Symfony,
-[TASK-00174](tasks/00174-TASK.md) Laravel and [TASK-00175](tasks/00175-TASK.md) CI4. Orders 503/504/504/504 select no
+TICKET-00050's four-TASK plan is approved/written as [TASK-00172](tasks/archive/00172-TASK.md) shared inward Feature/context
+and PSR-15 (separate Slim/Yii proof), [TASK-00173](tasks/archive/00173-TASK.md) Symfony,
+[TASK-00174](tasks/archive/00174-TASK.md) Laravel and [TASK-00175](tasks/archive/00175-TASK.md) CI4. Orders 503/504/504/504 select no
 relative native-peer priority. TASK-00172 consumes TASK-00170/completed TASK-00103; Symfony consumes TASK-00172/completed
 TASK-00104; Laravel consumes only TASK-00172; CI4 consumes TASK-00172 and TASK-00106's accepted native safe error bridge.
 Common already supplies a safe Laravel handler, whereas CI4 response helpers do not establish an exception owner.
@@ -64,9 +64,9 @@ remains separate; portable Permission integration keeps EPIC-00018 open. Each sl
 real target/status/context/order/construction/lifetime/safe error/minimum/ordinary/isolation proof and its own current
 docs/gate/exact coverage/independent acceptance.
 
-TICKET-00051's four-TASK plan is approved/written as [TASK-00176](tasks/00176-TASK.md) PSR-15 portable Permission
-integration (separate Slim/Yii journeys), [TASK-00177](tasks/00177-TASK.md) Symfony,
-[TASK-00178](tasks/00178-TASK.md) Laravel and [TASK-00179](tasks/00179-TASK.md) CI4. Equal order 505 selects no relative
+TICKET-00051's four-TASK plan is approved/written as [TASK-00176](tasks/archive/00176-TASK.md) PSR-15 portable Permission
+integration (separate Slim/Yii journeys), [TASK-00177](tasks/archive/00177-TASK.md) Symfony,
+[TASK-00178](tasks/archive/00178-TASK.md) Laravel and [TASK-00179](tasks/archive/00179-TASK.md) CI4. Equal order 505 selects no relative
 native-peer priority. Direct suppliers are each TASK-00171 plus respectively completed TASK-00103, completed TASK-00104,
 accepted TASK-00105 and accepted TASK-00106. Existing effective composition/pure traversal/inward admission need no new
 shared prefactor or native-peer/Feature wait. Laravel genuinely consumes its base Permission middleware, unlike the
@@ -78,8 +78,8 @@ Retain Attribute-only protection, cumulative requirements, raw validation/mode-c
 trusted context/single authentication and each path's actual native order/form/lifetime/safe error/docs/minimum/ordinary/
 isolation/gate/exact coverage/evidence/independent acceptance.
 
-TICKET-00052's reduced plan is approved/written as [TASK-00180](tasks/00180-TASK.md) existing-evidence/gap assessment
-(order 499, no blockers, no new tests) and [TASK-00181](tasks/00181-TASK.md) targeted gap closure/current guidance
+TICKET-00052's reduced plan is approved/written as [TASK-00180](tasks/archive/00180-TASK.md) existing-evidence/gap assessment
+(order 499, no blockers, no new tests) and [TASK-00181](tasks/archive/00181-TASK.md) targeted gap closure/current guidance
 (order 506, blocked by TASK-00180 and TASK-00172–00179: nine direct edges, declaration/base dependencies inherited).
 John rejected the unwritten six-TASK retesting proposal. Reuse supplier unit/integration coverage and acceptance,
 prefer units for shared logic and add an occasional native integration case only for a specific otherwise-unproved
@@ -100,14 +100,14 @@ QA in their owning records. Completing audit planning neither supplied that acce
 
 ## Explicit optional atomic audit — package scope complete
 
-All six [EPIC-00017](epics/00017-EPIC.md) TICKETs are complete for package scope. The
+All six [EPIC-00017](epics/archive/00017-EPIC.md) TICKETs are complete for package scope. The
 [audit guide](../docs/audit-evidence.md#atomicity-and-explicit-optionality) explains current composition. Optional audit
 is implemented throughout package scope; actual consumer mapping/connections/locks/processes/sinks/restoration/activation/use and workaround removal
 remain separate. The planning account below preserves its historical counts and allocation, not current open work.
 
 ### Historical TASK-planning handoff
 
-John approved [EPIC-00017 — Explicit Optional Atomic Audit Recording](epics/00017-EPIC.md), covering all 37 current
+John approved [EPIC-00017 — Explicit Optional Atomic Audit Recording](epics/archive/00017-EPIC.md), covering all 37 current
 CommandHandlers and related synchronous outcomes. Handlers explicitly construct evidence and insert it within the
 existing mutation transaction. AuditEvidence/AuditEvidenceRepository evolve; an optional last repository dependency
 supports intentional opt-out everywhere, including previously mandatory writers. Configured audit remains atomic
@@ -122,7 +122,7 @@ publication/external-effect outcomes. Consumers qualify their persistence/schema
 business-aware Role audit decorator. No new audit orchestration, outbox or generic replay framework is introduced.
 
 Grill and the complete six-TICKET requirement split are approved/written as
-[TICKET-00043](tickets/00043-TICKET.md) through [TICKET-00048](tickets/00048-TICKET.md): typed evidence/attribution;
+[TICKET-00043](tickets/archive/00043-TICKET.md) through [TICKET-00048](tickets/archive/00048-TICKET.md): typed evidence/attribution;
 User account/credential journeys (20 handlers plus synchronous operations); Role/membership/Agent administration
 (11); Feature/managed-policy changes (six); synchronous Agent credential/recovery outcomes; and composition/
 conformance/adoption guidance. This accounts for all 37 current handlers, not implemented or verified behavior.
@@ -130,24 +130,24 @@ Shared contracts supply the four family tickets; inventory/conformance foundatio
 consumes the family outputs, and every slice retains its own tests/docs/full gate and independent acceptance.
 These requirement groups are not six preselected PRs and must not create broken intermediate contracts or shims.
 
-TICKET-00043's complete two-TASK plan is now approved/written: [TASK-00121](tasks/00121-TASK.md) introduces fixed
-system/anonymous identities (order 401, no demonstrated blocker), then [TASK-00122](tasks/00122-TASK.md) replaces the
+TICKET-00043's complete two-TASK plan is now approved/written: [TASK-00121](tasks/archive/00121-TASK.md) introduces fixed
+system/anonymous identities (order 401, no demonstrated blocker), then [TASK-00122](tasks/archive/00122-TASK.md) replaces the
 shared evidence contract across the 21 baseline owners and necessary caller/test paths (order 402).
 Both TASKs now have independent acceptance and applicable behavioral QA; TICKET-00043 is complete. The refreshed
 replacement covers 22 actual owners / 23 evidence sites. Family optional wiring/admission, expanded outcomes and
 real consumer qualification remain unfinished in their owning records; the planning manifest itself is not proof.
 
-TICKET-00044's complete five-TASK plan is approved/written as [TASK-00123](tasks/00123-TASK.md) through
-[TASK-00127](tasks/00127-TASK.md): eight account lifecycle handlers, four invitation handlers, three password-reset
+TICKET-00044's complete five-TASK plan is approved/written as [TASK-00123](tasks/archive/00123-TASK.md) through
+[TASK-00127](tasks/archive/00127-TASK.md): eight account lifecycle handlers, four invitation handlers, three password-reset
 handlers, four email-change handlers, and RevokeSession plus all seven synchronous User operations. The final slice
 owns synchronous audit wiring once, follows actual narrower capability owners and records committed replay revocation
 despite outward denial—not benign refresh conflict or rejected-no-mutation attempts. This is planning coverage of
 20/20 handlers and seven synchronous seams, not product/consumer qualification. Orders 403–407 each depend only on
 TASK-00122 directly; no mutual blocker is demonstrated and each retains its own tests/docs/full gate/independent acceptance.
 
-TICKET-00045's complete five-TASK plan is approved/written as [TASK-00153](tasks/00153-TASK.md) custom Role lifecycle,
-[TASK-00154](tasks/00154-TASK.md) Role Permissions, [TASK-00155](tasks/00155-TASK.md) User Role membership,
-[TASK-00156](tasks/00156-TASK.md) Agent names and [TASK-00157](tasks/00157-TASK.md) direct Agent Permissions/coordinator
+TICKET-00045's complete five-TASK plan is approved/written as [TASK-00153](tasks/archive/00153-TASK.md) custom Role lifecycle,
+[TASK-00154](tasks/archive/00154-TASK.md) Role Permissions, [TASK-00155](tasks/archive/00155-TASK.md) User Role membership,
+[TASK-00156](tasks/archive/00156-TASK.md) Agent names and [TASK-00157](tasks/archive/00157-TASK.md) direct Agent Permissions/coordinator
 ownership. All five slices are done for independently accepted package behavior and required QA.
 Orders 408–412 retain only TASK-00122 as their direct supplier, without a demonstrated mutual wait.
 Allocation covers 11/11 handlers as 3 + 2 + 2 + 1 + 3 plus the coordinator solely in TASK-00157, not source audit or
@@ -157,9 +157,9 @@ Coordinator reconciliation belongs to TASK-00157; no interception, nested commit
 helper record. Each slice retains callers/docs/full gate/exact coverage/independent acceptance. No generic UoW
 supplier is required; native mixed and matching known-local-callback @var remain sufficient.
 
-TICKET-00046's complete four-TASK plan is approved/written as [TASK-00158](tasks/00158-TASK.md) Feature creation/
-retirement, [TASK-00159](tasks/00159-TASK.md) settings, [TASK-00160](tasks/00160-TASK.md) code-defined provisioning and
-[TASK-00161](tasks/00161-TASK.md) policy reconciliation. Orders 413–416 each consume only TASK-00122 directly, without
+TICKET-00046's complete four-TASK plan is approved/written as [TASK-00158](tasks/archive/00158-TASK.md) Feature creation/
+retirement, [TASK-00159](tasks/archive/00159-TASK.md) settings, [TASK-00160](tasks/archive/00160-TASK.md) code-defined provisioning and
+[TASK-00161](tasks/archive/00161-TASK.md) policy reconciliation. Orders 413–416 each consume only TASK-00122 directly, without
 mutual waits. Allocation is 2 + 2 + 1 + 1 = 6/6 handlers, plus the read-only planner as a TASK-00161 collaborator, not
 a handler/audit writer. Counts are planning coverage, not qualification. Each slice owns optional typed provenance,
 last nullable audit injection, actual same-transaction evidence/time/revisions/correlation and callers/schemas/docs/
@@ -167,9 +167,9 @@ gate/exact coverage/independent acceptance. Provisioning supplies SystemId once 
 requires no audit-only actor. Policy reconciliation changes Roles/Permissions only; Feature references are guards,
 not invented Feature mutations. Preserve existing event, batch, reference/tier and publication semantics.
 
-TICKET-00047's complete four-TASK plan is approved/written as [TASK-00162](tasks/00162-TASK.md) paired issuance/
-retained origin, [TASK-00163](tasks/00163-TASK.md) revocation, [TASK-00164](tasks/00164-TASK.md) delivery/scheduler
-recovery and [TASK-00165](tasks/00165-TASK.md) material maintenance. Orders 417–420 each directly consume TASK-00122;
+TICKET-00047's complete four-TASK plan is approved/written as [TASK-00162](tasks/archive/00162-TASK.md) paired issuance/
+retained origin, [TASK-00163](tasks/archive/00163-TASK.md) revocation, [TASK-00164](tasks/archive/00164-TASK.md) delivery/scheduler
+recovery and [TASK-00165](tasks/archive/00165-TASK.md) material maintenance. Orders 417–420 each directly consume TASK-00122;
 TASK-00164 consumes TASK-00162's implemented retained-origin output and is independently accepted with required
 nonvisual QA. All four Agent audit slices are done, completing TICKET-00047; TICKET-00048 now also completes
 EPIC-00017's package scope.
@@ -179,9 +179,9 @@ independent worker authorization, meaningful claim-path expiry/exhaustion, recei
 evidence transactions and external-effect truth. Rewrap is inside one bounded fenced transaction; cleanup external
 removal is between admission/acknowledgement. Each slice owns current callers/docs/gate/exact coverage/acceptance.
 
-TICKET-00048's complete four-TASK plan is approved/written as [TASK-00166](tasks/00166-TASK.md) independent inventory/
-design, [TASK-00167](tasks/00167-TASK.md) reusable audit transaction conformance,
-[TASK-00168](tasks/00168-TASK.md) ordinary Role composition/adoption and [TASK-00169](tasks/00169-TASK.md) final integrated
+TICKET-00048's complete four-TASK plan is approved/written as [TASK-00166](tasks/archive/00166-TASK.md) independent inventory/
+design, [TASK-00167](tasks/archive/00167-TASK.md) reusable audit transaction conformance,
+[TASK-00168](tasks/archive/00168-TASK.md) ordinary Role composition/adoption and [TASK-00169](tasks/archive/00169-TASK.md) final integrated
 qualification/current guidance. Orders 399/400 favor early foundations, 421/422 composition/final work. Inventory has
 no blocker; conformance consumes TASK-00122; Role composition consumes TASK-00167 and TASK-00153; final reconciliation
 has 21 direct output/evidence suppliers: all three plus the 18 family tasks (00123–00127 and 00153–00165). All six audit
@@ -214,7 +214,7 @@ not a new combined verdict or publication/merge claim. The Board owns unrelated 
 
 ### Historical TASK-00120 accepted checkpoint
 
-[TASK-00120](tasks/00120-TASK.md)'s complete Feature Domain slice has independent Review v3 ACCEPT and nonvisual
+[TASK-00120](tasks/archive/00120-TASK.md)'s complete Feature Domain slice has independent Review v3 ACCEPT and nonvisual
 QA PASS at candidate `fb01e06e9b86ff1bdc550eaef437573ec3896b84` against develop
 `458a35ac224d8dd6b855c4652db9fad34c327187`, with no findings; QA passes eight scenarios / 243 fresh assertions.
 The TASK is done, with qualified earlier complete-gate/exact-coverage proof. TICKET-00037/EPIC-00016 stay open
@@ -237,7 +237,7 @@ The Board owns unrelated execution selection. The exact-subject acceptance check
 
 ### TASK-00119 accepted checkpoint
 
-[TASK-00119](tasks/00119-TASK.md)'s complete operation/recovery Domain slice has independent Review v3 ACCEPT
+[TASK-00119](tasks/archive/00119-TASK.md)'s complete operation/recovery Domain slice has independent Review v3 ACCEPT
 and nonvisual QA PASS at `3ce0b96c5ca713673be4e74e20f4aa9d46b5c7a4` against
 `458a35ac224d8dd6b855c4652db9fad34c327187`; R-001/R-002 are independently resolved. The TASK is done,
 not whole-library or consumer qualification. TASK-00118/00120 and other unfinished children keep TICKET-00037
@@ -245,7 +245,7 @@ and EPIC-00016 open. Publication/final delivery verification are pending at this
 current bridge, checks and delivery/resource results belong to canonical `.runs/handoffs/TASK-00119/land.md`
 and the actual PR. Independent reports and historical checkpoints remain intact; the Board owns execution selection.
 
-[TASK-00118](tasks/00118-TASK.md)'s complete Agent identity/administration Domain slice has independent
+[TASK-00118](tasks/archive/00118-TASK.md)'s complete Agent identity/administration Domain slice has independent
 Review v3 ACCEPT and nonvisual QA PASS at `b4300b8108ff4cffa9499e1f4530d58459d78f6d`; R-01 is resolved.
 The TASK is done, with qualified full-gate/exact coverage and nine passing QA scenarios. Publication/final-head
 verification are pending at this closeout checkpoint; current delivery/resource outcomes and administrative-only
@@ -266,7 +266,7 @@ No human merge, whole-library or consumer qualification is claimed. Original che
 
 ### Historical original TASK-00117 acceptance checkpoint
 
-[TASK-00117](tasks/00117-TASK.md)'s complete Permission/Role/ManagedPolicy/Authorization Domain correction slice
+[TASK-00117](tasks/archive/00117-TASK.md)'s complete Permission/Role/ManagedPolicy/Authorization Domain correction slice
 has independent Review ACCEPT and nonvisual QA PASS at candidate `191b972258acfa4ca0bb7e8c90ded115a26f2fcc`.
 The TASK is done; TICKET-00037 and EPIC-00016 remain open for unfinished children. Publication/final delivery
 verification are pending at this closeout checkpoint; current results belong to canonical
@@ -283,7 +283,7 @@ acceptance, publication, merge or consumer qualification is asserted.
 
 ### Historical slice acceptance checkpoints
 
-[TASK-00116](tasks/00116-TASK.md)'s 68-file human grant/delivery Domain slice has independent Review ACCEPT and
+[TASK-00116](tasks/archive/00116-TASK.md)'s 68-file human grant/delivery Domain slice has independent Review ACCEPT and
 nonvisual QA PASS at candidate `080afc43b2b3942625e264547b75cb9b3a74b3bc`, with no findings. The TASK is done;
 TICKET-00037 and EPIC-00016 remain open for unfinished children. [PR #164](https://github.com/johnnickell/fight-access-control/pull/164)
 is open with accepted implementation; administrative closeout publication/final-head verification remain pending
@@ -297,8 +297,8 @@ and complete gate/exact coverage. Publication/final delivery verification are pe
 current results belong to canonical `.runs/handoffs/TASK-00115/land.md` and the actual PR. TICKET-00037/EPIC-00016
 remain open for other unfinished Domain/semantic/enforcement children; consumer qualification remains separate.
 
-[EPIC-00016](epics/00016-EPIC.md) and [TICKET-00042](tickets/00042-TICKET.md) now close with
-[TASK-00152](tasks/00152-TASK.md)'s independently accepted integrated package. Those records own acceptance
+[EPIC-00016](epics/archive/00016-EPIC.md) and [TICKET-00042](tickets/archive/00042-TICKET.md) now close with
+[TASK-00152](tasks/archive/00152-TASK.md)'s independently accepted integrated package. Those records own acceptance
 and qualification limits; the following foundation/planning checkpoints remain historical.
 Use the Board for current execution selection, not these completed handoffs.
 
@@ -311,7 +311,7 @@ PR. EPIC-00016/TICKET-00042 remain open for unfinished inventory/correction/inte
 approved-planning checkpoint below is historical, not a claim that TASK-00151 remains unimplemented or needs QA;
 current execution selection belongs to the Board. No whole-library or supplier qualification is implied.
 
-John approved [EPIC-00016 — Library-wide Typing and Handler Failure Contracts](epics/00016-EPIC.md).
+John approved [EPIC-00016 — Library-wide Typing and Handler Failure Contracts](epics/archive/00016-EPIC.md).
 The destination is exhaustive audit and correction across all production layers, every command/query handler,
 synchronous services and their supporting contracts, with end-to-end typing, explicit absence/failure semantics
 and enforceable verification. This is not a sampled lookup audit or an audit-report-only destination.
@@ -322,21 +322,21 @@ without duplicating TASK-00110 or reordering existing TASKs. No version/release,
 Common/consumer change or implementation workflow is authorized by this planning approval.
 
 Grill and the complete six-TICKET requirement split are approved/written as
-[TICKET-00037](tickets/00037-TICKET.md) through [TICKET-00042](tickets/00042-TICKET.md): Domain/repository contracts,
+[TICKET-00037](tickets/archive/00037-TICKET.md) through [TICKET-00042](tickets/archive/00042-TICKET.md): Domain/repository contracts,
 typed dispatch, exact query results/absence, commands/synchronous Application contracts, presentation/integration,
 and exhaustive inventory/enforcement/final reconciliation. Inventory/enforcement foundations start early; each
 correction slice retains its own tests, gate and independent acceptance. These are requirement areas, not six PRs.
 
 TICKET-00037's complete six-TASK plan is now approved/written as
-[TASK-00115](tasks/00115-TASK.md) through [TASK-00120](tasks/00120-TASK.md): User/session/audit, human credentials/
+[TASK-00115](tasks/archive/00115-TASK.md) through [TASK-00120](tasks/archive/00120-TASK.md): User/session/audit, human credentials/
 delivery, Permission/Role/authority, Agent identity/admin, Agent operation/recovery and Feature. The exhaustive
 planning manifests account for 291 current Domain PHP files, not completed review or correctness. Orders 301–306
 follow existing approved work with no demonstrated local/mutual blockers; each slice starts an inventory fragment
 without waiting for later tooling. Shared cohort definitions have one owner, with complete affected callers.
 
 John explicitly selected TICKET-00038 and approved its complete three-TASK plan, now written as
-[TASK-00128](tasks/00128-TASK.md) (22 Query dispatch paths), [TASK-00129](tasks/00129-TASK.md) (37 existing void Command
-paths) and [TASK-00130](tasks/00130-TASK.md) (amended void Agent Command and outcome Query typing, not conversion).
+[TASK-00128](tasks/archive/00128-TASK.md) (22 Query dispatch paths), [TASK-00129](tasks/archive/00129-TASK.md) (37 existing void Command
+paths) and [TASK-00130](tasks/archive/00130-TASK.md) (amended void Agent Command and outcome Query typing, not conversion).
 Orders 307–309 follow existing Domain plans. The original generic hold on TASK-00129 was superseded by John's
 single-declaration/local-annotation and trusted matching-map decision. TASK-00128's Query amendment permits mixed
 buses and known caller annotations without its original generic supplier hold. Current dispositions and proof
@@ -348,8 +348,8 @@ TICKET-00038. No generic or result-capable bus is required. Existing void handle
 retain their owners. The owning records retain bounded package proof, not whole-library or consumer qualification. Coordinate canonical adoption with
 TASK-00110 once; semantic owners retain their corrections and every slice retains its own tests/gate/acceptance.
 
-TICKET-00039's complete five-TASK plan is approved/written as [TASK-00131](tasks/00131-TASK.md) through
-[TASK-00135](tasks/00135-TASK.md): six required-resource queries, six paged queries, four human credential status/
+TICKET-00039's complete five-TASK plan is approved/written as [TASK-00131](tasks/archive/00131-TASK.md) through
+[TASK-00135](tasks/archive/00135-TASK.md): six required-resource queries, six paged queries, four human credential status/
 discovery queries, four Agent operation/scheduler/count queries and two preparation/policy-preview queries. All 22
 current handlers have planning ownership without overlap/omission, not executed behavioral/supplier/consumer proof.
 Orders 310–314 follow existing typing work with empty local blocked_by and no demonstrated mutual dependency. At
@@ -359,8 +359,8 @@ cleared TASK-00132's former external planning-gap hold without a new Common plan
 The owning TASK retains strict-path adoption, sufficient Common minimum, mutable-list handling and actual
 minimum/ordinary verification evidence; current status belongs to the owning records, not this historical planning handoff.
 
-TICKET-00040's revised complete ten-TASK plan is approved/written as [TASK-00136](tasks/00136-TASK.md) through
-[TASK-00145](tasks/00145-TASK.md): Event-driven delivery/Clock, User lifecycle, human credential workers, synchronous
+TICKET-00040's revised complete ten-TASK plan is approved/written as [TASK-00136](tasks/archive/00136-TASK.md) through
+[TASK-00145](tasks/archive/00145-TASK.md): Event-driven delivery/Clock, User lifecycle, human credential workers, synchronous
 User/session, Role/membership, Agent administration, Feature/policy, Agent issuance/results, Agent workers and
 inward authority/continuation. Primary manifests allocate 119 remaining Application files and 37/37 CommandHandlers
 without overlap/omission; together with 22 QueryHandler and 13 Application presentation files, all 154 baseline
@@ -376,9 +376,9 @@ known owned callback return. No generic UoW API/task, replacement wrapper/result
 This is not a substitute for external validation or bus/Event inference. Shared edits are assigned once and each
 slice retains its own callers/docs/tests/full gate/exact coverage/independent acceptance. No Common file is edited.
 
-TICKET-00041's complete four-TASK plan is approved/written as [TASK-00146](tasks/00146-TASK.md) ordinary HTTP,
-[TASK-00147](tasks/00147-TASK.md) profile Tools, [TASK-00148](tasks/00148-TASK.md) Resource/Skill and
-[TASK-00149](tasks/00149-TASK.md) public payload/declarative metadata. At that planning checkpoint orders 325–328
+TICKET-00041's complete four-TASK plan is approved/written as [TASK-00146](tasks/archive/00146-TASK.md) ordinary HTTP,
+[TASK-00147](tasks/archive/00147-TASK.md) profile Tools, [TASK-00148](tasks/archive/00148-TASK.md) Resource/Skill and
+[TASK-00149](tasks/archive/00149-TASK.md) public payload/declarative metadata. At that planning checkpoint orders 325–328
 were ready-for-agent; the first/third had no demonstrated local blockers. TASK-00147 waits on
 TASK-00128/00131/00141 and TASK-00149 consumes
 TASK-00133's now-accepted status representation. Current executability derives from the owning records and Board.
@@ -394,9 +394,9 @@ TASK-00151/00152 and the unfinished correction suppliers keep TICKET-00042/EPIC-
 delivery verification are pending at this checkpoint; current results belong to `.runs/handoffs/TASK-00150/land.md`
 and the actual PR. The planning allocation below records its earlier checkpoint, not current TASK readiness.
 
-TICKET-00042's complete three-TASK plan is approved/written as [TASK-00150](tasks/00150-TASK.md) declaration/
-contract ownership (order 299), [TASK-00151](tasks/00151-TASK.md) executable type-contract fixtures (300) and
-[TASK-00152](tasks/00152-TASK.md) integrated enforcement/qualification (329). All are ready-for-agent; the independent
+TICKET-00042's complete three-TASK plan is approved/written as [TASK-00150](tasks/archive/00150-TASK.md) declaration/
+contract ownership (order 299), [TASK-00151](tasks/archive/00151-TASK.md) executable type-contract fixtures (300) and
+[TASK-00152](tasks/archive/00152-TASK.md) integrated enforcement/qualification (329). All are ready-for-agent; the independent
 foundations have no demonstrated blockers, final work waits on both plus all 28 correction/adoption tasks under
 TICKET-00037–00041. These 30 edges are final-completion fan-in only, inheriting real affected supplier/conversion
 holds without a blanket early wait. Approved early priorities precede existing 301–328 typing work without
@@ -420,7 +420,7 @@ above, with its four-TICKET split and all TASK plans approved/written (12 TASKs)
 FeatureAvailability still evaluates and FeatureFlag only declares
 references; no Feature middleware exists. The new requirements remain separate from audit/existing permission TASKs;
 Grill approval is neither implementation nor release/adoption proof. EPIC-00015's added Agent conversion is now fully
-planned as [TICKET-00053](tickets/00053-TICKET.md)/[TASK-00182](tasks/00182-TASK.md), with void Commands/outcome Queries
+planned as [TICKET-00053](tickets/archive/00053-TICKET.md)/[TASK-00182](tasks/archive/00182-TASK.md), with void Commands/outcome Queries
 rather than a result-capable Common supplier requirement. Actual canonical/generic supplier qualification remains
 separate. Use the current Board for execution selection. Implementation stays separately invoked with an explicit checkout choice;
 no source/dependency/consumer change, product build, new branch/worktree, commit/publication or release is claimed.
@@ -431,22 +431,22 @@ TASK-00107's guidance candidate has independent Review ACCEPT and QA PASS; publi
 verification were pending at closeout. The current result is in `.runs/handoffs/TASK-00107/land.md` and the actual PR.
 The Board owns current execution routing; remaining implementation is not implied by guidance acceptance.
 
-John approved [EPIC-00015 — Pre-v1 Architecture and Supported Common Integration](epics/00015-EPIC.md), its
-four TICKETs ([00033](tickets/00033-TICKET.md)–[00036](tickets/00036-TICKET.md)) and all eight implementation TASKs.
+John approved [EPIC-00015 — Pre-v1 Architecture and Supported Common Integration](epics/archive/00015-EPIC.md), its
+four TICKETs ([00033](tickets/archive/00033-TICKET.md)–[00036](tickets/archive/00036-TICKET.md)) and all eight implementation TASKs.
 The [Board](tasks/BOARD.md) derives execution priority and blockers from those records; this section is strategy,
 not a separate queue or authority to execute.
 
 | Priority | Accepted work | Purpose and dependency |
 | --- | --- | --- |
-| 10 | [TASK-00107](tasks/00107-TASK.md) — Architecture and naming rules | Independently accepted guidance; reconciles old layout/single-service guidance with the approved target. |
-| 11 | [TASK-00108](tasks/00108-TASK.md) — MCP presentation/bindings in Adapter | Independently accepted; provides the canonical boundary before extending MCP features. |
-| 12 | [TASK-00109](tasks/00109-TASK.md) — Application capabilities and descriptive names | Independently accepted; combines cohesive inward capabilities and descriptive collaborators with 108's outward MCP boundary. |
-| 13 | [TASK-00110](tasks/00110-TASK.md) — Supported canonical Common contracts | Done: independently accepted canonical adoption of released Common v1.5.0; unfinished features retain their own integration tests/acceptance. |
-| 201–202 | [TASK-00111](tasks/00111-TASK.md) → [TASK-00112](tasks/00112-TASK.md) — User revisions and synchronous capabilities | Direct synchronous owners now consume the complete User transitions; original independent acceptance remains recorded in each TASK. |
-| 203–204 | [TASK-00113](tasks/00113-TASK.md) / [TASK-00114](tasks/00114-TASK.md) — AgentName and operation/read boundaries | Independently accepted, including TASK-00114's integrated authentication-base candidate. Its canonical Land handoff and PR #158 own current delivery results. |
+| 10 | [TASK-00107](tasks/archive/00107-TASK.md) — Architecture and naming rules | Independently accepted guidance; reconciles old layout/single-service guidance with the approved target. |
+| 11 | [TASK-00108](tasks/archive/00108-TASK.md) — MCP presentation/bindings in Adapter | Independently accepted; provides the canonical boundary before extending MCP features. |
+| 12 | [TASK-00109](tasks/archive/00109-TASK.md) — Application capabilities and descriptive names | Independently accepted; combines cohesive inward capabilities and descriptive collaborators with 108's outward MCP boundary. |
+| 13 | [TASK-00110](tasks/archive/00110-TASK.md) — Supported canonical Common contracts | Done: independently accepted canonical adoption of released Common v1.5.0; unfinished features retain their own integration tests/acceptance. |
+| 201–202 | [TASK-00111](tasks/archive/00111-TASK.md) → [TASK-00112](tasks/archive/00112-TASK.md) — User revisions and synchronous capabilities | Direct synchronous owners now consume the complete User transitions; original independent acceptance remains recorded in each TASK. |
+| 203–204 | [TASK-00113](tasks/archive/00113-TASK.md) / [TASK-00114](tasks/archive/00114-TASK.md) — AgentName and operation/read boundaries | Independently accepted, including TASK-00114's integrated authentication-base candidate. Its canonical Land handoff and PR #158 own current delivery results. |
 
 MCP roots TASK-00084/00087/00091/00097 consume 108/110; existing descendants inherit those technical suppliers.
-The owning TASKs distinguish accepted implementations from unfinished work. The [Common v1.5.0 readiness amendment](epics/00014-EPIC.md#common-v150-readiness-amendment) clears their
+The owning TASKs distinguish accepted implementations from unfinished work. The [Common v1.5.0 readiness amendment](epics/archive/00014-EPIC.md#common-v150-readiness-amendment) clears their
 former family/operation supplier holds; local implementation dependencies and feature verification remain. Laravel TASK-00105 and
 CodeIgniter TASK-00106 keep order 104 and their existing prerequisites: no MCP, User-decomposition or Agent-operation
 blocker is added. The broader redesign is not a blanket prerequisite or release gate for unrelated capabilities.
@@ -461,8 +461,8 @@ Common/consumer mutation or dependency adoption is authorized through these plan
 ### Completed planning handoff — void Agent Commands and outcome Queries
 
 EPIC-00015's original four-TICKET/eight-TASK plan is accepted/written; TASK-00107's guidance is independently accepted.
-John approved the added [TICKET-00053 — Issue Agent credentials through Commands and outcome Queries](tickets/00053-TICKET.md)
-and one chore [TASK-00182](tasks/00182-TASK.md), then explicitly replaced synchronous result-preserving dispatch with
+John approved the added [TICKET-00053 — Issue Agent credentials through Commands and outcome Queries](tickets/archive/00053-TICKET.md)
+and one chore [TASK-00182](tasks/archive/00182-TASK.md), then explicitly replaced synchronous result-preserving dispatch with
 void Commands and a changed caller contract. Commands may be invoked sync or async at any time; no transport assumed.
 
 TASK-00182 (order 205) owns both complete issuance Command paths, authorized outcome Query integration, current callers/
@@ -472,7 +472,7 @@ separation. Dispatch acceptance and status absence do not prove issuance or roll
 progress promise; safe execution faults and authoritative reads carry the amended contract.
 
 No result-capable Common API is required: TASK-00182 is done.
-[EPIC-00016](epics/00016-EPIC.md#agent-command-result-coordination-follow-up)/TASK-00130 qualifies exact void Command
+[EPIC-00016](epics/archive/00016-EPIC.md#agent-command-result-coordination-follow-up)/TASK-00130 qualifies exact void Command
 and annotated Query-result contracts, not Command results. Its satisfied TASK-00182 edge is retained; the generic API
 information hold is cleared by John's known-caller annotation decision.
 Conversion retains its own business/bus proof and gate; no reverse edge, earlier-task expansion or audit prerequisite.
@@ -487,7 +487,7 @@ Next: `/skill:next` for Board-based selection; no implementation or publication 
 
 ## Future MCP permission integration — current acceptance
 
-The [Common v1.5.0 readiness amendment](epics/00014-EPIC.md#common-v150-readiness-amendment) clears all 16 remaining
+The [Common v1.5.0 readiness amendment](epics/archive/00014-EPIC.md#common-v150-readiness-amendment) clears all 16 remaining
 MCP supplier-information holds. The Board owns current execution status and distinguishes executable work from
 waiting work; existing local dependency edges and orders remain unchanged. For unfinished features,
 minimum/ordinary-lane tests and independent acceptance remain implementation work. Fresh checks are required before protected sends, not a
@@ -518,46 +518,46 @@ The remaining EPIC scope and combined release remain unfinished. The planning hi
 
 ### Planning history
 
-[EPIC-00014 — Permission-Aware MCP Integration and Framework Adapters](epics/00014-EPIC.md) now owns the single
-approved destination from the [closed Wayfinder map](wayfinder/mcp-capability-permission-integration-map.md).
+[EPIC-00014 — Permission-Aware MCP Integration and Framework Adapters](epics/archive/00014-EPIC.md) now owns the single
+approved destination from the [closed Wayfinder map](wayfinder/archive/maps/mcp-capability-permission-integration-map.md).
 All four decisions and the map's EPIC phase are complete. The accepted combined release includes Tool/execution,
 Resource/Skill/Prompt, Subscriptions and durable Task permission integration, Common-compatible safe errors and all
 five framework families (Slim, Yii 3, Symfony, Laravel, CodeIgniter 4), with optional capability-first `src/Adapter`
 integrations and consumer-owned policy/scope. The release number remains unassigned.
 
-John approved the full eight-TICKET split, now written as [TICKET-00025](tickets/00025-TICKET.md) through
-[TICKET-00032](tickets/00032-TICKET.md). All map EPIC/TICKET phases are complete. John subsequently selected
-TICKET-00025 for To Tasks and approved its single-TASK plan, now written as [TASK-00084](tasks/00084-TASK.md).
+John approved the full eight-TICKET split, now written as [TICKET-00025](tickets/archive/00025-TICKET.md) through
+[TICKET-00032](tickets/archive/00032-TICKET.md). All map EPIC/TICKET phases are complete. John subsequently selected
+TICKET-00025 for To Tasks and approved its single-TASK plan, now written as [TASK-00084](tasks/archive/00084-TASK.md).
 It is `needs-info` for actual qualified/tagged Common execution contracts and minimum-version evidence, with no
 unfinished local TASK blockers. John subsequently approved TICKET-00026's complete two-TASK plan, written as
-[TASK-00085](tasks/00085-TASK.md) for Resources and [TASK-00086](tasks/00086-TASK.md) for whole Skills/member reads.
+[TASK-00085](tasks/archive/00085-TASK.md) for Resources and [TASK-00086](tasks/archive/00086-TASK.md) for whole Skills/member reads.
 TASK-00085 has completed its accepted Resource implementation and required package verification; [PR #139](https://github.com/johnnickell/fight-access-control/pull/139)
 is open against `develop`. TASK-00086 depends only on TASK-00085, not TASK-00084. Qualifying its actual supported
 Common minimum/behavior remains an implementation obligation, not a missing execution-Tool API hold.
-John then approved TICKET-00027's complete single-TASK plan, written as [TASK-00087](tasks/00087-TASK.md), needs-info
+John then approved TICKET-00027's complete single-TASK plan, written as [TASK-00087](tasks/archive/00087-TASK.md), needs-info
 for qualified/tagged Common Prompt contracts and supported minimum evidence, with no unfinished local TASK blockers.
-John then approved TICKET-00028's single-TASK plan, written as [TASK-00088](tasks/00088-TASK.md), ready-for-agent
+John then approved TICKET-00028's single-TASK plan, written as [TASK-00088](tasks/archive/00088-TASK.md), ready-for-agent
 with no local TASK blocker or new Common runtime API prerequisite. It owns trusted binding/current checks and
 synchronized protected admission, with actual consumer lifetime/scope/fence qualification separate.
-John then approved TICKET-00029's full plan, written as [TASK-00089](tasks/00089-TASK.md) for scoped timeline reads
-and [TASK-00090](tasks/00090-TASK.md) for independent protected metadata/body reads. Both consume TASK-00084 and are
+John then approved TICKET-00029's full plan, written as [TASK-00089](tasks/archive/00089-TASK.md) for scoped timeline reads
+and [TASK-00090](tasks/archive/00090-TASK.md) for independent protected metadata/body reads. Both consume TASK-00084 and are
 needs-info for qualified/tagged Common scoped-read contracts/minimum evidence; neither depends on the other or on
 TASK-00088 for ordinary requests. Consumer scope/persistence/race qualification remains separate.
-John then approved TICKET-00030's six complete journeys, written as [TASK-00091](tasks/00091-TASK.md) recording/removal,
-[TASK-00092](tasks/00092-TASK.md) retained inspection/recovery, [TASK-00093](tasks/00093-TASK.md) live Tool/Resource/Skill
-disclosure, [TASK-00094](tasks/00094-TASK.md) Prompt signals, [TASK-00095](tasks/00095-TASK.md) subscriber inspection and
-[TASK-00096](tasks/00096-TASK.md) optional publication. All six are needs-info for qualified/tagged Common contracts/
+John then approved TICKET-00030's six complete journeys, written as [TASK-00091](tasks/archive/00091-TASK.md) recording/removal,
+[TASK-00092](tasks/archive/00092-TASK.md) retained inspection/recovery, [TASK-00093](tasks/archive/00093-TASK.md) live Tool/Resource/Skill
+disclosure, [TASK-00094](tasks/archive/00094-TASK.md) Prompt signals, [TASK-00095](tasks/archive/00095-TASK.md) subscriber inspection and
+[TASK-00096](tasks/archive/00096-TASK.md) optional publication. All six are needs-info for qualified/tagged Common contracts/
 minimum evidence, separately from approved local supplier edges. Publication is independent of live/Prompt/inspection,
 Prompt absence does not block ordinary live families, and polling needs no live runtime.
-John then approved TICKET-00031's six complete features, written as [TASK-00097](tasks/00097-TASK.md) creation/producer/
-protected reads, [TASK-00098](tasks/00098-TASK.md) removal, [TASK-00099](tasks/00099-TASK.md) input/continuation,
-[TASK-00100](tasks/00100-TASK.md) cancellation/intent, [TASK-00101](tasks/00101-TASK.md) complete MCP start/reconnect and
-[TASK-00102](tasks/00102-TASK.md) optional full-state notifications. All six retain needs-info qualified/tagged Common
+John then approved TICKET-00031's six complete features, written as [TASK-00097](tasks/archive/00097-TASK.md) creation/producer/
+protected reads, [TASK-00098](tasks/archive/00098-TASK.md) removal, [TASK-00099](tasks/archive/00099-TASK.md) input/continuation,
+[TASK-00100](tasks/archive/00100-TASK.md) cancellation/intent, [TASK-00101](tasks/archive/00101-TASK.md) complete MCP start/reconnect and
+[TASK-00102](tasks/archive/00102-TASK.md) optional full-state notifications. All six retain needs-info qualified/tagged Common
 contract/minimum holds plus approved supplier edges. Ordinary polling/input/cancel need no live runtime, removal does
 not block complete activation, and full-state live has no extra Prompt/inspection/Mercure blocker.
-John then approved TICKET-00032's full four-feature plan, written as [TASK-00103](tasks/00103-TASK.md) shared PSR-15
-with separate Slim/Yii 3 qualification, [TASK-00104](tasks/00104-TASK.md) Symfony,
-[TASK-00105](tasks/00105-TASK.md) Laravel and [TASK-00106](tasks/00106-TASK.md) CodeIgniter 4. All are ready-for-agent:
+John then approved TICKET-00032's full four-feature plan, written as [TASK-00103](tasks/archive/00103-TASK.md) shared PSR-15
+with separate Slim/Yii 3 qualification, [TASK-00104](tasks/archive/00104-TASK.md) Symfony,
+[TASK-00105](tasks/archive/00105-TASK.md) Laravel and [TASK-00106](tasks/archive/00106-TASK.md) CodeIgniter 4. All are ready-for-agent:
 TASK-00103 has no local blocker; B–D consume only its inward shared contract/first Adapter wiring, not Slim/Yii runtime,
 and share equal order 104 without relative native framework priority. No inherited MCP/TASK-00088 prerequisite;
 actual sufficient tagged minima/native qualification remain acceptance work. All map decisions/EPIC/TICKET/full TASK
@@ -631,14 +631,14 @@ steps without erasing their historical checkpoint meaning.
 
 ## Correction batch integrated
 
-The [correction map](wayfinder/access-control-correction-batch-map.md)'s decisions and decomposition are complete.
-[EPIC-00001](epics/00001-EPIC.md) retains existing requirement ownership through
-[TICKET-00001](tickets/00001-TICKET.md#approved-correction-batch-amendment), plus new
-[TICKET-00024](tickets/00024-TICKET.md) for Role caller revisions.
+The [correction map](wayfinder/archive/maps/access-control-correction-batch-map.md)'s decisions and decomposition are complete.
+[EPIC-00001](epics/archive/00001-EPIC.md) retains existing requirement ownership through
+[TICKET-00001](tickets/archive/00001-TICKET.md#approved-correction-batch-amendment), plus new
+[TICKET-00024](tickets/archive/00024-TICKET.md) for Role caller revisions.
 
-The accepted TASKs are [TASK-00077](tasks/00077-TASK.md) for operation outcomes,
-[TASK-00078](tasks/00078-TASK.md) for recovery lifecycle, [TASK-00079](tasks/00079-TASK.md) for policy consistency
-and [TASK-00080](tasks/00080-TASK.md) for Role caller revisions. TASK-00078/00079 depend on TASK-00077;
+The accepted TASKs are [TASK-00077](tasks/archive/00077-TASK.md) for operation outcomes,
+[TASK-00078](tasks/archive/00078-TASK.md) for recovery lifecycle, [TASK-00079](tasks/archive/00079-TASK.md) for policy consistency
+and [TASK-00080](tasks/archive/00080-TASK.md) for Role caller revisions. TASK-00078/00079 depend on TASK-00077;
 TASK-00080 depends on TASK-00077/00079. TASK-00078 precedes TASK-00079 by priority only.
 
 The map is Closed for planning. TASK-00077–00079 are complete and integrated. TASK-00080 has independent technical
@@ -649,7 +649,7 @@ briefs or authorize restricted disclosure. [TASK-00080 PR #132](https://github.c
 merged into `develop` on 2026-10-21 at `d1ed655`; the correction batch has no remaining decomposition,
 implementation or PR-merge handoff. Consumer qualification, version selection, release and deployment remain separate.
 
-[TASK-00082](tasks/00082-TASK.md) completed the README, identity assets, release-version consistency and planning
+[TASK-00082](tasks/archive/00082-TASK.md) completed the README, identity assets, release-version consistency and planning
 reconciliation; PR #133 merged into `develop` on 2026-10-21. Its earlier v0.8.0 recommendation is now superseded by
 John's version selection above. The breaking pre-v1 Role and recovery contracts require a new minor, not a v0.7.x
 patch. The [Board](tasks/BOARD.md) owns the current TASK portfolio.
@@ -685,7 +685,7 @@ checkpoints below retain their historical meaning; the Board owns current implem
 
 John selected **v0.6.0** and the main checkout on 2026-10-19. Integrated `develop` `cc364511` includes merged
 [PR #118](https://github.com/johnnickell/fight-access-control/pull/118) and accepted
-[TASK-00076](tasks/00076-TASK.md). The [release overview](../docs/release-0.6.0.md) documents expiry-aware invitation
+[TASK-00076](tasks/archive/00076-TASK.md). The [release overview](../docs/release-0.6.0.md) documents expiry-aware invitation
 retry and the breaking required Clock constructor argument. No runtime/test/dependency change is part of release
 preparation. Independent release-content acceptance, main integration, exact-merge certification, human signing and
 separately authorized publication remain required. Optional self-registration TASK-00073–00075 remains planned
@@ -708,15 +708,15 @@ dependency adoption and deployment remain separate from package acceptance and r
 
 ## Human delivery expiry readiness prerequisite
 
-The required [human credential-delivery expiry capability](wayfinder/human-credential-delivery-expiry-map.md) now
+The required [human credential-delivery expiry capability](wayfinder/archive/maps/human-credential-delivery-expiry-map.md) now
 has approved upstream records, complete implementation/local verification, independent acceptance and applicable
 behavioral QA. This package prerequisite for v0.5.0 is satisfied; final release certification is still required.
-[WF-025](wayfinder/tickets/WF-025-human-delivery-expiry-contract.md) is resolved: invitation/reset delivery expiry plus
+[WF-025](wayfinder/tickets/archive/WF-025-human-delivery-expiry-contract.md) is resolved: invitation/reset delivery expiry plus
 full email-change authority/reservation expiry, including already-terminal delivery and changed User account states.
-John confirmed [EPIC-00012 — Package-Owned Human Credential Expiry Cleanup for v0.5.0](epics/00012-EPIC.md); its only
+John confirmed [EPIC-00012 — Package-Owned Human Credential Expiry Cleanup for v0.5.0](epics/archive/00012-EPIC.md); its only
 Wayfinder destination is written and the map is Closed. John approved its single cohesive requirement area, now
-[TICKET-00020](tickets/00020-TICKET.md), retaining the entire WF-025 matrix, then approved its sole implementation slice,
-[TASK-00072](tasks/00072-TASK.md). Full EPIC/TICKET/TASK decomposition is accepted and complete; Board execution selection,
+[TICKET-00020](tickets/archive/00020-TICKET.md), retaining the entire WF-025 matrix, then approved its sole implementation slice,
+[TASK-00072](tasks/archive/00072-TASK.md). Full EPIC/TICKET/TASK decomposition is accepted and complete; Board execution selection,
 implementation authority and placement were separately resolved for TASK-00072: John selected main and requested
 inclusion of pending planning changes in its commit. At the pre-publication checkpoint, the implementation passes
 206 focused tests / 2957 assertions and the complete gate (1993 tests / 37644 assertions), exact 6841/6841 product
@@ -739,7 +739,7 @@ this approved decomposition.
 ## Historical Agent package acceptance checkpoint
 
 John's 2026-09-30 package-wide decision in [ADR 0011](adr/0011-pre-v1-current-contract-only.md) removes all obligations
-to support previous APIs/data iterations while pre-v1. [TASK-00068](tasks/00068-TASK.md) has accepted removal of
+to support previous APIs/data iterations while pre-v1. [TASK-00068](tasks/archive/00068-TASK.md) has accepted removal of
 legacy-Agent mode/API stubs and credential-delivery compatibility defaults. TASK-00058's current-contract restoration
 and TASK-00059's final integration guidance/evidence are independently accepted; TASK-00059 behavioral QA also passes.
 John authorized TASK-00059 landing, with publication pending at this tracked checkpoint. Real consumer evidence remains
@@ -747,24 +747,24 @@ open; no migration, release or deployment is claimed. The [Board](tasks/BOARD.md
 
 ### Original decomposition context
 
-[EPIC-00009](epics/00009-EPIC.md) prepares recoverable Agent provisioning and rotation from the accepted-for-planning
+[EPIC-00009](epics/archive/00009-EPIC.md) prepares recoverable Agent provisioning and rotation from the accepted-for-planning
 Agent OS proposal. The breaking replacement, ADR 0004/WF-002 amendment, transactional authorization/protected-sink
 participation, scoped post-commit result behavior and amended bounded policy are ratified. Finite defaults and optional
 validated overrides bound credential operations; capacity handling preserves existing-operation recovery. Committed
 issuance does not establish delivery, enrollment activation or launch authority. John confirmed the shared destination
 and boundaries on 2026-09-27, then approved the decomposition into
-[TICKET-00012](tickets/00012-TICKET.md) (issuance/resolution),
-[TICKET-00013](tickets/00013-TICKET.md) (protected delivery/recovery) and
-[TICKET-00014](tickets/00014-TICKET.md) (migration/compatibility and evidence traceability).
+[TICKET-00012](tickets/archive/00012-TICKET.md) (issuance/resolution),
+[TICKET-00013](tickets/archive/00013-TICKET.md) (protected delivery/recovery) and
+[TICKET-00014](tickets/archive/00014-TICKET.md) (migration/compatibility and evidence traceability).
 
 At the approved decomposition checkpoint, TICKET-00012's TASK split was recorded:
-[TASK-00046](tasks/00046-TASK.md) was the first ready provisioning slice;
-[TASK-00047](tasks/00047-TASK.md) reads status after it. [TASK-00048](tasks/00048-TASK.md) (rotation) and
-[TASK-00049](tasks/00049-TASK.md) (conformance) now have their approved TICKET-00013 dependencies recorded and remain
-waiting, not needs-info. TICKET-00013's [TASK-00050](tasks/00050-TASK.md)–[TASK-00054](tasks/00054-TASK.md) cover
+[TASK-00046](tasks/archive/00046-TASK.md) was the first ready provisioning slice;
+[TASK-00047](tasks/archive/00047-TASK.md) reads status after it. [TASK-00048](tasks/archive/00048-TASK.md) (rotation) and
+[TASK-00049](tasks/archive/00049-TASK.md) (conformance) now have their approved TICKET-00013 dependencies recorded and remain
+waiting, not needs-info. TICKET-00013's [TASK-00050](tasks/archive/00050-TASK.md)–[TASK-00054](tasks/archive/00054-TASK.md) cover
 retirement fences, protected delivery, restart recovery, material maintenance and delivery/lifecycle conformance.
 They begin after TASK-00046 through an acyclic graph; neither conformance TASK blocks its implementation inputs.
-TICKET-00014's [TASK-00055](tasks/00055-TASK.md)–[TASK-00059](tasks/00059-TASK.md) now cover legacy compatibility,
+TICKET-00014's [TASK-00055](tasks/archive/00055-TASK.md)–[TASK-00059](tasks/archive/00059-TASK.md) now cover legacy compatibility,
 cohort enforcement, canonical upgrades, restoration safety and final migration/evidence guidance. All three TICKETs
 have approved TASK splits; at that checkpoint TASK-00046 was first ready and TASK-00047–00059 waited on dependencies.
 Concrete limits and compatibility details remain design/proof obligations before implementation acceptance. Planning readiness is
@@ -781,7 +781,7 @@ current executable ordering.
 ## MCP package acceptance
 
 Fight Common ^1.3 supplies the released Tool API; inspected v1.3.0 revision/signatures and limits are recorded in
-[TASK-00035](tasks/00035-TASK.md#verified-fight-common-v130-contracts). TASK-00035 and TASK-00069–00071 now have
+[TASK-00035](tasks/archive/00035-TASK.md#verified-fight-common-v130-contracts). TASK-00035 and TASK-00069–00071 now have
 independent technical acceptance and behavioral QA and are integrated through PR #113. EPIC-00005/00011 and their
 TICKETs are done. Both destinations are included in v0.5.0 preparation; no TASK is waiting on the former Common gate.
 The related Wayfinder map remains Closed. Actual consumer MCP runtime, security, seed/grant and persistence
@@ -789,23 +789,23 @@ qualification remain separate; package acceptance is not publication or adoption
 
 ## Feature package acceptance
 
-[EPIC-00010 — Permission-Based Feature Flags](epics/00010-EPIC.md) has an approved three-TICKET decomposition from
-its closed [Wayfinder map](wayfinder/permission-based-feature-flags-map.md):
-[TICKET-00015](tickets/00015-TICKET.md) establishes registration/provisioning,
-[TICKET-00016](tickets/00016-TICKET.md) defines fresh Permission-based availability for Users and Agents, and
-[TICKET-00017](tickets/00017-TICKET.md) defines management and guarded retirement. The latter two build on the first's
+[EPIC-00010 — Permission-Based Feature Flags](epics/archive/00010-EPIC.md) has an approved three-TICKET decomposition from
+its closed [Wayfinder map](wayfinder/archive/maps/permission-based-feature-flags-map.md):
+[TICKET-00015](tickets/archive/00015-TICKET.md) establishes registration/provisioning,
+[TICKET-00016](tickets/archive/00016-TICKET.md) defines fresh Permission-based availability for Users and Agents, and
+[TICKET-00017](tickets/archive/00017-TICKET.md) defines management and guarded retirement. The latter two build on the first's
 shared contracts; each includes its evidence and consumer integration obligations. Consumers separately own
 persistence, scanning, enforcement, UI, and deployment; actual CMS adoption is not included.
 
-TICKET-00015's approved chain is [TASK-00061](tasks/00061-TASK.md) (declarations/inventory) →
-[TASK-00062](tasks/00062-TASK.md) (atomic provisioning) → [TASK-00063](tasks/00063-TASK.md) (preparation validation and
+TICKET-00015's approved chain is [TASK-00061](tasks/archive/00061-TASK.md) (declarations/inventory) →
+[TASK-00062](tasks/archive/00062-TASK.md) (atomic provisioning) → [TASK-00063](tasks/archive/00063-TASK.md) (preparation validation and
 reusable contract scenarios). John approved method-only/nonrepeatable Attributes and one transaction per provisioning
 pass, with fresh-state retries and no promise of reliable event delivery. TICKET-00016's approved
-[TASK-00064](tasks/00064-TASK.md) depends only on TASK-00062 and delivers the complete fresh, ID-safe evaluator with
+[TASK-00064](tasks/archive/00064-TASK.md) depends only on TASK-00062 and delivers the complete fresh, ID-safe evaluator with
 existing User/Agent snapshots or null, boolean availability, and distinguishable errors. No shared authority-interface
-change is needed. TICKET-00017 now has approved [TASK-00065](tasks/00065-TASK.md) (Permission reference protection,
-after 00062), [TASK-00066](tasks/00066-TASK.md) (management, after 00065/00064), and
-[TASK-00067](tasks/00067-TASK.md) (guarded retirement and final lifecycle evidence, after 00066/00063).
+change is needed. TICKET-00017 now has approved [TASK-00065](tasks/archive/00065-TASK.md) (Permission reference protection,
+after 00062), [TASK-00066](tasks/archive/00066-TASK.md) (management, after 00065/00064), and
+[TASK-00067](tasks/archive/00067-TASK.md) (guarded retirement and final lifecycle evidence, after 00066/00063).
 John approved shared revision-1 creation, increments only on real status/Permission changes, expected revisions for
 updates/deletion, and explicit broken-binding reads using existing pagination. Consumer confirmation and authorization
 remain separate. At the decomposition checkpoint all three TICKETs and seven TASKs were planned; that planning
@@ -823,16 +823,16 @@ publication, actual consumer adoption and deployment remain separate.
 
 ## Optional self-registration accepted for v0.7.0
 
-[EPIC-00013 — Optional User Self-Registration and Registration-Origin Delivery for v1.0.0](epics/00013-EPIC.md)
+[EPIC-00013 — Optional User Self-Registration and Registration-Origin Delivery for v1.0.0](epics/archive/00013-EPIC.md)
 records John's approved opt-in package destination after the
-[Wayfinder map](wayfinder/self-registration-v1-map.md) closed WF-026–028. Consumers own enablement, public protections
+[Wayfinder map](wayfinder/archive/maps/self-registration-v1-map.md) closed WF-026–028. Consumers own enablement, public protections
 and email templates; package registration must keep atomic uniqueness/default Roles and persist registration versus
 private-invitation delivery origin through recovery. No v0.5.0 scope or default Agent OS/starter features change.
-John approved the three-area requirement decomposition: [TICKET-00021](tickets/00021-TICKET.md) (delivery origin) →
-[TICKET-00022](tickets/00022-TICKET.md) (registration) → [TICKET-00023](tickets/00023-TICKET.md) (administrator
+John approved the three-area requirement decomposition: [TICKET-00021](tickets/archive/00021-TICKET.md) (delivery origin) →
+[TICKET-00022](tickets/archive/00022-TICKET.md) (registration) → [TICKET-00023](tickets/archive/00023-TICKET.md) (administrator
 recovery). John approved one TASK per requirement area:
-[TASK-00073](tasks/00073-TASK.md) (origin/provider) → [TASK-00074](tasks/00074-TASK.md) (atomic registration) →
-[TASK-00075](tasks/00075-TASK.md) (authorized correction and expired reissue). All three tasks are accepted with
+[TASK-00073](tasks/archive/00073-TASK.md) (origin/provider) → [TASK-00074](tasks/archive/00074-TASK.md) (atomic registration) →
+[TASK-00075](tasks/archive/00075-TASK.md) (authorized correction and expired reissue). All three tasks are accepted with
 applicable nonvisual QA and integrated through PRs #121–#123; final
 [PR #123](https://github.com/johnnickell/fight-access-control/pull/123) is merged into `develop` `4ffc31b`.
 Automatic parent completion closed TICKET-00023 and EPIC-00013. The complete capability is now published in
@@ -854,17 +854,17 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Epic | Target | Outcome |
 | --- | --- | --- |
-| [EPIC-00012](epics/00012-EPIC.md) | `v0.5.0` | Human expiry accepted with behavioral QA and integrated through PR #108; the package release prerequisite is satisfied. Actual PostgreSQL/consumer qualification, adoption, certification/publication and deployment remain separate. |
-| [EPIC-00011](epics/00011-EPIC.md) | `v0.5.0` | Agent rename, minimal profiles and protected self-service Tools accepted with behavioral QA and integrated through PR #113; consumer qualification remains separate. |
-| [EPIC-00010](epics/00010-EPIC.md) | `v0.5.0` | All seven Feature TASKs accepted with behavioral QA; final lifecycle evidence integrated through PR #107. Consumer qualification and publication remain separate. |
-| [EPIC-00009](epics/00009-EPIC.md) | `v0.5.0` | Agent operations, current-contract cleanup and cohort/canonical/restoration safety accepted; final guidance has independent acceptance and QA. Real consumer qualification and release remain separate. |
-| [EPIC-00005](epics/00005-EPIC.md) | `v0.5.0` | Agent-protected MCP authorization accepted with behavioral QA and integrated through PR #111; consumer runtime qualification remains separate. |
-| [EPIC-00006](epics/00006-EPIC.md) | `v0.3.0` | Published the recoverable credential-delivery contract and migration after exact-commit certification and signing. Consumer upgrades remain separately qualified. |
-| [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | Replaced deprecated Fight Common transaction dependencies with the supported `TransactionalUnitOfWork` contract while preserving established behavior. |
-| [EPIC-00004](epics/00004-EPIC.md) | `v0.2.0` | Delivered the local consumer-composable OpenAPI schema review candidate; tag, release, and publication remain separate effects. |
-| [EPIC-00003](epics/00003-EPIC.md) | 0.x | Delivered the final unified User/Agent `SecurityContext` and retry-safe Agent Permission, User Role, and custom-Role Permission changes. |
-| [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | Delivered the shared identity, credential, session, authorization, and account-lifecycle package slices; a separate stability decision remains required before release. |
-| [EPIC-00002](epics/00002-EPIC.md) | 0.x | Delivered Agent HMAC authentication, direct Permission authority, request-scoped Agent resolution, and unified distinct User/Agent current-authority access with exact coverage. |
+| [EPIC-00012](epics/archive/00012-EPIC.md) | `v0.5.0` | Human expiry accepted with behavioral QA and integrated through PR #108; the package release prerequisite is satisfied. Actual PostgreSQL/consumer qualification, adoption, certification/publication and deployment remain separate. |
+| [EPIC-00011](epics/archive/00011-EPIC.md) | `v0.5.0` | Agent rename, minimal profiles and protected self-service Tools accepted with behavioral QA and integrated through PR #113; consumer qualification remains separate. |
+| [EPIC-00010](epics/archive/00010-EPIC.md) | `v0.5.0` | All seven Feature TASKs accepted with behavioral QA; final lifecycle evidence integrated through PR #107. Consumer qualification and publication remain separate. |
+| [EPIC-00009](epics/archive/00009-EPIC.md) | `v0.5.0` | Agent operations, current-contract cleanup and cohort/canonical/restoration safety accepted; final guidance has independent acceptance and QA. Real consumer qualification and release remain separate. |
+| [EPIC-00005](epics/archive/00005-EPIC.md) | `v0.5.0` | Agent-protected MCP authorization accepted with behavioral QA and integrated through PR #111; consumer runtime qualification remains separate. |
+| [EPIC-00006](epics/archive/00006-EPIC.md) | `v0.3.0` | Published the recoverable credential-delivery contract and migration after exact-commit certification and signing. Consumer upgrades remain separately qualified. |
+| [EPIC-00007](epics/archive/00007-EPIC.md) | pre-1.0 | Replaced deprecated Fight Common transaction dependencies with the supported `TransactionalUnitOfWork` contract while preserving established behavior. |
+| [EPIC-00004](epics/archive/00004-EPIC.md) | `v0.2.0` | Delivered the local consumer-composable OpenAPI schema review candidate; tag, release, and publication remain separate effects. |
+| [EPIC-00003](epics/archive/00003-EPIC.md) | 0.x | Delivered the final unified User/Agent `SecurityContext` and retry-safe Agent Permission, User Role, and custom-Role Permission changes. |
+| [EPIC-00001](epics/archive/00001-EPIC.md) | 0.x public-source incubation | Delivered the shared identity, credential, session, authorization, and account-lifecycle package slices; a separate stability decision remains required before release. |
+| [EPIC-00002](epics/archive/00002-EPIC.md) | 0.x | Delivered Agent HMAC authentication, direct Permission authority, request-scoped Agent resolution, and unified distinct User/Agent current-authority access with exact coverage. |
 
 ## Released
 
@@ -888,23 +888,4 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 <!-- generated:epic-status:start -->
 | EPIC | Target | Status | Tickets | Tasks |
 | --- | --- | --- | --- | --- |
-| [EPIC-00001](epics/00001-EPIC.md) | 0.x public-source incubation | done | 2 | 22 |
-| [EPIC-00002](epics/00002-EPIC.md) | 0.x | done | 1 | 7 |
-| [EPIC-00003](epics/00003-EPIC.md) | 0.x | done | 2 | 6 |
-| [EPIC-00004](epics/00004-EPIC.md) | v0.2.0 | done | 1 | 1 |
-| [EPIC-00005](epics/00005-EPIC.md) | v0.5.0 | done | 1 | 1 |
-| [EPIC-00006](epics/00006-EPIC.md) | v0.3.0 | done | 1 | 3 |
-| [EPIC-00007](epics/00007-EPIC.md) | pre-1.0 | done | 1 | 1 |
-| [EPIC-00008](epics/00008-EPIC.md) | v0.4.0 | done | 3 | 5 |
-| [EPIC-00009](epics/00009-EPIC.md) | v0.5.0 | done | 3 | 14 |
-| [EPIC-00010](epics/00010-EPIC.md) | v0.5.0 | done | 3 | 7 |
-| [EPIC-00011](epics/00011-EPIC.md) | v0.5.0 | done | 2 | 3 |
-| [EPIC-00012](epics/00012-EPIC.md) | v0.5.0 | done | 1 | 1 |
-| [EPIC-00013](epics/00013-EPIC.md) | v1.0.0 | done | 3 | 3 |
-| [EPIC-00014](epics/00014-EPIC.md) | unassigned | done | 8 | 23 |
-| [EPIC-00015](epics/00015-EPIC.md) | unassigned | done | 5 | 9 |
-| [EPIC-00016](epics/00016-EPIC.md) | unassigned | done | 6 | 31 |
-| [EPIC-00017](epics/00017-EPIC.md) | unassigned | done | 6 | 24 |
-| [EPIC-00018](epics/00018-EPIC.md) | unassigned | done | 4 | 12 |
-| [EPIC-00019](epics/00019-EPIC.md) | unassigned | done | 5 | 15 |
 <!-- generated:epic-status:end -->

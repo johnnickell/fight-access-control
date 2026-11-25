@@ -11,9 +11,9 @@ These publication facts do not establish installed-consumer qualification, enabl
 ## Scope and compatibility
 
 This breaking pre-v1 minor adds the complete optional User registration capability accepted in
-[EPIC-00013](../planning/epics/00013-EPIC.md): durable activation origin ([TASK-00073](../planning/tasks/00073-TASK.md)),
-atomic registration/default Roles ([TASK-00074](../planning/tasks/00074-TASK.md)), and administrator recovery
-([TASK-00075](../planning/tasks/00075-TASK.md)). All three are independently accepted with behavioral QA and integrated
+[EPIC-00013](../planning/epics/archive/00013-EPIC.md): durable activation origin ([TASK-00073](../planning/tasks/archive/00073-TASK.md)),
+atomic registration/default Roles ([TASK-00074](../planning/tasks/archive/00074-TASK.md)), and administrator recovery
+([TASK-00075](../planning/tasks/archive/00075-TASK.md)). All three are independently accepted with behavioral QA and integrated
 through PRs [#121](https://github.com/johnnickell/fight-access-control/pull/121),
 [#122](https://github.com/johnnickell/fight-access-control/pull/122) and
 [#123](https://github.com/johnnickell/fight-access-control/pull/123).

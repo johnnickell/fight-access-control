@@ -23,7 +23,7 @@ Prefer capability interfaces and dependency injection for testable business coor
 ## AccessControl placement and dependency rules
 
 Apply this section when placing or moving a type, selecting an inward dependency, or reviewing a namespace.
-It codifies [EPIC-00015](../../../planning/epics/00015-EPIC.md)'s approved target, not certification of existing
+It codifies [EPIC-00015](../../../planning/epics/archive/00015-EPIC.md)'s approved target, not certification of existing
 source. The [profile](../../../planning/agents/project-profile.md#package-boundary-and-contracts) records current
 implementation and follow-up owners. Existing code is evidence, not an exception by precedent.
 
@@ -67,7 +67,7 @@ login/throttle/rehash, grant/session/revocation semantics, audit and actual fail
 the old service as a forwarding facade. TASK-00112's Work implementation now supplies the
 [direct owners and shared token creation](../../user-authentication.md); independent acceptance remains separate.
 Internally generating a secret does not exempt secret-free intent from Commands. John's amended
-[TICKET-00053](../../../planning/tickets/00053-TICKET.md)/[TASK-00182](../../../planning/tasks/00182-TASK.md) uses void
+[TICKET-00053](../../../planning/tickets/archive/00053-TICKET.md)/[TASK-00182](../../../planning/tasks/archive/00182-TASK.md) uses void
 provision/rotate Commands and independent authorized outcome Queries, invocable sync or async without transport
 assumptions. No result-capable CommandBus is required; retained-key recovery, current execution/read authority and
 transaction fences remain mandatory. This later conversion is not part of TASK-00107's implemented guidance.

@@ -12,10 +12,10 @@ The application builder protects command entry points and owns caller and target
 WF-013. The package enforces tier eligibility without invoking a consumer authorization port.
 
 The accepted decision and its boundary are recorded in
-[WF-012](../wayfinder/tickets/WF-012-custom-permission-delegation.md). Public Permission/query contracts now expose
-non-null tiers through [TASK-00041](../tasks/00041-TASK.md); consumer persistence adoption remains separate.
+[WF-012](../wayfinder/tickets/archive/WF-012-custom-permission-delegation.md). Public Permission/query contracts now expose
+non-null tiers through [TASK-00041](../tasks/archive/00041-TASK.md); consumer persistence adoption remains separate.
 Fight Agent OS has no stored Permissions, so it has no existing grant data to convert. Malformed or unexpected
-null authority fails closed. [TASK-00045](../tasks/00045-TASK.md) implements the separate protected-promotion
+null authority fails closed. [TASK-00045](../tasks/archive/00045-TASK.md) implements the separate protected-promotion
 decision by rejecting forbidden membership without automatic remediation. The
 [v0.4.0 migration guide at release](https://github.com/johnnickell/fight-access-control/blob/380b134b35c722e6416787b13f5c20c64bd05388/docs/permission-tier-v0.4-migration.md)
 records that release's adoption guidance. For current composition use the [Permission tier contract](../../docs/permission-tiers.md).

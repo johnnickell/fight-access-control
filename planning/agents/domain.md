@@ -19,7 +19,7 @@ A persistence placement pattern is not permission to implement production persis
 
 ## Consumed Common contracts
 
-The [Common adoption record](../tasks/00110-TASK.md) owns TASK-00110's canonical spelling,
+The [Common adoption record](../tasks/archive/00110-TASK.md) owns TASK-00110's canonical spelling,
 getter, construction/serialization/error semantics and future-feature boundaries. [Composer](../../composer.json)
 now requires `johnnickell/fight-common: ^1.5.1` for TASK-00089's scoped activity aggregates.
 Exact-minimum and ordinary composition are qualified separately;
@@ -40,19 +40,19 @@ hold. Commands still return void and UoW returns mixed. Independent adoption Rev
 | [Resource catalog](../../src/Adapter/Mcp/Resource/Agent/AgentResourcePermissionCatalog.php), [Resource availability](../../src/Adapter/Mcp/Resource/Agent/AgentResourceAvailability.php) | McpReadableResourceProvider, McpResourceInfo, McpResourceAvailability and Domain StrictJson | Preserve descriptor/provider identity, independent read admission and request-local authority; operational faults are not successful empty catalogs. |
 | [Skill catalog](../../src/Adapter/Mcp/Skill/Agent/AgentSkillPermissionCatalog.php), [Skill availability](../../src/Adapter/Mcp/Skill/Agent/AgentSkillAvailability.php) | McpSkillRevision, McpSkillAvailability and Domain StrictJson | Whole-Skill and Resource admission stay independent; preserve revision binding and shared request-local authentication. |
 
-[TASK-00110](../tasks/00110-TASK.md) owns the inventory, canonical adoption, supported minimum and ordinary/minimum
+[TASK-00110](../tasks/archive/00110-TASK.md) owns the inventory, canonical adoption, supported minimum and ordinary/minimum
 composition evidence. Its historical supplier hold is resolved by the published v1.5.0 evidence, not planning status. Common owns neutral ports, protocol engines and existing execution/Task/Notice
 use cases; AccessControl must not copy them, introduce shadow lifecycle facades or use deprecated bridges as its
 target. Common's released 1.x compatibility obligations remain upstream, not AccessControl aliases under ADR 0011.
 
-[EPIC-00015's external observations](../epics/00015-EPIC.md#common-coordination-and-external-evidence) retain the
+[EPIC-00015's external observations](../epics/archive/00015-EPIC.md#common-coordination-and-external-evidence) retain the
 historical Common snapshot and planned foundation/Task/Notice/identity/Tool refactors. Those historical sibling plans are
 not local blocked_by IDs; the current inventory distinguishes now-released supplier APIs from unimplemented local
 features. Each future MCP family owns its
 additional operation APIs and qualification. An unavailable contract holds only affected adoption; TASK-00108/00109
 can use existing qualified APIs. John amended the separate Agent conversion to void Commands and independent
 outcome Queries, invocable sync or async without transport assumptions; no result-return Common API is required.
-[TICKET-00053](../tickets/00053-TICKET.md)/[TASK-00182](../tasks/00182-TASK.md) own conversion, while TASK-00130 separately
+[TICKET-00053](../tickets/archive/00053-TICKET.md)/[TASK-00182](../tasks/archive/00182-TASK.md) own conversion, while TASK-00130 separately
 qualifies exact Command/Query typing. Original-key recovery and current execution/read authority remain required.
 Do not implement conversion, guess a Common version or edit Common merely through this guidance amendment.
 

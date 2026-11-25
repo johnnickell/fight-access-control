@@ -1,6 +1,6 @@
 # Request authority and continuation contracts
 
-These unreleased contracts are owned by [TASK-00145](../planning/tasks/00145-TASK.md). They preserve separate
+These unreleased contracts are owned by [TASK-00145](../planning/tasks/archive/00145-TASK.md). They preserve separate
 User session/Role authority and Agent credential/direct-Permission authority; typed IDs or snapshots grant nothing.
 Consumers still own authentication adapters, grants, target relationships, cryptography, persistence and runtime.
 

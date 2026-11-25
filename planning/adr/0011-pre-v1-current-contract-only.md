@@ -31,7 +31,7 @@ explicitly before `1.0.0`; do not build them speculatively now.
 
 ## Consequences and implementation ownership
 
-[TASK-00068](../tasks/00068-TASK.md) removes remaining package compatibility code and its tests/schema/guidance.
+[TASK-00068](../tasks/archive/00068-TASK.md) removes remaining package compatibility code and its tests/schema/guidance.
 TASK-00055's legacy-Agent acceptance remains historical, not a continuing requirement. TICKET-00014 M1 is superseded
 by removal, M2/M3 retain only current-contract safety, TASK-00058 covers same-contract restoration only, and
 TASK-00059 supplies current integration guidance and evidence rather than a migration guide.

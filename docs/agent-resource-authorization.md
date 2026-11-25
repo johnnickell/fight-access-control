@@ -1,10 +1,10 @@
 # Agent-protected MCP Resources
 
-[TASK-00085](../planning/tasks/00085-TASK.md) introduced Resource Permission composition.
-[TASK-00108](../planning/tasks/00108-TASK.md) relocates its protocol bindings and availability to
+[TASK-00085](../planning/tasks/archive/00085-TASK.md) introduced Resource Permission composition.
+[TASK-00108](../planning/tasks/archive/00108-TASK.md) relocates its protocol bindings and availability to
 `Fight\AccessControl\Adapter\Mcp\Resource\Agent`. Update imports and registrations directly, with no aliases;
 authentication, Permission policy and synchronized continuation remain inward in Application/Domain. This is unreleased package behavior, not an endpoint,
-content provider, consumer qualification or acceptance of the combined [EPIC-00014](../planning/epics/00014-EPIC.md).
+content provider, consumer qualification or acceptance of the combined [EPIC-00014](../planning/epics/archive/00014-EPIC.md).
 [Whole-Skill authorization](agent-skill-authorization.md) composes this independent Resource decision in TASK-00086.
 [Tool authorization](agent-mcp-authorization.md) is independent.
 
@@ -120,7 +120,7 @@ narrowing is needed beyond existing `^1.3`. Its tagged Resource contracts and ac
 the Resource composition and existing principal-provider tests in an isolated Composer-resolved scratch copy. The
 TASK-00148 checkpoint required Common `^1.4.1` and qualified actual tagged **v1.4.1**
 (`a482c220d312d2ef7762c3f0d85d9fb76a7021fa`) and ordinary dependency lanes through real Resource/Skill composition.
-The current checkout requires **`^1.5.0`** after the [Common adoption record](../planning/tasks/00110-TASK.md), whose exact-minimum
+The current checkout requires **`^1.5.0`** after the [Common adoption record](../planning/tasks/archive/00110-TASK.md), whose exact-minimum
 and ordinary lanes exercise the actual Resource/Skill composition on tagged v1.5.0. Retain the earlier family proof
 as historical evidence, not today's dependency selection. Source/tag presence alone is not qualification;
 exact resolved dependencies, commands, complete logs/exits and candidate input mapping live in the canonical Work

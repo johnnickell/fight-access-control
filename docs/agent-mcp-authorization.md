@@ -1,9 +1,9 @@
 # Agent-protected MCP Tool composition
 
-This API originated in v0.5.0 through [TASK-00035](../planning/tasks/00035-TASK.md), first verified against
+This API originated in v0.5.0 through [TASK-00035](../planning/tasks/archive/00035-TASK.md), first verified against
 Common v1.3.0 (`7de6cad6e8a9752973ad9f8e27e285b0c1510582`). The current checkout requires Common `^1.5.1` (tagged source
 `c73690164a9f112dbf14d774c56a7c01519b88aa`), including its seven execution Tools and corrected scoped aggregates.
-[TASK-00108](../planning/tasks/00108-TASK.md) moves protocol bindings outward without changing wire behavior. It supplies authorization
+[TASK-00108](../planning/tasks/archive/00108-TASK.md) moves protocol bindings outward without changing wire behavior. It supplies authorization
 metadata and availability, **not** protocol policy, an endpoint, OAuth mapping or a consumer adapter.
 [Self-service profile Tools](agent-profile-tools.md) are a separate consumer of this boundary. Their request-bound
 instances require the same fresh provider/request as availability. Independent review/behavioral QA and actual

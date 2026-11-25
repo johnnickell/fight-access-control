@@ -1,6 +1,6 @@
 # Agent delivery material maintenance (v0.5.0)
 
-[TASK-00053](../planning/tasks/00053-TASK.md) adds maintenance to the existing
+[TASK-00053](../planning/tasks/archive/00053-TASK.md) adds maintenance to the existing
 [protected delivery](agent-credential-delivery.md), [retirement](agent-credential-retirement.md) and
 [recovery](agent-delivery-recovery.md) paths. The package owns maintenance transitions, expected-state obligations,
 read contracts and coordination. Consumers own authorization, actual encryption, keys, database indexes/fences and

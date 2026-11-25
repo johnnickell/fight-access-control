@@ -4,7 +4,7 @@ TASK-00170 extends the original v0.5.0 declarations with effective class/method 
 The declaration contract is metadata only. Optional [PSR-15 Feature admission](http-feature-admission.md) now
 consumes it through separately exercised Slim/Yii 3 bindings; other native and portable Permission owners remain separate.
 
-[TASK-00061](../planning/tasks/00061-TASK.md) supplies portable name-only metadata and inventory contracts. It does
+[TASK-00061](../planning/tasks/archive/00061-TASK.md) supplies portable name-only metadata and inventory contracts. It does
 not itself implement Feature storage, provisioning, availability checks, management or runtime enforcement.
 [TASK-00062's atomic provisioning](feature-provisioning.md) consumes this contract, and
 [TASK-00063's preparation validation](feature-preparation.md) checks complete candidate references against stored
