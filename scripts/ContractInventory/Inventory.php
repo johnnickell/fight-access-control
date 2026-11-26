@@ -116,7 +116,14 @@ final readonly class Inventory
         foreach ([...$config->rules, ...$config->concerns] as $rule) {
             self::require(preg_match('/\ATASK-\d{5}\z/', $rule->task) === 1, 'Invalid correction task');
             self::require(preg_match('/\ATICKET-\d{5}\z/', $rule->ticket) === 1, 'Invalid requirement owner');
-            $task = file_get_contents($root.'/planning/tasks/'.substr($rule->task, 5).'-TASK.md');
+            $filename = substr($rule->task, 5).'-TASK.md';
+            $taskPath = "$root/planning/tasks/$filename";
+            if (!is_file($taskPath)) {
+                $taskPath = "$root/planning/tasks/archive/$filename";
+            }
+
+            self::require(is_file($taskPath), 'Missing correction task: '.$rule->task);
+            $task = file_get_contents($taskPath);
             $parent = '/^ticket: '.$rule->ticket.'\s*$/m';
             self::require(preg_match($parent, $task) === 1, 'Correction task/parent mismatch');
             preg_match(Discovery::pattern($rule->path), '');
