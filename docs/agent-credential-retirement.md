@@ -1,6 +1,6 @@
 # Agent credential retirement (v0.5.0)
 
-[TASK-00050](../planning/tasks/00050-TASK.md) implements revocation and the shared predecessor-retirement contract.
+[TASK-00050](../planning/tasks/archive/00050-TASK.md) implements revocation and the shared predecessor-retirement contract.
 It does **not** itself implement recoverable rotation, delivery workers, a protected sink or consumer persistence.
 TASK-00051 now supplies protected delivery and TASK-00048 supplies recoverable rotation using this seam. This
 composition belongs to v0.5.0. Package restoration is implemented; the [integration guide](agent-integration.md)

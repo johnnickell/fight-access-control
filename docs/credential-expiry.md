@@ -142,8 +142,8 @@ closes the downstream consumer blocker or authorizes a lock update.
 
 ## Matrix and evidence boundary
 
-[WF-025](../planning/wayfinder/tickets/WF-025-human-delivery-expiry-contract.md) and
-[TICKET-00020](../planning/tickets/00020-TICKET.md) remain the complete acceptance authority. In the default suite,
+[WF-025](../planning/wayfinder/tickets/archive/WF-025-human-delivery-expiry-contract.md) and
+[TICKET-00020](../planning/tickets/archive/00020-TICKET.md) remain the complete acceptance authority. In the default suite,
 `OfflineCredentialExpiryRegressionTest` reproduces reclaimed-history rejection and inactive-reservation expiry before
 repair; `ExpiredCredentialRecoveryTest` exercises public queries/commands and modeled repository/persistence seams.
 

@@ -57,7 +57,7 @@ Comments explain business reasons, constraints, and non-obvious order. Avoid nar
 
 ## Handler payload declarations
 
-John's explicit [TASK-00129 amendment](../../../planning/tasks/00129-TASK.md#dependencies-and-current-contract-gap)
+John's explicit [TASK-00129 amendment](../../../planning/tasks/archive/00129-TASK.md#dependencies-and-current-contract-gap)
 selects one supported Command or Query per handler, declared by its registration method. Keep that declaration,
 the concrete payload import and the local extraction type together in the owning handler. Use a flat docblock
 immediately before extraction, rather than a multiline annotation or a class-level generic replacement:

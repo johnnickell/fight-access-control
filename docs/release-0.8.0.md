@@ -14,12 +14,12 @@ v0.7.0 was the latest published release. A dated Changelog or passing local gate
 ## Scope and compatibility
 
 This breaking pre-v1 minor includes the independently accepted and integrated operation-outcome
-([TASK-00077](../planning/tasks/00077-TASK.md)), recovery-lifecycle
-([TASK-00078](../planning/tasks/00078-TASK.md)), managed-policy
-([TASK-00079](../planning/tasks/00079-TASK.md)) and Role caller-revision
-([TASK-00080](../planning/tasks/00080-TASK.md)) work. It also includes optional contributor-workflow alignment
-([TASK-00081](../planning/tasks/00081-TASK.md)) and the branded package entrypoint/release consistency preflight
-([TASK-00082](../planning/tasks/00082-TASK.md)). No new production implementation is part of release preparation.
+([TASK-00077](../planning/tasks/archive/00077-TASK.md)), recovery-lifecycle
+([TASK-00078](../planning/tasks/archive/00078-TASK.md)), managed-policy
+([TASK-00079](../planning/tasks/archive/00079-TASK.md)) and Role caller-revision
+([TASK-00080](../planning/tasks/archive/00080-TASK.md)) work. It also includes optional contributor-workflow alignment
+([TASK-00081](../planning/tasks/archive/00081-TASK.md)) and the branded package entrypoint/release consistency preflight
+([TASK-00082](../planning/tasks/archive/00082-TASK.md)). No new production implementation is part of release preparation.
 
 - PHP **8.5+** and Fight Common **^1.3** requirements are unchanged.
 - This is **not a v0.7.x patch**: consumers must implement required caller payloads, Views, constructors, repository

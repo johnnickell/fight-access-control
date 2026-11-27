@@ -7,7 +7,7 @@ human signing and separately authorized publication remain required.
 ## Scope and compatibility
 
 This breaking pre-v1 minor contains the expiry-aware manual invitation retry repair accepted in
-[TASK-00076](../planning/tasks/00076-TASK.md) and merged through
+[TASK-00076](../planning/tasks/archive/00076-TASK.md) and merged through
 [PR #118](https://github.com/johnnickell/fight-access-control/pull/118). It builds on the
 [v0.5.0 contract](release-0.5.0.md); optional User self-registration remains planned v1.0.0 work, not included behavior.
 

@@ -1,9 +1,9 @@
 # Agent live Tool, Resource, whole-Skill and Prompt disclosure
 
-Unreleased [TASK-00093](../planning/tasks/00093-TASK.md) composes Common's actual Subscription admission,
+Unreleased [TASK-00093](../planning/tasks/archive/00093-TASK.md) composes Common's actual Subscription admission,
 retained source Queries, tracking and native HTTP delivery. The sufficient minimum is **Common v1.5.0**, source
 `06fb5cd3720af9cf8295198f74040d95b64c5155`; the existing `^1.5.0` requirement suffices. Supplier acceptance and
-publication are recorded in the [Common adoption record](../planning/tasks/00110-TASK.md). Independent Review ACCEPT and nonvisual
+publication are recorded in the [Common adoption record](../planning/tasks/archive/00110-TASK.md). Independent Review ACCEPT and nonvisual
 QA PASS cover candidate `55b9ccb0b6ad6ef3533d99e99cae63ab98cb7657`; the owning TASK and canonical Land handoff
 retain integration/delivery provenance. This is library composition, not consumer adoption or production qualification.
 
@@ -243,5 +243,5 @@ use Common's single supplied redaction-aware sink, not a second logger or except
 On actual adapters, verify acknowledged wire output and finite closure, freshness with slow readers and idle streams,
 separate principal streams, and independently admitted retained recovery. Qualify production storage, cryptography,
 policy and all authority writers, restoration, concurrency, proxies, buffering and actual client receipt.
-No exactly-once delivery is promised. [TASK-00094](../planning/tasks/00094-TASK.md) records the package evidence and
+No exactly-once delivery is promised. [TASK-00094](../planning/tasks/archive/00094-TASK.md) records the package evidence and
 advisory findings for its dependency lanes.

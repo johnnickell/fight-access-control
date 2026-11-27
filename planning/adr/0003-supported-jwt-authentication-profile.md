@@ -6,7 +6,7 @@
 
 ## Approved placement amendment — EPIC-00015 / TASK-00107
 
-[EPIC-00015](../epics/00015-EPIC.md) replaces the original *single AuthenticationService* placement mandate,
+[EPIC-00015](../epics/archive/00015-EPIC.md) replaces the original *single AuthenticationService* placement mandate,
 not synchronous execution or the supported JWT profile. Follow the current
 [Architecture rule](../../docs/engineering/standards/Architecture.md#application-mirrored-ownership-and-cohesive-capabilities):
 authentication/token issuance, refresh-session, password and email-confirmation capabilities have cohesive direct

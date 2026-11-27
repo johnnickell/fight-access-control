@@ -1,6 +1,6 @@
 # Agent credential-operation cohorts (v0.5.0)
 
-[TASK-00056](../planning/tasks/00056-TASK.md) adds persisted compatibility enforcement to the replacement Agent
+[TASK-00056](../planning/tasks/archive/00056-TASK.md) adds persisted compatibility enforcement to the replacement Agent
 protocol. This is a breaking v0.5.0 repository contract, not a migration tool, deployment command, release receipt,
 old-binary fence or consumer qualification. Only the [current Agent model](agent-current-contract.md) applies;
 there is no legacy mode or adoption transition. The [canonical request and name contract](agent-integration.md#canonical-request-and-name) is supplied by TASK-00057;

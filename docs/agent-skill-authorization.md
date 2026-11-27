@@ -1,13 +1,13 @@
 # Agent-protected MCP Skills
 
-[TASK-00086](../planning/tasks/00086-TASK.md) composes whole-Skill Permissions with the independent
+[TASK-00086](../planning/tasks/archive/00086-TASK.md) composes whole-Skill Permissions with the independent
 [Resource binding](agent-resource-authorization.md). This is unreleased package behavior within
-[EPIC-00014](../planning/epics/00014-EPIC.md), not a hosted endpoint, content provider, activation runtime or release.
+[EPIC-00014](../planning/epics/archive/00014-EPIC.md), not a hosted endpoint, content provider, activation runtime or release.
 [Tool admission](agent-mcp-authorization.md) and Prompt admission do not grant Skill or member access.
 
 ## Validated immutable association
 
-[TASK-00108](../planning/tasks/00108-TASK.md) relocates these protocol bindings and availability to Adapter.
+[TASK-00108](../planning/tasks/archive/00108-TASK.md) relocates these protocol bindings and availability to Adapter.
 Update imports and registrations directly; no retired Application aliases remain. Authentication, Permission policy
 and synchronized continuation stay inward in Application/Domain.
 
@@ -141,7 +141,7 @@ installed v1.4.0 (`87b9580c072f3149d574e09865daa79620c92118`) for the inspected 
 composition, not just tag presence, qualifies this historical minimum. TASK evidence retains exact lock/source manifests,
 commands, logs/exits and tested input mapping. TASK-00148 then qualified tagged **v1.4.1**
 (`a482c220d312d2ef7762c3f0d85d9fb76a7021fa`) and ordinary dependency lanes under its then-current `^1.4.1` constraint.
-The current checkout requires **`^1.5.0`** after the [Common adoption record](../planning/tasks/00110-TASK.md); its exact-minimum
+The current checkout requires **`^1.5.0`** after the [Common adoption record](../planning/tasks/archive/00110-TASK.md); its exact-minimum
 and ordinary lanes exercise actual Resource/Skill composition on tagged v1.5.0, including canonical file/limit getters.
 These executed lanes extend the earlier family proof; a development snapshot or tag label alone is not qualification.
 

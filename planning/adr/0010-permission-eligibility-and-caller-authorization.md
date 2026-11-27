@@ -74,16 +74,16 @@ adapters. Role administration, Agent Permission, and User Role-assignment handle
 actor-only authorization ports. No new target-aware authorization port is required for those commands.
 The accepted target-specific authorization checks for cross-user sessions, email-change administration, and
 pending-invitation correction remain. This supersedes the affected actor-authorization requirement in completed
-[TICKET-00004](../tickets/00004-TICKET.md); that ticket remains a historical record of the earlier contract.
+[TICKET-00004](../tickets/archive/00004-TICKET.md); that ticket remains a historical record of the earlier contract.
 The retained checks concern ownership of a particular User's resource. The removed generic checks are consumer
 administration policy, including any relevant Permission the consumer declares `SUPER_ADMIN_ONLY`.
 
 This boundary keeps consumer-specific administrative Permission names, target ownership, and future scope rules out
 of the package. It also means the consumer must guard every command-bus entry point it exposes: the package tier
-check prevents protected membership but does not reject an unauthorized `ADMIN_SAFE` change. [WF-013](../wayfinder/tickets/WF-013-target-aware-role-administration.md)
+check prevents protected membership but does not reject an unauthorized `ADMIN_SAFE` change. [WF-013](../wayfinder/tickets/archive/WF-013-target-aware-role-administration.md)
 owns the detailed decision; WF-014 separately decides Super Admin Role assignment and removal.
 
-[TASK-00042](../tasks/00042-TASK.md), [TASK-00043](../tasks/00043-TASK.md), and
-[TASK-00044](../tasks/00044-TASK.md) implemented and verified this boundary for Role lifecycle, User Role assignment,
+[TASK-00042](../tasks/archive/00042-TASK.md), [TASK-00043](../tasks/archive/00043-TASK.md), and
+[TASK-00044](../tasks/archive/00044-TASK.md) implemented and verified this boundary for Role lifecycle, User Role assignment,
 custom-Role grants, and direct Agent assignments. Consumer entry-point protection and composition changes are
 documented in the [historical v0.4.0 migration guide](https://github.com/johnnickell/fight-access-control/blob/380b134b35c722e6416787b13f5c20c64bd05388/docs/permission-tier-v0.4-migration.md); adoption remains separate.

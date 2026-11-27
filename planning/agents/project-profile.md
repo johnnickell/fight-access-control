@@ -161,7 +161,7 @@ delivery Commands instead of copying claim/retry/terminalization/stale-generatio
   and [collaborator naming](../../docs/engineering/standards/Naming.md#descriptive-collaborators-and-collections)
   codify EPIC-00015. Domain is aggregate-first under `src/Domain/AccessControl`; Application mirrors ownership with
   cohesive capabilities and mirrored tests. These are approved rules, not certification of all current source.
-- [WF-035](../wayfinder/tickets/WF-035-framework-permission-adapter-ownership.md)'s capability-first framework layout
+- [WF-035](../wayfinder/tickets/archive/WF-035-framework-permission-adapter-ownership.md)'s capability-first framework layout
   remains valid for mechanisms. EPIC-00015 explicitly specializes its no-DDD-buckets restriction for aggregate-oriented
   protocol presentation: `Adapter/Mcp/{Tool,Resource,Skill}/Agent`. `Adapter/<Capability>/<Framework-or-Provider-or-Standard>`
   and `Adapter/ServiceContainer/<Framework>` remain the framework patterns, not the only permitted presentation shape.
@@ -249,16 +249,16 @@ delivery Commands instead of copying claim/retry/terminalization/stale-generatio
   A focused expected-registration unit assertion suffices; deliberately mismatched explicit maps are outside this contract.
 - A CommandHandler owns one atomic Unit of Work: aggregate mutation and repository persistence precede one commit;
   a success event is dispatched only after that commit. The approved
-  [operation-outcome amendment](../tickets/00001-TICKET.md#approved-correction-batch-amendment) governs the correction
+  [operation-outcome amendment](../tickets/archive/00001-TICKET.md#approved-correction-batch-amendment) governs the correction
   batch, superseding conflicting older guidance within its scope. Before implementing or reviewing that batch,
   obtain its full approved maintainer brief through the established private channel; this public planning summary
   does not replace detailed acceptance or establish implementation. Current consumer composition follows
   [operation outcomes](../../docs/operation-outcomes.md): coarse constant notification text and safe context do not
   sanitize rethrown faults; notification failure cannot replace the primary throwable. Preserve documented exceptions below.
-- Human expiry cleanup retains [TASK-00072 C9](../tasks/00072-TASK.md#acceptance-criteria)'s accepted contract;
+- Human expiry cleanup retains [TASK-00072 C9](../tasks/archive/00072-TASK.md#acceptance-criteria)'s accepted contract;
   see [expiry composition](../../docs/credential-expiry.md). Keep internal provider classification distinct from
   operation-outcome policy.
-- Approved replacement exception: [EPIC-00009 D3](../epics/00009-EPIC.md#d3--post-commit-result-behavior), ratified by
+- Approved replacement exception: [EPIC-00009 D3](../epics/archive/00009-EPIC.md#d3--post-commit-result-behavior), ratified by
   John on 2026-09-27, applies only to replacement recoverable Agent provision and rotation. After a confirmed commit,
   publication failure cannot disguise committed issuance. The original direct-service contract returned safe
   metadata with a typed warning; TASK-00182 now replaces that caller contract with void Commands and independent
@@ -271,8 +271,8 @@ delivery Commands instead of copying claim/retry/terminalization/stale-generatio
   raw-return rotation API is removed. TASK-00049/00052 prove package scheduler-only recovery; actual consumer
   qualification remains separate. Historical direct-service results/warnings are removed without facades under
   the amendment below. No independent execution or release authority.
-- **Approved Agent Command caller-contract amendment:** [TICKET-00053](../tickets/00053-TICKET.md)/
-  [TASK-00182](../tasks/00182-TASK.md) replace those direct APIs with void Commands and authorized outcome Queries.
+- **Approved Agent Command caller-contract amendment:** [TICKET-00053](../tickets/archive/00053-TICKET.md)/
+  [TASK-00182](../tasks/archive/00182-TASK.md) replace those direct APIs with void Commands and authorized outcome Queries.
   Commands may execute sync or async at any time; no transport, response code, broker or request lifetime assumed.
   Reuse GetAgentOperation for authoritative original issuance/dispositions, not queue progress or reconstructed
   publication warnings. Dispatch acceptance/absence is not commit/rollback proof. Current execution/read authority,
@@ -283,7 +283,7 @@ delivery Commands instead of copying claim/retry/terminalization/stale-generatio
   Common routing and has independent Review ACCEPT and nonvisual QA PASS; current delivery results are in its
   canonical Land handoff and actual PR. Lost commit acknowledgement throws sanitized
   AgentOperationUncertainException, never a guessed success/rollback. Follow the current composition guides.
-- For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
+- For that credential-operation replacement, follow ratified [EPIC-00009 D4](../epics/archive/00009-EPIC.md#d4--bounded-operation-and-integration-policy):
   documented finite defaults, optional validated overrides, and no manual-configuration or additional human-approval
   requirement for routine operation/recovery. Capacity exhaustion must give new work a clear retryable rejection or
   deferral while preserving authorized status and existing-operation recovery. Cleanup must preserve duplicate-issuance

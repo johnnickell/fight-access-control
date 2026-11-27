@@ -8,7 +8,7 @@ match that commit. The tag preserves the preparation snapshot. PHP 8.5+ and Figh
 
 ## Administrative session revocation audit records require a reason
 
-[TASK-00188](../planning/tasks/00188-TASK.md) restores durable reasons for authorized administrative revocation
+[TASK-00188](../planning/tasks/archive/00188-TASK.md) restores durable reasons for authorized administrative revocation
 when audit is enabled. The session change and audit record commit in the same transaction. The record stores the
 exact trimmed explanation (1–500 characters) in `facts.reason` for `refresh_session.administratively_revoked`.
 Self-service revocation, logout, replay and the success event do not include this field. Command inputs and
@@ -23,7 +23,7 @@ read paths before upgrading; do not invent a reason or treat an old record as va
 
 ## Verification and consumer obligations
 
-The [implementation checkpoint](../planning/tasks/00188-TASK.md#acceptance-checkpoint) records independent
+The [implementation checkpoint](../planning/tasks/archive/00188-TASK.md#acceptance-checkpoint) records independent
 technical and behavioral acceptance for the package repair. Independent release Review and QA passed before
 integration; the exact `main` merge passed final certification. Before adoption, prove that your actual storage and reader
 preserve the reason, that the audit write shares the session transaction, and that access to the stored explanation

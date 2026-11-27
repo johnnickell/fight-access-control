@@ -189,7 +189,7 @@ JSend handler. This package installs no protocol or global allowlist and changes
 
 Qualify Attribute-only and explicit declarations, resolved-controller association, independent validation and
 IsGranted, nested request lifetimes and both combined-gate orders on the actual adapter. See
-[TASK-00177](../planning/tasks/00177-TASK.md) for package evidence.
+[TASK-00177](../planning/tasks/archive/00177-TASK.md) for package evidence.
 
 ## Qualified tags and remaining obligations
 

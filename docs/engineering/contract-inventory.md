@@ -37,7 +37,7 @@ ones, tests and consumer examples. File hashes invalidate judgments even for imp
 owners. Exactly one primary correction/edit owner applies to each file and its boundaries. Separate dispatch
 concerns retain TICKET-00038 ownership without taking over Domain, query semantics or presentation edits. Actual
 relocations and Agent Command conversion are reflected; old planning paths/counts are not permanent assertions.
-This is a compact routing projection of [TICKET-00042](../../planning/tickets/00042-TICKET.md), not another architecture
+This is a compact routing projection of [TICKET-00042](../../planning/tickets/archive/00042-TICKET.md), not another architecture
 standard, backlog, acceptance ledger or delivery queue. Consult owning requirements before changing its rules.
 
 [contract-inventory.json](../../etc/contract-inventory.json) stores only per-primary-owner boundary counts and canonical

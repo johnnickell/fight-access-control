@@ -1,6 +1,6 @@
 # Current Agent continuation admission
 
-Unreleased [TASK-00088](../planning/tasks/00088-TASK.md) supplies explicit current-authority admission for repeated
+Unreleased [TASK-00088](../planning/tasks/archive/00088-TASK.md) supplies explicit current-authority admission for repeated
 protected work. It does not change the ordinary request snapshot, supply a Common Subscription/Task integration,
 issue a bearer/session credential, run a worker, grant scope or qualify a production lock implementation.
 

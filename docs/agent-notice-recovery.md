@@ -1,9 +1,9 @@
 # Agent retained inspection and polling recovery
 
-Unreleased [TASK-00092](../planning/tasks/00092-TASK.md) adds inward `AgentNoticeReadAdmission` and consumer
+Unreleased [TASK-00092](../planning/tasks/archive/00092-TASK.md) adds inward `AgentNoticeReadAdmission` and consumer
 `AgentNoticeReadPolicy`. Common **v1.5.0**, published source `06fb5cd3720af9cf8295198f74040d95b64c5155`, is the
 first sufficient supported minimum for these read/recovery/polling contracts. The existing `^1.5.0` requirement
-already suffices. See the [Common adoption record](../planning/tasks/00110-TASK.md). Independent Review ACCEPT and nonvisual
+already suffices. See the [Common adoption record](../planning/tasks/archive/00110-TASK.md). Independent Review ACCEPT and nonvisual
 QA PASS cover candidate `d989bdb25b897bd43c7ae87cd76e63498d18f561`; this is not production consumer qualification.
 
 ## Ownership and request flow

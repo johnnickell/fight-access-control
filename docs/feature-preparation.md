@@ -1,6 +1,6 @@
 # Feature preparation validation (v0.5.0)
 
-[TASK-00063](../planning/tasks/00063-TASK.md) adds a read-only candidate preparation query and reusable package-port
+[TASK-00063](../planning/tasks/archive/00063-TASK.md) adds a read-only candidate preparation query and reusable package-port
 scenarios. A successful check establishes that *every discovered name* currently resolves to a valid stored Feature
 and its original bound Permission ID. It does not activate code, decide feature availability, authorize any action or
 certify a consumer deployment. An OFF Feature is valid preparation; it is not available at runtime.
@@ -112,7 +112,7 @@ publication failure. `InMemoryFeaturePreparationConformanceTest` exercises them 
 in the default gate. Consumers bind their own adapters and scanner with disposable data and prove actual transaction,
 uniqueness/reference fencing and code identity separately. This suite does not provide production adapters.
 
-[TICKET-00015](../planning/tickets/00015-TICKET.md) traceability: TASK-00061 proves strict name/Attribute/registration
+[TICKET-00015](../planning/tickets/archive/00015-TICKET.md) traceability: TASK-00061 proves strict name/Attribute/registration
 and completeness/scope (`FeatureNameTest`, `FeatureFlagTest`, `FeatureReferencesTest`,
 `FeatureDiscoveryResultTest`); TASK-00062 proves creation/default/uniqueness/rollback/winner/uncertainty and
 publication behavior (`FeatureTest`, `FeatureMessagesTest`, `ProvisionFeaturesHandlerTest`,

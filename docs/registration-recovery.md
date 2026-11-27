@@ -1,6 +1,6 @@
 # Administrator pending-registration recovery
 
-[TASK-00075](../planning/tasks/00075-TASK.md) adds distinct `RecoverPendingRegistration` /
+[TASK-00075](../planning/tasks/archive/00075-TASK.md) adds distinct `RecoverPendingRegistration` /
 `RecoverPendingRegistrationHandler` and post-commit `PendingRegistrationRecovered`, released in
 [v0.7.0](release-0.7.0.md). This is not anonymous registration, private-invitation correction,
 an expired-token retry or consumer enablement. It keeps the existing pending User and **exact assigned Role set**.

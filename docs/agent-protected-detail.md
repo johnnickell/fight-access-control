@@ -128,7 +128,7 @@ A page outside the permitted selection retains its permitted total and empty row
 ## Qualified supplier and evidence limits
 
 Common **v1.5.0**, source `06fb5cd3720af9cf8295198f74040d95b64c5155`, is the first sufficient supported minimum;
-`^1.5.0` already exists in `composer.json`. The [Common adoption record](../planning/tasks/00110-TASK.md) records supplier
+`^1.5.0` already exists in `composer.json`. The [Common adoption record](../planning/tasks/archive/00110-TASK.md) records supplier
 independent acceptance/publication. TASK-00090 tests the exact minimum via `composer update --prefer-lowest
 --prefer-stable` and restores ordinary `composer update` before its full gate. Both selected the same Common tag;
 other dependency versions differ. Complete lock copies, SHA-256 identities, actual logs/exits and coverage are in

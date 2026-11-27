@@ -1,6 +1,6 @@
 # Recoverable Agent rotation
 
-[TASK-00048](../planning/tasks/00048-TASK.md) replaces raw-return rotation with an authorized, retained-key
+[TASK-00048](../planning/tasks/archive/00048-TASK.md) replaces raw-return rotation with an authorized, retained-key
 operation. It consumes [provisioning correlation](agent-provisioning-operations.md),
 [atomic predecessor retirement](agent-credential-retirement.md) and the existing
 [protected delivery attempt](agent-credential-delivery.md). Compose [restart recovery](agent-delivery-recovery.md),

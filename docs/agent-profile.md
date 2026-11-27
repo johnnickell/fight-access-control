@@ -1,6 +1,6 @@
 # Minimal Agent profiles and managed Permissions (v0.5.0)
 
-[TASK-00070](../planning/tasks/00070-TASK.md) supplies a framework-neutral read and reusable Permission definitions.
+[TASK-00070](../planning/tasks/archive/00070-TASK.md) supplies a framework-neutral read and reusable Permission definitions.
 The read/definition module supplies no transport, administrator endpoint, consumer seed/migration, grants or runtime
 wiring. [Self-service profile Tools](agent-profile-tools.md) now bind this read and the separate generic
 [UpdateAgent name operation](agent-name-updates.md) through protected MCP composition.

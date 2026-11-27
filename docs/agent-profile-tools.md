@@ -1,7 +1,7 @@
 # Self-service Agent profile Tools
 
-[TASK-00071](../planning/tasks/00071-TASK.md) introduced two noninteractive Tools in v0.5.0.
-[TASK-00108](../planning/tasks/00108-TASK.md) relocates them to `Fight\AccessControl\Adapter\Mcp\Tool\Agent`
+[TASK-00071](../planning/tasks/archive/00071-TASK.md) introduced two noninteractive Tools in v0.5.0.
+[TASK-00108](../planning/tasks/archive/00108-TASK.md) relocates them to `Fight\AccessControl\Adapter\Mcp\Tool\Agent`
 in the current checkout, using the existing qualified Common contracts (`^1.5.0`). They reuse the [minimal profile query](agent-profile.md), [generic rename](agent-name-updates.md)
 and [Agent-aware authorization](agent-mcp-authorization.md); they do not implement a second protocol or rename path.
 

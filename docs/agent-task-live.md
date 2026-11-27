@@ -1,8 +1,8 @@
 # Optional complete Task notifications
 
-Unreleased [TASK-00102](../planning/tasks/00102-TASK.md) composes the actual **Common v1.5.0** Task/live APIs,
+Unreleased [TASK-00102](../planning/tasks/archive/00102-TASK.md) composes the actual **Common v1.5.0** Task/live APIs,
 tagged source `06fb5cd3720af9cf8295198f74040d95b64c5155`. The existing `^1.5.0` minimum suffices; see the
-[Common adoption record](../planning/tasks/00110-TASK.md). This is optional package composition, not production qualification.
+[Common adoption record](../planning/tasks/archive/00110-TASK.md). This is optional package composition, not production qualification.
 Ordinary [Task serving](agent-task-authorization.md#complete-guarded-mcp-serving--slice-e), input/cancel and polling
 remain usable without Subscriptions, generic notice storage, Mercure or a live worker.
 

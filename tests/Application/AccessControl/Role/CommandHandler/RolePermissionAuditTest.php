@@ -337,7 +337,7 @@ final class RolePermissionAuditTest extends TestCase
         if ($loss === 'identity' || $loss === 'missing') {
             $permissions = $this->createStub(PermissionRepository::class);
             $permissions->method('getById')->willReturn(
-                $loss === 'missing' ? null : (new MembershipContractFixture($operation))->permission
+                $loss === 'missing' ? null : new MembershipContractFixture($operation)->permission
             );
         } elseif ($loss === 'managed' || $loss === 'reserved') {
             $role = Role::defineManaged(
@@ -350,7 +350,7 @@ final class RolePermissionAuditTest extends TestCase
         } else {
             $referenceId = $fixture->permission->getId();
             if ($operation === 'revoke' && !$noOp) {
-                $retained = (new MembershipContractFixture('grant'))->permission;
+                $retained = new MembershipContractFixture('grant')->permission;
                 $fixture->permissionRepository->add($retained);
                 $referenceId = $retained->getId();
                 $fixture->roleState->roles = [Role::reconstitute(
