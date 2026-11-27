@@ -5,11 +5,13 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-No non-terminal Task exists. Any future release decision requires separate human authorization.
+Active Task: [TASK-00204](00204-TASK.md) — Remove obsolete Rector options.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 527 | [TASK-00204](00204-TASK.md) | Remove obsolete Rector options | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 
