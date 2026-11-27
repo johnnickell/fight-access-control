@@ -35,4 +35,6 @@ No Tasks are currently in this state.
 
 ## Recently Done
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 527 | [TASK-00204](00204-TASK.md) | Remove obsolete Rector options | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/291 |
