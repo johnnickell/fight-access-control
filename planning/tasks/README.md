@@ -8,5 +8,5 @@ The [Task Board](BOARD.md) is the operational projection.
 <!-- generated:task-index:start -->
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-
+| 528 | [TASK-00205](00205-TASK.md) | Enforce the TokenSet credential handling contract | — (standalone bug) | ready-for-agent | — | — |
 <!-- generated:task-index:end -->
