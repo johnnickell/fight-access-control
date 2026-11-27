@@ -8,5 +8,5 @@ The [Task Board](BOARD.md) is the operational projection.
 <!-- generated:task-index:start -->
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
-| 527 | [TASK-00204](00204-TASK.md) | Remove obsolete Rector options | — (standalone bug) | done | — | — |
+| 527 | [TASK-00204](00204-TASK.md) | Remove obsolete Rector options | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/291 |
 <!-- generated:task-index:end -->
