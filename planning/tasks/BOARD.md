@@ -5,7 +5,7 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00205](00205-TASK.md) — Enforce the TokenSet credential handling contract.
+No non-terminal Task exists. Any future release decision requires separate human authorization.
 
 ## In Progress
 
@@ -13,9 +13,7 @@ No Tasks are currently in this state.
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 528 | [TASK-00205](00205-TASK.md) | Enforce the TokenSet credential handling contract | — (standalone bug) | ready-for-agent | — | — |
+No Tasks are currently in this state.
 
 ## Waiting
 
@@ -38,3 +36,4 @@ No Tasks are currently in this state.
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 527 | [TASK-00204](00204-TASK.md) | Remove obsolete Rector options | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/291 |
+| 528 | [TASK-00205](00205-TASK.md) | Enforce the TokenSet credential handling contract | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/293 |

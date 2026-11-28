@@ -170,8 +170,9 @@ Generated Agent discovery/maintenance schema integration tests run in the defaul
 contributing incidental Domain/Application execution to statement coverage. Release certification remains separate.
 
 Use `Authentication.BrowserResponse` for browser JSON: it has no refresh token and rejects extra fields,
-so the consumer may issue that credential only in an `HttpOnly` cookie. `TokenSet` itself remains non-serializable;
-explicitly project its getters into the selected safe transport profile. Use
+so the consumer may issue that credential only in an `HttpOnly` cookie. The PHP `TokenSet` refuses native
+serialization and redacts both credentials in ordinary PHP debug output. Do not log or persist the object or
+its credentials. Read the getters explicitly to build the selected transport response. Use
 `Authentication.TokenSet` for an explicit portable body-token profile; it includes
 the required `refresh_token`, with no example. Request-only passwords and
 credentials are write-only and intentionally have no examples.
