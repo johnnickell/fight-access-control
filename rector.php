@@ -23,6 +23,4 @@ return RectorConfig::configure()
     ->withPreparedSets(
         codingStyle: true,
         privatization: true,
-        instanceOf: true,
-        earlyReturn: true,
     );
