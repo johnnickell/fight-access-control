@@ -14,17 +14,17 @@ Permissions while keeping control of your application's infrastructure.
 ## Release and installation
 
 <!-- release:start -->
-**Release: [v0.11.0](https://github.com/johnnickell/fight-access-control/releases/tag/v0.11.0)**
+**Release: [v0.11.1](https://github.com/johnnickell/fight-access-control/releases/tag/v0.11.1)**
 
 **Status: published.**
 
 Requires **PHP 8.5+** and **Fight Common ^1.5.1** (resolved by Composer).
 ```bash
-composer require johnnickell/fight-access-control:"~0.11.0"
+composer require johnnickell/fight-access-control:"~0.11.1"
 ```
 
-[Release overview](docs/release-0.11.0.md) ·
-[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.11.0/docs)
+[Release overview](docs/release-0.11.1.md) ·
+[Tagged documentation](https://github.com/johnnickell/fight-access-control/tree/v0.11.1/docs)
 <!-- release:end -->
 
 Use documentation from the tag matching your installed version. Repository guides describe the checkout and may

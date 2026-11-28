@@ -571,7 +571,14 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.11.0 published
+## Current release handoff — v0.11.1 published
+
+[v0.11.1](../docs/release-0.11.1.md) was published on 2026-11-28 (UTC) from the certified `main` merge in
+[PR #294](https://github.com/johnnickell/fight-access-control/pull/294). It is a focused `TokenSet` patch, not a
+release of the current `develop` branch. The signed tag, immutable GitHub release and Packagist references
+were verified. Consumer installation was not tested.
+
+## v0.11.0 published release checkpoint
 
 [v0.11.0](../docs/release-0.11.0.md) was published on 2026-11-20 (UTC) from the certified `main` merge in
 [PR #269](https://github.com/johnnickell/fight-access-control/pull/269). The signed tag, immutable GitHub release,
@@ -870,6 +877,7 @@ The EPIC's historical pre-v1.0.0 target is not an authorization to release v1.0.
 
 | Version | Date | Outcome |
 | --- | --- | --- |
+| `v0.11.1` | 2026-11-28 (UTC) | `TokenSet` refuses native PHP serialization and redacts credentials in ordinary debug output. See the [release overview](../docs/release-0.11.1.md). |
 | `v0.11.0` | 2026-11-20 (UTC) | Administrative session revocation audit records now require the exact trimmed reason on readback. See the [release overview](../docs/release-0.11.0.md). |
 | `v0.10.1` | 2026-11-19 (UTC) | Fixed atomic delivery-failed audit recording when retryable invitation, password-reset or email-change delivery ends in expiry. See the [release overview](../docs/release-0.10.1.md). |
 | `v0.10.0` | 2026-11-19 (UTC) | Published trusted User Role assignments with system attribution and widened actor getters. Existing User payloads are unchanged. See the [release overview](../docs/release-0.10.0.md). |
