@@ -573,7 +573,13 @@ John subsequently authorized commit, push and a planning-only PR to develop. No 
 implementation, merge, release or consumer adoption are authorized by that request. The published v0.8.0 handoff
 below is unchanged.
 
-## Current release handoff — v0.11.0 published
+## Current release handoff — v0.11.1 prepared
+
+[v0.11.1](../docs/release-0.11.1.md) is a focused `TokenSet` patch for the published v0.11 line, not a release
+of the current `develop` branch. Independent release assessment, integration, final certification, signing
+and publication are separate steps. v0.11.0 remains the last verified publication at this checkpoint.
+
+## v0.11.0 published release checkpoint
 
 [v0.11.0](../docs/release-0.11.0.md) was published on 2026-11-20 (UTC) from the certified `main` merge in
 [PR #269](https://github.com/johnnickell/fight-access-control/pull/269). The signed tag, immutable GitHub release,

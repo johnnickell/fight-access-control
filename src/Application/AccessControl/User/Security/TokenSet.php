@@ -8,11 +8,12 @@ use DateTimeImmutable;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshCredential;
 use Fight\AccessControl\Domain\AccessControl\RefreshSession\RefreshSessionId;
 use Fight\AccessControl\Domain\AccessControl\User\UserId;
+use LogicException;
 
 /**
  * Class TokenSet
  *
- * Returns the safe authentication material consumers need to establish browser authentication.
+ * Carries sensitive authentication material for explicit delivery by consumers.
  */
 final readonly class TokenSet
 {
@@ -86,5 +87,26 @@ final readonly class TokenSet
     public function getAccessTokenExpiresAt(): DateTimeImmutable
     {
         return $this->accessTokenExpiresAt;
+    }
+
+    /**
+     * Returns a diagnostic representation without credentials
+     *
+     * @return array{accessToken: string, refreshCredential: string}
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            'accessToken'       => '[REDACTED]',
+            'refreshCredential' => '[REDACTED]'
+        ];
+    }
+
+    /**
+     * Prevents the authentication result from being serialized
+     */
+    public function __serialize(): array
+    {
+        throw new LogicException('TokenSet cannot be serialized.');
     }
 }
