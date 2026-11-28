@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-11-28
+
+See the [release overview](docs/release-0.11.1.md).
+
 ### Fixed
 
-- `TokenSet` now refuses native PHP serialization and redacts both credentials in ordinary debug output.
+- `TokenSet` now refuses native PHP serialization and redacts both credentials in ordinary PHP debug output.
   Explicit getters and the browser and portable response contracts are unchanged.
 
 ## [0.11.0] - 2026-11-20
@@ -779,7 +783,8 @@ records the requirements for that release, not the current upgrade policy.
   tooling, and exact production-statement coverage.
 - Repository-local product, security, architecture, contribution, and Git Flow authority under the MIT License.
 
-[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-access-control/compare/v0.11.1...HEAD
+[0.11.1]: https://github.com/johnnickell/fight-access-control/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/johnnickell/fight-access-control/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/johnnickell/fight-access-control/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/johnnickell/fight-access-control/compare/v0.9.0...v0.10.0
