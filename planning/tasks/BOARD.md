@@ -5,17 +5,17 @@ dependencies, acceptance, and verification.
 
 ## What's Next?
 
-First ready Task: [TASK-00205](00205-TASK.md) — Enforce the TokenSet credential handling contract.
+Active Task: [TASK-00205](00205-TASK.md) — Enforce the TokenSet credential handling contract.
 
 ## In Progress
 
-No Tasks are currently in this state.
+| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 528 | [TASK-00205](00205-TASK.md) | Enforce the TokenSet credential handling contract | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 
-| Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
-| --- | --- | --- | --- | --- | --- | --- |
-| 528 | [TASK-00205](00205-TASK.md) | Enforce the TokenSet credential handling contract | — (standalone bug) | ready-for-agent | — | — |
+No Tasks are currently in this state.
 
 ## Waiting
 

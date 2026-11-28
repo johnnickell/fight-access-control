@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `TokenSet` now refuses native PHP serialization and redacts both credentials in ordinary debug output.
+  Explicit getters and the browser and portable response contracts are unchanged.
+
 ## [0.11.0] - 2026-11-20
 
 Prepared on this date (UTC); see the [release overview](docs/release-0.11.0.md).

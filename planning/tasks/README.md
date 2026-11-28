@@ -9,5 +9,5 @@ The [Task Board](BOARD.md) is the operational projection.
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 527 | [TASK-00204](00204-TASK.md) | Remove obsolete Rector options | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/291 |
-| 528 | [TASK-00205](00205-TASK.md) | Enforce the TokenSet credential handling contract | — (standalone bug) | ready-for-agent | — | — |
+| 528 | [TASK-00205](00205-TASK.md) | Enforce the TokenSet credential handling contract | — (standalone bug) | in-progress | — | — |
 <!-- generated:task-index:end -->

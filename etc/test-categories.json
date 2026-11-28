@@ -1947,6 +1947,12 @@
       "reason": "Executes swagger-php discovery of shipped metadata and generated-schema validation against payloads.",
       "methods": {}
     },
+    "Fight\\Test\\AccessControl\\Application\\AccessControl\\User\\Security\\TokenSetTest": {
+      "file": "tests/Application/AccessControl/User/Security/TokenSetTest.php",
+      "category": "Unit",
+      "reason": "Isolated credential handling on a value with synthetic inputs; no real storage, network or process.",
+      "methods": {}
+    },
     "Fight\\Test\\AccessControl\\OpenApi\\PublicPayloadContractTest": {
       "file": "tests/OpenApi/PublicPayloadContractTest.php",
       "category": "Integration",
