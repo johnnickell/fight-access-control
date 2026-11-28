@@ -36,4 +36,4 @@ No Tasks are currently in this state.
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | 527 | [TASK-00204](00204-TASK.md) | Remove obsolete Rector options | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/291 |
-| 528 | [TASK-00205](00205-TASK.md) | Enforce the TokenSet credential handling contract | — (standalone bug) | done | — | — |
+| 528 | [TASK-00205](00205-TASK.md) | Enforce the TokenSet credential handling contract | — (standalone bug) | done | — | https://github.com/johnnickell/fight-access-control/pull/293 |
